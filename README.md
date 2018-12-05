@@ -6,4 +6,4 @@ Scalar DL is a blockchain-inspired distributed ledger platform software, which a
 - Exact finality and linearizable consistency 
 
 ## License
-Scalar DL is under only commercial license. Please [contact us](https://scalar-labs.com/contact_us/) for more information.
+Scalar DL is licensed under commercial license only. Please [contact us](https://scalar-labs.com/contact_us/) for more information.
