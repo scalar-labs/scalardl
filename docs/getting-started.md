@@ -47,7 +47,7 @@ $ client/bin/register-cert -properties client.properties
 
 ## Create a contract
 
-Contracts in Scalar DL are simply Java classes which extend the `Contract` class and override the `invoke` method. Let's take a closer look at the `StateUpdater.java` contract which creates an asset and associates some state with it.
+Contracts in Scalar DL are simply Java classes which extend the [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/contract/Contract.html) class and override the `invoke` method. Let's take a closer look at the `StateUpdater.java` contract which creates an asset and associates some state with it.
 
 ```java
 package com.org1.contract;
@@ -127,7 +127,7 @@ To quickly run and test your contrats in your local environment, [Scalar DL Emul
 
 ## Interact with ClientService 
 
-The tools we have used above are useful for simple testing purposes, but should not be used for production applications. The Client SDK also provides a service layer called `ClientService` which should be used for production applications.
+The tools we have used above are useful for simple testing purposes, but should not be used for production applications. The Client SDK also provides a service layer called [`ClientService`](https://scalar-labs.github.io/scalardl/javadoc/client/com/scalar/client/service/ClientService.html) which should be used for production applications.
 The following is a code snippet showing how to use `ClientService` to execute a contract.
 
 ```java
@@ -152,3 +152,6 @@ For more information, please take a look at [Javadoc](https://scalar-labs.github
 * [Design document](design.md)
 * [Javadoc for client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
 * [A guide on how to write a good contract](how-to-write-contract.md)
+* Javadoc
+    * [Client](https://scalar-labs.github.io/scalardl/javadoc/client/)
+    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/ledger/)

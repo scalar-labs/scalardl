@@ -16,6 +16,12 @@ Scalar DL is a blockchain-inspired distributed ledger platform software, which a
 * [Cluster setup guide](cluster-setup-guide.md)
 * Sample applications
     * [Simple banking application](applications/simple-bank-account/README.md)
+* Javadoc
+    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/ledger/)
+    * [Client](https://scalar-labs.github.io/scalardl/javadoc/client/)
+    * [Proof](https://scalar-labs.github.io/scalardl/javadoc/proof/)
+    * [Ordering](https://scalar-labs.github.io/scalardl/javadoc/ordering/)
+    * [Rpc](https://scalar-labs.github.io/scalardl/javadoc/rpc/)
 
 ## License
 Scalar DL is licensed under commercial license only. Please [contact us](https://scalar-labs.com/contact_us/) for more information.

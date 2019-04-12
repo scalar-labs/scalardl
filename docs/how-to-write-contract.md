@@ -4,7 +4,7 @@ This document sets out some guidelines for writing contracts for Scalar DL.
 
 ## What is a contract for Scalar DL ?
 
-A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending `Contract` class written for implementing a single function of business logic.
+A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/contract/Contract.html) class written for implementing a single function of business logic.
 A contact and its arguments are digitally-signed with the contract owner's private key and passed to the Scalar DL network. This mechanism allows the contract to be only executed by the owner and it makes it possible for the system to detect malicious activity such as data tampering.
 Before taking a look at this, it is recommended to check [Getting Started in Scalar DL](dl-getting-started.md) and [Scalar DL v1 design document](dl-design.md) to understand what Scalar DL is and its basic terminologies.
 
@@ -39,7 +39,7 @@ public class StateUpdater extends Contract {
 
 ### About the arguments
 
-As shown above, the overridden `invoke` method accepts `Ledger` for interacting with the ledger, a `JsonObject` for the contract argument, and an optional `JsonObject` for contract properties.
+As shown above, the overridden `invoke` method accepts [`Ledger`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/ledger/Ledger.html) for interacting with the ledger, a [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for  (otherwise the request is treated as if it does not exist.the contract argument, and an optional [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for contract properties.
 The `Ledger` manages a set of assets. In order to interact with the `Ledger`, you can call `get`, `put` and `scan`.
 `get` is used to retrieve the latest asset record of the specified asset. `put` is used to append a new asset record to the specified asset. `scan` is used to traverse the specified asset.
 Note that you are only allowed to append a asset record to the asset ledger with this abstraction. Thus, it is always a good thing to design your data with the abstraction before writing a contract for Scalar DL.

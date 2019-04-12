@@ -79,6 +79,7 @@ A Smart Contract in Scalar DL is a java program which extends the base class `Co
 
 Scalar DL pre-orders contract execution requests before execution so that multiple independent organizations receive the requests in the same order and can make their states the same as others' without having to interact with each other.
 It uses Kafka as the ordering manager because of its reliability and performance.
+Ordering component only assumes crash fault, but it just orders and relays signed requests so that there is nothing it can do except for removing a request, which can be detectable by the requester.
 
 ## Key Features
 
