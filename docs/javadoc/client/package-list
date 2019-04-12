@@ -1,0 +1,8 @@
+com.scalar
+com.scalar.client.auth
+com.scalar.client.config
+com.scalar.client.exception
+com.scalar.client.proof
+com.scalar.client.service
+com.scalar.client.tool
+com.scalar.client.util

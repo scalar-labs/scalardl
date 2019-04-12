@@ -1,0 +1,7 @@
+com.scalar
+com.scalar.proof.config
+com.scalar.proof.crypto
+com.scalar.proof.exception
+com.scalar.proof.registry
+com.scalar.proof.server
+com.scalar.proof.service
