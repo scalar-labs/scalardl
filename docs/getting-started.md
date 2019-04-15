@@ -5,7 +5,7 @@ Here, we assume that you already have a certificate and a private key required t
 
 ## What is Scalar DL?
 
-Scalar DL is a blockchain-inspired distributed ledger platform software, which achieves:
+Scalar DL is a blockchain-inspired distributed ledger platform, which achieves:
 
 * High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
 * Scalable and highly available ACID-compliant smart contract executions

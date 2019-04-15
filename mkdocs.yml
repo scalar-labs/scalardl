@@ -7,9 +7,8 @@ nav:
     - Installation with Docker (Partner-only): installation-with-docker.md
     - Getting started: getting-started.md
     - How to write a contract: how-to-write-contract.md
+    - Tutorials: tutorials.md
     - Trouble-shooting guide: trouble-shooting-guide.md
-    - Sample applications:
-        - Simple banking application: applications/simple-bank-account/README.md
 - Design:
     - Design document: design.md
 - Operation:
