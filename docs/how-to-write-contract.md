@@ -51,7 +51,7 @@ Note that you are only allowed to append an asset record to the asset ledger wit
 For example in an agreement application, the business logic for the agreement can be defined as a general contract but the agreement conditions may vary depending on the actual application. The optional properties field allows you to define the agreement conditions such as quorum for each contract instance without hard-coding it in the contract.
 
 #### Variable names in the argument
-The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later version, some variables such as `asset_id` and `asset_ids` will be reserved to express references to assets.
+The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later versions, some variables such as `asset_id` and `asset_ids` will be reserved to express references to assets.
 
 #### Grouping assets
 The value of `asset_id` can be arbitrarily defined but it is a good practice to have some rules when you want to group assets.
