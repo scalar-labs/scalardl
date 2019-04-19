@@ -42,7 +42,7 @@ public class StateUpdater extends Contract {
 As shown above, the overridden `invoke` method accepts [`Ledger`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/ledger/Ledger.html) for interacting with the ledger, a [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for  (otherwise the request is treated as if it does not exist.the contract argument, and an optional [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for contract properties.
 The `Ledger` manages a set of assets. In order to interact with the `Ledger`, you can call `get`, `put` and `scan`.
 `get` is used to retrieve the latest asset record of the specified asset. `put` is used to append a new asset record to the specified asset. `scan` is used to traverse the specified asset.
-Note that you are only allowed to append a asset record to the asset ledger with this abstraction. Thus, it is always a good thing to design your data with the abstraction before writing a contract for Scalar DL.
+Note that you are only allowed to append an asset record to the asset ledger with this abstraction. Thus, it is always a good thing to design your data with the abstraction before writing a contract for Scalar DL.
 
 `JsonObject` for contract argument is an immutable json object and a runtime argument for the contract specified by the requester.
   can be used to define runtime variables. For example in a banking application, you may have a Payment contract where a payer and a payee are passed to the contract as the argument every time it is executed.
@@ -50,10 +50,14 @@ Note that you are only allowed to append a asset record to the asset ledger with
 `JsonObject` for contract properties is static variables for the contract. It can be used to define contract's per-instance static variables. 
 For example in an agreement application, the business logic for the agreement can be defined as a general contract but the agreement conditions may vary depending on the actual application. The optional properties field allows you to define the agreement conditions such as quorum for each contract instance without hard-coding it in the contract.
 
+#### Variable names in the argument
+The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later versions, some variables such as `asset_id` and `asset_ids` will be reserved to express references to assets.
 
+#### Grouping assets
+The value of `asset_id` can be arbitrarily defined but it is a good practice to have some rules when you want to group assets.
+For example, if you want to group them in a certain generation, you can append some generation number to the assets like `{asset_id}-0`.
+Or you can group them per organization by having some organization ID as a prefix like `{org-id}-{asset_id}`.
 
-#### NOTE
-The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later version, some variables such as `asset_id` and `asset_ids` will be reserved to express references to assets.
 
 ### About the internal
 
@@ -137,6 +141,7 @@ Here are the best practices for writing good contracts for Scalar DL.
 * Modularize contracts to make each do only one thing, and use nested invocation
 * Make contracts deterministic
 * Use `asset_id` or `asset_ids` to refer to assets for backward-compatibility 
+* Define `asset_id` with some rules when you want to group assets
 
 ## References
 
