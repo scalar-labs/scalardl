@@ -5,5 +5,8 @@ Scalar DL is a blockchain-inspired distributed ledger which achieves:
 - Scalable and highly available ACID-compliant smart contract executions
 - Exact finality and linearizable consistency 
 
+## Docs
+* [Scalar DL Docs](https://scalardl.readthedocs.io/en/latest/)
+
 ## License
 Scalar DL is licensed under commercial license only. Please [contact us](https://scalar-labs.com/contact_us/) for more information.
