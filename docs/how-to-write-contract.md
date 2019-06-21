@@ -58,7 +58,6 @@ The value of `asset_id` can be arbitrarily defined but it is a good practice to 
 For example, if you want to group them in a certain generation, you can append some generation number to the assets like `{asset_id}-0`.
 Or you can group them per organization by having some organization ID as a prefix like `{org-id}-{asset_id}`.
 
-
 ### About the internal
 
 Let's look at the internal of the `invoke` method of `StateUpdater` contract.
@@ -72,6 +71,11 @@ A contract might face some `RuntimeException` when interacting with `Ledger`, bu
 
 This contract will just create or update the state of the specified asset, so it doesn't need to return anything to the requester. So in this case, it can return `null`.
 If you want to return something to a requester, you can return an arbitrary `JsonObject`.
+
+### Exception handling
+
+Note that you should not do any exception handling in contracts except for throwing `ContractContextException` as mentioned above.
+Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can not proceed for some reason, but the exceptions should not be caught. Exceptions are handled properly outside of contracts.
 
 ### Determinism
 
@@ -138,6 +142,7 @@ Here are the best practices for writing good contracts for Scalar DL.
 
 * Design your data properly to fit with Ledger abstraction before writing contracts
 * Throw `ContractContextException` if a contract faces non-recoverable errors
+* Do not do any exception handling except for throwing `ContractContextException`
 * Modularize contracts to make each do only one thing, and use nested invocation
 * Make contracts deterministic
 * Use `asset_id` or `asset_ids` to refer to assets for backward-compatibility 
