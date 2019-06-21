@@ -75,7 +75,7 @@ If you want to return something to a requester, you can return an arbitrary `Jso
 ### Exception handling
 
 Note that you should not do any exception handling in contracts except for throwing `ContractContextException` as mentioned above.
-Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can not proceed for some reasons, but the exceptions should not be caught. Exceptions are handled properly by the outside of contracts and will be used to identify if it is retryable or not in the later version.
+Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can not proceed for some reasons, but the exceptions should not be caught. Exceptions are handled properly outside of contracts.
 
 ### Determinism
 
