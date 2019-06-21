@@ -75,7 +75,7 @@ If you want to return something to a requester, you can return an arbitrary `Jso
 ### Exception handling
 
 Note that you should not do any exception handling in contracts except for throwing `ContractContextException` as mentioned above.
-Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can not proceed for some reasons, but the exceptions should not be caught. Exceptions are handled properly by the outside of contracts and will be used to identify if it is retryable not not in the later version.
+Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can not proceed for some reasons, but the exceptions should not be caught. Exceptions are handled properly by the outside of contracts and will be used to identify if it is retryable or not in the later version.
 
 ### Determinism
 
@@ -142,6 +142,7 @@ Here are the best practices for writing good contracts for Scalar DL.
 
 * Design your data properly to fit with Ledger abstraction before writing contracts
 * Throw `ContractContextException` if a contract faces non-recoverable errors
+* Do not do any exception handling except for throwing `ContractContextException`
 * Modularize contracts to make each do only one thing, and use nested invocation
 * Make contracts deterministic
 * Use `asset_id` or `asset_ids` to refer to assets for backward-compatibility 
