@@ -59,6 +59,8 @@ In the `scalardl-client-sdk` directory:
     $ client/bin/register-contract -properties client.properties -contract-id <username>-StateUpdater -contract-binary-name com.org1.contract.StateUpdater -contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
     ```
 
+    The `client.properties` should be the same file from the zip downloaded earlier.
+
 3. Execute the contract
 
     NOTE: Please replace `<username>` with your GitHub username.
