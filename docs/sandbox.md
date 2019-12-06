@@ -19,7 +19,8 @@ We will provide you with a zip file containing the necessary access token, key p
 The access token is only used for authentication with Sandbox API gateway.
 The key pair is used for communicating with Scalar DL network.
 
-Please note that we generate a key pair for ease of use for the Sandbox environment, but it is usually required to create your private key in your own environment.
+Please note that we generate a pair of a private key and a certificate for ease of use for the Sandbox environment, but it is usually required to create the pair in your own environment.
+The generated certificate is already registered to Scalar DL in the Sandbox environment, so you don't have to take a step to register it.
 
 ## Before running your first contract 
 
@@ -35,17 +36,6 @@ Since the Sandbox is a shared environment that anyone can access,
 take special care when choosing appropriate names for your `asset_id`s so that they will not conflict with the `asset_id`s chosen by other user.
 One recommended way to do this is to append your username to the asset name, for example `<username>-<your-asset-name>`.
 Also, the same care is needed when choosing contract IDs and we recommend using `<username>-<your-contract-class-name>`.
-
-## Register your certificate
-
-Next, let's register your certificate in the Scalar DL network.
-The registered certificate will allow you to register and execute contracts, and is also used for tamper detection of the data stored in the network.
-
-In the `scalardl-client-sdk` directory:
-```
-$ client/bin/register-cert -properties client.properties
-```
-* The `client.properties` should be the same file from the zip downloaded earlier.
 
 ## Run the StateUpdater contract
 
