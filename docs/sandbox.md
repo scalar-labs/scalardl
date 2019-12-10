@@ -19,7 +19,7 @@ We will provide you with a zip file containing the necessary access token, key p
 The access token is only used for authentication with Sandbox API gateway.
 The key pair is used for communicating with Scalar DL network.
 
-Please note that we generate a pair of a private key and a certificate for ease of use for the Sandbox environment, but it is usually required to create the pair in your own environment.
+Please note that we generate a pair of a private key and a certificate and register the certificate for ease of use for the Sandbox environment, but those steps are usually required in your own environment.
 The generated certificate is already registered to Scalar DL in the Sandbox environment, so you don't have to take a step to register it.
 
 ## Before running your first contract 
