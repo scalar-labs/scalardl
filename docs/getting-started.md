@@ -22,16 +22,16 @@ Please update the values depending on your environment.
 ```
 [client.properties]
 # A host name of Scalar DL network server.
-scalar.ledger.client.server_host=localhost
+scalar.dl.client.server.host=localhost
 
 # An ID of a certificate holder. It must be configured for each private key and unique in the system.
-scalar.ledger.client.cert_holder_id=foo
+scalar.dl.client.cert_holder_id=foo
 
 # A certificate file path to use.
-scalar.ledger.client.cert_path=/path/to/foo.pem
+scalar.dl.client.cert_path=/path/to/foo.pem
 
 # A private key file path to use. 
-scalar.ledger.client.private_key_path=/path/to/foo-key.pem
+scalar.dl.client.private_key_path=/path/to/foo-key.pem
 ```
 
 ## Register the certificate
@@ -47,15 +47,15 @@ $ client/bin/register-cert -properties client.properties
 
 ## Create a contract
 
-Contracts in Scalar DL are simply Java classes which extend the [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/contract/Contract.html) class and override the `invoke` method. Let's take a closer look at the `StateUpdater.java` contract which creates an asset and associates some state with it.
+Contracts in Scalar DL are simply Java classes which extend the [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/Contract.html) class and override the `invoke` method. Let's take a closer look at the `StateUpdater.java` contract which creates an asset and associates some state with it.
 
 ```java
 package com.org1.contract;
 
-import com.scalar.ledger.asset.Asset;
-import com.scalar.ledger.contract.Contract;
-import com.scalar.ledger.exception.ContractContextException;
-import com.scalar.ledger.ledger.Ledger;
+import com.scalar.dl.ledger.asset.Asset;
+import com.scalar.dl.ledger.contract.Contract;
+import com.scalar.dl.ledger.exception.ContractContextException;
+import com.scalar.dl.ledger.database.Ledger;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -115,30 +115,30 @@ $ client/bin/execute-contract -properties client.properties -contract-id StateUp
 ```
 
 In the contract argument, the value specified with the key `asset_id` must be unique globally for each asset.
-In Scalar DL 1.0, `asset_id` is not a reserved json key name and you can use any json key name, but this will probably be changed in future versions.
-(`asset_id` and `asset_ids` will be reserved for future enhancements.)
+In Scalar DL 1.0, `asset_id` is not a reserved json key name and you can use any json key name, but this might be changed in future versions.
 
 ## Create your own contracts
 
 As we explained above, what you need to create your own contracts is extend the `Contract` class and override the `invoke` method as you like.
 We are preparing more sample contracts, so please wait for an update.
 
-To quickly run and test your contrats in your local environment, [Scalar DL Emulator](https://github.com/scalar-labs/scalardl-emulator) might be useful. It uses a mutable in-memory ledger instead of an immutable ledger database and provides an interactive interface, making it easy to do trial and error testing.
+To quickly run and test your contrats in your local environment, [Scalar DL Emulator](https://github.com/scalar-labs/scalardl-tools/tree/master/emulator) might be useful. It uses a mutable in-memory ledger instead of an immutable ledger database and provides an interactive interface, making it easy to do trial and error testing.
 
 ## Interact with ClientService 
 
-The tools we have used above are useful for simple testing purposes, but should not be used for production applications. The Client SDK also provides a service layer called [`ClientService`](https://scalar-labs.github.io/scalardl/javadoc/client/com/scalar/client/service/ClientService.html) which should be used for production applications.
+The tools we have used above are useful for simple testing purposes, but should not be used for production applications. The Client SDK also provides a service layer called [`ClientService`](https://scalar-labs.github.io/scalardl/javadoc/client/com/scalar/dl/client/service/ClientService.html) which should be used for production applications.
 The following is a code snippet showing how to use `ClientService` to execute a contract.
 
 ```java
-  Injector injector =
-  Guice.createInjector(new ClientModule(new ClientConfig(new File(properties))));
-
+  Injector injector = Guice.createInjector(new ClientModule(new ClientConfig(new File(properties))));
+ 
   try (ClientService service = injector.getInstance(ClientService.class)) {
     JsonObject jsonArgument = Json.createReader(new StringReader(contractArgument)).readObject();
-    ContractExecutionResponse response = service.executeContract(contractId, jsonArgument);
-    System.out.println("status: " + response.getStatus());
-    System.out.println("result: " + response.getResult());
+    ContractExecutionResult result = service.executeContract(contractId, jsonArgument);
+    result.getResult().ifPresent(System.out::println);
+  } catch (ClientException e) {
+    System.err.println(e.getStatusCode());
+    System.err.println(e.getMessage());
   }
 ```
 
