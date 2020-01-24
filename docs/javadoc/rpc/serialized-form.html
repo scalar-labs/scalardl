@@ -73,12 +73,12 @@
 <div class="serializedFormContainer">
 <ul class="blockList">
 <li class="blockList">
-<h2 title="Package">Package&nbsp;com.scalar.rpc</h2>
+<h2 title="Package">Package&nbsp;com.scalar.dl.rpc</h2>
 <ul class="blockList">
-<li class="blockList"><a name="com.scalar.rpc.AssetProof">
+<li class="blockList"><a name="com.scalar.dl.rpc.AssetProof">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/AssetProof.html" title="class in com.scalar.rpc">com.scalar.rpc.AssetProof</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/AssetProof.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.AssetProof</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -115,58 +115,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.AssetProofs">
+<li class="blockList"><a name="com.scalar.dl.rpc.CertificateRegistrationRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/AssetProofs.html" title="class in com.scalar.rpc">com.scalar.rpc.AssetProofs</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
-<dl class="nameValue">
-<dt>serialVersionUID:</dt>
-<dd>0L</dd>
-</dl>
-<ul class="blockList">
-<li class="blockList">
-<h3>Serialized Fields</h3>
-<ul class="blockList">
-<li class="blockList">
-<h4>proofs_</h4>
-<pre>java.util.List&lt;E&gt; proofs_</pre>
-</li>
-<li class="blockListLast">
-<h4>memoizedIsInitialized</h4>
-<pre>byte memoizedIsInitialized</pre>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="blockList"><a name="com.scalar.rpc.AssetReference">
-<!--   -->
-</a>
-<h3>Class <a href="com/scalar/rpc/AssetReference.html" title="class in com.scalar.rpc">com.scalar.rpc.AssetReference</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
-<dl class="nameValue">
-<dt>serialVersionUID:</dt>
-<dd>0L</dd>
-</dl>
-<ul class="blockList">
-<li class="blockList">
-<h3>Serialized Fields</h3>
-<ul class="blockList">
-<li class="blockList">
-<h4>assetId_</h4>
-<pre>java.lang.Object assetId_</pre>
-</li>
-<li class="blockListLast">
-<h4>memoizedIsInitialized</h4>
-<pre>byte memoizedIsInitialized</pre>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="blockList"><a name="com.scalar.rpc.CertificateRegistrationRequest">
-<!--   -->
-</a>
-<h3>Class <a href="com/scalar/rpc/CertificateRegistrationRequest.html" title="class in com.scalar.rpc">com.scalar.rpc.CertificateRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/CertificateRegistrationRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.CertificateRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -195,10 +147,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.ContractExecutionRequest">
+<li class="blockList"><a name="com.scalar.dl.rpc.ContractExecutionRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/ContractExecutionRequest.html" title="class in com.scalar.rpc">com.scalar.rpc.ContractExecutionRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/ContractExecutionRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ContractExecutionRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -224,6 +176,10 @@
 <pre>int certVersion_</pre>
 </li>
 <li class="blockList">
+<h4>functionArgument_</h4>
+<pre>java.lang.Object functionArgument_</pre>
+</li>
+<li class="blockList">
 <h4>signature_</h4>
 <pre>com.google.protobuf.ByteString signature_</pre>
 </li>
@@ -235,10 +191,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.ContractExecutionResponse">
+<li class="blockList"><a name="com.scalar.dl.rpc.ContractExecutionResponse">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/ContractExecutionResponse.html" title="class in com.scalar.rpc">com.scalar.rpc.ContractExecutionResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/ContractExecutionResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ContractExecutionResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -248,12 +204,8 @@
 <h3>Serialized Fields</h3>
 <ul class="blockList">
 <li class="blockList">
-<h4>status_</h4>
-<pre>int status_</pre>
-</li>
-<li class="blockList">
-<h4>message_</h4>
-<pre>java.lang.Object message_</pre>
+<h4>bitField0_</h4>
+<pre>int bitField0_</pre>
 </li>
 <li class="blockList">
 <h4>result_</h4>
@@ -261,7 +213,7 @@
 </li>
 <li class="blockList">
 <h4>proofs_</h4>
-<pre><a href="com/scalar/rpc/AssetProofs.html" title="class in com.scalar.rpc">AssetProofs</a> proofs_</pre>
+<pre>java.util.List&lt;E&gt; proofs_</pre>
 </li>
 <li class="blockListLast">
 <h4>memoizedIsInitialized</h4>
@@ -271,10 +223,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.ContractRegistrationRequest">
+<li class="blockList"><a name="com.scalar.dl.rpc.ContractRegistrationRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/ContractRegistrationRequest.html" title="class in com.scalar.rpc">com.scalar.rpc.ContractRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/ContractRegistrationRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ContractRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -319,10 +271,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.ContractsListingRequest">
+<li class="blockList"><a name="com.scalar.dl.rpc.ContractsListingRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/ContractsListingRequest.html" title="class in com.scalar.rpc">com.scalar.rpc.ContractsListingRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/ContractsListingRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ContractsListingRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -355,10 +307,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.LedgerServiceResponse">
+<li class="blockList"><a name="com.scalar.dl.rpc.ContractsListingResponse">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/LedgerServiceResponse.html" title="class in com.scalar.rpc">com.scalar.rpc.LedgerServiceResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/ContractsListingResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ContractsListingResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -368,12 +320,8 @@
 <h3>Serialized Fields</h3>
 <ul class="blockList">
 <li class="blockList">
-<h4>status_</h4>
-<pre>int status_</pre>
-</li>
-<li class="blockList">
-<h4>message_</h4>
-<pre>java.lang.Object message_</pre>
+<h4>json_</h4>
+<pre>java.lang.Object json_</pre>
 </li>
 <li class="blockListLast">
 <h4>memoizedIsInitialized</h4>
@@ -383,10 +331,70 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.LedgerValidationRequest">
+<li class="blockList"><a name="com.scalar.dl.rpc.FunctionRegistrationRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/LedgerValidationRequest.html" title="class in com.scalar.rpc">com.scalar.rpc.LedgerValidationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/FunctionRegistrationRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.FunctionRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>functionId_</h4>
+<pre>java.lang.Object functionId_</pre>
+</li>
+<li class="blockList">
+<h4>functionBinaryName_</h4>
+<pre>java.lang.Object functionBinaryName_</pre>
+</li>
+<li class="blockList">
+<h4>functionByteCode_</h4>
+<pre>com.google.protobuf.ByteString functionByteCode_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.IdentifiableContractExecutionResponse">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/IdentifiableContractExecutionResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.IdentifiableContractExecutionResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>response_</h4>
+<pre><a href="com/scalar/dl/rpc/ContractExecutionResponse.html" title="class in com.scalar.dl.rpc">ContractExecutionResponse</a> response_</pre>
+</li>
+<li class="blockList">
+<h4>nonce_</h4>
+<pre>java.lang.Object nonce_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.LedgerValidationRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/LedgerValidationRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.LedgerValidationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -419,10 +427,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.LedgerValidationResponse">
+<li class="blockList"><a name="com.scalar.dl.rpc.LedgerValidationResponse">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/LedgerValidationResponse.html" title="class in com.scalar.rpc">com.scalar.rpc.LedgerValidationResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/LedgerValidationResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.LedgerValidationResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -432,16 +440,12 @@
 <h3>Serialized Fields</h3>
 <ul class="blockList">
 <li class="blockList">
-<h4>status_</h4>
-<pre>int status_</pre>
-</li>
-<li class="blockList">
-<h4>message_</h4>
-<pre>java.lang.Object message_</pre>
+<h4>statusCode_</h4>
+<pre>int statusCode_</pre>
 </li>
 <li class="blockList">
 <h4>proof_</h4>
-<pre><a href="com/scalar/rpc/AssetProof.html" title="class in com.scalar.rpc">AssetProof</a> proof_</pre>
+<pre><a href="com/scalar/dl/rpc/AssetProof.html" title="class in com.scalar.dl.rpc">AssetProof</a> proof_</pre>
 </li>
 <li class="blockListLast">
 <h4>memoizedIsInitialized</h4>
@@ -451,10 +455,10 @@
 </li>
 </ul>
 </li>
-<li class="blockList"><a name="com.scalar.rpc.ProofRegistryResponse">
+<li class="blockList"><a name="com.scalar.dl.rpc.PauseRequest">
 <!--   -->
 </a>
-<h3>Class <a href="com/scalar/rpc/ProofRegistryResponse.html" title="class in com.scalar.rpc">com.scalar.rpc.ProofRegistryResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<h3>Class <a href="com/scalar/dl/rpc/PauseRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.PauseRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
 <dl class="nameValue">
 <dt>serialVersionUID:</dt>
 <dd>0L</dd>
@@ -464,16 +468,240 @@
 <h3>Serialized Fields</h3>
 <ul class="blockList">
 <li class="blockList">
-<h4>status_</h4>
-<pre>int status_</pre>
+<h4>waitOutstanding_</h4>
+<pre>boolean waitOutstanding_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.ProofRetrievalRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/ProofRetrievalRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ProofRetrievalRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>assetId_</h4>
+<pre>java.lang.Object assetId_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.ProofRetrievalResponse">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/ProofRetrievalResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ProofRetrievalResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>proof_</h4>
+<pre><a href="com/scalar/dl/rpc/AssetProof.html" title="class in com.scalar.dl.rpc">AssetProof</a> proof_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.ProofsRegistrationRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/ProofsRegistrationRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ProofsRegistrationRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>proofs_</h4>
+<pre>java.util.List&lt;E&gt; proofs_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.ResultRetrievalRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/ResultRetrievalRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ResultRetrievalRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>executionId_</h4>
+<pre>java.lang.Object executionId_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.ReturnableContractExecutionRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/ReturnableContractExecutionRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.ReturnableContractExecutionRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>request_</h4>
+<pre><a href="com/scalar/dl/rpc/ContractExecutionRequest.html" title="class in com.scalar.dl.rpc">ContractExecutionRequest</a> request_</pre>
+</li>
+<li class="blockList">
+<h4>hostname_</h4>
+<pre>java.lang.Object hostname_</pre>
+</li>
+<li class="blockList">
+<h4>port_</h4>
+<pre>int port_</pre>
+</li>
+<li class="blockList">
+<h4>signature_</h4>
+<pre>com.google.protobuf.ByteString signature_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.StateRetrievalRequest">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/StateRetrievalRequest.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.StateRetrievalRequest</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>transactionId_</h4>
+<pre>java.lang.Object transactionId_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.StateRetrievalResponse">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/StateRetrievalResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.StateRetrievalResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>state_</h4>
+<pre>int state_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.StatsResponse">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/StatsResponse.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.StatsResponse</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>stats_</h4>
+<pre>java.lang.Object stats_</pre>
+</li>
+<li class="blockListLast">
+<h4>memoizedIsInitialized</h4>
+<pre>byte memoizedIsInitialized</pre>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="blockList"><a name="com.scalar.dl.rpc.Status">
+<!--   -->
+</a>
+<h3>Class <a href="com/scalar/dl/rpc/Status.html" title="class in com.scalar.dl.rpc">com.scalar.dl.rpc.Status</a> extends com.google.protobuf.GeneratedMessageV3 implements Serializable</h3>
+<dl class="nameValue">
+<dt>serialVersionUID:</dt>
+<dd>0L</dd>
+</dl>
+<ul class="blockList">
+<li class="blockList">
+<h3>Serialized Fields</h3>
+<ul class="blockList">
+<li class="blockList">
+<h4>code_</h4>
+<pre>int code_</pre>
 </li>
 <li class="blockList">
 <h4>message_</h4>
 <pre>java.lang.Object message_</pre>
-</li>
-<li class="blockList">
-<h4>proof_</h4>
-<pre><a href="com/scalar/rpc/AssetProof.html" title="class in com.scalar.rpc">AssetProof</a> proof_</pre>
 </li>
 <li class="blockListLast">
 <h4>memoizedIsInitialized</h4>

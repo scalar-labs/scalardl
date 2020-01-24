@@ -72,10 +72,15 @@
 <span class="packageHierarchyLabel">Package Hierarchies:</span>
 <ul class="horizontal">
 <li><a href="com/scalar/package-tree.html">com.scalar</a>, </li>
-<li><a href="com/scalar/ordering/consumer/package-tree.html">com.scalar.ordering.consumer</a>, </li>
-<li><a href="com/scalar/ordering/exception/package-tree.html">com.scalar.ordering.exception</a>, </li>
-<li><a href="com/scalar/ordering/producer/package-tree.html">com.scalar.ordering.producer</a>, </li>
-<li><a href="com/scalar/ordering/serde/package-tree.html">com.scalar.ordering.serde</a></li>
+<li><a href="com/scalar/dl/ordering/config/package-tree.html">com.scalar.dl.ordering.config</a>, </li>
+<li><a href="com/scalar/dl/ordering/consumer/package-tree.html">com.scalar.dl.ordering.consumer</a>, </li>
+<li><a href="com/scalar/dl/ordering/exception/package-tree.html">com.scalar.dl.ordering.exception</a>, </li>
+<li><a href="com/scalar/dl/ordering/executor/package-tree.html">com.scalar.dl.ordering.executor</a>, </li>
+<li><a href="com/scalar/dl/ordering/producer/package-tree.html">com.scalar.dl.ordering.producer</a>, </li>
+<li><a href="com/scalar/dl/ordering/serde/package-tree.html">com.scalar.dl.ordering.serde</a>, </li>
+<li><a href="com/scalar/dl/ordering/service/package-tree.html">com.scalar.dl.ordering.service</a>, </li>
+<li><a href="com/scalar/dl/ordering/sync/package-tree.html">com.scalar.dl.ordering.sync</a>, </li>
+<li><a href="com/scalar/dl/ordering/util/package-tree.html">com.scalar.dl.ordering.util</a></li>
 </ul>
 </div>
 <div class="contentContainer">
@@ -83,18 +88,33 @@
 <ul>
 <li type="circle">java.lang.Object
 <ul>
-<li type="circle">com.scalar.ordering.serde.<a href="com/scalar/ordering/serde/ContractExecutionRequestDeserializer.html" title="class in com.scalar.ordering.serde"><span class="typeNameLink">ContractExecutionRequestDeserializer</span></a> (implements org.apache.kafka.common.serialization.Deserializer&lt;T&gt;)</li>
-<li type="circle">com.scalar.ordering.serde.<a href="com/scalar/ordering/serde/ContractExecutionRequestSerializer.html" title="class in com.scalar.ordering.serde"><span class="typeNameLink">ContractExecutionRequestSerializer</span></a> (implements org.apache.kafka.common.serialization.Serializer&lt;T&gt;)</li>
-<li type="circle">com.scalar.ordering.consumer.<a href="com/scalar/ordering/consumer/KafkaRequestConsumer.html" title="class in com.scalar.ordering.consumer"><span class="typeNameLink">KafkaRequestConsumer</span></a> (implements java.lang.AutoCloseable, com.scalar.ordering.consumer.<a href="com/scalar/ordering/consumer/RequestConsumer.html" title="interface in com.scalar.ordering.consumer">RequestConsumer</a>)</li>
-<li type="circle">com.scalar.ordering.producer.<a href="com/scalar/ordering/producer/KafkaRequestProducer.html" title="class in com.scalar.ordering.producer"><span class="typeNameLink">KafkaRequestProducer</span></a> (implements com.scalar.ordering.producer.<a href="com/scalar/ordering/producer/RequestProducer.html" title="interface in com.scalar.ordering.producer">RequestProducer</a>)</li>
+<li type="circle">com.google.inject.AbstractModule (implements com.google.inject.Module)
+<ul>
+<li type="circle">com.scalar.dl.ordering.service.<a href="com/scalar/dl/ordering/service/OrderingModule.html" title="class in com.scalar.dl.ordering.service"><span class="typeNameLink">OrderingModule</span></a></li>
+</ul>
+</li>
+<li type="circle">com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/DummyRequestConsumer.html" title="class in com.scalar.dl.ordering.consumer"><span class="typeNameLink">DummyRequestConsumer</span></a> (implements com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/RequestConsumer.html" title="interface in com.scalar.dl.ordering.consumer">RequestConsumer</a>)</li>
+<li type="circle">com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/KafkaRequestConsumer.html" title="class in com.scalar.dl.ordering.consumer"><span class="typeNameLink">KafkaRequestConsumer</span></a> (implements com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/RequestConsumer.html" title="interface in com.scalar.dl.ordering.consumer">RequestConsumer</a>)</li>
+<li type="circle">com.scalar.dl.ordering.producer.<a href="com/scalar/dl/ordering/producer/KafkaRequestProducer.html" title="class in com.scalar.dl.ordering.producer"><span class="typeNameLink">KafkaRequestProducer</span></a> (implements java.lang.AutoCloseable, com.scalar.dl.ordering.producer.<a href="com/scalar/dl/ordering/producer/RequestProducer.html" title="interface in com.scalar.dl.ordering.producer">RequestProducer</a>)</li>
+<li type="circle">com.scalar.dl.ordering.sync.<a href="com/scalar/dl/ordering/sync/LatchSynchronization.html" title="class in com.scalar.dl.ordering.sync"><span class="typeNameLink">LatchSynchronization</span></a> (implements com.scalar.dl.ordering.sync.<a href="com/scalar/dl/ordering/sync/Synchronization.html" title="interface in com.scalar.dl.ordering.sync">Synchronization</a>&lt;T&gt;)</li>
+<li type="circle">com.scalar.dl.ordering.executor.<a href="com/scalar/dl/ordering/executor/LedgerExecutor.html" title="class in com.scalar.dl.ordering.executor"><span class="typeNameLink">LedgerExecutor</span></a></li>
+<li type="circle">com.scalar.dl.ordering.config.<a href="com/scalar/dl/ordering/config/OrderingConfig.html" title="class in com.scalar.dl.ordering.config"><span class="typeNameLink">OrderingConfig</span></a></li>
+<li type="circle">com.scalar.dl.ordering.util.<a href="com/scalar/dl/ordering/util/RequestSigner.html" title="class in com.scalar.dl.ordering.util"><span class="typeNameLink">RequestSigner</span></a></li>
+<li type="circle">com.scalar.dl.ordering.executor.<a href="com/scalar/dl/ordering/executor/ResponseProxy.html" title="class in com.scalar.dl.ordering.executor"><span class="typeNameLink">ResponseProxy</span></a> (implements java.lang.AutoCloseable)</li>
+<li type="circle">com.scalar.dl.ordering.serde.<a href="com/scalar/dl/ordering/serde/ReturnableContractExecutionRequestDeserializer.html" title="class in com.scalar.dl.ordering.serde"><span class="typeNameLink">ReturnableContractExecutionRequestDeserializer</span></a> (implements org.apache.kafka.common.serialization.Deserializer&lt;T&gt;)</li>
+<li type="circle">com.scalar.dl.ordering.serde.<a href="com/scalar/dl/ordering/serde/ReturnableContractExecutionRequestSerializer.html" title="class in com.scalar.dl.ordering.serde"><span class="typeNameLink">ReturnableContractExecutionRequestSerializer</span></a> (implements org.apache.kafka.common.serialization.Serializer&lt;T&gt;)</li>
+<li type="circle">com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/ScalarConsumer.html" title="class in com.scalar.dl.ordering.consumer"><span class="typeNameLink">ScalarConsumer</span></a></li>
 <li type="circle">java.lang.Throwable (implements java.io.Serializable)
 <ul>
 <li type="circle">java.lang.Exception
 <ul>
 <li type="circle">java.lang.RuntimeException
 <ul>
-<li type="circle">com.scalar.ordering.exception.<a href="com/scalar/ordering/exception/ConsumerException.html" title="class in com.scalar.ordering.exception"><span class="typeNameLink">ConsumerException</span></a></li>
-<li type="circle">com.scalar.ordering.exception.<a href="com/scalar/ordering/exception/ProducerException.html" title="class in com.scalar.ordering.exception"><span class="typeNameLink">ProducerException</span></a></li>
+<li type="circle">com.scalar.dl.ordering.exception.<a href="com/scalar/dl/ordering/exception/ConsumerException.html" title="class in com.scalar.dl.ordering.exception"><span class="typeNameLink">ConsumerException</span></a></li>
+<li type="circle">com.scalar.dl.ordering.exception.<a href="com/scalar/dl/ordering/exception/ExecutionException.html" title="class in com.scalar.dl.ordering.exception"><span class="typeNameLink">ExecutionException</span></a></li>
+<li type="circle">com.scalar.dl.ordering.exception.<a href="com/scalar/dl/ordering/exception/NotSupportedException.html" title="class in com.scalar.dl.ordering.exception"><span class="typeNameLink">NotSupportedException</span></a></li>
+<li type="circle">com.scalar.dl.ordering.exception.<a href="com/scalar/dl/ordering/exception/ProducerException.html" title="class in com.scalar.dl.ordering.exception"><span class="typeNameLink">ProducerException</span></a></li>
+<li type="circle">com.scalar.dl.ordering.exception.<a href="com/scalar/dl/ordering/exception/SynchronizationException.html" title="class in com.scalar.dl.ordering.exception"><span class="typeNameLink">SynchronizationException</span></a></li>
 </ul>
 </li>
 </ul>
@@ -106,8 +126,13 @@
 </ul>
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li type="circle">com.scalar.ordering.consumer.<a href="com/scalar/ordering/consumer/RequestConsumer.html" title="interface in com.scalar.ordering.consumer"><span class="typeNameLink">RequestConsumer</span></a></li>
-<li type="circle">com.scalar.ordering.producer.<a href="com/scalar/ordering/producer/RequestProducer.html" title="interface in com.scalar.ordering.producer"><span class="typeNameLink">RequestProducer</span></a></li>
+<li type="circle">java.lang.AutoCloseable
+<ul>
+<li type="circle">com.scalar.dl.ordering.consumer.<a href="com/scalar/dl/ordering/consumer/RequestConsumer.html" title="interface in com.scalar.dl.ordering.consumer"><span class="typeNameLink">RequestConsumer</span></a></li>
+</ul>
+</li>
+<li type="circle">com.scalar.dl.ordering.producer.<a href="com/scalar/dl/ordering/producer/RequestProducer.html" title="interface in com.scalar.dl.ordering.producer"><span class="typeNameLink">RequestProducer</span></a></li>
+<li type="circle">com.scalar.dl.ordering.sync.<a href="com/scalar/dl/ordering/sync/Synchronization.html" title="interface in com.scalar.dl.ordering.sync"><span class="typeNameLink">Synchronization</span></a>&lt;T&gt;</li>
 </ul>
 </div>
 <!-- ======= START OF BOTTOM NAVBAR ====== -->

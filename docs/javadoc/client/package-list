@@ -1,8 +1,7 @@
 com.scalar
-com.scalar.client.auth
-com.scalar.client.config
-com.scalar.client.exception
-com.scalar.client.proof
-com.scalar.client.service
-com.scalar.client.tool
-com.scalar.client.util
+com.scalar.dl.client.auth
+com.scalar.dl.client.config
+com.scalar.dl.client.exception
+com.scalar.dl.client.service
+com.scalar.dl.client.tool
+com.scalar.dl.client.util

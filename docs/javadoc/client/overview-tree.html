@@ -72,13 +72,12 @@
 <span class="packageHierarchyLabel">Package Hierarchies:</span>
 <ul class="horizontal">
 <li><a href="com/scalar/package-tree.html">com.scalar</a>, </li>
-<li><a href="com/scalar/client/auth/package-tree.html">com.scalar.client.auth</a>, </li>
-<li><a href="com/scalar/client/config/package-tree.html">com.scalar.client.config</a>, </li>
-<li><a href="com/scalar/client/exception/package-tree.html">com.scalar.client.exception</a>, </li>
-<li><a href="com/scalar/client/proof/package-tree.html">com.scalar.client.proof</a>, </li>
-<li><a href="com/scalar/client/service/package-tree.html">com.scalar.client.service</a>, </li>
-<li><a href="com/scalar/client/tool/package-tree.html">com.scalar.client.tool</a>, </li>
-<li><a href="com/scalar/client/util/package-tree.html">com.scalar.client.util</a></li>
+<li><a href="com/scalar/dl/client/auth/package-tree.html">com.scalar.dl.client.auth</a>, </li>
+<li><a href="com/scalar/dl/client/config/package-tree.html">com.scalar.dl.client.config</a>, </li>
+<li><a href="com/scalar/dl/client/exception/package-tree.html">com.scalar.dl.client.exception</a>, </li>
+<li><a href="com/scalar/dl/client/service/package-tree.html">com.scalar.dl.client.service</a>, </li>
+<li><a href="com/scalar/dl/client/tool/package-tree.html">com.scalar.dl.client.tool</a>, </li>
+<li><a href="com/scalar/dl/client/util/package-tree.html">com.scalar.dl.client.util</a></li>
 </ul>
 </div>
 <div class="contentContainer">
@@ -86,59 +85,49 @@
 <ul>
 <li type="circle">java.lang.Object
 <ul>
-<li type="circle">com.google.inject.AbstractModule (implements com.google.inject.Module)
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/AbstractLedgerClient.html" title="class in com.scalar.dl.client.service"><span class="typeNameLink">AbstractLedgerClient</span></a>
 <ul>
-<li type="circle">com.scalar.client.service.<a href="com/scalar/client/service/ClientModule.html" title="class in com.scalar.client.service"><span class="typeNameLink">ClientModule</span></a></li>
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/LedgerClient.html" title="class in com.scalar.dl.client.service"><span class="typeNameLink">LedgerClient</span></a></li>
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/ProxyClient.html" title="class in com.scalar.dl.client.service"><span class="typeNameLink">ProxyClient</span></a></li>
 </ul>
 </li>
-<li type="circle">com.scalar.client.auth.<a href="com/scalar/client/auth/AuthorizationInterceptor.html" title="class in com.scalar.client.auth"><span class="typeNameLink">AuthorizationInterceptor</span></a> (implements io.grpc.ClientInterceptor)</li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/CertificateRegistration.html" title="class in com.scalar.client.tool"><span class="typeNameLink">CertificateRegistration</span></a></li>
-<li type="circle">com.scalar.client.config.<a href="com/scalar/client/config/ClientConfig.html" title="class in com.scalar.client.config"><span class="typeNameLink">ClientConfig</span></a></li>
-<li type="circle">com.scalar.client.service.<a href="com/scalar/client/service/ClientService.html" title="class in com.scalar.client.service"><span class="typeNameLink">ClientService</span></a> (implements java.lang.AutoCloseable)</li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/ContractExecution.html" title="class in com.scalar.client.tool"><span class="typeNameLink">ContractExecution</span></a></li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/ContractRegistration.html" title="class in com.scalar.client.tool"><span class="typeNameLink">ContractRegistration</span></a></li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/ContractsListing.html" title="class in com.scalar.client.tool"><span class="typeNameLink">ContractsListing</span></a></li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/ContractsRegistration.html" title="class in com.scalar.client.tool"><span class="typeNameLink">ContractsRegistration</span></a></li>
-<li type="circle">com.scalar.client.proof.<a href="com/scalar/client/proof/DummyRegistryClient.html" title="class in com.scalar.client.proof"><span class="typeNameLink">DummyRegistryClient</span></a> (implements com.scalar.proof.registry.ProofRegistry)</li>
-<li type="circle">com.scalar.client.proof.<a href="com/scalar/client/proof/GrpcProofRegistryClient.html" title="class in com.scalar.client.proof"><span class="typeNameLink">GrpcProofRegistryClient</span></a> (implements com.scalar.proof.registry.ProofRegistry)</li>
-<li type="circle">com.scalar.client.service.<a href="com/scalar/client/service/LedgerClient.html" title="class in com.scalar.client.service"><span class="typeNameLink">LedgerClient</span></a></li>
-<li type="circle">com.scalar.client.tool.<a href="com/scalar/client/tool/LedgerValidation.html" title="class in com.scalar.client.tool"><span class="typeNameLink">LedgerValidation</span></a></li>
-<li type="circle">com.scalar.client.util.<a href="com/scalar/client/util/RequestSigner.html" title="class in com.scalar.client.util"><span class="typeNameLink">RequestSigner</span></a></li>
-<li type="circle">com.scalar.client.util.<a href="com/scalar/client/util/SignatureSigner.html" title="class in com.scalar.client.util"><span class="typeNameLink">SignatureSigner</span></a></li>
+<li type="circle">com.google.inject.AbstractModule (implements com.google.inject.Module)
+<ul>
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/ClientModule.html" title="class in com.scalar.dl.client.service"><span class="typeNameLink">ClientModule</span></a></li>
+</ul>
+</li>
+<li type="circle">com.scalar.dl.client.auth.<a href="com/scalar/dl/client/auth/AuthorizationInterceptor.html" title="class in com.scalar.dl.client.auth"><span class="typeNameLink">AuthorizationInterceptor</span></a> (implements io.grpc.ClientInterceptor)</li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/CertificateRegistration.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">CertificateRegistration</span></a></li>
+<li type="circle">com.scalar.dl.client.config.<a href="com/scalar/dl/client/config/ClientConfig.html" title="class in com.scalar.dl.client.config"><span class="typeNameLink">ClientConfig</span></a></li>
+<li type="circle">com.scalar.dl.client.config.<a href="com/scalar/dl/client/config/ClientConfig.Server.html" title="class in com.scalar.dl.client.config"><span class="typeNameLink">ClientConfig.Server</span></a></li>
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/ClientService.html" title="class in com.scalar.dl.client.service"><span class="typeNameLink">ClientService</span></a> (implements java.lang.AutoCloseable)</li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/ContractExecution.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">ContractExecution</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/ContractRegistration.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">ContractRegistration</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/ContractsListing.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">ContractsListing</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/ContractsRegistration.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">ContractsRegistration</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/FunctionRegistration.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">FunctionRegistration</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/LedgerValidation.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">LedgerValidation</span></a></li>
+<li type="circle">com.scalar.dl.client.util.<a href="com/scalar/dl/client/util/RequestSigner.html" title="class in com.scalar.dl.client.util"><span class="typeNameLink">RequestSigner</span></a></li>
+<li type="circle">com.scalar.dl.client.tool.<a href="com/scalar/dl/client/tool/SimpleBench.html" title="class in com.scalar.dl.client.tool"><span class="typeNameLink">SimpleBench</span></a></li>
 <li type="circle">java.lang.Throwable (implements java.io.Serializable)
 <ul>
 <li type="circle">java.lang.Exception
 <ul>
 <li type="circle">java.lang.RuntimeException
 <ul>
-<li type="circle">com.scalar.client.exception.<a href="com/scalar/client/exception/ClientException.html" title="class in com.scalar.client.exception"><span class="typeNameLink">ClientException</span></a>
+<li type="circle">com.scalar.dl.client.exception.<a href="com/scalar/dl/client/exception/ClientException.html" title="class in com.scalar.dl.client.exception"><span class="typeNameLink">ClientException</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li type="circle">com.scalar.client.exception.<a href="com/scalar/client/exception/ClientExecutionException.html" title="class in com.scalar.client.exception"><span class="typeNameLink">ClientExecutionException</span></a></li>
-<li type="circle">com.scalar.client.exception.<a href="com/scalar/client/exception/ClientValidationException.html" title="class in com.scalar.client.exception"><span class="typeNameLink">ClientValidationException</span></a></li>
-<li type="circle">com.scalar.client.exception.<a href="com/scalar/client/exception/SignatureException.html" title="class in com.scalar.client.exception"><span class="typeNameLink">SignatureException</span></a></li>
-</ul>
-</li>
-<li type="circle">com.scalar.client.exception.<a href="com/scalar/client/exception/ProofException.html" title="class in com.scalar.client.exception"><span class="typeNameLink">ProofException</span></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 title="Enum Hierarchy">Enum Hierarchy</h2>
-<ul>
-<li type="circle">java.lang.Object
-<ul>
-<li type="circle">java.lang.Enum&lt;E&gt; (implements java.lang.Comparable&lt;T&gt;, java.io.Serializable)
-<ul>
-<li type="circle">com.scalar.client.service.<a href="com/scalar/client/service/StatusCode.html" title="enum in com.scalar.client.service"><span class="typeNameLink">StatusCode</span></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li type="circle">com.scalar.dl.client.service.<a href="com/scalar/dl/client/service/AbstractLedgerClient.ThrowableConsumer.html" title="interface in com.scalar.dl.client.service"><span class="typeNameLink">AbstractLedgerClient.ThrowableConsumer</span></a>&lt;T&gt;</li>
 </ul>
 </div>
 <!-- ======= START OF BOTTOM NAVBAR ====== -->

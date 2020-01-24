@@ -72,12 +72,13 @@
 <span class="packageHierarchyLabel">Package Hierarchies:</span>
 <ul class="horizontal">
 <li><a href="com/scalar/package-tree.html">com.scalar</a>, </li>
-<li><a href="com/scalar/proof/config/package-tree.html">com.scalar.proof.config</a>, </li>
-<li><a href="com/scalar/proof/crypto/package-tree.html">com.scalar.proof.crypto</a>, </li>
-<li><a href="com/scalar/proof/exception/package-tree.html">com.scalar.proof.exception</a>, </li>
-<li><a href="com/scalar/proof/registry/package-tree.html">com.scalar.proof.registry</a>, </li>
-<li><a href="com/scalar/proof/server/package-tree.html">com.scalar.proof.server</a>, </li>
-<li><a href="com/scalar/proof/service/package-tree.html">com.scalar.proof.service</a></li>
+<li><a href="com/scalar/dl/proof/client/package-tree.html">com.scalar.dl.proof.client</a>, </li>
+<li><a href="com/scalar/dl/proof/config/package-tree.html">com.scalar.dl.proof.config</a>, </li>
+<li><a href="com/scalar/dl/proof/crypto/package-tree.html">com.scalar.dl.proof.crypto</a>, </li>
+<li><a href="com/scalar/dl/proof/exception/package-tree.html">com.scalar.dl.proof.exception</a>, </li>
+<li><a href="com/scalar/dl/proof/registry/package-tree.html">com.scalar.dl.proof.registry</a>, </li>
+<li><a href="com/scalar/dl/proof/server/package-tree.html">com.scalar.dl.proof.server</a>, </li>
+<li><a href="com/scalar/dl/proof/service/package-tree.html">com.scalar.dl.proof.service</a></li>
 </ul>
 </div>
 <div class="contentContainer">
@@ -87,36 +88,31 @@
 <ul>
 <li type="circle">com.google.inject.AbstractModule (implements com.google.inject.Module)
 <ul>
-<li type="circle">com.scalar.proof.service.<a href="com/scalar/proof/service/ProofModule.html" title="class in com.scalar.proof.service"><span class="typeNameLink">ProofModule</span></a></li>
+<li type="circle">com.scalar.dl.proof.service.<a href="com/scalar/dl/proof/service/ProofModule.html" title="class in com.scalar.dl.proof.service"><span class="typeNameLink">ProofModule</span></a></li>
 </ul>
 </li>
-<li type="circle">com.scalar.proof.config.<a href="com/scalar/proof/config/ProofConfig.html" title="class in com.scalar.proof.config"><span class="typeNameLink">ProofConfig</span></a></li>
-<li type="circle">com.scalar.rpc.ProofRegistryGrpc.ProofRegistryImplBase (implements io.grpc.BindableService)
+<li type="circle">com.scalar.dl.proof.client.<a href="com/scalar/dl/proof/client/DummyRegistryClient.html" title="class in com.scalar.dl.proof.client"><span class="typeNameLink">DummyRegistryClient</span></a> (implements com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/ProofRegistry.html" title="interface in com.scalar.dl.proof.registry">ProofRegistry</a>)</li>
+<li type="circle">com.scalar.dl.proof.client.<a href="com/scalar/dl/proof/client/GrpcProofRegistryClient.html" title="class in com.scalar.dl.proof.client"><span class="typeNameLink">GrpcProofRegistryClient</span></a> (implements com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/ProofRegistry.html" title="interface in com.scalar.dl.proof.registry">ProofRegistry</a>)</li>
+<li type="circle">com.scalar.dl.proof.config.<a href="com/scalar/dl/proof/config/ProofConfig.html" title="class in com.scalar.dl.proof.config"><span class="typeNameLink">ProofConfig</span></a></li>
+<li type="circle">com.scalar.dl.rpc.ProofRegistryGrpc.ProofRegistryImplBase (implements io.grpc.BindableService)
 <ul>
-<li type="circle">com.scalar.proof.registry.<a href="com/scalar/proof/registry/GrpcProofRegistry.html" title="class in com.scalar.proof.registry"><span class="typeNameLink">GrpcProofRegistry</span></a></li>
-<li type="circle">com.scalar.proof.server.<a href="com/scalar/proof/server/ProofServer.html" title="class in com.scalar.proof.server"><span class="typeNameLink">ProofServer</span></a></li>
+<li type="circle">com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/GrpcProofRegistry.html" title="class in com.scalar.dl.proof.registry"><span class="typeNameLink">GrpcProofRegistry</span></a></li>
+<li type="circle">com.scalar.dl.proof.server.<a href="com/scalar/dl/proof/server/ProofServer.html" title="class in com.scalar.dl.proof.server"><span class="typeNameLink">ProofServer</span></a></li>
 </ul>
 </li>
-<li type="circle">com.scalar.proof.crypto.<a href="com/scalar/proof/crypto/ProofValidator.html" title="class in com.scalar.proof.crypto"><span class="typeNameLink">ProofValidator</span></a></li>
-<li type="circle">com.scalar.proof.registry.<a href="com/scalar/proof/registry/ScalarProofRegistry.html" title="class in com.scalar.proof.registry"><span class="typeNameLink">ScalarProofRegistry</span></a> (implements com.scalar.proof.registry.<a href="com/scalar/proof/registry/ProofRegistry.html" title="interface in com.scalar.proof.registry">ProofRegistry</a>)</li>
-<li type="circle">com.scalar.proof.crypto.<a href="com/scalar/proof/crypto/SignatureValidator.html" title="class in com.scalar.proof.crypto"><span class="typeNameLink">SignatureValidator</span></a></li>
+<li type="circle">com.scalar.dl.proof.crypto.<a href="com/scalar/dl/proof/crypto/ProofValidator.html" title="class in com.scalar.dl.proof.crypto"><span class="typeNameLink">ProofValidator</span></a></li>
+<li type="circle">com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/ScalarProofRegistry.html" title="class in com.scalar.dl.proof.registry"><span class="typeNameLink">ScalarProofRegistry</span></a> (implements com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/ProofRegistry.html" title="interface in com.scalar.dl.proof.registry">ProofRegistry</a>)</li>
 <li type="circle">java.lang.Throwable (implements java.io.Serializable)
 <ul>
 <li type="circle">java.lang.Exception
 <ul>
 <li type="circle">java.lang.RuntimeException
 <ul>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/ProofException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">ProofException</span></a>
+<li type="circle">com.scalar.dl.proof.exception.<a href="com/scalar/dl/proof/exception/ProofException.html" title="class in com.scalar.dl.proof.exception"><span class="typeNameLink">ProofException</span></a>
 <ul>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/ProofRegistryException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">ProofRegistryException</span></a>
+<li type="circle">com.scalar.dl.proof.exception.<a href="com/scalar/dl/proof/exception/ProofRegistryException.html" title="class in com.scalar.dl.proof.exception"><span class="typeNameLink">ProofRegistryException</span></a>
 <ul>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/ProofRegistryIOException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">ProofRegistryIOException</span></a></li>
-</ul>
-</li>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/SecurityException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">SecurityException</span></a>
-<ul>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/SignatureException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">SignatureException</span></a></li>
-<li type="circle">com.scalar.proof.exception.<a href="com/scalar/proof/exception/UnloadableKeyException.html" title="class in com.scalar.proof.exception"><span class="typeNameLink">UnloadableKeyException</span></a></li>
+<li type="circle">com.scalar.dl.proof.exception.<a href="com/scalar/dl/proof/exception/ProofRegistryIOException.html" title="class in com.scalar.dl.proof.exception"><span class="typeNameLink">ProofRegistryIOException</span></a></li>
 </ul>
 </li>
 </ul>
@@ -132,19 +128,7 @@
 </ul>
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li type="circle">com.scalar.proof.registry.<a href="com/scalar/proof/registry/ProofRegistry.html" title="interface in com.scalar.proof.registry"><span class="typeNameLink">ProofRegistry</span></a></li>
-</ul>
-<h2 title="Enum Hierarchy">Enum Hierarchy</h2>
-<ul>
-<li type="circle">java.lang.Object
-<ul>
-<li type="circle">java.lang.Enum&lt;E&gt; (implements java.lang.Comparable&lt;T&gt;, java.io.Serializable)
-<ul>
-<li type="circle">com.scalar.proof.service.<a href="com/scalar/proof/service/StatusCode.html" title="enum in com.scalar.proof.service"><span class="typeNameLink">StatusCode</span></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li type="circle">com.scalar.dl.proof.registry.<a href="com/scalar/dl/proof/registry/ProofRegistry.html" title="interface in com.scalar.dl.proof.registry"><span class="typeNameLink">ProofRegistry</span></a></li>
 </ul>
 </div>
 <!-- ======= START OF BOTTOM NAVBAR ====== -->

@@ -1,7 +1,8 @@
 com.scalar
-com.scalar.proof.config
-com.scalar.proof.crypto
-com.scalar.proof.exception
-com.scalar.proof.registry
-com.scalar.proof.server
-com.scalar.proof.service
+com.scalar.dl.proof.client
+com.scalar.dl.proof.config
+com.scalar.dl.proof.crypto
+com.scalar.dl.proof.exception
+com.scalar.dl.proof.registry
+com.scalar.dl.proof.server
+com.scalar.dl.proof.service
