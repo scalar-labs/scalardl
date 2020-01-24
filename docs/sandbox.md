@@ -42,12 +42,15 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
 1. Clone [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk)
 
+    ```
+    $ git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
+    ```
 
 2. Update the contract
 
-Update the package of [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) from `com.org1.contract` to `<username>`.
-Use your favorite IDE to change the package or you can change it manually by updating the source file and move the file to an appropriate directory.
-For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `<cloned-dir>/src/main/java/foo/StateUpdate.java`.
+    Update the package of [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) from `com.org1.contract` to `<username>`.
+    Use your favorite IDE to change the package or you can change it manually by updating the source file and move the file to an appropriate directory.
+    For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `scalardl-java-client-sdk/src/main/java/foo/StateUpdate.java`.
 
 3. Compile the contract
 
