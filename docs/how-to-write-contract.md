@@ -4,7 +4,7 @@ This document sets out some guidelines for writing contracts for Scalar DL.
 
 ## What is a contract for Scalar DL ?
 
-A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/contract/Contract.html) class written for implementing a single function of business logic.
+A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending [`Contract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/Contract.html) class written for implementing a single function of business logic.
 A contact and its arguments are digitally-signed with the contract owner's private key and passed to the Scalar DL network. This mechanism allows the contract to be only executed by the owner and it makes it possible for the system to detect malicious activity such as data tampering.
 Before taking a look at this, it is recommended to check [Getting Started in Scalar DL](dl-getting-started.md) and [Scalar DL v1 design document](dl-design.md) to understand what Scalar DL is and its basic terminologies.
 
@@ -39,7 +39,7 @@ public class StateUpdater extends Contract {
 
 ### About the arguments
 
-As shown above, the overridden `invoke` method accepts [`Ledger`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/ledger/ledger/Ledger.html) for interacting with the ledger, a [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for  (otherwise the request is treated as if it does not exist.the contract argument, and an optional [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for contract properties.
+As shown above, the overridden `invoke` method accepts [`Ledger`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/database/Ledger.html) for interacting with the ledger, a [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for  (otherwise the request is treated as if it does not exist.the contract argument, and an optional [`JsonObject`](https://javaee.github.io/javaee-spec/javadocs/javax/json/JsonObject.html) for contract properties.
 The `Ledger` manages a set of assets. In order to interact with the `Ledger`, you can call `get`, `put` and `scan`.
 `get` is used to retrieve the latest asset record of the specified asset. `put` is used to append a new asset record to the specified asset. `scan` is used to traverse the specified asset.
 Note that you are only allowed to append an asset record to the asset ledger with this abstraction. Thus, it is always a good thing to design your data with the abstraction before writing a contract for Scalar DL.
@@ -51,7 +51,7 @@ Note that you are only allowed to append an asset record to the asset ledger wit
 For example in an agreement application, the business logic for the agreement can be defined as a general contract but the agreement conditions may vary depending on the actual application. The optional properties field allows you to define the agreement conditions such as quorum for each contract instance without hard-coding it in the contract.
 
 #### Variable names in the argument
-The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later versions, some variables such as `asset_id` and `asset_ids` will be reserved to express references to assets.
+The variable names of the argument `JsonObject` can be arbitrarily defined in Scalar DL 1.0, so that you can use `asset_id` or `id` or even something else to express asset ID. However, in the later versions, some variables such as `asset_id` and `asset_ids` might be reserved to express references to assets.
 
 #### Grouping assets
 The value of `asset_id` can be arbitrarily defined but it is a good practice to have some rules when you want to group assets.
@@ -67,7 +67,7 @@ throw `ContractContextException` if they are not properly defined.
 
 Then the contract retrieves the `asset_id` and `state` given from the requester, and retrieves `asset` from the ledger with the specified `asset_id`. 
 And it updates the asset's state if the asset doesn't exist or the asset's state is different from the current state.
-A contract might face some `RuntimeException` when interacting with `Ledger`, but it doesn't need to catch it in the contract. All the exceptions are treated properly by the Scalar DL executor.
+A contract might face some `RuntimeException` when interacting with `Ledger`, but it shouldn't catch it in the contract. All the exceptions are treated properly by the Scalar DL executor.
 
 This contract will just create or update the state of the specified asset, so it doesn't need to return anything to the requester. So in this case, it can return `null`.
 If you want to return something to a requester, you can return an arbitrary `JsonObject`.
@@ -152,4 +152,4 @@ Here are the best practices for writing good contracts for Scalar DL.
 
 * [Getting started](getting-started.md)
 * [Design document](design.md)
-* [Javadoc for client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
+* [Javadoc for Java client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
