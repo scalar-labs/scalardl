@@ -34,39 +34,43 @@ Scalar DL manages data as a set of assets. Each asset is identified by its `asse
 Since the Sandbox is a shared environment that anyone can access,
 take special care when choosing appropriate names for your `asset_id`s so that they will not conflict with the `asset_id`s chosen by other user.
 One recommended way to do this is to append your username to the asset name, for example `<username>-<your-asset-name>`.
-Also, the same care is needed when choosing contract IDs and we recommend using `<username>-<your-contract-class-name>`.
+Also, the same care is needed when choosing contract binary names and contract IDs and we recommend using `<username>.<your-contract-class-name>` and `<username>-<your-contract-class-name>` respectively.
 
 ## Run the StateUpdater contract
 
-We will run the contract [`scr/main/java/com/org1/contract/StateUpdater.java`](https://github.com/scalar-labs/scalardl-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java), which manages status of some asset.
+We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java), which manages status of some asset.
 
-In the `scalardl-client-sdk` directory:
+1. Clone [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk)
 
-1. Compile the contract
+
+2. Update the contract
+
+Update the package of [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) from `com.org1.contract` to `<username>`.
+Use your favorite IDE to change the package or you can change it manually by updating the source file and move the file to an appropriate directory.
+For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `<cloned-dir>/src/main/java/foo/StateUpdate.java`.
+
+3. Compile the contract
 
     ```
     $ ./gradlew assemble
     ```
 
-    This will generate `build/classes/java/main/com/org1/contract/StateUpdater.class`.
+    This will generate `build/classes/java/main/<username>/StateUpdater.class`.
 
-2. Register the contract
-
-    NOTE: Please replace `<username>` with your GitHub username.
+4. Register the contract
 
     ```
-    $ client/bin/register-contract -properties client.properties -contract-id <username>-StateUpdater -contract-binary-name com.org1.contract.StateUpdater -contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
+    $ client/bin/register-contract -properties client.properties -contract-id <username>-StateUpdater -contract-binary-name <username>.StateUpdater -contract-class-file build/classes/java/main/<username>/StateUpdater.class
     ```
 
     The `client.properties` should be the same file from the zip downloaded earlier.
 
-3. Execute the contract
+5. Execute the contract
 
-    NOTE: Please replace `<username>` with your GitHub username.
     ```
     $ client/bin/execute-contract -properties client.properties -contract-id <username>-StateUpdater -contract-argument '{"asset_id": "<username>-myasset", "state": 3}'
     ```
-  
+ 
 ## What's next
 
 Please take a look at [Getting Started](getting-started.md) to learn more about Scalar DL. 
