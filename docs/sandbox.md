@@ -23,10 +23,11 @@ Please note that we generate a pair of a private key and a certificate and regis
 
 ## Before running your first contract 
 
-Please make sure you have the [Oracle JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed, and, if you haven't already, download the Scalar DL Client SDK.
+Please make sure you have the [Oracle JDK 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) installed, and, if you haven't already, download the Scalar DL Java Client SDK.
 
 ```
-$ git clone https://github.com/scalar-labs/scalardl-client-sdk.git 
+$ git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
+$ cd scalardl-java-client-sdk
 ```
 
 Scalar DL manages data as a set of assets. Each asset is identified by its `asset_id`, an arbitrary, but unique, string specified by a user to manage the asset, and consists of its change history. Each history item is made up of the `asset_id`, an `age` (starting from zero), and `data` at the specified age.
@@ -40,19 +41,13 @@ Also, the same care is needed when choosing contract binary names and contract I
 
 We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java), which manages status of some asset.
 
-1. Clone [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk)
-
-    ```
-    $ git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
-    ```
-
-2. Update the contract
+1. Update the contract
 
     Update the package of [`StateUpdater.java`](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) from `com.org1.contract` to `<username>`.
     Use your favorite IDE to change the package or you can change it manually by updating the source file and move the file to an appropriate directory.
     For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `scalardl-java-client-sdk/src/main/java/foo/StateUpdate.java`.
 
-3. Compile the contract
+2. Compile the contract
 
     ```
     $ ./gradlew assemble
@@ -60,7 +55,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
     This will generate `build/classes/java/main/<username>/StateUpdater.class`.
 
-4. Register the contract
+3. Register the contract
 
     ```
     $ client/bin/register-contract -properties client.properties -contract-id <username>-StateUpdater -contract-binary-name <username>.StateUpdater -contract-class-file build/classes/java/main/<username>/StateUpdater.class
@@ -68,7 +63,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
     The `client.properties` should be the same file from the zip downloaded earlier.
 
-5. Execute the contract
+4. Execute the contract
 
     ```
     $ client/bin/execute-contract -properties client.properties -contract-id <username>-StateUpdater -contract-argument '{"asset_id": "<username>-myasset", "state": 3}'
