@@ -7,9 +7,9 @@ Here, we assume that you already have a certificate and a private key required t
 
 Scalar DL is a blockchain-inspired distributed ledger platform, which achieves:
 
-* High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
-* Scalable and highly available ACID-compliant smart contract executions
-* Exact finality and linearizable consistency
+* High tamper-evidence of data
+* High scalablility and availablity
+* Linearizable consistency and ACID
 
 It manages data as a set of assets, where an asset is composed of a history of data identified by a key called `asset_id` and a historical version number called `age`.
 In this document, you will create a very simple application to manage an asset's status.
@@ -44,6 +44,8 @@ This time, let's use a simple tool to register your certificate as follows.
 ```
 $ client/bin/register-cert -properties client.properties
 ```
+
+Note that certificate registration needs a privileged access to the network in production environment since the port is not open to the outside of the network.
 
 ## Create a contract
 
