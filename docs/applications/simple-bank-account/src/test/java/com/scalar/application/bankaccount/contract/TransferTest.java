@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.scalar.ledger.asset.Asset;
-import com.scalar.ledger.contract.Contract;
-import com.scalar.ledger.exception.ContractContextException;
-import com.scalar.ledger.ledger.Ledger;
+import com.scalar.dl.ledger.asset.Asset;
+import com.scalar.dl.ledger.contract.Contract;
+import com.scalar.dl.ledger.exception.ContractContextException;
+import com.scalar.dl.ledger.database.Ledger;
 import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
