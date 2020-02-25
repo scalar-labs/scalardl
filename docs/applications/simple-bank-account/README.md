@@ -207,16 +207,16 @@ try (ClientService clientService = injector.getInstance(ClientService.class)) {
 
 ```java
 JsonObject argument = Json.createObjectBuilder().add("id", "010-123456789").build();
-ContractExecutionResult response = clientService.executeContract("create-account", argument);
+ContractExecutionResult result = clientService.executeContract("create-account", argument);
 ```
 
 will execute the `CreateAccount` contract with argument `{"id": "010-123456789"}`, as we did above. Note that we call the contract using the supplied id `create-account` that we chose when registering the contract.
 
-The result of executing the contract is a `ContractExecutionResult`. It contains, proofs and result, each of which can be obtained respectively as
+The result of executing the contract is a `ContractExecutionResult`. It contains, result and proofs, each of which can be obtained respectively as
 
 ```java
-response.getProofs()
-response.getResult();
+result.getProofs()
+result.getResult();
 ```
 
 ## What is next?

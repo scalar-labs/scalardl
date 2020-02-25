@@ -34,41 +34,41 @@ public class AccountRepository {
   }
 
   public ContractExecutionResult create(JsonObject argument) {
-    ContractExecutionResult response = clientService.executeContract(CREATE_ACCOUNT_ID, argument);
-    logResponse("create", response);
-    return response;
+    ContractExecutionResult result = clientService.executeContract(CREATE_ACCOUNT_ID, argument);
+    logResponse("create", result);
+    return result;
   }
 
   public ContractExecutionResult history(JsonObject argument) {
-    ContractExecutionResult response =
+    ContractExecutionResult result =
         clientService.executeContract(ACCOUNT_HISTORY_ID, argument);
-    logResponse("history", response);
-    return response;
+    logResponse("history", result);
+    return result;
   }
 
   public ContractExecutionResult deposit(JsonObject argument) {
-    ContractExecutionResult response = clientService.executeContract(DEPOSIT_ID, argument);
-    logResponse("deposit", response);
-    return response;
+    ContractExecutionResult result = clientService.executeContract(DEPOSIT_ID, argument);
+    logResponse("deposit", result);
+    return result;
   }
 
   public ContractExecutionResult withdraw(JsonObject argument) {
-    ContractExecutionResult response = clientService.executeContract(WITHDRAW_ID, argument);
-    logResponse("withdraw", response);
-    return response;
+    ContractExecutionResult result = clientService.executeContract(WITHDRAW_ID, argument);
+    logResponse("withdraw", result);
+    return result;
   }
 
   public ContractExecutionResult transfer(JsonObject argument) {
-    ContractExecutionResult response = clientService.executeContract(TRANSFER_ID, argument);
-    logResponse("transfer", response);
-    return response;
+    ContractExecutionResult result = clientService.executeContract(TRANSFER_ID, argument);
+    logResponse("transfer", result);
+    return result;
   }
 
-  private void logResponse(String header, ContractExecutionResult response) {
+  private void logResponse(String header, ContractExecutionResult result) {
     logger.info(
         header
             + ": ("
-            + response.getResult()
+            + result.getResult()
             + ")");
   }
 }

@@ -68,9 +68,9 @@ public class AccountService {
 
   private ResponseEntity<String> serve(ThrowableFunction f, JsonObject json) {
     try {
-      ContractExecutionResult response = f.apply(json);
+      ContractExecutionResult result = f.apply(json);
 
-      return ResponseEntity.ok(response.getResult().toString());
+      return ResponseEntity.ok(result.getResult().toString());
     } catch (ClientException e) {
       return ResponseEntity.badRequest()
               .body(Json.createObjectBuilder()
