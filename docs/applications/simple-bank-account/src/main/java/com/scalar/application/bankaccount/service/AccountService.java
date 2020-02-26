@@ -70,9 +70,10 @@ public class AccountService {
     try {
       ContractExecutionResult result = f.apply(json);
 
-      return ResponseEntity.ok(result.getResult().toString());
+      return ResponseEntity
+              .ok(result.getResult().isPresent() ? result.getResult().get().toString() : null);
     } catch (ClientException e) {
-      return ResponseEntity.badRequest()
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
               .body(Json.createObjectBuilder()
                       .add("status", e.getStatusCode().toString())
                       .add("message", e.getMessage()).build().toString());

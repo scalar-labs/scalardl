@@ -68,7 +68,7 @@ public class AccountRepository {
     logger.info(
         header
             + ": ("
-            + result.getResult()
+            + (result.getResult().isPresent() ? result.getResult().get() : "")
             + ")");
   }
 }
