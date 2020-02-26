@@ -8,7 +8,9 @@ import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import javax.inject.Singleton;
+import javax.json.Json;
 import javax.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +70,7 @@ public class AccountRepository {
     logger.info(
         header
             + ": ("
-            + (result.getResult().isPresent() ? result.getResult().get() : "")
+            + (result.getResult().isPresent() ? result.getResult().get() : "{}")
             + ")");
   }
 }

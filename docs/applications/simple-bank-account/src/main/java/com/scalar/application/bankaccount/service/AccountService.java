@@ -71,7 +71,7 @@ public class AccountService {
       ContractExecutionResult result = f.apply(json);
 
       return ResponseEntity
-              .ok(result.getResult().isPresent() ? result.getResult().get().toString() : null);
+              .ok(result.getResult().isPresent() ? result.getResult().get().toString() : "{}");
     } catch (ClientException e) {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
               .body(Json.createObjectBuilder()
