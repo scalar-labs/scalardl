@@ -42,10 +42,10 @@ Contracts are Java classes which extend the `Contract` class and override the `i
 ```java
 package com.scalar.application.bankaccount.contract;
 
-import com.scalar.ledger.asset.Asset;
-import com.scalar.ledger.contract.Contract;
-import com.scalar.ledger.exception.ContractContextException;
-import com.scalar.ledger.ledger.Ledger;
+import com.scalar.dl.ledger.asset.Asset;
+import com.scalar.dl.ledger.contract.Contract;
+import com.scalar.dl.ledger.exception.ContractContextException;
+import com.scalar.dl.ledger.database.Ledger;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -112,11 +112,11 @@ You should now have written and compiled your contracts. Before you can execute 
 Now, you will need to have your certificate (e.g. `client.pem`) and its corresponding private key (e.g. `client-key.pem`), and Scalar DL up and running. Edit `client.properties` (found in the `conf` directory) to suit your configuration. It should contain lines that look something like:
 
 ```bash
-scalar.ledger.client.server_host=localhost
-scalar.ledger.client.server_port=50051
-scalar.ledger.client.cert_holder_id=alice
-scalar.ledger.client.cert_path=conf/client.pem
-scalar.ledger.client.private_key_path=conf/client-key.pem
+scalar.dl.client.server.host=localhost
+scalar.dl.client.server.port=50051
+scalar.dl.client.cert_holder_id=alice
+scalar.dl.client.cert_path=conf/client.pem
+scalar.dl.client.private_key_path=conf/client-key.pem
 ```
 
 If everything is set up properly you should be able to register your certificate on the Scalar DL network as
@@ -189,7 +189,7 @@ The Client SDK is available on [Maven Central](https://search.maven.org/search?q
 
 ```groovy
 dependencies {
-    compile group: 'com.scalar-labs', name: 'scalardl-client-sdk', version: '1.0.0-alpha.20190222'
+    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
 }
 ```
 
@@ -207,17 +207,16 @@ try (ClientService clientService = injector.getInstance(ClientService.class)) {
 
 ```java
 JsonObject argument = Json.createObjectBuilder().add("id", "010-123456789").build();
-ContractExecutionResponse response = clientService.executeContract("create-account", argument);
+ContractExecutionResult result = clientService.executeContract("create-account", argument);
 ```
 
 will execute the `CreateAccount` contract with argument `{"id": "010-123456789"}`, as we did above. Note that we call the contract using the supplied id `create-account` that we chose when registering the contract.
 
-The result of executing the contract is a `ContractExecutionResponse`. It contains, among other things, a status code, error message, and result, each of which can be obtained respectively as
+The result of executing the contract is a `ContractExecutionResult`. It contains, result and proofs, each of which can be obtained respectively as
 
 ```java
-response.getStatus();
-response.getMessage();
-response.getResult();
+result.getProofs()
+result.getResult();
 ```
 
 ## What is next?

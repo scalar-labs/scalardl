@@ -33,7 +33,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web') {
         exclude module: 'logback-classic'
     }
-    compile group: 'com.scalar-labs', name: 'scalardl-client-sdk', version: '1.0.0-alpha.20190222'
+    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile 'org.assertj:assertj-core:3.9.1'
