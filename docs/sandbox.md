@@ -49,7 +49,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
 2. Compile the contract
 
-    ```
+    ```bash
     $ ./gradlew assemble
     ```
 
@@ -57,16 +57,16 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
 3. Register the contract
 
-    ```
-    $ client/bin/register-contract -properties client.properties -contract-id <username>-StateUpdater -contract-binary-name <username>.StateUpdater -contract-class-file build/classes/java/main/<username>/StateUpdater.class
+    ```bash
+    $ client/bin/register-contract --properties=client.properties --contract-id=<username>-StateUpdater --contract-binary-name=<username>.StateUpdater --contract-class-file=build/classes/java/main/<username>/StateUpdater.class
     ```
 
     The `client.properties` should be the same file from the zip downloaded earlier.
 
 4. Execute the contract
 
-    ```
-    $ client/bin/execute-contract -properties client.properties -contract-id <username>-StateUpdater -contract-argument '{"asset_id": "<username>-myasset", "state": 3}'
+    ```bash
+    $ client/bin/execute-contract --properties=client.properties --contract-id=<username>-StateUpdater --contract-argument='{"asset_id": "<username>-myasset", "state": 3}'
     ```
  
 ## What's next
