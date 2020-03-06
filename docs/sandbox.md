@@ -58,7 +58,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 3. Register the contract
 
     ```bash
-    $ client/bin/register-contract --properties=client.properties --contract-id=<username>-StateUpdater --contract-binary-name=<username>.StateUpdater --contract-class-file=build/classes/java/main/<username>/StateUpdater.class
+    $ client/bin/register-contract --properties client.properties --contract-id <username>-StateUpdater --contract-binary-name <username>.StateUpdater --contract-class-file build/classes/java/main/<username>/StateUpdater.class
     ```
 
     The `client.properties` should be the same file from the zip downloaded earlier.
@@ -66,7 +66,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 4. Execute the contract
 
     ```bash
-    $ client/bin/execute-contract --properties=client.properties --contract-id=<username>-StateUpdater --contract-argument='{"asset_id": "<username>-myasset", "state": 3}'
+    $ client/bin/execute-contract --properties client.properties --contract-id <username>-StateUpdater --contract-argument '{"asset_id": "<username>-myasset", "state": 3}'
     ```
  
 ## What's next
