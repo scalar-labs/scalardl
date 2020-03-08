@@ -122,7 +122,7 @@ scalar.dl.client.private_key_path=conf/client-key.pem
 If everything is set up properly you should be able to register your certificate on the Scalar DL network as
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/register-cert -properties ./conf/client.properties
+$ ${SCALAR_SDK_HOME}/client/bin/register-cert --properties ./conf/client.properties
 ```
 
 You should receive status code 200 if successful.
@@ -151,7 +151,7 @@ In this example we will register three contracts: `CreateAccount.java`, `Deposit
 Once your toml file is written you can register all the specified contracts as
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/register-contracts -properties ./conf/client.properties -contracts-toml-file ./conf/contracts.toml
+$ ${SCALAR_SDK_HOME}/client/bin/register-contracts --properties ./conf/client.properties --contracts-file ./conf/contracts.toml
 ```
 
 Each successfully registered contract should return status code 200.
@@ -163,20 +163,20 @@ You can now execute any registered contracts if you would like. For example, use
 Create two accounts with ids `a111` and `b222`. (Contract ids can be any string.)
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/execute-contract -properties ./conf/client.properties -contract-id create-account -contract-argument '{"id": "a111"}'
-$ ${SCALAR_SDK_HOME}/client/bin/execute-contract -properties ./conf/client.properties -contract-id create-account -contract-argument '{"id": "b222"}'
+$ ${SCALAR_SDK_HOME}/client/bin/execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "a111"}'
+$ ${SCALAR_SDK_HOME}/client/bin/execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "b222"}'
 ```
 
 Now, deposit 100 into account `a111`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/execute-contract -properties ./conf/client.properties -contract-id deposit -contract-argument '{"id": "a111", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/execute-contract --properties ./conf/client.properties --contract-id deposit --contract-argument '{"id": "a111", "amount": 100}'
 ```
 
 Finally, transfer 25 from `a111` to `b222`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/execute-contract -properties ./conf/client.properties -contract-id transfer -contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/execute-contract --properties ./conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
 ```
 
 If you were running the application itself, you could execute these commands using the [API endpoints](./docs/api_endpoints.md).

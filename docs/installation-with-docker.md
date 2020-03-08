@@ -62,7 +62,7 @@ are persisted in the Docker Volume.
 Execute the following command once:
 
 ```
-$ docker-compose exec cassandra cqlsh -f /create_schema.cql
+$ docker-compose exec cassandra cqlsh -f create_schema.cql
 ```
 
 ## Shut down the server

@@ -42,7 +42,7 @@ The registered certificate will allow you to register and execute contracts, and
 This time, let's use a simple tool to register your certificate as follows.
 
 ```
-$ client/bin/register-cert -properties client.properties
+$ client/bin/register-cert --properties client.properties
 ```
 
 Note that certificate registration needs a privileged access to the network in production environment since the port is not open to the outside of the network.
@@ -100,7 +100,7 @@ This will generate `build/classes/java/main/com/org1/contract/StateUpdater.class
 Let's register your contract. Here again we use a simple tool.
 
 ```
-$ client/bin/register-contract -properties client.properties -contract-id StateUpdater -contract-binary-name com.org1.contract.StateUpdater -contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
+$ client/bin/register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
 ```
 
 Please set a globally unique ID for the contract ID (e.g. `StateUpdater` in the above command).
@@ -113,7 +113,7 @@ In the application, anyone can vote with the same voting logic, and hence can us
 Now you are ready to execute the contract with the following command.
 
 ```
-$ client/bin/execute-contract -properties client.properties -contract-id StateUpdater -contract-argument '{"asset_id":"some_asset", "state":3}'
+$ client/bin/execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
 ```
 
 In the contract argument, the value specified with the key `asset_id` must be unique globally for each asset.
