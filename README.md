@@ -13,7 +13,7 @@ Scalar DL is a blockchain-inspired distributed ledger which achieves:
 * [Tutorials](docs/tutorials.md)
 * [Design document](docs/design.md)
 * [Trouble-shooting guide](docs/trouble-shooting-guide.md)
-* [Cluster setup guide](docs/cluster-setup-guide.md)
+* [Orchestration](https://github.com/scalar-labs/scalar-terraform)
 * [Scalar DL Docs (Read The Docs)](https://scalardl.readthedocs.io/en/latest/)
 
 ## Client SDKs
