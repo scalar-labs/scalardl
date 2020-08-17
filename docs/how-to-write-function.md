@@ -74,7 +74,7 @@ Scalar DL executes the group of operations in an ACID manner so that they can be
 ### How to add an application-specific schema
 
 Since Functions can read and write arbitrary records through the Scalar DB CRUD interface, Scalar DL can't define the database schema for the Function by itself.
-It is applications' onwer's responsibility to define such schema and apply it to the database by themselves or asking system admins to do it depending on who owns and manages the database.
+It is the applications' owner's responsibility to define such schema and apply it to the database by themselves or asking system admins to do it depending on who owns and manages the database.
 
 ## How to use Contracts and Functions properly
 
