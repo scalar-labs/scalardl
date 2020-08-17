@@ -79,7 +79,7 @@ It is the applications' owner's responsibility to define such schema and apply i
 ## How to use Contracts and Functions properly
 
 Contracts and Functions should be properly used to make the scheme meaningful.
-As a basic principle, Contracts should be used to manage data that requires tamper-evidence, and Functions should be used to manage data that can be updated or deleted or that needs more flexible data model.
+As a basic principle, Contracts should be used to manage data that requires tamper-evidence, and Functions should be used to manage data that can be updated or deleted or that needs a more flexible data model.
 As a good practice, Functions are used to manage applications' data and Contracts are used to manage the logs of applications' execution as evidence. For example in a payment application, a Function manages the account balances of users and a Contract manages the evidence of payment in between the users.
 
 ## References
