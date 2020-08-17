@@ -5,7 +5,7 @@ This document sets out some guidelines for writing functions for Scalar DL.
 ## What is a function for Scalar DL ?
 
 A Function (Smart Function) for Scalar DL is a Java program extending [`Function`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/function/Function.html) class written for implementing a single function of business logic, which mainly manages the data of an application that is deployed on top of Scalar DL.
-Before taking a look at this, it is recommended to check [Getting Started in Scalar DL](dl-getting-started.md) and [Scalar DL v1 design document](dl-design.md) to understand what Scalar DL is and its basic terminologies. Understanding [contact guide](how-to-write-contract.md) is also helpful to undertand this guide properly.
+Before taking a look at this, it is recommended to check [Getting Started in Scalar DL](dl-getting-started.md) and [Scalar DL v1 design document](dl-design.md) to understand what Scalar DL is and its basic terminologies. Understanding [contact guide](how-to-write-contract.md) is also helpful to understand this guide properly.
 
 ## Background
 
