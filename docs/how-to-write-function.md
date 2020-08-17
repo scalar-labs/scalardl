@@ -69,7 +69,7 @@ Similar to a Contract using `Ledger` object to manage assets, a Function uses `D
 
 Functions to be executed are specified in a contract argument with `__functions__` JSON key. As described in [the contract guide](how-to-write-contract.md#write-a-complex-contract), a contract can invoke another contract, so multiple contracts and multiple functions can be grouped together.
 
-Scalar DL executes the group of opeations in a ACID manner so that they can be done atomically and in a consistent, isolated and durable manner.
+Scalar DL executes the group of operations in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
 ### How to add an application-specific schema
 
