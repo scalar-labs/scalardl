@@ -9,7 +9,7 @@ Before taking a look at this, it is recommended to check [Getting Started in Sca
 
 ## Background
 
-Assets managed by Contracts in Scalar DL are, as most of the DLT platforms including Blockchains, tamper-evident and append-only so their data structure is limited in modeling wide variety of applications and they are not able to be deleted.
+Assets managed by Contracts in Scalar DL are, as most of the DLT platforms including Blockchains, tamper-evident, and append-only so their data structure is limited in modeling wide variety of applications and they are not able to be deleted.
 Many of the DLT platforms deal with the issue by having another database such as an RDBMS in front of a ledger to handle the application's data in the database and write logs to the ledger as evidence.
 However this scheme is not ideal since data consistency in between the database and the ledger is not always preserved. There could be a case where applications don't have corresponding logs in the ledger due to a catastrophic failure, which defeats the purpose of writing logs to the ledger as evidence.
 Scalar DL resolves the issue with a little differnt approach by introducing Functions to manage applications' data and making Contracts and Functions execute atomically by utilizing underlining distributed ACID transactions.
