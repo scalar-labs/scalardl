@@ -1,4 +1,4 @@
-# A Guide on How to Use Function for Scalar DL
+# A Guide on How to Write Function for Scalar DL
 
 This document sets out some guidelines for writing functions for Scalar DL.
 
