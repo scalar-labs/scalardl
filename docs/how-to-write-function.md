@@ -55,7 +55,7 @@ public class PaymentFunction extends Function {
 }
 ```
 
-As you can easily see, it is a money transfer application, which sends the specified amount of moneny in between two accounts.
+As you can easily see, it is a money transfer application, which sends the specified amount of money between two accounts.
 
 ### About the arguments
 
