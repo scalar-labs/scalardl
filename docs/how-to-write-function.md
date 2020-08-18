@@ -61,7 +61,7 @@ As you can easily see, it is a money transfer application, which sends the speci
 
 Similar to a Contract using `Ledger` object to manage assets, a Function uses `Database` object to manage records in the underlining database. Note that `Database` implements [Scalar DB](https://github.com/scalar-labs/scalardb) interface so that you can do CRUD operations base on [the data model](https://github.com/scalar-labs/scalardb/blob/master/docs/design.md#data-model) of Scalar DB. 
 
-`JsonObject` for a function argument is a json object and a runtime argument for the function specified by the requester. The argument is not digitally signed as opposed to the contract argument so that it can be used to pass data that is stored in the database but it might be deleted at some later point for some reason.
+`JsonObject` for a function argument is a JSON object and a runtime argument for the function specified by the requester. The argument is not digitally signed as opposed to the contract argument so that it can be used to pass data that is stored in the database but it might be deleted at some later point for some reason.
 
 `contractArgument` and `contractProperties` are the corresponding contract's argument and properties. See [the contract guide](how-to-write-contract.md) to understand what they are.
 
