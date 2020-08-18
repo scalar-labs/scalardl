@@ -10,7 +10,7 @@ An Asset Proof in Scalar DL is a set of information about an asset record that i
 - Age of the asset record
 - Nonce of the execution request that creates the asset record
 - A cryptographic hash of the asset record
-- Digita sigunature of the above four records 
+- The digital signature of the above four records 
 
 ## The Benefits of Asset Proofs
 
