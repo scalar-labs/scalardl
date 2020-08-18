@@ -6,7 +6,7 @@ This document sets out some guidelines for using Asset Proofs in Scalar DL.
 
 An Asset Proof in Scalar DL is a set of information about an asset record that is created along with the asset. It is composed of the following records so that it can be treated as evidence of the creation of an asset record by a ledger.
 
-- ID of an asset record
+- The ID of an asset record
 - Age of the asset record
 - Nonce of the execution request that creats the asset record
 - Cryptographic hash of the asset record
