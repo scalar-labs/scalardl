@@ -18,7 +18,7 @@ Since Asset Proofs are evidence at the time of execution by a ledger, it is hard
 Thus, using and managing Asset Proofs appropriately could reduce the risk of tampering of data, so it could make Scalar DL more tamper-evident without creating additional computational resources such as ordering components.
 However, the ledger can make a lie from the beginning and it makes the proofs insufficient to detect the tampering.
 
-## How to use Asset Proof
+## How to use Asset Proofs
 
 You can get Asset Proofs from the result of `executeContract` in the SDKs. Please check [the documents](https://github.com/scalar-labs/scalardl#client-sdks) of client SDKs for more detail.
 It is recommended to store the proofs outside of a domain in which the ledger is managed so that malicious activities in one domain can be detectd by the other domain.
