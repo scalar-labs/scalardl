@@ -12,7 +12,7 @@ An Asset Proof in Scalar DL is a set of information about an asset record that i
 - A cryptographic hash of the asset record
 - Digita sigunature of the above four records 
 
-## The Benefits of Asset Proof
+## The Benefits of Asset Proofs
 
 Since Asset Proofs are evidence at the time of execution by a ledger, it is hard for the leger to make a lie (tamper data) after the evidence is created because the proofs and the ledger states would be inconsistent.
 Thus, using and managing Asset Proofs appropriately could reduce the risk of tampering of data, so it could make Scalar DL more tamper-evident without creating additional computational resources such as ordering components.
