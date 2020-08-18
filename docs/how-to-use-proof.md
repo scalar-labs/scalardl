@@ -8,7 +8,7 @@ An Asset Proof in Scalar DL is a set of information about an asset record that i
 
 - The ID of an asset record
 - Age of the asset record
-- Nonce of the execution request that creats the asset record
+- Nonce of the execution request that creates the asset record
 - Cryptographic hash of the asset record
 - Digita sigunature of the above four records 
 
