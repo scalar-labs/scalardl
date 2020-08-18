@@ -53,18 +53,6 @@ You may want to run the containers in the background. Add the `-d` (`--detach`) 
 $ docker-compose up -d
 ```
 
-## Load the initial schema
-
-It is needed to load the initial schema into the Cassandra server to play with
-Scalar DL. You have to run this step one time only. The data stored in Cassandra
-are persisted in the Docker Volume.
-
-Execute the following command once:
-
-```
-$ docker-compose exec cassandra cqlsh -f create_schema.cql
-```
-
 ## Shut down the server
 
 To shut down the containers:
