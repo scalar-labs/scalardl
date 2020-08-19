@@ -21,7 +21,7 @@ However, the ledger can make a lie from the beginning and it makes the proofs in
 ## How to use Asset Proofs
 
 You can get Asset Proofs from the result of the `executeContract` method of the SDKs. Please check [the documents](https://github.com/scalar-labs/scalardl#client-sdks) of client SDKs for more detail.
-The proofs can be validated if it is not tampered and it is from the ledger by verifying the signature.
+A proof can be validated if it is not tampered and it is from the ledger by verifying the signature.
 
 It is recommended to store the proofs outside of a domain in which the ledger is managed so that malicious activities in one domain can be detected by the other domain.
 It is worth considering storing proofs in cloud storages for ease of management.
