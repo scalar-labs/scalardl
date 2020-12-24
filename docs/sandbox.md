@@ -28,6 +28,7 @@ Please make sure you have the [Oracle JDK 8](https://www.oracle.com/technetwork/
 ```
 $ git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
 $ cd scalardl-java-client-sdk
+$ git checkout v2.0.8
 ```
 
 Scalar DL manages data as a set of assets. Each asset is identified by its `asset_id`, an arbitrary, but unique, string specified by a user to manage the asset, and consists of its change history. Each history item is made up of the `asset_id`, an `age` (starting from zero), and `data` at the specified age.
