@@ -33,9 +33,10 @@ $ cd scalardl-java-client-sdk
 Scalar DL manages data as a set of assets. Each asset is identified by its `asset_id`, an arbitrary, but unique, string specified by a user to manage the asset, and consists of its change history. Each history item is made up of the `asset_id`, an `age` (starting from zero), and `data` at the specified age.
 
 Since the Sandbox is a shared environment that anyone can access,
-take special care when choosing appropriate names for your `asset_id`s so that they will not conflict with the `asset_id`s chosen by other user.
-One recommended way to do this is to append your username to the asset name, for example `<username>-<your-asset-name>`.
-Also, the same care is needed when choosing contract binary names and contract IDs and we recommend using `<username>.<your-contract-class-name>` and `<username>-<your-contract-class-name>` respectively.
+you need to take special care of choosing names for your `asset_id`s not to conflict with the `asset_id`s chosen by other users.
+One recommended way to do this is to append your username to the asset name, for example, `<username>-<your-asset-name>`.
+Similarly, the same care is needed when choosing contract binary names and contract IDs and we recommend using `<username>.<your-contract-class-name>` and `<username>-<your-contract-class-name>` respectively.
+Lastly, please use Java client SDK v2.0.8 at the moment.
 
 ## Run the StateUpdater contract
 
