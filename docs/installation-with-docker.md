@@ -28,13 +28,12 @@ $ cd scalar-samples
 ## Docker login
 
 `docker login` is required to start the Scalar DL Docker image. Because the
-[`scalar-server`](https://hub.docker.com/r/scalarlabs/scalar-server/) repository
-on Docker Hub is currently private, your Docker account needs to be listed as a
-collaborator of the repository. Ask a person in charge to get your account
-ready.
+[`scalar-server`](https://github.com/orgs/scalar-labs/packages/) repository
+on GitHub Container Registry is currently private, your GitHub account needs to be set with permissions to access the container images.
+Ask a person in charge to get your account ready.
 
 ```
-$ docker login
+$ docker login ghcr.io
 ```
 
 ## Start up the server
