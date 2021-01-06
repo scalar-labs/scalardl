@@ -28,20 +28,17 @@ $ cd scalar-samples
 ## Docker login
 
 `docker login` is required to start the Scalar DL Docker image. Because the
-[`scalar-server`](https://hub.docker.com/r/scalarlabs/scalar-server/) repository
-on Docker Hub is currently private, your Docker account needs to be listed as a
-collaborator of the repository. Ask a person in charge to get your account
-ready.
+[`scalar-ledger`](https://github.com/orgs/scalar-labs/packages/container/package/scalar-ledger) repository
+on GitHub Container Registry is currently private, your GitHub account needs to be set with permissions to access the container images.
+Ask a person in charge to get your account ready.
 
 ```
-$ docker login
+$ docker login ghcr.io
 ```
 
-## Start up the server
+## Start up Scalar DL Ledger
 
-The following command starts up the Scalar DL server along with the back-end
-Cassandra server in the Docker containers. At the first time you run the
-command, the required Docker images will be downloaded from Docker Hub.
+The following command starts up Scalar DL Ledger along with the back-end Cassandra server in the Docker containers. At the first time you run the command, the required Docker images will be downloaded from GitHub Container Registry.
 
 ```
 $ docker-compose up
@@ -53,7 +50,7 @@ You may want to run the containers in the background. Add the `-d` (`--detach`) 
 $ docker-compose up -d
 ```
 
-## Shut down the server
+## Shut down Scalar DL Ledger
 
 To shut down the containers:
 
