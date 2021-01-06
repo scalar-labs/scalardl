@@ -38,7 +38,7 @@ $ docker login ghcr.io
 
 ## Start up Scalar DL Ledger
 
-The following command starts up the Scalar DL server along with the back-end Cassandra server in the Docker containers. At the first time you run the command, the required Docker images will be downloaded from GitHub Container Registry.
+The following command starts up the Scalar DL ledger along with the back-end Cassandra server in the Docker containers. At the first time you run the command, the required Docker images will be downloaded from GitHub Container Registry.
 
 ```
 $ docker-compose up
