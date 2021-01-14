@@ -1,6 +1,6 @@
 # Scalar DLT Compatibility Table
 
-This document shows the compatibility of different scalar-ledger and scalardl-java-client-sdk version.
+This document shows the compatibility of different scalar-ledger and scalardl-java-client-sdk versions.
 
 ## Compatibility Table
 scalar-ledger | scalardl-java-client-sdk    |
