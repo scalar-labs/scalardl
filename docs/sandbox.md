@@ -49,6 +49,14 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
     Use your favorite IDE to change the package or you can change it manually by updating the source file and move the file to an appropriate directory.
     For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `scalardl-java-client-sdk/src/main/java/foo/StateUpdate.java`.
 
+    ```bash
+    $ USERNAME=<username>
+    # Replace "package com.org1.contract" to "package <username>"
+    $ $EDITOR src/main/java/com/org1/contract/StateUpdater.java
+    $ mkdir -p "src/main/java/${USERNAME}"
+    $ mv src/main/java/com/org1/contract/StateUpdater.java "src/main/java/${USERNAME}/"
+    ```
+
 2. Compile the contract
 
     ```bash
@@ -60,7 +68,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 3. Register the contract
 
     ```bash
-    $ client/bin/register-contract --properties client.properties --contract-id <username>-StateUpdater --contract-binary-name <username>.StateUpdater --contract-class-file build/classes/java/main/<username>/StateUpdater.class
+    $ client/bin/register-contract --properties client.properties --contract-id "${USERNAME}-StateUpdater" --contract-binary-name "${USERNAME}.StateUpdater" --contract-class-file "build/classes/java/main/${USERNAME}/StateUpdater.class"
     ```
 
     The `client.properties` should be the same file from the zip downloaded earlier.
@@ -68,7 +76,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 4. Execute the contract
 
     ```bash
-    $ client/bin/execute-contract --properties client.properties --contract-id <username>-StateUpdater --contract-argument '{"asset_id": "<username>-myasset", "state": 3}'
+    $ client/bin/execute-contract --properties client.properties --contract-id "${USERNAME}-StateUpdater" --contract-argument "{'asset_id': '${USERNAME}-myasset', 'state': 3}"
     ```
  
 ## What's next
