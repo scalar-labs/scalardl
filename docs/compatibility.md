@@ -1,9 +1,9 @@
-# Scalar DLT Compatibility Table
+# Scalar DL Compatibility Matrix
 
-This document shows the compatibility of different scalar-ledger and scalardl-java-client-sdk versions.
+This document shows the compatibility of different scalar-ledger container and scalardl-java-client-sdk versions.
 
 ## Compatibility Table
-|scalar-ledger | scalardl-java-client-sdk    |
+|scalar-ledger container | scalardl-java-client-sdk    |
 |--------------|-----------------------------|
 |2.1.0         |2.0.9 - 2.1.0                |
 |2.0.8         |2.0.9 - 2.1.0                |
