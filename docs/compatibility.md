@@ -2,7 +2,6 @@
 
 This document shows the compatibility of different scalar-ledger container and scalardl-java-client-sdk versions.
 
-## Compatibility Table
 |scalar-ledger container | scalardl-java-client-sdk    |
 |--------------|-----------------------------|
 |2.1.0         |2.0.9 - 2.1.0                |
