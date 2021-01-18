@@ -30,10 +30,12 @@ $ cd scalar-samples
 `docker login` is required to start the Scalar DL Docker image. Because the
 [`scalar-ledger`](https://github.com/orgs/scalar-labs/packages/container/package/scalar-ledger) repository
 on GitHub Container Registry is currently private, your GitHub account needs to be set with permissions to access the container images.
-Ask a person in charge to get your account ready.
+Ask a person in charge to get your account ready. Note also that you need to use a personal access token (PAT) as a password to login `ghcr.io`. Please read [the official document](https://docs.github.com/en/packages/guides/migrating-to-github-container-registry-for-docker-images#authenticating-with-the-container-registry) for more detail.
 
 ```
-$ docker login ghcr.io
+# read:packages scope needs to be selected in a personal access token to login
+$ export CR_PAT=YOUR_PERSONAL_ACCESS_TOKEN
+$ echo $CR_PAT | docker login ghcr.io -u USERNAME --password-stdin
 ```
 
 ## Start up Scalar DL Ledger
