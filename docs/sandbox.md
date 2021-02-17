@@ -28,7 +28,7 @@ Please make sure you have the [Oracle JDK 8](https://www.oracle.com/technetwork/
 ```
 $ git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
 $ cd scalardl-java-client-sdk
-$ git checkout v2.0.8
+$ git checkout v2.1.0
 ```
 
 Scalar DL manages data as a set of assets. Each asset is identified by its `asset_id`, an arbitrary, but unique, string specified by a user to manage the asset, and consists of its change history. Each history item is made up of the `asset_id`, an `age` (starting from zero), and `data` at the specified age.
@@ -37,7 +37,7 @@ Since the Sandbox is a shared environment that anyone can access,
 you need to take special care of choosing names for your `asset_id`s not to conflict with the `asset_id`s chosen by other users.
 One recommended way to do this is to append your username to the asset name, for example, `<username>-<your-asset-name>`.
 Similarly, the same care is needed when choosing contract binary names and contract IDs and we recommend using `<username>.<your-contract-class-name>` and `<username>-<your-contract-class-name>` respectively.
-Lastly, please use Java client SDK v2.0.8 at the moment.
+Lastly, please use Java client SDK v2.1.0 at the moment.
 
 ## Run the StateUpdater contract
 
@@ -50,11 +50,11 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
     For example, if your username is `foo`, then the first line of the source file should be `package foo;` and the source file is located at `scalardl-java-client-sdk/src/main/java/foo/StateUpdate.java`.
 
     ```bash
-    $ USERNAME=<username>
+    $ SANDBOX_USERNAME=<username>
     # Replace "package com.org1.contract" to "package <username>"
     $ $EDITOR src/main/java/com/org1/contract/StateUpdater.java
-    $ mkdir -p "src/main/java/${USERNAME}"
-    $ mv src/main/java/com/org1/contract/StateUpdater.java "src/main/java/${USERNAME}/"
+    $ mkdir -p "src/main/java/${SANDBOX_USERNAME}"
+    $ mv src/main/java/com/org1/contract/StateUpdater.java "src/main/java/${SANDBOX_USERNAME}/"
     ```
 
 2. Compile the contract
@@ -68,7 +68,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 3. Register the contract
 
     ```bash
-    $ client/bin/register-contract --properties client.properties --contract-id "${USERNAME}-StateUpdater" --contract-binary-name "${USERNAME}.StateUpdater" --contract-class-file "build/classes/java/main/${USERNAME}/StateUpdater.class"
+    $ client/bin/register-contract --properties client.properties --contract-id "${SANDBOX_USERNAME}-StateUpdater" --contract-binary-name "${SANDBOX_USERNAME}.StateUpdater" --contract-class-file "build/classes/java/main/${SANDBOX_USERNAME}/StateUpdater.class"
     ```
 
     The `client.properties` should be the same file from the zip downloaded earlier.
@@ -76,7 +76,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 4. Execute the contract
 
     ```bash
-    $ client/bin/execute-contract --properties client.properties --contract-id "${USERNAME}-StateUpdater" --contract-argument "{'asset_id': '${USERNAME}-myasset', 'state': 3}"
+    $ client/bin/execute-contract --properties client.properties --contract-id "${SANDBOX_USERNAME}-StateUpdater" --contract-argument "{\"asset_id\": \"${SANDBOX_USERNAME}-myasset\", \"state\": 3}"
     ```
  
 ## What's next
