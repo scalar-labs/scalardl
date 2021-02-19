@@ -51,7 +51,7 @@ We will run the contract [`StateUpdater.java`](https://github.com/scalar-labs/sc
 
     ```bash
     $ SANDBOX_USERNAME=<username>
-    # Replace "package com.org1.contract" to "package <username>"
+    // Replace "package com.org1.contract" to "package <username>"
     $ $EDITOR src/main/java/com/org1/contract/StateUpdater.java
     $ mkdir -p "src/main/java/${SANDBOX_USERNAME}"
     $ mv src/main/java/com/org1/contract/StateUpdater.java "src/main/java/${SANDBOX_USERNAME}/"
