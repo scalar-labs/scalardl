@@ -152,4 +152,4 @@ Here are the best practices for writing good contracts for Scalar DL.
 
 * [Getting started](getting-started.md)
 * [Design document](design.md)
-* [Javadoc for Java client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
+* [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)

@@ -152,8 +152,5 @@ For more information, please take a look at [Javadoc](https://scalar-labs.github
 ## References
 
 * [Design document](design.md)
-* [Javadoc for client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
+* [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
 * [A guide on how to write a good contract](how-to-write-contract.md)
-* Javadoc
-    * [Client](https://scalar-labs.github.io/scalardl/javadoc/client/)
-    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/ledger/)

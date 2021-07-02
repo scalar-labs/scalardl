@@ -1,10 +1,19 @@
-# Scalar DL v1 design document
+# Scalar DL design document
 
 ## Introduction
 
-Scalar DL is a blockchain-inspired distributed ledger. This design document briefly explains the background, design and implementation of Scalar DL.
+Scalar DL is a tamper-evident distributed ledger. This design document briefly explains the background, design and implementation of Scalar DL.
 
 ## Background and Objectives
+
+* Handling Byzantine faults in distributed systems is getting more important due to cloud ?
+* many BFT protocols are invented and explored
+* not really applied to database domain since the protol is not necessarily fit to how database system are managed centrally (by single owner)
+** administrative domain
+* Blockchain acclerate the trend from differnt angle (more emphasis on decentalization properly)
+* There are some private Blockchain systems but they try to solve some difficulties due to the nature of Blockchain because Blockchain is designed for public p2p
+* Scalar DL is a tamper-evident database system that can detect and audit byzantine faults with a cetralized architecture.
+
 
 Distributed ledgers or blockchains have been attracting a lot of attention recently, especially in the areas of financial and legal applications.
 They have gained acceptance due to their tamper-evidence and decentralized control properties.
