@@ -16,11 +16,11 @@ Scalar DL is a blockchain-inspired distributed ledger platform software, which a
 * [Trouble-shooting guide](trouble-shooting-guide.md)
 * [Cluster setup guide](cluster-setup-guide.md)
 * Javadoc
-    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/ledger/)
-    * [Client](https://scalar-labs.github.io/scalardl/javadoc/client/)
-    * [Proof](https://scalar-labs.github.io/scalardl/javadoc/proof/)
-    * [Ordering](https://scalar-labs.github.io/scalardl/javadoc/ordering/)
-    * [Rpc](https://scalar-labs.github.io/scalardl/javadoc/rpc/)
+    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/)
+    * [Client](https://scalar-labs.github.io/scalardl/javadoc/latest/client/)
+    * [Proof](https://scalar-labs.github.io/scalardl/javadoc/latest/proof/)
+    * [Ordering](https://scalar-labs.github.io/scalardl/javadoc/latest/ordering/)
+    * [Rpc](https://scalar-labs.github.io/scalardl/javadoc/latest/rpc/)
 
 ## Contributing 
 This library is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.

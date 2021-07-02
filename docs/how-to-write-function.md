@@ -86,4 +86,4 @@ As a good practice, Functions are used to manage applications' data and Contract
 
 * [Getting started](getting-started.md)
 * [Design document](design.md)
-* [Javadoc for Java client SDK](https://scalar-labs.github.io/scalardl/javadoc/client/)
+* [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
