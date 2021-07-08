@@ -11,18 +11,18 @@ Compose](https://docs.docker.com/compose/).
     Follow the instructions on the Docker website according to your platform.
 
 
-## Clone scalar-samples repository
+## Clone scalardl-samples repository
 
-[scalar-labs/scalar-samples](https://github.com/scalar-labs/scalar-samples)
+[scalar-labs/scalardl-samples](https://github.com/scalar-labs/scalardl-samples)
 repository is a project for users to start working on Scalar DL instantly.
 
 Determine the location on your local machine where you want to run the
-scalar-samples app. Then open the terminal and `cd` to the directory and run the
+scalardl-samples app. Then open the terminal and `cd` to the directory and run the
 following commands:
 
 ```
-$ git clone https://github.com/scalar-labs/scalar-samples.git
-$ cd scalar-samples
+$ git clone https://github.com/scalar-labs/scalardl-samples.git
+$ cd scalardl-samples
 ```
 
 ## Docker login
@@ -52,6 +52,12 @@ You may want to run the containers in the background. Add the `-d` (`--detach`) 
 $ docker-compose up -d
 ```
 
+When you want to use Auditor component, run the following command.
+```
+$ docker-compose -f docker-compose.yml -f docker-compose-auditor.yml up -d
+
+```
+
 ## Shut down Scalar DL Ledger
 
 To shut down the containers:
@@ -62,4 +68,7 @@ To shut down the containers:
 
 ```
 $ docker-compose down
+
+# When Auditor is running
+$ docker-compose -f docker-compose.yml -f docker-compose-auditor.yml down
 ```
