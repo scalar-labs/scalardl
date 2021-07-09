@@ -148,6 +148,11 @@ Here are the best practices for writing good contracts for Scalar DL.
 * Use `asset_id` or `asset_ids` to refer to assets for backward-compatibility 
 * Define `asset_id` with some rules when you want to group assets
 
+## More samples
+
+You can find more contract samples in [caliper-benchmarks](https://github.com/scalar-labs/caliper-benchmarks/tree/scalardl/src/scalardl/src/main/java/com/example/contract).
+
+
 ## References
 
 * [Getting started](getting-started.md)
