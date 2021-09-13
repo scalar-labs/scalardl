@@ -30,4 +30,5 @@
 
 ## Design Doc
 * [Design document](design.md)
+* [Scalar DL Technical Overview)(https://www.slideshare.net/scalar-inc/scalar-dl-technical-overview)
 

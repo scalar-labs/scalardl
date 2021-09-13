@@ -28,6 +28,7 @@ nav:
     - Deploy Scalar DL on Azure: https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md
 - Design Doc:
     - Design document: design.md
+    - Scalar DL Technical Overview: https://www.slideshare.net/scalar-inc/scalar-dl-technical-overview
   #- Release notes:
   #- Overview: release_notes/index.md
   #- "Version 0.9.10": release_notes/0_9_10.md
