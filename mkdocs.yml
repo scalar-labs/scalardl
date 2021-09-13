@@ -2,17 +2,32 @@ site_name: Scalar DL Docs
 repo_url: https://github.com/scalar-labs/scalardl
 nav:
 - Home: index.md
-- How to use:
-    - Getting started with Sandbox: sandbox.md
-    - Installation with Docker (Partner-only): installation-with-docker.md
-    - Getting started: getting-started.md
-    - How to write a contract: how-to-write-contract.md
-    - Tutorials: tutorials.md
+- How to Use:
+    - Getting Started with Scalar DL Sandbox: sandbox.md
+    - How to install Scalar DL in your local environment with Docker: installation-with-docker.md
+    - Getting Started with Scalar DL: getting-started.md
+    - A Guide on How to Write a Good Contract for Scalar DL: how-to-write-contract.md
+    - A Guide on How to Write Function for Scalar DL: how-to-write-function.md
+    - A Guide on How to Use Asset Proofs in Scalar DL: how-to-use-proof.md
     - Trouble-shooting guide: trouble-shooting-guide.md
-- Design:
+- Client SDKs:
+    - Java: https://github.com/scalar-labs/scalardl-java-client-sdk
+    - Javadoc:
+        - Client: https://scalar-labs.github.io/scalardl/javadoc/latest/client/
+        - Ledger: https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/
+        - Auditor: https://scalar-labs.github.io/scalardl/javadoc/latest/auditor/
+        - Rpc: https://scalar-labs.github.io/scalardl/javadoc/latest/rpc/
+    - Node: https://github.com/scalar-labs/scalardl-node-client-sdk
+    - Web: https://github.com/scalar-labs/scalardl-web-client-sdk
+- Tutorials:
+    - Asset management application: https://github.com/scalar-labs/getting-started-with-scalardl
+    - Simple banking application: applications/simple-bank-account/README.md
+
+- How to Deploy:
+    - Deploy Scalar DL on AWS: https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md
+    - Deploy Scalar DL on Azure: https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md
+- Design Doc:
     - Design document: design.md
-- Operation:
-    - Cluster setup guide: cluster-setup-guide.md
   #- Release notes:
   #- Overview: release_notes/index.md
   #- "Version 0.9.10": release_notes/0_9_10.md

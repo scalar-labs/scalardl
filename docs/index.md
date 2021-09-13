@@ -1,32 +1,43 @@
-## Scalar DL
+# Scalar DL Docs
 
-Scalar DL is a blockchain-inspired distributed ledger platform software, which achieves:
-
-- High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
-- Scalable and highly available ACID-compliant smart contract executions
-- Exact finality and linearizable consistency
-
-## Docs
-* [Getting started with Sandbox](sandbox.md)
-* [Installation with Docker](installation-with-docker.md) (Partner-only)
-* [Getting started](getting-started.md)
-* [How to write a contract](how-to-write-contract.md)
-* [Tutorials](tutorials.md)
-* [Design document](design.md)
+## How to Use
+* [Getting Started with Scalar DL Sandbox](sandbox.md)
+* [How to install Scalar DL in your local environment with Docker](installation-with-docker.md) (Partner-only)
+* [Getting Started with Scalar DL](getting-started.md)
+* [A Guide on How to Write a Good Contract for Scalar DL](how-to-write-contract.md)
+* [A Guide on How to Write Function for Scalar DL](how-to-write-function.md)
+* [A Guide on How to Use Asset Proofs in Scalar DL](how-to-use-proof.md)
 * [Trouble-shooting guide](trouble-shooting-guide.md)
-* [Cluster setup guide](cluster-setup-guide.md)
-* Javadoc
-    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/)
+* [Scalar DL Compatibility Matrix](compatibility.md)
+
+## Client SDKs
+* [Java](https://github.com/scalar-labs/scalardl-java-client-sdk)
+  * Javadoc
     * [Client](https://scalar-labs.github.io/scalardl/javadoc/latest/client/)
-    * [Proof](https://scalar-labs.github.io/scalardl/javadoc/latest/proof/)
-    * [Ordering](https://scalar-labs.github.io/scalardl/javadoc/latest/ordering/)
+    * [Ledger](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/)
+    * [Auditor](https://scalar-labs.github.io/scalardl/javadoc/latest/auditor/)
     * [Rpc](https://scalar-labs.github.io/scalardl/javadoc/latest/rpc/)
+* [Node](https://github.com/scalar-labs/scalardl-node-client-sdk)
+* [Web](https://github.com/scalar-labs/scalardl-web-client-sdk)
+
+## Tutorials
+* [Asset management application](https://github.com/scalar-labs/getting-started-with-scalardl)
+* [Simple banking application](applications/simple-bank-account/README.md)
+
+## How to Deploy
+* [Deploy Scalar DL on AWS](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md)
+* [Deploy Scalar DL on Azure](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md)
+
+## Design Doc
+* [Design document](design.md)
 
 ## Contributing 
+
 This library is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.
 
 * For asking questions, finding answers and helping other users, please go to [scalardl-user](https://groups.google.com/forum/#!forum/scalardl-user).
 * For filing bugs, suggesting improvements, or requesting new features, help us out by opening an issue.
 
 ## License
+
 Scalar DL is licensed under commercial license only. Please [contact us](https://scalar-labs.com/contact_us/) for more information.
