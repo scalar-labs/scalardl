@@ -1,25 +1,13 @@
 ## Scalar DL: Tamper-evident and Scalable Distributed Ledger
 
-Scalar DL is a blockchain-inspired distributed ledger which achieves:
+Scalar DL is a tamper-evident and scalable distributed database that achieves:
 - High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
 - Scalable and highly available ACID-compliant smart contract executions
 - Exact finality and linearizable consistency 
 
 ## Docs
-* [Getting started with Sandbox](docs/sandbox.md)
-* [Installation with Docker](docs/installation-with-docker.md) (Partner-only)
-* [Getting started](docs/getting-started.md)
-* [How to write a contract](docs/how-to-write-contract.md)
-* [Tutorials](docs/tutorials.md)
-* [Design document](docs/design.md)
-* [Trouble-shooting guide](docs/trouble-shooting-guide.md)
-* [Orchestration](https://github.com/scalar-labs/scalar-terraform)
-* [Scalar DL Docs (Read The Docs)](https://scalardl.readthedocs.io/en/latest/)
-
-## Client SDKs
-* [Java](https://github.com/scalar-labs/scalardl-java-client-sdk)
-* [Node](https://github.com/scalar-labs/scalardl-node-client-sdk)
-* [Web](https://github.com/scalar-labs/scalardl-web-client-sdk)
+* [Docs](docs/index.md)
+* [Scalar DL Technical Overview](https://www.slideshare.net/scalar-inc/scalar-dl-technical-overview)
 
 ## Contributing 
 Scalar DL is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.
