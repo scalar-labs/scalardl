@@ -89,6 +89,14 @@ One common way of creating a non-deterministic contract is to generate the time 
 Such a contract will produce different outputs each time it is executed, and makes the system unable to detect tampering.
 If you need to use the time in a contract, you should pass it to the contract as an argument.
 
+### Deleting an asset
+
+The assets registered thorough contracts are not able to be deleted to provide tamper-evidence.
+However, there are cases where you want to delete some assets to follow the rules and regulations of applications you develop.
+To provide such a data deletion, Scalar DL supports a feature called `Function`.
+For more details about `Function`, please check [How to Write Function for Scalar DL](./how-to-write-function.md) guide.
+
+
 ## Write a complex contract
 
 If your contract is more than 40 lines of code, it is a good sign that you are probably doing more than one thing with your contract.

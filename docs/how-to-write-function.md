@@ -67,7 +67,13 @@ Similar to a Contract using `Ledger` object to manage assets, a Function uses `D
 
 ### How Functions and Contracts are tied together
 
-Functions to be executed are specified in a contract argument with `__functions__` JSON key. As described in [the contract guide](how-to-write-contract.md#write-a-complex-contract), a contract can invoke another contract, so multiple contracts and multiple functions can be grouped together.
+Functions to be executed are specified in a contract argument in a JSON format with `__functions__` as a key and an array of function IDs as a value as follows:
+
+```
+execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "__functions__": ["test-function"]}'
+```
+
+As described in [the contract guide](how-to-write-contract.md#write-a-complex-contract), a contract can invoke another contract, so multiple contracts and multiple functions can be grouped together.
 
 Scalar DL executes the group of operations in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
