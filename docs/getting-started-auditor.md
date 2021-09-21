@@ -155,7 +155,7 @@ client/bin/validate-ledger --properties client.properties --asset-id="some_asset
 ```
 
 By default, it checks the states of Ledger and Auditor non-linearizably; i.e., there might be cases where they look inconsistent temporarily.
-To make it linearizable, you can configure the following option and resister `ValidateLedger` contract as follows.
+To make it linearizable, you can configure the following option and register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows.
 
 ```
 [client.properties]
