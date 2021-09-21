@@ -144,7 +144,7 @@ client/bin/execute-contract --properties client.properties --contract-id StateUp
 ```
 
 Note that this triggers a little complex protocol between Ledger and Auditor to make them go to the same states without trusting each other.
-During the execution, it may detect inconsistencies between them if there is a tampering in one of the components.
+During the execution, it may detect inconsistencies between them if there is tampering in one of the components.
 
 ## Validate the states of Ledger and Auditor
 
