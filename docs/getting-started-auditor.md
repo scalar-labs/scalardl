@@ -87,7 +87,7 @@ bin/scalar-auditor --properties auditor.properties
 You can also use the containers that are available in [the GitHub Container Registry](https://github.com/orgs/scalar-labs/packages).
 See [saclardl-samples](https://github.com/scalar-labs/scalardl-samples) repo for more details about how to use the containers.
 
-## Register each certificates of Ledger and Auditor
+## Register each certificate of Ledger and Auditor
 
 As we explained,
 Ledger needs to register its certificate to Auditor, and Auditor needs to register its certificate to Ledger.
