@@ -1,4 +1,4 @@
-## Scalar DL: Tamper-evident and Scalable Distributed Ledger
+## Scalar DL: Tamper-evident and Scalable Distributed Database
 
 Scalar DL is a tamper-evident and scalable distributed database that achieves:
 - High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
