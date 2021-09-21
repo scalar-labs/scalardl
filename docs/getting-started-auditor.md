@@ -64,8 +64,8 @@ so you need to set `scalar.dl.auditor.cert_path` and `scalar.dl.auditor.private_
 As similarly to Ledger, Auditor manages a Ledger's certificate (i.e., Ledger registers its certificate to Auditor) and uses the certificate to validate a request signed by Ledger's private key; thus, the certificate holder ID (`scalar.dl.auditor.ledger.cert_holder_id=ledger`) and version (`scalar.dl.auditor.ledger.cert_version`) are required.
 By default, Auditor assumes Ledger registers its certificate with a name `ledger` and version `1`.
 
-Other values are optional when you but they need to be updated depending on an environment.
-For example, the default settings assume that Ledger is placed in the same host, and Auditor uses locally installed Cassandra through Scalar DB without configuring the password.
+Other values are optional here but they need to be updated depending on an environment.
+For example, if you place Ledger and Auditor in different hosts, you need to update `scalar.dl.auditor.ledger.host` for Auditor to be able to access Ledger.
 Please check [the configuration file](https://github.com/scalar-labs/scalar/blob/master/auditor/conf/auditor.properties.tmpl) for more detail.
 
 
