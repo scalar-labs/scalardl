@@ -1,7 +1,7 @@
 # Getting Started with Scalar DL Auditor
 
 This document explains how to get started with Scalar DL Auditor.
-Here, we assume that you have already finished reading the following guides and gained some experiences in overall Scalar DL.
+Here, we assume that you have already finished reading the following guides and gained some experience in overall Scalar DL.
 
 * [Getting Started with Scalar DL](getting-started.md)
 * [A Guide on How to Write a Good Contract for Scalar DL](how-to-write-contract.md)
