@@ -7,6 +7,7 @@
 * [A Guide on How to Write a Good Contract for Scalar DL](how-to-write-contract.md)
 * [A Guide on How to Write Function for Scalar DL](how-to-write-function.md)
 * [A Guide on How to Use Asset Proofs in Scalar DL](how-to-use-proof.md)
+* [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
 * [Trouble-shooting guide](trouble-shooting-guide.md)
 * [Scalar DL Compatibility Matrix](compatibility.md)
 
