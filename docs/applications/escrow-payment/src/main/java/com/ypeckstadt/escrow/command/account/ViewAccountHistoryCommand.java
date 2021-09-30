@@ -14,35 +14,35 @@ import java.util.concurrent.Callable;
 
 import static com.ypeckstadt.escrow.common.Constants.ACCOUNT_ID;
 
-@CommandLine.Command(
-        name = "view"
-)
+@CommandLine.Command(name = "view")
 public class ViewAccountHistoryCommand extends LedgerClientExecutor implements Callable {
 
-    private static final Logger LOG = LogManager.getLogger(ViewAccountHistoryCommand.class);
+  private static final Logger LOG = LogManager.getLogger(ViewAccountHistoryCommand.class);
 
-    @CommandLine.Option(names = {"-id", "--id"}, paramLabel = "ID", description = "the account id", required = true)
-    String accountId;
+  @CommandLine.Option(
+      names = {"-id", "--id"},
+      paramLabel = "ID",
+      description = "the account id",
+      required = true)
+  String accountId;
 
-    @Override
-    public Integer call() throws Exception {
-        JsonObject argument =
-                Json.createObjectBuilder()
-                        .add(ACCOUNT_ID, accountId)
-                        .build();
+  @Override
+  public Integer call() throws Exception {
+    JsonObject argument = Json.createObjectBuilder().add(ACCOUNT_ID, accountId).build();
 
-        try {
-            // Execute contract
-            ContractExecutionResult result = executeContract(ViewAccountHistory.class.getSimpleName(), argument, true);
+    try {
+      // Execute contract
+      ContractExecutionResult result =
+          executeContract(ViewAccountHistory.class.getSimpleName(), argument, true);
 
-            // parse result
-            if (result.getResult().isPresent()) {
-                JsonObject jsonObject = result.getResult().get();
-                prettyPrintJson(jsonObject);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
-        }
-        return 0;
+      // parse result
+      if (result.getResult().isPresent()) {
+        JsonObject jsonObject = result.getResult().get();
+        prettyPrintJson(jsonObject);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage());
     }
+    return 0;
+  }
 }

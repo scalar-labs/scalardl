@@ -11,35 +11,35 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(
-        name = "view"
-)
+@CommandLine.Command(name = "view")
 public class ViewItemCommand extends LedgerClientExecutor implements Callable {
 
-    private static final Logger LOG = LogManager.getLogger(ViewItemCommand.class);
+  private static final Logger LOG = LogManager.getLogger(ViewItemCommand.class);
 
-    @CommandLine.Option(names = {"-id", "--itemId"}, paramLabel = "ITEM", description = "the item id", required = true)
-    String itemId;
+  @CommandLine.Option(
+      names = {"-id", "--itemId"},
+      paramLabel = "ITEM",
+      description = "the item id",
+      required = true)
+  String itemId;
 
-    @Override
-    public Integer call() throws Exception {
-        JsonObject argument =
-                Json.createObjectBuilder()
-                        .add(ViewItem.ID, itemId)
-                        .build();
+  @Override
+  public Integer call() throws Exception {
+    JsonObject argument = Json.createObjectBuilder().add(ViewItem.ID, itemId).build();
 
-        try {
-            // Execute contract
-            ContractExecutionResult result = executeContract(ViewItem.class.getSimpleName(), argument, true);
+    try {
+      // Execute contract
+      ContractExecutionResult result =
+          executeContract(ViewItem.class.getSimpleName(), argument, true);
 
-            // parse result
-            if (result.getResult().isPresent()) {
-                JsonObject jsonObject = result.getResult().get();
-                prettyPrintJson(jsonObject);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
-        }
-        return 0;
+      // parse result
+      if (result.getResult().isPresent()) {
+        JsonObject jsonObject = result.getResult().get();
+        prettyPrintJson(jsonObject);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage());
     }
+    return 0;
+  }
 }

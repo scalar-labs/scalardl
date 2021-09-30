@@ -11,38 +11,38 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import java.util.concurrent.Callable;
 
-@CommandLine.Command(
-        name = "view"
-)
+@CommandLine.Command(name = "view")
 public class ViewOrderHistoryCommand extends LedgerClientExecutor implements Callable {
 
-    private static final Logger LOG = LogManager.getLogger(ViewOrderHistoryCommand.class);
+  private static final Logger LOG = LogManager.getLogger(ViewOrderHistoryCommand.class);
 
-    @CommandLine.Option(names = {"-id", "--orderId"}, paramLabel = "ID", description = "the order id", required = true)
-    String orderId;
+  @CommandLine.Option(
+      names = {"-id", "--orderId"},
+      paramLabel = "ID",
+      description = "the order id",
+      required = true)
+  String orderId;
 
-    @Override
-    public Integer call() throws Exception {
+  @Override
+  public Integer call() throws Exception {
 
-        // prepare contract arguments
-        JsonObject argument =
-                Json.createObjectBuilder()
-                        .add(ViewOrderHistory.ID, orderId)
-                        .build();
+    // prepare contract arguments
+    JsonObject argument = Json.createObjectBuilder().add(ViewOrderHistory.ID, orderId).build();
 
-        try {
-            // Execute contract
-            ContractExecutionResult result = executeContract(ViewOrderHistory.class.getSimpleName(), argument, true);
+    try {
+      // Execute contract
+      ContractExecutionResult result =
+          executeContract(ViewOrderHistory.class.getSimpleName(), argument, true);
 
-            // parse result
-            if (result.getResult().isPresent()) {
-                JsonObject jsonObject = result.getResult().get();
-                prettyPrintJson(jsonObject);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage());
-        }
-
-        return 0;
+      // parse result
+      if (result.getResult().isPresent()) {
+        JsonObject jsonObject = result.getResult().get();
+        prettyPrintJson(jsonObject);
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage());
     }
+
+    return 0;
+  }
 }

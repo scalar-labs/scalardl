@@ -22,45 +22,48 @@ import java.util.Map;
 
 public abstract class LedgerClientExecutor {
 
-    private static final Logger LOG = LogManager.getLogger(LedgerClientExecutor.class);
-    private static final String CLIENT_PROPERTIES = "client.properties";
+  private static final Logger LOG = LogManager.getLogger(LedgerClientExecutor.class);
+  private static final String CLIENT_PROPERTIES = "client.properties";
 
-    private ClientConfig loadClientConfig() throws Exception {
-        File file = new File(System.getProperty("user.dir") + File.separator + CLIENT_PROPERTIES);
-        return new ClientConfig(file);
+  private ClientConfig loadClientConfig() throws Exception {
+    File file = new File(System.getProperty("user.dir") + File.separator + CLIENT_PROPERTIES);
+    return new ClientConfig(file);
+  }
+
+  protected ContractExecutionResult executeContract(
+      String contractName, JsonObject contractParameter, boolean useCertHolderIdSuffix)
+      throws Exception {
+    ClientConfig config = loadClientConfig();
+
+    // Custom naming convention to make sure the contract Id is unique, not required and contractId
+    // can be anything
+    // just make sure the contractId is set to the same value as specified when registering the
+    // contract on the ledger
+    String contractId =
+        useCertHolderIdSuffix ? contractName + "_" + config.getCertHolderId() : contractName;
+
+    Injector injector = Guice.createInjector(new ClientModule(config));
+    ClientService service = injector.getInstance(ClientService.class);
+    JsonObject object =
+        (contractParameter != null) ? contractParameter : Json.createObjectBuilder().build();
+    return service.executeContract(contractId, object);
+  }
+
+  /**
+   * Pretty print the json to the standard output
+   *
+   * @param json the json to print
+   */
+  protected void prettyPrintJson(JsonObject jsonObject) {
+    if (jsonObject != null) {
+      System.out.println("[Return]");
+      Map<String, Object> config = new HashMap<>(1);
+      config.put(JsonGenerator.PRETTY_PRINTING, true);
+      JsonWriterFactory factory = Json.createWriterFactory(config);
+      JsonWriter writer = factory.createWriter(System.out);
+      writer.writeObject(jsonObject);
+      System.out.println("");
+      writer.close();
     }
-
-    protected ContractExecutionResult executeContract(String contractName, JsonObject contractParameter, boolean useCertHolderIdSuffix) throws Exception {
-        ClientConfig config = loadClientConfig();
-
-        // Custom naming convention to make sure the contract Id is unique, not required and contractId can be anything
-        // just make sure the contractId is set to the same value as specified when registering the contract on the ledger
-        String contractId = useCertHolderIdSuffix ? contractName + "_" + config.getCertHolderId() : contractName;
-
-        Injector injector = Guice.createInjector(new ClientModule(config));
-        ClientService service = injector.getInstance(ClientService.class);
-        JsonObject object =
-                (contractParameter != null)
-                        ? contractParameter
-                        : Json.createObjectBuilder().build();
-        return service.executeContract(contractId, object);
-    }
-
-    /**
-     * Pretty print the json to the standard output
-     *
-     * @param json the json to print
-     */
-    protected void prettyPrintJson(JsonObject jsonObject) {
-        if (jsonObject != null) {
-            System.out.println("[Return]");
-            Map<String, Object> config = new HashMap<>(1);
-            config.put(JsonGenerator.PRETTY_PRINTING, true);
-            JsonWriterFactory factory = Json.createWriterFactory(config);
-            JsonWriter writer = factory.createWriter(System.out);
-            writer.writeObject(jsonObject);
-            System.out.println("");
-            writer.close();
-        }
-    }
+  }
 }
