@@ -88,7 +88,7 @@ register-function --properties client.properties --function-id test-function --f
 Functions to be executed are specified in a contract argument in a JSON format with `_functions_` as a key and an array of function IDs as a value as follows:
 
 ```
-execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "__functions__": ["test-function"]}' --function-argument '{...}'
+execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "_functions_": ["test-function"]}' --function-argument '{...}'
 ```
 
 As similarly to Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
