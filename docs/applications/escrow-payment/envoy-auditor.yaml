@@ -17,14 +17,14 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: local_service
-                      domains: ["*"]
+                      domains: [ "*" ]
                       routes:
                         - match: { prefix: "/" }
                           route: { cluster: scalar-auditor }
                       cors:
                         allow_origin_string_match:
                           - safe_regex:
-                              google_re2: {}
+                              google_re2: { }
                               regex: \*
                         allow_methods: GET, PUT, DELETE, POST, OPTIONS
                         allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
@@ -47,14 +47,14 @@ static_resources:
                   name: local_route
                   virtual_hosts:
                     - name: local_service
-                      domains: ["*"]
+                      domains: [ "*" ]
                       routes:
                         - match: { prefix: "/" }
                           route: { cluster: scalar-auditor-privileged }
                       cors:
                         allow_origin_string_match:
                           - safe_regex:
-                              google_re2: {}
+                              google_re2: { }
                               regex: \*
                         allow_methods: GET, PUT, DELETE, POST, OPTIONS
                         allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,custom-header-1,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout
@@ -68,12 +68,12 @@ static_resources:
     - name: scalar-auditor
       connect_timeout: 0.25s
       type: strict_dns
-      http2_protocol_options: {}
+      http2_protocol_options: { }
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: scalar-auditor, port_value: 40051 }}]
+      hosts: [ { socket_address: { address: scalar-auditor, port_value: 40051 } } ]
     - name: scalar-auditor-privileged
       connect_timeout: 0.25s
       type: strict_dns
-      http2_protocol_options: {}
+      http2_protocol_options: { }
       lb_policy: round_robin
-      hosts: [{ socket_address: { address: scalar-auditor, port_value: 40052 }}]
+      hosts: [ { socket_address: { address: scalar-auditor, port_value: 40052 } } ]
