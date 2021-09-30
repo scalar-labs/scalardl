@@ -1,22 +1,31 @@
 # Scalar DL Escrow payment CLI
 
-The following is a simple Java CLI application to try out and test [Scalar DL](https://github.com/scalar-labs/scalardl).  PicoCLI is used as a CLI framework. 
+The following is a simple Java CLI application to try out and
+test [Scalar DL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
 
 Scalar DL has support and SDK's for multiple languages . In this example JAVA is used.
 
-As this is just a sample project, all commands are simply ran via `gradle`. In no way is this a production ready example.
+As this is just a sample project, all commands are simply ran via `gradle`. In no way is this a
+production ready example.
 
-This sample project is running locally via Docker. Please check [here](https://github.com/scalar-labs/scalardl/blob/master/docs/installation-with-docker.md) how to run Scalar DL with Docker.   Most of the setup can be done by using the provided Makefile. However, please check out the Makefile commands and the official Scalar DL documentation to see which commands are being executed.
+This sample project is running locally via Docker. Please
+check [here](https://github.com/scalar-labs/scalardl/blob/master/docs/installation-with-docker.md)
+how to run Scalar DL with Docker. Most of the setup can be done by using the provided Makefile.
+However, please check out the Makefile commands and the official Scalar DL documentation to see
+which commands are being executed.
 
 ## Introduction
 
 ### Escrow
 
-Instead of directly transferring the funds from account A to account B an intermediary account is introduced.  The funds are locked in this intermediary account until both parties agreed that the transaction is completed.  Should something go wrong both the buyer and the seller cannot access the funds until the issue is resolved.
+Instead of directly transferring the funds from account A to account B an intermediary account is
+introduced. The funds are locked in this intermediary account until both parties agreed that the
+transaction is completed. Should something go wrong both the buyer and the seller cannot access the
+funds until the issue is resolved.
 
-The following is a typical Escrow payment  flow:
+The following is a typical Escrow payment flow:
 
-- Registered buyer with account A, buys and item from registered seller with account B
+- Registered buyer with account A, buys an item from a registered seller with account B
 - An order entry is created and the order is set to the `open` status
 - An escrow account between the two parties is created
 - Account A is credited and the funds are moved to the escrow account
@@ -26,19 +35,19 @@ The following is a typical Escrow payment  flow:
 - The Escrow account is credited and the funds are moved to account B.
 - The order is closed and marked with status `complete`
 
-Order cancellation is possible but only while the order is still in the `open` status. After the goods are shipped, the order cannot be cancelled in the current implementation
-
-
+Order cancellation is possible but only while the order is still in the `open` status. After the
+goods are shipped, the order cannot be cancelled in the current implementation
 
 ## Features
 
-This CLI application provides to most important actions to simulate an escrow payment flow.  Extra actions are supported for data lookup and monitoring.
+This CLI application provides to most important actions to simulate an escrow payment flow. Extra
+actions are supported for data lookup and monitoring.
 
 The following actions are supported:
 
 **Account**
 
-- register a new  account
+- register a new account
 - add funds, charge, an account
 - view account history
 
@@ -59,8 +68,6 @@ The following actions are supported:
 
 - View escrow account history
 
-
-
 ## Prerequisites
 
 - Docker
@@ -69,27 +76,29 @@ The following actions are supported:
 
 - Java
 
-  
-
 ## Setup
 
 ### Scalar DL
 
-The Scalar DL server is started and managed via Docker.  Simply start the environment via `make env-up` or `make env-reset`
+The Scalar DL server is started and managed via Docker. Simply start the environment
+via `make env-up` or `make env-reset`
 
 ### Certificate
 
-An example certificate is used but is enough for the example.  The certiticate can be loaded via `make register-certificate`
+An example certificate is used but is enough for the example. The certiticate can be loaded
+via `make register-certificate`
 
 ### Contracts
 
-All the contract names have an added suffix. This is the name of the certificate owner which in this case is `foo`. This is not required and only done to make sure the contract names are unique.
+All the contract names have an added suffix. This is the name of the certificate owner which in this
+case is `foo`. This is not required and only done to make sure the contract names are unique.
 
 The contracts can be loaded via `make register-contracts`
 
 ### Client SDK
 
-The Java client SDK requires a `client.properties` file to work. Currently the same settings as the scalar examples projects are used.
+The Java client SDK requires a `client.properties` file to work. Currently the same settings as the
+scalar examples projects are used.
 
 ### Test scenarios
 
@@ -109,11 +118,10 @@ The application can be build via `./gradlew build` or by running the `make build
 
 Management of the accounts via CLI.
 
-
-
 ##### Create account
 
-Create a new account by supplying the `id` which is string and can be anything. The account automatically will have it's `balance` set to 0 and `created_at` set to the current timestamp.
+Create a new account by supplying the `id` which is string and can be anything. The account
+automatically will have it's `balance` set to 0 and `created_at` set to the current timestamp.
 
 *Command*
 
@@ -121,19 +129,15 @@ Create a new account by supplying the `id` which is string and can be anything. 
 ./gradlew run --args="account add -id <account id> -n <name>"
 ```
 
-
-
 ##### View account history
 
-Retrieve the account history. 
+Retrieve the account history.
 
 *Command*
 
 ```
 ./gradlew run --args="account view -id <account id>"
 ```
-
-
 
 ##### Charge account
 
@@ -145,15 +149,14 @@ Add funds to the account's balance.
 ./gradlew run --args="account charge -id <account id> -a <amount>"
 ```
 
-
-
 #### Item
 
 Management of the items via CLI.
 
 ##### Create item
 
-Create a new item by providing an `id`, a `price` and `seller`, which is the account Id, and an item `name`.
+Create a new item by providing an `id`, a `price` and `seller`, which is the account Id, and an
+item `name`.
 
 *Command*
 
@@ -171,8 +174,6 @@ View item details
 ./gradlew run --args="item view -id <item id>"
 ```
 
-
-
 #### Order
 
 Management of the orders via CLI.
@@ -189,7 +190,9 @@ Create a new order by providing an `id`, a `item id` and `buyer`, which is the a
 
 ##### Cancel order
 
-Cancel an order that is currently in `open` status. Orders cannot be cancelled anymore when in another state. A `account id` is required and validated. If the order does not belong to the specified account, it can not be cancelled.
+Cancel an order that is currently in `open` status. Orders cannot be cancelled anymore when in
+another state. A `account id` is required and validated. If the order does not belong to the
+specified account, it can not be cancelled.
 
 *Command*
 
@@ -197,11 +200,9 @@ Cancel an order that is currently in `open` status. Orders cannot be cancelled a
 ./gradlew run --args="order cancel -id <order id> -a <account id>"
 ```
 
-
-
 ##### Mark order item as shipped
 
-Update the order as a seller to notify the buyer the item has been shipped. 
+Update the order as a seller to notify the buyer the item has been shipped.
 
 *Command*
 
@@ -209,11 +210,10 @@ Update the order as a seller to notify the buyer the item has been shipped.
 ./gradlew run --args="order shipped -id <order id> -s <seller account id>"
 ```
 
-
-
 ##### Mark order item as received
 
-Update the order as a buyer to notify the seller the item has been received. The order will be completed. 
+Update the order as a buyer to notify the seller the item has been received. The order will be
+completed.
 
 *Command*
 
@@ -221,19 +221,15 @@ Update the order as a buyer to notify the seller the item has been received. The
 ./gradlew run --args="order received -id <order id> -b <buyer account id>"
 ```
 
-
-
 ##### View order history
 
-View the  history for one order.
+View the history for one order.
 
 *Command*
 
 ```
 ./gradlew run --args="order view -id <order id>"
 ```
-
-
 
 #### Escrow account
 
