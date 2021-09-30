@@ -35,11 +35,8 @@ public class ViewAccountHistoryCommand extends LedgerClientExecutor implements C
       ContractExecutionResult result =
           executeContract(ViewAccountHistory.class.getSimpleName(), argument, true);
 
-      // parse result
-      if (result.getResult().isPresent()) {
-        JsonObject jsonObject = result.getResult().get();
-        prettyPrintJson(jsonObject);
-      }
+      // pretty print result
+      result.getResult().ifPresent(this::prettyPrintJson);
     } catch (Exception e) {
       LOG.error(e.getMessage());
     }

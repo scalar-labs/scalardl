@@ -32,11 +32,8 @@ public class ViewItemCommand extends LedgerClientExecutor implements Callable {
       ContractExecutionResult result =
           executeContract(ViewItem.class.getSimpleName(), argument, true);
 
-      // parse result
-      if (result.getResult().isPresent()) {
-        JsonObject jsonObject = result.getResult().get();
-        prettyPrintJson(jsonObject);
-      }
+      // pretty print result
+      result.getResult().ifPresent(this::prettyPrintJson);
     } catch (Exception e) {
       LOG.error(e.getMessage());
     }
