@@ -30,7 +30,8 @@ const clientService = ...; // ClientService object
 try {
 
 } catch (e) {
-    // e.code() returns the status of the error
+    // e.code returns the status of the error
+    // e.message returns the error message
 }
 
 ```
