@@ -1,8 +1,7 @@
 package com.ypeckstadt.escrow.command.escrowAccount;
 
-import picocli.CommandLine;
-
 import java.util.concurrent.Callable;
+import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "escrow",

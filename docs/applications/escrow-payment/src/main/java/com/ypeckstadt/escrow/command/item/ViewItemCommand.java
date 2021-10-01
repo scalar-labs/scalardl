@@ -3,13 +3,12 @@ package com.ypeckstadt.escrow.command.item;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.ypeckstadt.escrow.contract.item.ViewItem;
 import com.ypeckstadt.escrow.dl.LedgerClientExecutor;
+import java.util.concurrent.Callable;
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "view")
 public class ViewItemCommand extends LedgerClientExecutor implements Callable {

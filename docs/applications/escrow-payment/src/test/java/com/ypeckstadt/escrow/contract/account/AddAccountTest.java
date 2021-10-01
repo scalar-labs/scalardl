@@ -55,7 +55,7 @@ public class AddAccountTest {
   public void invoke_ArgumentsMissing_ShouldThrowContractContextException() {
     // Arrange
     JsonObject argument = Json.createObjectBuilder().build();
-      JsonObject properties = prepareProperties();
+    JsonObject properties = prepareProperties();
 
     // Act
     // Assert

@@ -5,13 +5,12 @@ import com.scalar.dl.ledger.contract.Contract;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.Ledger;
 import com.scalar.dl.ledger.exception.ContractContextException;
-
+import java.util.List;
+import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import java.util.List;
-import java.util.Optional;
 
 public class ViewOrderHistory extends Contract {
 

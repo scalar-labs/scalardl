@@ -4,10 +4,9 @@ import com.scalar.dl.ledger.asset.Asset;
 import com.scalar.dl.ledger.contract.Contract;
 import com.scalar.dl.ledger.database.Ledger;
 import com.scalar.dl.ledger.exception.ContractContextException;
-
+import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
-import java.util.Optional;
 
 public class ViewItem extends Contract {
 

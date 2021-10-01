@@ -4,9 +4,8 @@ import com.ypeckstadt.escrow.command.account.AccountCommand;
 import com.ypeckstadt.escrow.command.escrowAccount.EscrowAccountCommand;
 import com.ypeckstadt.escrow.command.item.ItemCommand;
 import com.ypeckstadt.escrow.command.order.OrderCommand;
-import picocli.CommandLine;
-
 import java.io.IOException;
+import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "app",

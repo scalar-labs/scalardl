@@ -2,14 +2,13 @@ package com.ypeckstadt.escrow.command.order;
 
 import com.ypeckstadt.escrow.contract.order.AddOrder;
 import com.ypeckstadt.escrow.dl.LedgerClientExecutor;
+import java.util.Date;
+import java.util.concurrent.Callable;
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import java.util.Date;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "add")
 public class AddOrderCommand extends LedgerClientExecutor implements Callable {
@@ -51,7 +50,8 @@ public class AddOrderCommand extends LedgerClientExecutor implements Callable {
     try {
       executeContract(AddOrder.class.getSimpleName(), argument, true);
       LOG.info(
-          "The order has been added successfully. Waiting for the seller to mark the item as shipped.");
+          "The order has been added successfully. Waiting for the seller to mark the item as"
+              + " shipped.");
     } catch (Exception e) {
       LOG.error(e.getMessage());
     }
