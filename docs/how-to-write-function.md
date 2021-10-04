@@ -91,7 +91,7 @@ Functions to be executed are specified in a contract argument in a JSON format w
 execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "_functions_": ["test-function"]}' --function-argument '{...}'
 ```
 
-As similarly to Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
+Similar to a Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
 Scalar DL executes a group of Contracts and Functions in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
 ## How to use Contracts and Functions properly
