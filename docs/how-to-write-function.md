@@ -67,7 +67,7 @@ Similar to a Contract using `Ledger` object to manage assets, a Function uses `D
 
 ### How to use Functions
 
-Here, we explain how to use Functions. The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things.
+The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things.
 If you want to disable the feature, please set `scalar.dl.ledger.function.enabled` to `false` in the properties of Ledger.
 
 #### Add an application-specific schema
