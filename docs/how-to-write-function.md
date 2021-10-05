@@ -85,7 +85,7 @@ register-function --properties client.properties --function-id test-function --f
 
 #### Execute a registered Function
 
-Functions to be executed are specified in a contract argument in a JSON format with `__functions__` as a key and an array of function IDs as a value as follows:
+Functions that are being executed are specified in a contract argument in a JSON format with `__functions__` as a key and an array of function IDs as a value as follows:
 
 ```
 execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "__functions__": ["test-function"]}' --function-argument '{...}'
