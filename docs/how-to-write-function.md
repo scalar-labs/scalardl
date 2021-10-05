@@ -65,16 +65,34 @@ Similar to a Contract using `Ledger` object to manage assets, a Function uses `D
 
 `contractArgument` and `contractProperties` are the corresponding contract's argument and properties. See [the contract guide](how-to-write-contract.md) to understand what they are.
 
-### How Functions and Contracts are tied together
+### How to use Functions
 
-Functions to be executed are specified in a contract argument with `__functions__` JSON key. As described in [the contract guide](how-to-write-contract.md#write-a-complex-contract), a contract can invoke another contract, so multiple contracts and multiple functions can be grouped together.
+The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things.
+If you want to disable the feature, please set `scalar.dl.ledger.function.enabled` to `false` in the properties of Ledger.
 
-Scalar DL executes the group of operations in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
-
-### How to add an application-specific schema
+#### Add an application-specific schema
 
 Since Functions can read and write arbitrary records through the Scalar DB CRUD interface, Scalar DL can't define the database schema for the Function by itself.
 It is the applications' owner's responsibility to define such schema and apply it to the database by themselves or asking system admins to do it depending on who owns and manages the database.
+
+#### Register a Function
+
+You then need to register a Function to Ledger before used like you register a Contract.
+
+```
+register-function --properties client.properties --function-id test-function --function-binary-name com.example.function.TestFunction --function-class-file /path/to/TestFunction.class
+```
+
+#### Execute a registered Function
+
+Functions that are being executed are specified in a contract argument in a JSON format with `_functions_` as a key and an array of function IDs as a value as follows:
+
+```
+execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "_functions_": ["test-function"]}' --function-argument '{...}'
+```
+
+Similar to a Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
+Scalar DL executes a group of Contracts and Functions in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
 ## How to use Contracts and Functions properly
 
