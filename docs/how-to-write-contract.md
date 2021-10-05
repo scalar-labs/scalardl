@@ -86,7 +86,7 @@ For example, Scalar DL will lazily traverse assets and re-execute contracts to c
 It also utilizes determinism to make the states of multiple independent Scalar DL components, which are possibly managed by different organizations, the same.
 
 One common way of creating a non-deterministic contract is to generate the time inside the contract and have the output including the ledger states somehow depend on this time.
-Such a contract will produce different outputs each time it is executed, and makes the system unable to detect tampering.
+Such a contract will produce different outputs each time it is executed and makes the system unable to detect tampering.
 If you need to use the time in a contract, you should pass it to the contract as an argument.
 
 ### Deleting an asset

@@ -67,7 +67,7 @@ Similar to a Contract using `Ledger` object to manage assets, a Function uses `D
 
 ### How to use Functions
 
-Here, we explain how to use Functions. The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things.
+The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things.
 If you want to disable the feature, please set `scalar.dl.ledger.function.enabled` to `false` in the properties of Ledger.
 
 #### Add an application-specific schema
@@ -85,13 +85,13 @@ register-function --properties client.properties --function-id test-function --f
 
 #### Execute a registered Function
 
-Functions that are being executed are specified in a contract argument in a JSON format with `__functions__` as a key and an array of function IDs as a value as follows:
+Functions that are being executed are specified in a contract argument in a JSON format with `_functions_` as a key and an array of function IDs as a value as follows:
 
 ```
-execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "__functions__": ["test-function"]}' --function-argument '{...}'
+execute-contract --properties client.properties --contract-id test-contract --contract-argument '{..., "_functions_": ["test-function"]}' --function-argument '{...}'
 ```
 
-As similarly to Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
+Similar to a Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together.
 Scalar DL executes a group of Contracts and Functions in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
 ## How to use Contracts and Functions properly
