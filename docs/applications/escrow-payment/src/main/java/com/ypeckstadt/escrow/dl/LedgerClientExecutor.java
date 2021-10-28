@@ -3,22 +3,19 @@ package com.ypeckstadt.escrow.dl;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientModule;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
-import java.io.File;
-import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class LedgerClientExecutor {
 

@@ -5,10 +5,9 @@ import com.scalar.dl.ledger.contract.Contract;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.Ledger;
 import com.scalar.dl.ledger.exception.ContractContextException;
-
-import javax.json.*;
 import java.util.List;
 import java.util.Optional;
+import javax.json.*;
 
 public class ViewEscrowAccountHistory extends Contract {
 

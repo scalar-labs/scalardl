@@ -1,8 +1,7 @@
 package com.ypeckstadt.escrow.command.order;
 
-import picocli.CommandLine;
-
 import java.util.concurrent.Callable;
+import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "order",

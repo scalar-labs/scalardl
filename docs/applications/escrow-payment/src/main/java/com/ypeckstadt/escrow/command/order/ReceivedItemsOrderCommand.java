@@ -1,16 +1,14 @@
 package com.ypeckstadt.escrow.command.order;
 
 import com.ypeckstadt.escrow.contract.order.SetOrderToReceivedStatus;
-import com.ypeckstadt.escrow.contract.order.SetOrderToShippedStatus;
 import com.ypeckstadt.escrow.dl.LedgerClientExecutor;
+import java.util.Date;
+import java.util.concurrent.Callable;
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import java.util.Date;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(name = "received")
 public class ReceivedItemsOrderCommand extends LedgerClientExecutor implements Callable {
