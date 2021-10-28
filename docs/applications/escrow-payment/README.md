@@ -1,18 +1,14 @@
 # Scalar DL Escrow payment CLI
 
-The following is a simple Java CLI application to try out and
-test [Scalar DL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
+The following is a simple Java CLI application to try out and test [Scalar DL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
 
-Scalar DL has support and SDK's for multiple languages . In this example JAVA is used.
+Scalar DL has support and SDK for multiple languages. In this example, JAVA is used.
 
-As this is just a sample project, all commands are simply ran via `gradle`. In no way is this a
-production ready example.
+As this is just a sample project, all commands can be run via Gradle. This is not a production-ready example and is only provided as study material.
 
-This sample project is running locally via Docker. Please
-check [here](https://github.com/scalar-labs/scalardl/blob/master/docs/installation-with-docker.md)
-how to run Scalar DL with Docker. Most of the setup can be done by using the provided Makefile.
-However, please check out the Makefile commands and the official Scalar DL documentation to see
-which commands are being executed.
+Please check out the mentioned Makefile commands and the official Scalar DL documentation to see which commands are being executed.
+
+
 
 ## Introduction
 
@@ -37,6 +33,8 @@ The following is a typical Escrow payment flow:
 
 Order cancellation is possible but only while the order is still in the `open` status. After the
 goods are shipped, the order cannot be cancelled in the current implementation
+
+
 
 ## Features
 
@@ -68,6 +66,8 @@ The following actions are supported:
 
 - View escrow account history
 
+
+
 ## Prerequisites
 
 - Docker
@@ -76,12 +76,13 @@ The following actions are supported:
 
 - Java
 
+
+
 ## Setup
 
 ### Scalar DL
 
-The Scalar DL server is started and managed via Docker. Simply start the environment
-via `make env-up` or `make env-reset`
+The code to start up the Scalar DL server is not included in this repository.  To get Scalar DL up and running quickly, please clone the [following repository](https://github.com/scalar-labs/scalardl-samples) and follow the provided instructions on how to get started with Scalar DL.
 
 ### Certificate
 
@@ -105,6 +106,8 @@ scalar examples projects are used.
 Two example test scenarios are provided to see the payment and order cancellation flow in practice.
 
 The scenarios can be run via `make run-complete-order-scenario` and `make run-cancel-order-scenario`
+
+
 
 ## Usage
 

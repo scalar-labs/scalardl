@@ -6,21 +6,6 @@ build:
 	@echo "Building scalar DL escrow demo CLI"
 	@./gradlew build
 
-##### ENVIRONMENT
-.PHONY: env-up env-up env-reset
-env-up:
-	@echo "Starting environment"
-	@docker-compose -f docker-compose.yml up --force-recreate --build -d
-	@echo "Environment up"
-
-env-down:
-	@echo "Stop environment ..."
-	@docker-compose -f docker-compose.yml down -v
-	@echo "Environment down"
-
-env-reset: env-down env-up
-
-
 #### Scalar DL
 .PHONY: register-cert assemble register-contracts clear register-all
 
