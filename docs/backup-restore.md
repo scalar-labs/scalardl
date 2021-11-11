@@ -69,7 +69,7 @@ This section shows how to restore transactionally-consistent backup for Scalar D
 
 ### Requirements
 
-* You must use a middle value of the paused time as restore point.
+* You must use a middle value of the paused time as a restore point.
 * You must restore Scalar Ledger and Auditor tables with the same restore point if you use Ledger and Auditor.
 
 ### Cassandra
