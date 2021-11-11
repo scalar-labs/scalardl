@@ -7,15 +7,20 @@ This guide shows you how to create and restore transactionally-consistent Scalar
 
 Scalar DL service is integrated with the admin interface, which allows you to pause the Scalar DL services using the scalar-admin client tool.
 
-### PAUSE
+### Requirements
 
-The `PAUSE` command helps you to create a transactionally consistent backup for non-transactional databases. It will pause the ledger.
+* You must wait at least 10 sec after pausing to create a backup.
+* You must be able to identify a common restore point for the Ledger and Auditor If you use Auditor.
+
+### Pause
+
+The `PAUSE` command helps you to create a transactionally consistent backup for non-transactional databases. It helps to pause the Scalar DL service.
 
 ```console
 docker run -it --rm ghcr.io/scalar-labs/scalar-admin:<version> -c PAUSE -s <SRV_Service_URL>
 ```
 
-### UNPAUSE
+### Unpause
 
 The `UNPAUSE` command helps you start the ledger after creating the backup.
 
@@ -25,6 +30,8 @@ docker run -it --rm ghcr.io/scalar-labs/scalar-admin:<version> -c UNPAUSE -s <SR
 
 
 ## Create Backup
+
+This section shows how to create a transactionally-consistent backup for Scalar DL.
 
 ### Cassandra
 
@@ -57,6 +64,13 @@ ScalarDL schema loader enables Point-in-time recovery (PITR) for each table in a
 The easiest way to take a transactionally-consistent backup for Scalar DL on DynamoDB is to pause the Scalar DL service using the [How to create transactionally consistent backup](#how-to-create-transactionally-consistent-backup) steps. You can use the middle value of the pause time as a restore point.
 
 ## Restore
+
+This section shows how to restore transactionally-consistent backup for Scalar DL.
+
+### Requirements
+
+* You must use a middle value of the paused time as restore point.
+* You must restore Scalar Ledger and Auditor tables with the same restore point if you use Ledger and Auditor.
 
 ### Cassandra
 
