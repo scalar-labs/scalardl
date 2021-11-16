@@ -6,6 +6,7 @@ This guide shows you how to create and restore transactionally-consistent Scalar
 ## How to create transactionally consistent backup 
 
 Scalar DL service is integrated with the admin interface, which allows you to pause the Scalar DL services using the scalar-admin client tool.
+You can use the scalar-admin client tool as a docker container or  fat jar, you can find scalar-admin-<version>-all.jar in the [releases](https://github.com/scalar-labs/scalar-admin/releases).
 
 ### Requirements
 
@@ -17,6 +18,11 @@ Scalar DL service is integrated with the admin interface, which allows you to pa
 The `PAUSE` command helps you to create a transactionally consistent backup for non-transactional databases. It helps to pause the Scalar DL service.
 
 ```console
+# 
+java -jar scalar-admin-<version>-all.jar -c PAUSE -s <SRV_Service_URL>
+
+OR
+
 docker run -it --rm ghcr.io/scalar-labs/scalar-admin:<version> -c PAUSE -s <SRV_Service_URL>
 ```
 
@@ -25,6 +31,10 @@ docker run -it --rm ghcr.io/scalar-labs/scalar-admin:<version> -c PAUSE -s <SRV_
 The `UNPAUSE` command helps you start the ledger after creating the backup.
 
 ```console
+java -jar scalar-admin-<version>-all.jar -c UNPAUSE -s <SRV_Service_URL>
+
+OR
+
 docker run -it --rm ghcr.io/scalar-labs/scalar-admin:<version> -c UNPAUSE -s <SRV_Service_URL>
 ```
 
@@ -53,15 +63,15 @@ That means that you need to create a consistent snapshot by dumping all tables i
 
 ### Cosmos DB
 
-Cosmos DB continuous mode backup creates Point In Time Restore (PITR), it is recommended to use in production environment.
+You should create Cosmos DB account using `Continuous` backup policy to create continuous backups.
 
-The easiest way to take a transactionally-consistent backup for Scalar DL on Cosmos DB is to pause the Scalar DL service using the [How to create transactionally consistent backup](#how-to-create-transactionally-consistent-backup) steps. You can use the middle value of the pause time as a restore point.
+Follow [How to create transactionally consistent backup](#how-to-create-transactionally-consistent-backup) to create a transactionally-consistent backup.
 
 ### DynamoDB
 
-ScalarDL schema loader enables Point-in-time recovery (PITR) for each table in a DynamoDB.
+You should create the schema using the scalardl schema loader, which enables Point-in-time recovery (PITR) for each table in a DynamoDB by default.
 
-The easiest way to take a transactionally-consistent backup for Scalar DL on DynamoDB is to pause the Scalar DL service using the [How to create transactionally consistent backup](#how-to-create-transactionally-consistent-backup) steps. You can use the middle value of the pause time as a restore point.
+Follow [How to create transactionally consistent backup](#how-to-create-transactionally-consistent-backup) to create a transactionally-consistent backup.
 
 ## Restore
 
@@ -69,7 +79,7 @@ This section shows how to restore transactionally-consistent backup for Scalar D
 
 ### Requirements
 
-* You must use a middle value of the paused time as a restore point.
+* You must use the midtime of the pause as a restore point.
 * You must restore Scalar Ledger and Auditor tables with the same restore point if you use Ledger and Auditor.
 
 ### Cassandra
@@ -90,12 +100,9 @@ You can restore the backup based on the [azure official guide](https://docs.micr
 
 You can restore the tables one by one using the following steps from the [Amazon DynamoDB console](https://console.aws.amazon.com/dynamodbv2/home),
 
-    A. Restore the PITR (Point-in-time recovery) backup of tables except `scalardb.metadata` on the basis of [AWS official guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/PointInTimeRecovery.Tutorial.html#restoretabletopointintime_console).
-        
-    B. Create the backup of previously restored tables (A) using the [AWS official guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Backup.Tutorial.html#backup_console).
-        
-    C. Delete all tables (A) except `scalardb.metadata` table and previously restored tables (B).
-        
-    D. Restore the previously created backup (B) using the actual table name (previously deleted tables (C)) on the basis of [AWS official guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Restore.Tutorial.html#restoretable_console).
+* Restore with PITR of table A to another table B (alias table)
+* Take a backup of the restored table B (say, backup B)
+* Remove table A
+* Create a table named A with backup B
 
 You must enable continuous backup and auto-scaling using the scalardl schema loader or Amazon DynamoDB console. The schema tool doesn't remake the existing tables.
