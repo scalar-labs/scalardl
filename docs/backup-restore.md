@@ -11,8 +11,7 @@ You can use the scalar-admin client tool as a docker container or  fat jar, you 
 ### Requirements
 
 * You must wait at least 10 sec after pausing to create a backup.
-* You must be able to identify a common restore point for the Ledger and Auditor If you use Auditor.
-
+* You must identify a common restore point for the Ledger and Auditor if you use Auditor.
 ### Pause
 
 The `PAUSE` command helps you to create a transactionally consistent backup for non-transactional databases. It helps to pause the Scalar DL service.
@@ -88,7 +87,7 @@ To minimize mistakes when doing restore operations, it is recommended to use [Ca
 ### JDBC
 
 You can restore the backup with your favorite way for JDBC databases.
-you can use `mysql` command in MySQL and `psql` command in PostgreSQL to achieve that. Or when you use Amazon RDS (Relational Database Service) or Azure Database for MySQL/PostgreSQL, 
+You can use `mysql` command in MySQL and `psql` command in PostgreSQL to achieve that. Or when you use Amazon RDS (Relational Database Service) or Azure Database for MySQL/PostgreSQL, 
 you can restore to any point within the backup retention period with the automated backup feature.
 
 ### Cosmos DB
