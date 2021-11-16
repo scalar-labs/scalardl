@@ -18,7 +18,6 @@ You can use the scalar-admin client tool as a docker container or  fat jar, you 
 The `PAUSE` command helps you to create a transactionally consistent backup for non-transactional databases. It helps to pause the Scalar DL service.
 
 ```console
-# 
 java -jar scalar-admin-<version>-all.jar -c PAUSE -s <SRV_Service_URL>
 
 OR
