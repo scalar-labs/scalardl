@@ -49,3 +49,5 @@ You must create tables with point-in-time recovery (PITR) and autoscaling in Dyn
 ## Restore Backup
 
 To restore the backup, you must follow the [Restore Backup](https://github.com/scalar-labs/scalardb/blob/master/docs/backup-restore.md#restore-backup) section.
+You must restore Scalar Ledger and Auditor tables with the same restore point if you use Ledger and Auditor.
+
