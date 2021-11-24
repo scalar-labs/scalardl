@@ -1,7 +1,7 @@
 # How to Backup and Restore Databases Integrated with Scalar DL
 
-Since Scalar DL provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively, you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
-This guide shows you how to create and restore transactionally-consistent Scalar DL backups.
+Since Scalar DL uses Scalar DB that provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively,
+you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
 
 ## Create Backup
 
@@ -16,6 +16,9 @@ That means that you need to create a consistent snapshot by dumping all tables i
 ### For Non-transactional Databases
 
 #### General strategy to create a transactionally-consistent backup
+
+Scalar DL requires transactionally-consistent backup for restoration, so you must pause the Scalar DL services or stop the database to take transactionally-consistent backup without losing ongoing transactions.
+If you enable Point-In-Time Recovery (PITR) in the backend database, it will create a transactionally-consistent backup when the Scalar DL service is paused. Otherwise, you may need to create a backup when pausing.
 
 Scalar DL service is integrated with the admin interface, which allows you to pause the Scalar DL services using the [scalar-admin](https://github.com/scalar-labs/scalar-admin) client tool.
 You can use the scalar-admin client tool as a docker container or fat jar, you can find scalar-admin-<version>-all.jar in the [releases](https://github.com/scalar-labs/scalar-admin/releases).
