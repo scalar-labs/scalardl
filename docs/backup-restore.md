@@ -2,6 +2,7 @@
 
 Since Scalar DL uses Scalar DB that provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively,
 you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
+This guide shows you how to create and restore transactionally-consistent Scalar DL backups.
 
 ## Create Backup
 
