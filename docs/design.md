@@ -1,18 +1,17 @@
-# Scalar DL v1 design document
+# Scalar DL design document
 
 ## Introduction
 
-Scalar DL is a blockchain-inspired distributed ledger. This design document briefly explains the background, design and implementation of Scalar DL.
+Scalar DL is a tamper-evident and scalable distributed database. This design document briefly explains the background, design and implementation of Scalar DL.
 
 ## Background and Objectives
 
 Distributed ledgers or blockchains have been attracting a lot of attention recently, especially in the areas of financial and legal applications.
 They have gained acceptance due to their tamper-evidence and decentralized control properties.
 However, the existing platforms do not necessarily handle properties such as finality and scalability well, which are particularly important for mission-critical applications.
-HyperLedger fabric [1] applies blockchain to a private network owned by the fixed number of organizations so that ledger states are always finalized unless malicious attacks happen. 
-But its architecture inherently focuses on realtime tamper-evidence over scalability due to its endorsement mechanism so that its performance does not necessarily scale as the number of peers increases.
-Also, because it is designed toward a general distributed ledger, its complexity is becoming quite high and developers and administrators may have a lot of difficulties using it properly.
-Scalar DL is a simple and practical solution to solve such issues in an essentially different approach.
+HyperLedger Fabric [1] applies blockchain to a private network owned by the fixed number of organizations so that ledger states are always finalized unless malicious attacks happen. 
+While Fabric applies interesting endorsement mechanism to avoid non-deterministic execution, its architecture is based on Byzantine-fault tolerant state machine replication (BFT SMR); thus, its performance does not necessarily scale as the number of peers increases.
+Scalar DL is a practical solution to tackle the challenge in an essentially different approach.
 
 ## Design Goals
 
@@ -52,55 +51,10 @@ Thus, assets in Scalar DL can be seen as a DAG of dependencies.
 Scalar DL defines a digitally signed business logic as a `Smart Contract`, which only a user with access to the signer's private key can execute.
 This makes the system easier to detect tampering because the signature can be made only by the owners of private keys.
 
-## Implementation
+## For more details
 
-### High-level Architecture
+A little more details are explained in [Scalar DL Technical Overview](https://www.slideshare.net/scalar-inc/scalar-dl-technical-overview-updated-at-1-dec-2021). Also, please wait for a white paper that we are currently working on for further details.
 
-WIP: software stack
-
-Scalar DL is composed of 3 layers. 
-The bottom layer is called `Ledger`. It mainly executes contracts and manages assets. It uses Scalar DB as a data and transaction manager, but also abstracts such management so that the implementation can be replaced with other database implementations.
-The middle layer is called `Ordering`. It orders contract execution requests in a deterministic way, so that multiple independent organizations will receive requests in the same order. It is similar to HyperLedger fabric's `Orderer`, but it differs in the way it does the processing.
-The top layer is called `Client SDK`. It is a client-facing library composed of a set of Java programs to interact with either `Ordering`, or `Ledger`.
-
-The basic steps of contract execution is as follows:
-1. client programs interacting with the Client SDK request one or more execution of contracts to Ordering
-2. Ordering orders the requests and pass them to Ledger
-3. Ledger executes the requests in the order given from the Ordering
-
-### Smart Contract as a Distributed Transaction
-
-Scalar DL executes a contract as a distributed transaction of the underlining database system (Scalar DB at the moment).
-More specifically, a contract (or a set of contracts invoked in one execution request) is composed of multiple reads and writes from/to assets, and those reads and writes are treated as single distributed transaction, so that they are atomically executed, consistently and durably written, and isolated from other contract executions.
-
-A Smart Contract in Scalar DL is a java program which extends the base class `Contract`.
-
-### Determinism management by Ordering
-
-Scalar DL pre-orders contract execution requests before execution so that multiple independent organizations receive the requests in the same order and can make their states the same as others' without having to interact with each other.
-It uses Kafka as the ordering manager because of its reliability and performance.
-Ordering component only assumes crash fault, but it just orders and relays signed requests so that there is nothing it can do except for removing a request, which can be detectable by the requester.
-
-## Key Features
-
-### Client-side Proof
-
-This is for tamper-evidence enhancement.
-(omitted because it is patent-pending)
-
-### Decoupled Consensus
-
-This is for scalable contract execution.
-(omitted because it is patent-pending)
-
-### Partial-order-aware Execution
-
-This is for scalable contract execution.
-(omitted because it is patent-pending)
-
-## Future Work
-
-WIP
 
 ## References
 
