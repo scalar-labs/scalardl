@@ -53,7 +53,7 @@ To specify a transactionally-consistent restore point, please pause the Scalar D
 **DynamoDB**
 
 You must enable the point-in-time recovery (PITR) feature for DynamoDB tables. If you use Scalar DB Schema Loader, it enables PITR by default.
-To specify a transactionally-consistent restore point, please pause the Scalar DL service as described in the basic strategy.
+To specify a transactionally-consistent restore point, please pause the Scalar DL service as described in the [basic strategy](#basic-strategy-to-create-a-transactionally-consistent-backup).
 
 ## Restore Backup
 
