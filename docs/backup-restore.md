@@ -20,14 +20,14 @@ That means that you need to create a consistent snapshot by dumping all tables i
 
 One way to create a transactionally-consistent backup is to take a backup while Scalar DL cluster does not have outstanding transactions.
 If an underlying database supports a point-in-time snapshot/backup mechanism, you can take a snapshot during the period.
-If an underlying database supports a point-in-time restore/recovery mechanism, you can set a restore point to a specific time (preferably the midtime) in the period since the system takes backups for each operation in such a case.
+If an underlying database supports a point-in-time restore/recovery mechanism, you can set a restore point to a specific time (preferably the mid-time) in the period since the system takes backups for each operation in such a case.
 
 To easily achieve this, Scalar DL exposes pause API to make Scalar DL drain outstanding transactions and stop accepting new transactions.
 We also provide a simple client program called scalar-admin to make a pause request (and unpause request) to a Scalar DL cluster and obtain a paused duration.
 
 Note that when you use a point-in-time-restore/recovery mechanism, it is recommended to minimize the clock drifts between nodes (Scalar DL nodes and a client node that requests a pause) by using clock synchronization such as NTP.
 Otherwise, the time you get as a paused duration might be too different from the time in which the pause was actually conducted, which could restore to a point where ongoing transactions exist.
-Also, it is recommended to pause a long enough time (e.g., 10 seconds) and use the midtime of the paused duration since clock synchronization cannot perfectly synchronize clocks between nodes.
+Also, it is recommended to pause a long enough time (e.g., 10 seconds) and use the mid-time of the paused duration since clock synchronization cannot perfectly synchronize clocks between nodes.
 
 #### Database-specific ways to create a transactionally-consistent backup
 
