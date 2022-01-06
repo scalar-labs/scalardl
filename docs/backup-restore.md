@@ -11,8 +11,9 @@ This guide shows you how to create and restore transactionally-consistent Scalar
 #### JDBC databases
 
 You can take a backup with your favorite way for JDBC databases.
-One requirement for backup in Scalar DL on JDBC databases is that backups for all the Scalar DL managed tables need to be transactionally-consistent or automatically recoverable to a transactionally-consistent state.
+One requirement for backup in Scalar DL on JDBC databases is that backups for all the Scalar DL managed tables (including the coordinator and scalardb tables) need to be transactionally-consistent or automatically recoverable to a transactionally-consistent state.
 That means that you need to create a consistent snapshot by dumping all tables in a single transaction. For example, you can use `mysqldump` command with `--single-transaction` option in MySQL and `pg_dump` command in PostgreSQL to achieve that.
+Or when you use Amazon RDS (Relational Database Service) or Azure Database for MySQL/PostgreSQL, you can restore to any point within the backup retention period with the automated backup feature, which satisfies the requirement.
 
 ### For Non-transactional Databases
 
@@ -38,7 +39,7 @@ Cassandra has a built-in replication mechanism, so you do not always have to cre
 For example, if replication is properly set to 3 and only the data of one of the nodes in a cluster is lost, you do not need a transactionally-consistent backup because the node can be recovered with a normal (transactionally-inconsistent) snapshot and the repair mechanism. 
 However, if the quorum of nodes of a cluster loses their data, we need a transactionally-consistent backup to restore the cluster to a certain transactionally-consistent point.
 
-If you want to create a transactionally-consistent cluster-wide backup, please follow [the basic strategy](#general-strategy-to-create-a-transactionally-consistent-backup) section, or 
+If you want to create a transactionally-consistent cluster-wide backup, please follow [the basic strategy](#basic-strategy-to-create-a-transactionally-consistent-backup) section, or 
 stop the Cassandra cluster and take the copies of all the nodes of the cluster, and start the cluster. 
 
 To avoid mistakes, it is recommended to use [Cassy](https://github.com/scalar-labs/cassy).
@@ -47,12 +48,12 @@ Please see [the doc](https://github.com/scalar-labs/cassy/blob/master/docs/getti
 
 **Cosmos DB**
 
-You must create a Cosmos DB account with a Continuous backup policy enabled to use point-in-time restore (PITR) feature.
+You must create a Cosmos DB account with a Continuous backup policy enabled to use point-in-time restore (PITR) feature. Backups are created continuously after it is enabled.
 To specify a transactionally-consistent restore point, please pause the Scalar DL service described in the [basic strategy](#basic-strategy-to-create-a-transactionally-consistent-backup).
 
 **DynamoDB**
 
-You must enable the point-in-time recovery (PITR) feature for DynamoDB tables. If you use Scalar DB Schema Loader, it enables PITR by default.
+You must enable the point-in-time recovery (PITR) feature for DynamoDB tables. If you use Scalar DL Schema Loader, it enables PITR by default.
 To specify a transactionally-consistent restore point, please pause the Scalar DL service as described in the [basic strategy](#basic-strategy-to-create-a-transactionally-consistent-backup).
 
 ## Restore Backup
