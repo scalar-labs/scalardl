@@ -4,6 +4,9 @@ Since Scalar DL uses Scalar DB that provides transaction capability on top of no
 you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
 This guide shows you how to create and restore transactionally-consistent Scalar DL backups.
 
+If you use Auditor and Ledger, ensure the clock drift of Ledger and Auditor are the same.
+You can follow the below sections to create a transactionally backup for Auditor.
+
 ## Create Backup
 
 ### For Transactional Databases
@@ -29,6 +32,7 @@ We also provide a simple client program called [scalar-admin](https://github.com
 Note that when you use a point-in-time-restore/recovery mechanism, it is recommended to minimize the clock drifts between nodes (Scalar DL nodes and a client node that requests a pause) by using clock synchronization such as NTP.
 Otherwise, the time you get as a paused duration might be too different from the time in which the pause was actually conducted, which could restore to a point where ongoing transactions exist.
 Also, it is recommended to pause a long enough time (e.g., 10 seconds) and use the mid-time of the paused duration since clock synchronization cannot perfectly synchronize clocks between nodes.
+If you use Auditor, a transactionally consistent backup for Auditor is also created when the ledger is paused.
 
 #### Database-specific ways to create a transactionally-consistent backup
 
