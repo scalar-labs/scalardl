@@ -4,10 +4,9 @@ Since Scalar DL uses Scalar DB that provides transaction capability on top of no
 you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
 This guide shows you how to create and restore transactionally-consistent Scalar DL backups.
 
-If you use Auditor and Ledger, ensure the clock drift of Ledger and Auditor are the same.
-You can follow the below sections to create a transactionally backup for Auditor.
+We first describe how to backup and restore the databases of Scalar DL Ledger. Then, we will describe how the process is extended to cover a case where Auditor is used.
 
-## Create Backup
+## Create Backups of Ledger Databases
 
 ### For Transactional Databases
 
@@ -59,7 +58,24 @@ To specify a transactionally-consistent restore point, please pause Scalar DL se
 You must enable the point-in-time recovery (PITR) feature for DynamoDB tables. If you use [Scalar DL Schema Loader](https://github.com/scalar-labs/scalardl-schema-loader), it enables PITR by default.
 To specify a transactionally-consistent restore point, please pause Scalar DL service as described in the [basic strategy](#basic-strategy-to-create-a-transactionally-consistent-backup).
 
-## Restore Backup
+## Restore Backups of Ledger Databases
 
 To restore backups, you must follow the [Restore Backup](https://github.com/scalar-labs/scalardb/blob/master/docs/backup-restore.md#restore-backup) section.
 You must restore Scalar Ledger and Auditor tables with the same restore point if you use Ledger and Auditor.
+
+## Create/Restore Backups of Auditor Databases
+
+When you use Auditor, you also need to take backups of Auditor databases in addition to Ledger databases.
+To make the backups of Ledger and Auditor databases consistent, you always need to pause a Ledger cluster regardless of whether you use transactional databases or non-transactional databases for Ledger and Auditor.
+
+Here is the steps to take backups:
+1. Pause a Ledger cluster
+1. Take backups of Ledger databases (as described above)
+1. Take backups of Auditor databases (as described above)
+1. Unpause the Ledger cluster
+
+Note that, even if Ledger is paused, Auditor still accepts requests and updates its data (i.e., lock tables), however, the updated data is lazily recovered once Ledger is unpaused.
+To reduce the lazy recovery overhead, it is always a good practice to take backups while there are no requests for Scalar DL.
+We are planning to provide a more efficient scheme as future work.
+
+When restoring backups, make sure you use the backups that are created in the same pause period. 
