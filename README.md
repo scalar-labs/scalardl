@@ -1,9 +1,6 @@
-## Scalar DL: Tamper-evident and Scalable Distributed Database
+## Scalar DL: Byzantine Fault Detection Middleware for Transactional Database Systems
 
-Scalar DL is a tamper-evident and scalable distributed database that achieves:
-- High tamper-evidence of data by utilizing digital signature, hash chain, determinism and decentralization
-- Scalable and highly available ACID-compliant smart contract executions
-- Exact finality and linearizable consistency 
+Scalar DL is a scalable and practical Byzantine fault detection middleware for transactional database systems that achieves correctness, scalability, and database-agnostism.
 
 ## Docs
 * [Docs](docs/index.md)
