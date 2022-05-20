@@ -78,4 +78,4 @@ To reduce the lazy recovery overhead, it is always a good practice to take backu
 We are planning to provide a more efficient scheme as future work.
 
 When restoring backups, make sure you use the backups that are created in the same pause period. 
-You must stop the Scalar DL Ledger and Auditor services before restoring database backups and start the Scalar DL Ledger and Auditor services after restoring the backups.
+You must stop Scalar DL Ledger and Auditor services before restoring database backups and start the Scalar DL Ledger and Auditor services after restoring the backups.
