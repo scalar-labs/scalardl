@@ -60,7 +60,7 @@ To specify a transactionally-consistent restore point, please pause Scalar DL se
 ## Restore Backups of Ledger Databases
 
 To restore backups, you must follow the [Restore Backup](https://github.com/scalar-labs/scalardb/blob/master/docs/backup-restore.md#restore-backup) section.
-You must stop the Scalar DL Ledger service before restoring database backups and start the Scalar DL Ledger service after restoring the backups.
+You must stop Scalar DL Ledger services before restoring database backups and start the Scalar DL Ledger services after restoring the backups.
 
 ## Create/Restore Backups of Auditor Databases
 
