@@ -1,3 +1,5 @@
 # Scalar DL design document
 
-Coming soon. (we are working on a white paper.)
+Please take a look at the following paper.
+* [Scalar DL: Scalable and Practical Byzantine Fault Detection for
+Transactional Database Systems](https://www.vldb.org/pvldb/vol15/p1324-yamada.pdf) [VLDB'22]
