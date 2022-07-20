@@ -224,6 +224,5 @@ result.getResult();
 We hope that this has provided you with enough information to get started writing your own apps. Here are some ideas of what you can try next.
  
  - Visit the [Scalar DL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) github page.
- - If you are just getting started, and you don't have Scalar DL running locally, you may want to try running your apps on the [Scalar DL Sandbox](https://github.com/scalar-labs/scalardl-client-sdk/blob/master/docs/dl-sandbox.md).
  - The [Scalar DL Emulator](https://github.com/scalar-labs/scalardl-emulator) lets you test your contracts on an in-memory ledger.
 
