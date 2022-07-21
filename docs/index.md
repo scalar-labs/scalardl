@@ -1,7 +1,6 @@
 # Scalar DL Docs
 
 ## How to Use
-* [Getting Started with Scalar DL Sandbox](sandbox.md)
 * [How to install Scalar DL in your local environment with Docker](installation-with-docker.md) (Partner-only)
 * [Getting Started with Scalar DL](getting-started.md)
 * [A Guide on How to Write a Good Contract for Scalar DL](how-to-write-contract.md)
