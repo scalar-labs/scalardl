@@ -1,11 +1,11 @@
 # Getting Started with Scalar DL
 
-This document explains how to get started with Scalar DL by running your first simple contract with the Client SDK.
+This document explains how to get started with Scalar DL by running your first simple contract using the Client SDK.
 Here, we assume that you have already installed Scalar DL, and Scalar DL Ledger is running and listening to 50051 and 50052 ports on localhost. If you don't have such an environment, please follow [the document](./installation-with-docker.md). We also assume that you already have a certificate and a private key required to run contracts.
 
 ## What is Scalar DL?
 
-Scalar DL is a scalable and practical Byzantine fault detection middleware for transactional database systems that achieves correctness, scalability, and database agnosticism.
+Scalar DL is scalable and practical Byzantine fault detection middleware for transactional database systems, which achieves correctness, scalability, and database agnosticism.
 
 Scalar DL is composed of Ledger, Auditor, and Client SDK as shown in the following figure. Scalar DL Ledger manages application data in its own unique way using hash-chain and digital signature. Scalar DL Auditor is an optional component and manages a copy of Ledger data without depending on Ledger to identify the discrepancy between Ledger and Auditor data.
 The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read [the design doc](design.md) and [the implementation details](implementation.md).
@@ -14,7 +14,7 @@ The Client SDK is a set of user-facing programs to interact with Ledger and Audi
 <img src="https://github.com/scalar-labs/scalardl/raw/master/docs/images/scalardl.png" width="480" />
 </p>
 
-Scalar DL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of a history of a record identified by a key called `asset_id` and a historical version number called `age`.
+Scalar DL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
 In this document, you will create a very simple application to manage an asset's status using Scalar DL Client SDK.
 
 ## Download the Client SDK
@@ -28,7 +28,7 @@ dependencies {
 }
 ```
 
-From here, let's use the [scalardl-java-client-sdk]() repo that has a sample `build.gradle`, sample contracts, and tools for quick testing.
+From here, let's use the [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk) repo that has a sample `build.gradle`, sample contracts, and tools for quick testing.
 
 ```shell
 git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
@@ -65,7 +65,7 @@ Please update the values of the copied `client.properties` file depending on you
 ## Register the certificate
 
 Next, let's register your certificate to Scalar DL Ledger.
-The registered certificate will allow you to register and execute contracts and will also be used for Byzantine fault detection of the data stored in Scalar DL.
+The registered certificate will allow you to register and execute contracts and will also be used for detecting Byzantine faults in databases.
 
 This time, let's use a simple tool to register your certificate as follows.
 
@@ -75,7 +75,7 @@ client/bin/register-cert --properties client.properties
 
 ## Create a contract
 
-Contracts in Scalar DL are simply Java classes which extend the predefined base contract classes (such as [`JacksonBasedContract`](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) class as shown below) and override the `invoke` method. Let's take a closer look at the [StateUpdater.java](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) contract which creates an asset and associates some state with it.
+Contracts in Scalar DL are simply Java classes that extend the predefined base contract classes (such as [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) class) and override the `invoke` method. Let's take a closer look at the [StateUpdater.java](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) contract which creates an asset and associates some states with it.
 
 ```java
 package com.org1.contract;
@@ -133,8 +133,8 @@ client/bin/register-contract --properties client.properties --contract-id StateU
 
 Please set a globally unique ID for the contract ID (e.g. `StateUpdater` in the above command).
 You can set different contract IDs on the same contract to clarify "who did what" in a tamper-evident way.
-For example, let's think about a voting application.
-In the application, anyone can vote with the same voting logic, and hence can use the same Contract, but A's vote and B's vote need to be properly and securely distinguished; A cannot vote for B, and vice versa. Having different contract IDs on the same contract can be utilized to achieve such things.
+
+For example, let's think about a voting application. In the application, anyone can vote with the same voting logic, and hence can use the same Contract, but A's vote and B's vote need to be properly and securely distinguished; A cannot vote for B, and vice versa. Having different contract IDs on the same contract can be utilized to achieve such things.
 
 ## Execute the contract
 
@@ -155,25 +155,28 @@ client/bin/validate-ledger --properties client.properties --asset-id="some_asset
 ```
 
 What the validation does is depending on how you set up and configure Scalar DL.
-Briefly speaking, with only Scalar DL Ledger, the validation traverses assets to see if the assets can be recomputed and have valid hash-chain structure.
-With Scalar DL Ledger and Auditor, the validation checks discrepancies (i.e., Byzantine faults) between the states of Ledger and Auditor without a centralized coordination.
+Briefly speaking, if only Scalar DL Ledger is used, the validation traverses assets to see if the assets can be recomputed and have a valid hash-chain structure.
+With Scalar DL Ledger and Auditor, the validation checks discrepancies (i.e., Byzantine faults) between the states of Ledger and Auditor without centralized coordination.
 Please read [Getting Started with Scalar DL Auditor](getting-started-auditor.md) for more details about the validation with Auditor.
 
 ## Create your own contracts
 
 As we explained above, what you need to create your own contracts is to extend the predefined base contract classes and override the `invoke` method as you like.
-As of writing this, we provide three base contracts:
-* [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html)
-* [JsonpBasedContract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/JsonpBasedContract.html)
-* [StringBasedContract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/StringBasedContract.html)
+As of writing this, we provide four base contracts:
 
-They differ in the way to serialize and deserialize arguments and data that are read and written via Contract and Ledger interfaces.
-JacksonBasedContract uses [Jackson]() to serialize a JSON object (i.e., [JsonNode]()) to internal String representation and deserialize a String object to a [JsonNode]() object. 
-In the same way, JsonpBasedContract uses [JSONP]() for JSON serialization and deserialization.
-StringBasedContract does not do JSON serialization and deserialization and uses internal [String]() representation as it is.
-Using `JacksonBasedContract` is recommended to make a good balance between development productivity and performance, 
+| Base Contract Class                                                                                                                                        | Type of Contract Argument, Contract Properties, and Ledger Data                                                    | Library                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) (recommended) | [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) | [Jackson](https://github.com/FasterXML/jackson) |
+| [JsonpBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JsonpBasedContract.html)                   | [JsonObject](https://javadoc.io/static/javax.json/javax.json-api/1.1.4/javax/json/JsonObject.html)                 | [JSONP](https://javaee.github.io/jsonp/)        |
+| [StringBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/StringBasedContract.html)                 | [String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)                                          | Java Standard Libraries                         |
+| [Contract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/Contract.html) (deprecated)                          | [JsonObject](https://javadoc.io/static/javax.json/javax.json-api/1.1.4/javax/json/JsonObject.html)                 | [JSONP](https://javaee.github.io/jsonp/)        |
+
+
+They differ in the way to serialize and deserialize arguments and data that you read and write via Contract and Ledger interfaces. JacksonBasedContract uses [Jackson](https://github.com/FasterXML/jackson) to serialize a JSON object (i.e., [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html)) to internal String representation and deserialize a String object to a [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) object. In the same way, JsonpBasedContract uses [JSONP](https://javaee.github.io/jsonp/) for JSON serialization and deserialization. StringBasedContract does not do JSON serialization and deserialization and uses internal String representation as it is. Using `JacksonBasedContract` is recommended to make a good balance between development productivity and performance, 
 
 The old [Contract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/Contract.html) is still available, but it is now deprecated and will be removed in a later major version. So, it is highly recommended to use the above new contracts as a base contract.
+
+Sample contracts based on the above base classes are available [here](https://github.com/scalar-labs/scalardl-java-client-sdk/tree/master/src/main/java/com/org1/contract), so please take a look for more details.
 
 ## Interact with ClientService 
 
@@ -207,16 +210,16 @@ First, you should always use `ClientServiceFactory` to create `ClientService` ob
 `ClientService` is a thread-safe client that interacts with Scalar DL components (e.g., Ledger and Auditor) to register certificates, register contracts, execute contracts, and validate data.
 When you execute a contract, you need to specify the corresponding argument type of the contract. For example, if your contract extends JacksonBasedContract, you need to pass JsonNode argument when you execute the contract.
 
-For more information, please take a look at [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/client/).
+For more information, please take a look at [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/).
 
 ## Run and test your contracts
 
-To quickly run and test your contracts in your local environment, [Scalar DL Samples](https://github.com/scalar-labs/scalardl-samples) is useful.
-To run Scalar DL in a production environment, please see [scalar-kubernetes](https://github.com/scalar-labs/scalar-kubernetes) for details.
+To quickly run and test your contracts in your local environment, [Scalar DL Samples](https://github.com/scalar-labs/scalardl-samples) is useful. To run Scalar DL in a production environment, please see [scalar-kubernetes](https://github.com/scalar-labs/scalar-kubernetes) for details.
 
 ## Further reading
 
 * [A guide on how to write a good contract](how-to-write-contract.md)
+* [A guide on how to write a good function](how-to-write-function.md)
 * [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
 * [Design document](design.md)
