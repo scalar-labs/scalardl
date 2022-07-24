@@ -161,22 +161,7 @@ Please read [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
 
 ## Create your own contracts
 
-As we explained above, what you need to create your own contracts is to extend the predefined base contract classes and override the `invoke` method as you like.
-As of writing this, we provide four base contracts:
-
-| Base Contract Class                                                                                                                                        | Type of Contract Argument, Contract Properties, and Ledger Data                                                    | Library                                         |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
-| [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) (recommended) | [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) | [Jackson](https://github.com/FasterXML/jackson) |
-| [JsonpBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JsonpBasedContract.html)                   | [JsonObject](https://javadoc.io/static/javax.json/javax.json-api/1.1.4/javax/json/JsonObject.html)                 | [JSONP](https://javaee.github.io/jsonp/)        |
-| [StringBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/StringBasedContract.html)                 | [String](https://docs.oracle.com/javase/8/docs/api/java/lang/String.html)                                          | Java Standard Libraries                         |
-| [Contract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/Contract.html) (deprecated)                          | [JsonObject](https://javadoc.io/static/javax.json/javax.json-api/1.1.4/javax/json/JsonObject.html)                 | [JSONP](https://javaee.github.io/jsonp/)        |
-
-
-They differ in the way to serialize and deserialize arguments and data that you read and write via Contract and Ledger interfaces. JacksonBasedContract uses [Jackson](https://github.com/FasterXML/jackson) to serialize a JSON object (i.e., [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html)) to internal String representation and deserialize a String object to a [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) object. In the same way, JsonpBasedContract uses [JSONP](https://javaee.github.io/jsonp/) for JSON serialization and deserialization. StringBasedContract does not do JSON serialization and deserialization and uses internal String representation as it is. Using `JacksonBasedContract` is recommended to make a good balance between development productivity and performance, 
-
-The old [Contract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/scalar/dl/ledger/contract/Contract.html) is still available, but it is now deprecated and will be removed in a later major version. So, it is highly recommended to use the above new contracts as a base contract.
-
-Sample contracts based on the above base classes are available [here](https://github.com/scalar-labs/scalardl-java-client-sdk/tree/master/src/main/java/com/org1/contract), so please take a look for more details.
+As we explained above, what you need to do to create your contracts is to extend the predefined base contract classes and override the `invoke` method as you like. For more detail, please look at [A Guide on How to Write a Good Contract](how-to-write-contract.md).
 
 ## Interact with ClientService 
 
