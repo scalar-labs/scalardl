@@ -8,7 +8,7 @@ Here, we assume that you have already installed Scalar DL, and Scalar DL Ledger 
 Scalar DL is scalable and practical Byzantine fault detection middleware for transactional database systems, which achieves correctness, scalability, and database agnosticism.
 
 Scalar DL is composed of Ledger, Auditor, and Client SDK as shown in the following figure. Scalar DL Ledger manages application data in its own unique way using hash-chain and digital signature. Scalar DL Auditor is an optional component and manages a copy of Ledger data without depending on Ledger to identify the discrepancy between Ledger and Auditor data.
-The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read [the design doc](design.md) and [the implementation details](implementation.md).
+The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read the [design doc](design.md) and [implementation details](implementation.md).
 
 <p align="center">
 <img src="https://github.com/scalar-labs/scalardl/raw/master/docs/images/scalardl.png" width="480" />
@@ -218,8 +218,9 @@ To quickly run and test your contracts in your local environment, [Scalar DL Sam
 
 ## Further reading
 
-* [A guide on how to write a good contract](how-to-write-contract.md)
-* [A guide on how to write a good function](how-to-write-function.md)
+* [A Guide on How to Write a Good Contract](how-to-write-contract.md)
+* [A Guide on How to Write a Good Function](how-to-write-function.md)
 * [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
-* [Design document](design.md)
+* [Scalar DL Design Document](design.md)
+* [Scalar DL Implementation](implementation.md)
