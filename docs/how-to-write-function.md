@@ -148,5 +148,6 @@ Contracts and Functions should be properly used to make the scheme meaningful. A
 ## References
 
 * [Getting Started with Scalar DL](getting-started.md)
+* [A Guide on How to Write Contract for Scalar DL](how-to-write-contract.md)
 * [Scalar DL Design Document](design.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
