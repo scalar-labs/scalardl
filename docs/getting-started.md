@@ -11,7 +11,7 @@ Scalar DL is composed of Ledger, Auditor, and Client SDK as shown in the followi
 The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read the [design doc](design.md) and [implementation details](implementation.md).
 
 <p align="center">
-<img src="https://github.com/scalar-labs/scalardl/raw/master/docs/images/scalardl.png" width="480" />
+<img src="images/scalardl.png" width="480" />
 </p>
 
 Scalar DL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
