@@ -5,7 +5,7 @@ This document sets out some guidelines for writing contracts for Scalar DL.
 ## What is a contract for Scalar DL ?
 
 
-A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending the predefined base contracts (that also extend [ContractBase](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/ContractBase.html) class) written for implementing single business logic. A contract and its arguments are digitally-signed with the contract owner's private key and passed to the Scalar DL. This mechanism allows the contract only to be executed by the owner and makes it possible for the system to detect malicious activity such as data tampering.
+A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending predefined base contracts (that also extend [ContractBase](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/ContractBase.html) class) written for implementing single business logic. A contract and its arguments are digitally-signed with the contract owner's private key and passed to the Scalar DL. This mechanism allows the contract only to be executed by the owner and makes it possible for the system to detect malicious activity such as data tampering.
 
 Before looking at this document, please check the [Getting Started with Scalar DL](getting-started.md) to understand what Scalar DL is and its basic terminologies.
 
@@ -47,7 +47,7 @@ For example, the above `StateUpdater` contract is based on one of the base contr
 
 As of writing this, we provide four base contracts as shown below; however, using `JacksonBasedContract` is recommended to balance development productivity and performance well.
 
-| Base Contract Class                                                                                                                                        | Type of Contract Argument, Contract Properties, and Ledger Data                                                    | Library                                         |
+| Base Contract Class                                                                                                                                        | Type of Contract Argument, Contract Properties, Contract Output, and Ledger Data                                   | Library                                         |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
 | [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) (recommended) | [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) | [Jackson](https://github.com/FasterXML/jackson) |
 | [JsonpBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JsonpBasedContract.html)                   | [JsonObject](https://javadoc.io/static/javax.json/javax.json-api/1.1.4/javax/json/JsonObject.html)                 | [JSONP](https://javaee.github.io/jsonp/)        |
