@@ -92,9 +92,9 @@ Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can no
 
 ### Determinism
 
-One very important thing to note when you write a contract for Scalar DL is that you have to make the contract deterministic. In other words, a contract must always produce the same output for a given particular input. The reason why determinism is important is that Scalar DL utilizes this property to detect tampering.
+One very important thing to note when you write a contract for Scalar DL is that you have to make the contract deterministic. In other words, a contract must always produce the same output for a given particular input. This is because Scalar DL utilizes determinism to detect tampering.
 
-For example, Scalar DL will lazily traverse assets and re-execute contracts to check if there is no discrepancy between the expected outcome and the actual data stored in the ledger. It also utilizes determinism to make the states of multiple independent Scalar DL components (i.e., Ledger and Auditor), which are preferably managed by different organizations, the same.
+For example, Scalar DL will lazily traverse assets and re-execute contracts to check if there is no discrepancy between the expected outcome and the actual data stored in the ledger. It also utilizes determinism to make the states of multiple independent Scalar DL components (i.e., Ledger and Auditor) the same.
 
 One common way of creating a non-deterministic contract is to generate the time inside the contract and have the output including the ledger states somehow depend on this time. Such a contract will produce different outputs each time it is executed and makes the system unable to detect tampering. If you need to use the time in a contract, you should pass it to the contract as an argument.
 
