@@ -1,16 +1,14 @@
 # Scalar DL Compatibility Matrix
 
-This document shows the compatibility of the versions of scalar-ledger container and scalardl-java-client-sdk.
+This document shows Scalar DL Ledger and Auditor compatibility with the Scalar DL Java Client SDK.
 
-|scalar-ledger container | scalardl-java-client-sdk    |
-|--------------|-----------------------------|
-|2.1.0         |2.0.9 - 2.1.0                |
-|2.0.8         |2.0.9 - 2.1.0                |
-|2.0.7         |2.0.0 - 2.0.8                |
-|2.0.6         |2.0.0 - 2.0.8                |
-|2.0.5         |2.0.0 - 2.0.8                |
-|2.0.4         |2.0.0 - 2.0.8                |
-|2.0.3         |2.0.0 - 2.0.8                |
-|2.0.2         |2.0.0 - 2.0.8                |
-|2.0.1         |2.0.0 - 2.0.8                |
-|2.0.0         |2.0.0 - 2.0.8                |
+|Scalar DL Ledger Version   |Scalar DL Auditor Version  |Scalar DL Java Client SDK Version  |
+|:--------------------------|:--------------------------|:----------------------------------|
+|3.4  |3.4   |3.0 - 3.4   |
+|3.3  |3.3   |3.0 - 3.4   |
+|3.2  |3.2   |3.0 - 3.4   |
+|3.1  |3.1   |3.0 - 3.4   |
+|3.0  |3.0   |3.0 - 3.4   |
+|2.2  |Not available   |Not tested  |
+|2.1  |Not available   |2.0 - 2.1   |
+|2.0  |Not available   |2.0 - 2.1   |
