@@ -10,7 +10,8 @@ An Asset Proof in Scalar DL is a set of information about an asset record and us
 - Age of the asset record
 - Nonce of the execution request that creates the asset record
 - A cryptographic hash of the asset record
-- The digital signature of the above four records 
+- A cryptographic hash of the previous age's asset record, if any
+- The digital signature of the above entries
 
 ## The Benefits of Asset Proofs
 
@@ -19,7 +20,7 @@ Thus, making use of Asset Proofs appropriately could reduce the risk of tamperin
 
 ## How to use Asset Proofs
 
-You can get Asset Proofs from the result of the `executeContract` method of the SDKs. Please check [the documents](https://github.com/scalar-labs/scalardl#client-sdks) of client SDKs for more detail. A proof can be validated if it is not tampered and it is from the Ledger by verifying the signature.
+You can get Asset Proofs ([AssetProof](https://scalar-labs.github.io/scalardl/javadoc/latest/common/com/scalar/dl/ledger/asset/AssetProof.html)) from the result ([ContractExecutionResult](https://scalar-labs.github.io/scalardl/javadoc/latest/common/com/scalar/dl/ledger/model/ContractExecutionResult.html)) of the `executeContract` method of the SDKs. A proof can be validated if it is not tampered and it is from the Ledger by verifying the signature.
 
 It is recommended to store the proofs outside of a domain in which the Ledger runs so that malicious activities in one domain can be detected by the other domain. It is worth considering storing proofs in cloud storages for ease of management.
 
