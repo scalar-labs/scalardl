@@ -4,6 +4,7 @@ This document shows Scalar DL Ledger and Auditor compatibility with the Scalar D
 
 |Scalar DL Ledger Version   |Scalar DL Auditor Version  |Scalar DL Java Client SDK Version  |
 |:--------------------------|:--------------------------|:----------------------------------|
+|3.5  |3.5   |3.0 - 3.5   |
 |3.4  |3.4   |3.0 - 3.4   |
 |3.3  |3.3   |3.0 - 3.4   |
 |3.2  |3.2   |3.0 - 3.4   |
