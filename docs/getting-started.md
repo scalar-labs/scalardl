@@ -8,7 +8,7 @@ Here, we assume that you already have a certificate and a private key required t
 Scalar DL is a blockchain-inspired distributed ledger platform, which achieves:
 
 * High tamper-evidence of data
-* High scalablility and availablity
+* High scalability and availability
 * Linearizable consistency and ACID
 
 It manages data as a set of assets, where an asset is composed of a history of data identified by a key called `asset_id` and a historical version number called `age`.
