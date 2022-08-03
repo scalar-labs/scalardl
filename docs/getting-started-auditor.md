@@ -75,12 +75,12 @@ Please start Ledger and Auditor in your own way.
 For example, if you use the built-in command line tools, do as follows:
 
 Ledger:
-```
+```shell
 bin/scalar-ledger --properties ledger.properties
 ```
 
 Auditor:
-```
+```shell
 bin/scalar-auditor --properties auditor.properties
 ```
 
@@ -89,18 +89,16 @@ See [saclardl-samples](https://github.com/scalar-labs/scalardl-samples) repo for
 
 ## Register each certificate of Ledger and Auditor
 
-As we explained,
-Ledger needs to register its certificate to Auditor, and Auditor needs to register its certificate to Ledger.
-This can be done by registering it as a client as follows:
+As we explained, Ledger needs to register its certificate to Auditor, and Auditor needs to register its certificate to Ledger. This can be done by registering it as a client as follows:
 
 Ledger registers its certificate to Auditor
-```
-bin/register-cert --properties client.properties.ledger
+```shell
+client/bin/register-cert --properties client.properties.ledger
 ```
 
 Auditor registers its certificate to Ledger
-```
-bin/register-cert --properties client.properties.auditor
+```shell
+client/bin/register-cert --properties client.properties.auditor
 ```
 
 Please configure `client.properties.ledger` and `client.properties.auditor` properly.
@@ -119,7 +117,7 @@ scalar.dl.client.auditor.host=localhost
 
 Then, you can register your certificate just like you have been doing usually (without Auditor).
 
-```
+```shell
 client/bin/register-cert --properties client.properties
 ```
 
@@ -129,7 +127,7 @@ Note that this registers the certificate to both Ledger and Auditor.
 
 For registering contracts, you can also do as usual.
 
-```
+```shell
 client/bin/register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
 ```
 
@@ -139,7 +137,7 @@ Note that this registers the contract to both Ledger and Auditor.
 
 Now you are ready to execute the contract with the following command as usual.
 
-```
+```shell
 client/bin/execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
 ```
 
@@ -148,23 +146,20 @@ During the execution, it may detect inconsistencies between them if there is tam
 
 ## Validate the states of Ledger and Auditor
 
-You can also always validate the states of Ledger and Auditor to see if they are consistent with the following command as usual:
+You can also always validate the states of Ledger and Auditor to see if they are consistent.
+However, validating the states in the Auditor mode uses contract execution; thus, you first need to register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows. Note that `validate-ledger` is the default contract ID that the client specifies when doing validation.
 
-```
-client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
-```
-
-By default, it checks the states of Ledger and Auditor non-linearizably; i.e., there might be cases where they look inconsistent temporarily.
-To make it linearizable, you can configure the following option and register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows.
-
-```
-[client.properties]
-scalar.dl.client.auditor.linearizable_validation.enabled=true
-```
-
-```
+```shell
 client/bin/register-contract --properties client.properties --contract-id validate-ledger --contract-binary-name com.scalar.dl.client.contract.ValidateLedger --contract-class-file /path/to/ValdateLedger.class
 ```
 
-Then, the same command now triggers the linearizable validation. 
-Note that it always produces the correct result but comes with some cost since it runs the same protocol as the execution step.
+Then, you can issue the `validate-ledger` command just like as usually you do.
+
+```shell
+client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
+```
+
+If you want to change the contract ID of `ValidateLedger`, you need to change the following configuration to let the client know about it.
+```
+scalar.dl.client.auditor.linearizable_validation.contract_id=your-validate-ledger-id
+```
