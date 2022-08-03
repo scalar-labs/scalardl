@@ -147,7 +147,7 @@ During the execution, it may detect inconsistencies between them if there is tam
 ## Validate the states of Ledger and Auditor
 
 You can also always validate the states of Ledger and Auditor to see if they are consistent.
-However, validating the states in the Auditor mode uses contract execution; thus, you first need to register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows.
+However, validating the states in the Auditor mode uses contract execution; thus, you first need to register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows. Note that `validate-ledger` is the default contract ID that the client specifies when doing validation.
 
 ```shell
 client/bin/register-contract --properties client.properties --contract-id validate-ledger --contract-binary-name com.scalar.dl.client.contract.ValidateLedger --contract-class-file /path/to/ValdateLedger.class
@@ -157,4 +157,9 @@ Then, you can issue the `validate-ledger` command just like as usually you do.
 
 ```shell
 client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
+```
+
+If you want to change the contract ID of `ValidateLedger`, you need to change the following configuration to let the client know about it.
+```
+scalar.dl.client.auditor.linearizable_validation.contract_id=your-validate-ledger-id
 ```
