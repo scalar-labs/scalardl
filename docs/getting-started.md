@@ -64,14 +64,16 @@ Please update the values of the copied `client.properties` file depending on you
 
 ## Register the certificate
 
-Next, let's register your certificate to Scalar DL Ledger.
+Next, let's register your certificate to Scalar DL Ledger. [caclient-getting-started](ca/caclient-getting-started.md) describes how to prepare client certs.
 The registered certificate will allow you to register and execute contracts and will also be used for detecting Byzantine faults in databases.
 
-This time, let's use a simple tool to register your certificate as follows.
+This time, let's use a simple tool in [scalardl-java-client-sdk package](https://github.com/scalar-labs/scalardl-java-client-sdk/releases) to register your certificate as follows.
 
 ```shell
 client/bin/register-cert --properties client.properties
 ```
+
+If you want to update a registered cert, increment `scalar.dl.client.cert_version` before executing the registration tool.
 
 ## Create a contract
 
