@@ -18,6 +18,35 @@ $ openssl req -new -newkey ec:prime256v1.pem -nodes -keyout client-key.pem.pkcs8
 $ openssl ec -in client-key.pem.pkcs8 -out client-key.pem
 ```
 
+or
+
+```
+$ cat << EOF > client-cert.json
+{
+    "CN": "client.example",
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "O": "Client Example",
+            "L": "Shinjuku",
+            "ST": "Tokyo",
+            "C": "JP"
+        }
+    ]
+}
+EOF
+
+$ cfssl selfsign "" ./client-cert.json | cfssljson -bare client
+$ ls -1
+client-cert.json
+client-key.pem
+client.csr
+client.pem
+```
+
 ### Get a certificate from a CA Server
 
 ```
