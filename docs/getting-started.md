@@ -30,9 +30,19 @@ dependencies {
 
 From here, let's use the [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk) repo that has a sample `build.gradle`, sample contracts, and tools for quick testing.
 
+First, specify a version (e.g., 3.6.0) to use. Please see [tags](https://github.com/scalar-labs/scalardl-java-client-sdk/tags) for available versions.
+```shell
+VERSION=X.Y.Z
+```
+
+Then, clone the repo and download the tools.
 ```shell
 git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
 cd scalardl-java-client-sdk
+git checkout v$VERSION
+curl -OL https://github.com/scalar-labs/scalardl-java-client-sdk/releases/download/v$VERSION/scalardl-java-client-sdk-$VERSION.zip
+unzip scalardl-java-client-sdk-$VERSION.zip
+mv scalardl-java-client-sdk-$VERSION client
 ```
 
 ## Configure properties
