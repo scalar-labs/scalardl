@@ -30,9 +30,19 @@ dependencies {
 
 From here, let's use the [scalardl-java-client-sdk](https://github.com/scalar-labs/scalardl-java-client-sdk) repo that has a sample `build.gradle`, sample contracts, and tools for quick testing.
 
+First, specify a version (e.g., 3.6.0) to use. Please see [tags](https://github.com/scalar-labs/scalardl-java-client-sdk/tags) for available versions.
+```shell
+VERSION=X.Y.Z
+```
+
+Then, clone the repo and download the tools.
 ```shell
 git clone https://github.com/scalar-labs/scalardl-java-client-sdk.git
 cd scalardl-java-client-sdk
+git checkout v$VERSION
+curl -OL https://github.com/scalar-labs/scalardl-java-client-sdk/releases/download/v$VERSION/scalardl-java-client-sdk-$VERSION.zip
+unzip scalardl-java-client-sdk-$VERSION.zip
+mv scalardl-java-client-sdk-$VERSION client
 ```
 
 ## Configure properties
@@ -64,14 +74,16 @@ Please update the values of the copied `client.properties` file depending on you
 
 ## Register the certificate
 
-Next, let's register your certificate to Scalar DL Ledger.
-The registered certificate will allow you to register and execute contracts and will also be used for detecting Byzantine faults in databases.
+Next, let's register your certificate to Scalar DL Ledger. Please check [caclient-getting-started](ca/caclient-getting-started.md) for how to prepare a certificate.
 
 This time, let's use a simple tool to register your certificate as follows.
 
 ```shell
 client/bin/register-cert --properties client.properties
 ```
+
+The registered certificate will allow you to register and execute contracts and will also be used for detecting Byzantine faults in databases.
+Note that you can only add new certs and cannot update existing certs in place for security reasons. When you want to add a new cert, increment `scalar.dl.client.cert_version` before executing the registration tool.
 
 ## Create a contract
 
