@@ -1,0 +1,7 @@
+com.scalar
+com.scalar.dl.client.config
+com.scalar.dl.client.exception
+com.scalar.dl.client.rpc
+com.scalar.dl.client.service
+com.scalar.dl.client.tool
+com.scalar.dl.client.util
