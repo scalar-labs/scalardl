@@ -5,7 +5,7 @@ Scalar DL is a scalable and practical Byzantine fault detection middleware for t
 ## Docs
 * [Docs](docs/index.md)
 * [Scalar DL Technical Overview](https://speakerdeck.com/scalar/scalar-dl-technical-overview)
-* [Scalar DL Research Paper](https://www.vldb.org/pvldb/vol15/p1324-yamada.pdf) [VLDB'22]
+* [Scalar DL Research Paper](https://dl.acm.org/doi/abs/10.14778/3523210.3523212) [VLDB'22]
 
 ## Contributing 
 Scalar DL is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.

@@ -1,7 +1,7 @@
 # Scalar DL Docs
 
 ## Design and Implementation
-* [Scalar DL Technical Overview](https://www.slideshare.net/scalar-inc/scalar-dl-technical-overview-updated-at-1-dec-2021)
+* [Scalar DL Technical Overview](https://speakerdeck.com/scalar/scalar-dl-technical-overview)
 * [Scalar DL Design](design.md)
 * [Scalar DL Implementation](implementation.md)
 
