@@ -21,7 +21,7 @@ However, for this getting started guide, we assume they are placed in the same n
 
 ## Assumptions
 
-In this guide, we assume Ledger and Auditor both use Cassandra through Scalar DB,
+In this guide, we assume Ledger and Auditor both use Cassandra through ScalarDB,
 both Cassandra instances use default username and password for the admin privilege.
 Also, Ledger, Auditor, and Cassandra are all located in the same network so that they can access each other.
 

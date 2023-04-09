@@ -1,6 +1,6 @@
 # A Guide on How to Backup and Restore Data in ScalarDL
 
-Since ScalarDL uses Scalar DB that provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively,
+Since ScalarDL uses ScalarDB that provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively,
 you need to take special care of backing up and restoring the databases in a transactionally-consistent way.
 This guide shows you how to create and restore transactionally-consistent ScalarDL backups.
 

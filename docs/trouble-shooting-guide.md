@@ -6,15 +6,15 @@
 - [Doubt of inconsistency](#doubt-of-inconsistency)
 
 # Introduction
-In this document, we will explain what you should do when you have trouble with system development, operation, or maintenance. We will explain, not only how to troubleshoot Scalar DB and DL but also all other components. For example, you receive an error from a high-level component with the message, "update failed with the wrong values and request Scalar DB or DL to update", and you may feel that ScalarDL or DB has a bug but it could just mean an invalid request was sent.
+In this document, we will explain what you should do when you have trouble with system development, operation, or maintenance. We will explain, not only how to troubleshoot ScalarDB and DL but also all other components. For example, you receive an error from a high-level component with the message, "update failed with the wrong values and request ScalarDB or DL to update", and you may feel that ScalarDL or DB has a bug but it could just mean an invalid request was sent.
 
-In the first section, we will explain about Scalar DB exceptions and unknown transaction state of a transaction. The second section is concerned with ScalarDL exceptions. Finally, in the last section, we will explain how to investigate inconsistency.
+In the first section, we will explain about ScalarDB exceptions and unknown transaction state of a transaction. The second section is concerned with ScalarDL exceptions. Finally, in the last section, we will explain how to investigate inconsistency.
 
-# Scalar DB
+# ScalarDB
 ## Storage Exceptions
 
 ### ConnectionException
-This exception is thrown when your application can’t connect to the storage system, like Cassandra. You can resolve this issue by checking the storage status and configurations, Scalar DB configurations. For example, this is thrown in the following cases.
+This exception is thrown when your application can’t connect to the storage system, like Cassandra. You can resolve this issue by checking the storage status and configurations, ScalarDB configurations. For example, this is thrown in the following cases.
 
 - Failure to open port 9042 on a Cassandra node
 - Failure to specify a nodes address for scalar.database.contact_points in properties
@@ -85,7 +85,7 @@ As we mentioned above `UnknownTransactionStatusException` is thrown when a trans
 
 There are two possibilities in the transaction state stored in the coordinator. They are `COMMITTED` and `ABORTED`. A `COMMITTED` state means that other transactions can get all updates by the transaction. An `ABORTED` state means all updates are gone.
 
-`UnknownTransactionStatusException` happens when the transaction tried to insert its state record to the coordinator, but got some exceptions during the processing and couldn't figure out if the transaction succeeded or not. In this case, the storage may or may not have inserted the record. This insertion to the coordinator will eventually complete by the lazy recovery process in Scalar DB. Therefore, you can check the state which shows whether the transaction has committed or aborted in the following way.
+`UnknownTransactionStatusException` happens when the transaction tried to insert its state record to the coordinator, but got some exceptions during the processing and couldn't figure out if the transaction succeeded or not. In this case, the storage may or may not have inserted the record. This insertion to the coordinator will eventually complete by the lazy recovery process in ScalarDB. Therefore, you can check the state which shows whether the transaction has committed or aborted in the following way.
 
 1. Get the transaction ID from this exception by `UnknownTransactionStatusException#getUnknownTransactionId()`
 2. Get a state record which is specified with the ID from the coordinator
@@ -102,7 +102,7 @@ The example code to check the coordinator is `TransactionUtility#checkCoordinato
 This is a subclass of `DatabaseException` and also the superclass of some exceptions. This is thrown when a contract has both `put()` and `scan()`. In ScalarDL, `scan()` is only for read-only contracts.
 
 ### AssetbaseIOException
-This is a subclass of `AssetbaseException`. This is thrown when reading assets from the ledger (storage) fails. It is similar to `CrudException` in Scalar DB. If you retry to execute the contract, it will be executed successfully. When it fails repeatedly, you will need to check the storage or configurations.
+This is a subclass of `AssetbaseException`. This is thrown when reading assets from the ledger (storage) fails. It is similar to `CrudException` in ScalarDB. If you retry to execute the contract, it will be executed successfully. When it fails repeatedly, you will need to check the storage or configurations.
 
 ### AssetCommitException
 This is a subclass of `AssetbaseException`. This is thrown when a contract(transaction) fails to be committed like `CommitException`. This is caused by various situations. The contract hasn't updated any asset at all. You can retry to execute the contract.
@@ -150,7 +150,7 @@ This is a subclass of `LedgerException` and the super class of `KeyException` an
 This is a subclass of `SecurityException`. This is thrown when signing fails or when the signature object is not initialized properly. You need to review how to sign a request.
 
 ### UnknownAssetStatusException
-The situation in which this exception is thrown in a similar to that of `UnknownTransactionStatusException` from Scalar DB. Please check the documentation of `UnknownTransactionStatusException` for further details.
+The situation in which this exception is thrown in a similar to that of `UnknownTransactionStatusException` from ScalarDB. Please check the documentation of `UnknownTransactionStatusException` for further details.
 
 ### UnloadableContractException
 This is a subclass of `ContractException`. This is thrown when a contract fails to be loaded. You need to check if the contract has been registered or if the certificate ID, the version and the contract ID are correct.
@@ -163,11 +163,11 @@ This is a subclass of `LedgerException`. This is thrown when the certificate ID 
 
 # Doubt of inconsistency
 ## What will be explained?
-In this section, we will explain a procedure about how to check for data consistency in Scalar DB/DL. We will generalize the procedure as much as possible to cover common use cases. Please adjust the procedure when needed, to fit your use case.
+In this section, we will explain a procedure about how to check for data consistency in ScalarDB/DL. We will generalize the procedure as much as possible to cover common use cases. Please adjust the procedure when needed, to fit your use case.
 
 This chapter focuses on consistency of database transactions from ACID perspective, and is not talking about consistency (a.k.a mutual consistency) between replicas.
 
-In Scalar DB, it's always recommended to use transaction when your application cares about consistency. Because when you use Scalar DB storage, it's your responsibility to manage the consistency of your application.
+In ScalarDB, it's always recommended to use transaction when your application cares about consistency. Because when you use ScalarDB storage, it's your responsibility to manage the consistency of your application.
 
 In ScalarDL, invocation of contracts in one contract execution request are treated as a transaction. In other words, all operations to assets (`asset` is a unit of data operation like `get` or `put`) in one contract execution request are executed in a transaction. If a contract invokes other contracts internally, all of the operations of the outer and the inner contracts are executed in a transaction.
 
@@ -181,11 +181,11 @@ It can take a long time to find a wrong transaction because you need to know the
 
 There are a few easy cases to get it. For example, there is a case where the previous update has been executed properly, but the last update is wrong. However, in these cases, you have to find the wrong update just after the updating has been executed. This isn't realistic. In general, after many updates, you have to find the last update which has been executed properly and you have to find also an update which the data has become wrong.
 
-Unfortunately, in many cases, you can only trace updates one by one. You have lots of logs including logs of your applications, logs of Scalar DB/DL, and logs of the storage like Cassandra. In general, we recommend you start checking logs of your applications at first because it is easier to read logs of your applications than others.
+Unfortunately, in many cases, you can only trace updates one by one. You have lots of logs including logs of your applications, logs of ScalarDB/DL, and logs of the storage like Cassandra. In general, we recommend you start checking logs of your applications at first because it is easier to read logs of your applications than others.
 
 We show a hint to find the wrong transaction. It is `tx_version` or `age`.
 
-When you use Scalar DB, you can see the actual records in the storage. You can get `tx_version` which shows how many times the record has been updated. When you have a doubt about consistency around T times updating the record according to logs of your application, if T is nearly the current `tx_version`, you figure out that the doubtful transaction was executed recently.
+When you use ScalarDB, you can see the actual records in the storage. You can get `tx_version` which shows how many times the record has been updated. When you have a doubt about consistency around T times updating the record according to logs of your application, if T is nearly the current `tx_version`, you figure out that the doubtful transaction was executed recently.
 
 You can get all mutation procedures for each asset with ScalarDL. You can know how many times the asset has been updated by `age` as `tx_version`. A record which is specified `id` and `age` is one of the procedures which has the previous state `input` and the current state `output` which has been updated by a contract(transaction). You can also know which contract has been executed for the asset by `contract_id`. These hints help you to find the corresponding logs in your application.
 
@@ -203,9 +203,9 @@ If the contract has been executed by buying something with `100` amount, the req
 
 You would suspect this as an inconsistency of ScalarDL or that your contracts have bugs if you misunderstand the specifications of your application. There are many causes of inconsistencies, so please make sure your application is working as expected first when you find something suspicious.
 
-Next, we will explain some inconsistent cases caused by Scalar DB or DL.  It might be difficult to understand without an internal knowledge about them, but it's worth looking at.
+Next, we will explain some inconsistent cases caused by ScalarDB or DL.  It might be difficult to understand without an internal knowledge about them, but it's worth looking at.
 
-## What happens if there would be a bug in Scalar DB/DL
+## What happens if there would be a bug in ScalarDB/DL
 There are mainly two inconsistent cases. The first case is when a transaction looks like it succeeded but the value that should be updated by the transaction has not been updated. The second case is when a transaction looks like it failed but the value that should be updated by the transaction has, in fact, been updated. In both cases, there might be another conflicting transaction and it might be causing such issues.
 
 In the first case, after a transaction has read, inserted or updated some records and has committed them successfully, the following transaction can't get the inserted records or can get the values on the records which are the old values before the transaction. For example, on the right side of the below figure, transaction `TX 2` has transferred 100 coins from the balance of A to that of B, but the balance of A hasn't updated. You might see the success log about `TX 2` in logs of your application, but the record hasn't been updated.
@@ -229,4 +229,4 @@ As stated above, one good way of finding out inconsistency is utilizing operatio
 ## Prevent inconsistencies
 What is the most important thing for you is not troubleshooting the cause of inconsistency but preventing inconsistency from happing. The best way to prevent inconsistency is keeping your system normal.
 
-We have been doing a lot of verification for Scalar DB and DL even under network partition or random crash of processes to find corner case bugs. As of writing this, we don't see any inconsistency even under those severe environments, so we assume there will be a lot less possibility of inconsistency under normal environment. Thus, the most important thing to avoid inconsistency is keeping your system normal as long as possible with proper monitoring, alerting and recovery processes/tools.
+We have been doing a lot of verification for ScalarDB and DL even under network partition or random crash of processes to find corner case bugs. As of writing this, we don't see any inconsistency even under those severe environments, so we assume there will be a lot less possibility of inconsistency under normal environment. Thus, the most important thing to avoid inconsistency is keeping your system normal as long as possible with proper monitoring, alerting and recovery processes/tools.
