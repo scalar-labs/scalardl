@@ -6,9 +6,9 @@
 - [Doubt of inconsistency](#doubt-of-inconsistency)
 
 # Introduction
-In this document, we will explain what you should do when you have trouble with system development, operation, or maintenance. We will explain, not only how to troubleshoot Scalar DB and DL but also all other components. For example, you receive an error from a high-level component with the message, "update failed with the wrong values and request Scalar DB or DL to update", and you may feel that Scalar DL or DB has a bug but it could just mean an invalid request was sent.
+In this document, we will explain what you should do when you have trouble with system development, operation, or maintenance. We will explain, not only how to troubleshoot Scalar DB and DL but also all other components. For example, you receive an error from a high-level component with the message, "update failed with the wrong values and request Scalar DB or DL to update", and you may feel that ScalarDL or DB has a bug but it could just mean an invalid request was sent.
 
-In the first section, we will explain about Scalar DB exceptions and unknown transaction state of a transaction. The second section is concerned with Scalar DL exceptions. Finally, in the last section, we will explain how to investigate inconsistency.
+In the first section, we will explain about Scalar DB exceptions and unknown transaction state of a transaction. The second section is concerned with ScalarDL exceptions. Finally, in the last section, we will explain how to investigate inconsistency.
 
 # Scalar DB
 ## Storage Exceptions
@@ -95,11 +95,11 @@ There are two possibilities in the transaction state stored in the coordinator. 
 The example code to check the coordinator is `TransactionUtility#checkCoordinatorWithRetry()`.
 
 
-# Scalar DL
+# ScalarDL
 ## Exceptions
 
 ### AssetbaseException
-This is a subclass of `DatabaseException` and also the superclass of some exceptions. This is thrown when a contract has both `put()` and `scan()`. In Scalar DL, `scan()` is only for read-only contracts.
+This is a subclass of `DatabaseException` and also the superclass of some exceptions. This is thrown when a contract has both `put()` and `scan()`. In ScalarDL, `scan()` is only for read-only contracts.
 
 ### AssetbaseIOException
 This is a subclass of `AssetbaseException`. This is thrown when reading assets from the ledger (storage) fails. It is similar to `CrudException` in Scalar DB. If you retry to execute the contract, it will be executed successfully. When it fails repeatedly, you will need to check the storage or configurations.
@@ -169,7 +169,7 @@ This chapter focuses on consistency of database transactions from ACID perspecti
 
 In Scalar DB, it's always recommended to use transaction when your application cares about consistency. Because when you use Scalar DB storage, it's your responsibility to manage the consistency of your application.
 
-In Scalar DL, invocation of contracts in one contract execution request are treated as a transaction. In other words, all operations to assets (`asset` is a unit of data operation like `get` or `put`) in one contract execution request are executed in a transaction. If a contract invokes other contracts internally, all of the operations of the outer and the inner contracts are executed in a transaction.
+In ScalarDL, invocation of contracts in one contract execution request are treated as a transaction. In other words, all operations to assets (`asset` is a unit of data operation like `get` or `put`) in one contract execution request are executed in a transaction. If a contract invokes other contracts internally, all of the operations of the outer and the inner contracts are executed in a transaction.
 
 ## Check the specifications of your application
 First of all, it is always good to understand the specifications of your application properly because what you expect is given from the specifications. In general, many issues are caused by misunderstanding of specifications or hidden specifications. So, specifications should be shared among not only developers and testers, but also business members. Otherwise, you might not get what you expect and mistakenly report inconsistencies.
@@ -187,7 +187,7 @@ We show a hint to find the wrong transaction. It is `tx_version` or `age`.
 
 When you use Scalar DB, you can see the actual records in the storage. You can get `tx_version` which shows how many times the record has been updated. When you have a doubt about consistency around T times updating the record according to logs of your application, if T is nearly the current `tx_version`, you figure out that the doubtful transaction was executed recently.
 
-You can get all mutation procedures for each asset with Scalar DL. You can know how many times the asset has been updated by `age` as `tx_version`. A record which is specified `id` and `age` is one of the procedures which has the previous state `input` and the current state `output` which has been updated by a contract(transaction). You can also know which contract has been executed for the asset by `contract_id`. These hints help you to find the corresponding logs in your application.
+You can get all mutation procedures for each asset with ScalarDL. You can know how many times the asset has been updated by `age` as `tx_version`. A record which is specified `id` and `age` is one of the procedures which has the previous state `input` and the current state `output` which has been updated by a contract(transaction). You can also know which contract has been executed for the asset by `contract_id`. These hints help you to find the corresponding logs in your application.
 
 The following records are examples of parts of the actual records on the storage on a sample transfer application. The asset has been updated 147 times because the latest record has `age` `147`. Also, the record specified by the account `id` `5` and `age` `147` has been inserted by `PaymentWithFee` contract with `argument`. The `input` shows the balances of accounts just before the contract. So, the balance of `output` of the previous record specified by `id` `5` and `age` `146` is the same as the balance of `input` of the latest(`age` `147`) record. The balance decreased from `9228` to `9132` by the last `PaymentWithFee` contract. The contract transfers the specified amount (you can see the amount in the `argument`) from an account (the first `asset_id`) to other two accounts (the second and the last `asset_id`). Because the first `asset_id` is this asset and the amount is `96`, the balance of this asset has decreased.
 
@@ -201,7 +201,7 @@ The following records are examples of parts of the actual records on the storage
 
 If the contract has been executed by buying something with `100` amount, the requester might be wrong because the amount of the `argument` is `96`. If the amount of the `argument` is `100` and the latest balance is `9132` in this example, you will wonder if the last contract has transferred the wrong amount. In this case, you will review the implementation of the contract.
 
-You would suspect this as an inconsistency of Scalar DL or that your contracts have bugs if you misunderstand the specifications of your application. There are many causes of inconsistencies, so please make sure your application is working as expected first when you find something suspicious.
+You would suspect this as an inconsistency of ScalarDL or that your contracts have bugs if you misunderstand the specifications of your application. There are many causes of inconsistencies, so please make sure your application is working as expected first when you find something suspicious.
 
 Next, we will explain some inconsistent cases caused by Scalar DB or DL.  It might be difficult to understand without an internal knowledge about them, but it's worth looking at.
 

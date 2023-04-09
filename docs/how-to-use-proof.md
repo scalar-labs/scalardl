@@ -1,10 +1,10 @@
-# A Guide on How to Use Asset Proofs in Scalar DL
+# A Guide on How to Use Asset Proofs in ScalarDL
 
-This document sets out some guidelines for using Asset Proofs in Scalar DL.
+This document sets out some guidelines for using Asset Proofs in ScalarDL.
 
-## What is an Asset Proof in Scalar DL?
+## What is an Asset Proof in ScalarDL?
 
-An Asset Proof in Scalar DL is a set of information about an asset record and used as evidence of the existence of the asset record. It is composed of the following items.
+An Asset Proof in ScalarDL is a set of information about an asset record and used as evidence of the existence of the asset record. It is composed of the following items.
 
 - ID of an asset record
 - Age of the asset record
@@ -26,6 +26,6 @@ It is recommended to store the proofs outside of a domain in which the Ledger ru
 
 The proofs obtained in execution can be utilized when you do `validateLedger`. `validateLedger` also returns the proof of a specified asset record after doing Ledger-side validation. Then, the client can check if the proof is the same as the one that have returned from the Ledger before.
 
-## Scalar DL Auditor
+## ScalarDL Auditor
 
-Scalar DL Auditor utilizes Asset Proofs to achieve the Byzantine fault detection feature. For more details about Scalar DL Auditor, please read [Getting Started with Scalar DL Auditor](getting-started-auditor.md).
+ScalarDL Auditor utilizes Asset Proofs to achieve the Byzantine fault detection feature. For more details about ScalarDL Auditor, please read [Getting Started with ScalarDL Auditor](getting-started-auditor.md).

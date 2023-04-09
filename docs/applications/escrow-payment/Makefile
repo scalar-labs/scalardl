@@ -3,10 +3,10 @@ SHELL := /bin/bash
 ##### BUILD
 .PHONY: build
 build:
-	@echo "Building scalar DL escrow demo CLI"
+	@echo "Building ScalarDL escrow demo CLI"
 	@./gradlew build
 
-#### Scalar DL
+#### ScalarDL
 .PHONY: register-cert assemble register-contracts clear register-all
 
 register-all: register-cert register-contracts

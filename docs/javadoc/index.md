@@ -1,4 +1,4 @@
-# Scalar DL Javadoc
+# ScalarDL Javadoc
 
 * [latest](./latest/index.md)
 * [3.7.0](./3.7.0/index.md)

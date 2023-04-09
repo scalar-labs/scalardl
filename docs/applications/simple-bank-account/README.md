@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a simple bank account application. The actions that a user can performed are: create an account, view an account history, deposit funds to an account, withdraw funds from an account, and transfer funds between accounts. All actions performed on an account are recorded in Scalar DL, which means that the account history is recorded in a tamper-evident way, similar to how blockchains record blocks. This means that if an account history was altered (either intentionally or not), it is possible to detect this.  
+This is a simple bank account application. The actions that a user can performed are: create an account, view an account history, deposit funds to an account, withdraw funds from an account, and transfer funds between accounts. All actions performed on an account are recorded in ScalarDL, which means that the account history is recorded in a tamper-evident way, similar to how blockchains record blocks. This means that if an account history was altered (either intentionally or not), it is possible to detect this.  
  
 To keep things simple here we are assuming that the bank holds the private key to execute all the contracts (see below for more explanation of how this works). This is probably not how you would want to use this bank application in practice. In this case a malicious account manager could actually change a user's account history, e.g., by simply recreating it and filling it with false data. A more meaningful setup is that the bank owns the private key to deposit to an account, and each user registers a withdrawal and transfer contract using their own private key. Then only the bank can move funds into an account, and only users can move funds out of their accounts.
 
@@ -22,18 +22,18 @@ The overall architecture of this application can be viewed as follows. (Note aga
 
 ## Trying out the application
 
-Download the [Scalar DL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk). Make sure Scalar DL is running and register all the required contracts by executing
+Download the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk). Make sure ScalarDL is running and register all the required contracts by executing
 
 ```
 $ SCALAR_SDK_HOME=/path/to/scalardl-client-sdk ./register
 ```
 Run the application using IntelliJ (or the IDE of your choice), or by executing `gradle bootRun` in the project home directory. It should create a server on `localhost:8080` to which you can send HTTP requests in order to interact with the app. See the [API documentation](./docs/api_endpoints.md) for more information. To create HTTP requests we have found that [Postman](https://www.getpostman.com/) is quite nice.
 
-## A short tutorial on writing a Scalar DLT application
+## A short tutorial on writing a ScalarDL application
 
-We decided to use Spring Boot to create a web service to interact with the contracts. This is, of course, not the only choice. Another choice would be to create a command line interface as was done, for example, in the [asset management application](https://github.com/indetail-blockchain/getting-started-with-scalardl). There you can also find a very nice tutorial for writing applications for Scalar DLT.
+We decided to use Spring Boot to create a web service to interact with the contracts. This is, of course, not the only choice. Another choice would be to create a command line interface as was done, for example, in the [asset management application](https://github.com/indetail-blockchain/getting-started-with-scalardl). There you can also find a very nice tutorial for writing applications for ScalarDL.
 
-In this tutorial we will not discuss the detail at the level of web services or command line interfaces, and instead focus on the interaction between our application and Scalar DL. We will discuss how to write contracts, register contracts, and then how to call these contracts from the application using the Scalar DL SDK.
+In this tutorial we will not discuss the detail at the level of web services or command line interfaces, and instead focus on the interaction between our application and ScalarDL. We will discuss how to write contracts, register contracts, and then how to call these contracts from the application using the ScalarDL SDK.
 
 ### Contracts
 
@@ -107,9 +107,9 @@ $ ./gradlew build
 
 ### Registering your certification and contracts
 
-You should now have written and compiled your contracts. Before you can execute them, however, you will need to register them on the Scalar DL network. We will make use of the tools available in the [Scalar DL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) `client/bin` directory to register and execute the contracts. Please make sure you have access to this directory.
+You should now have written and compiled your contracts. Before you can execute them, however, you will need to register them on the ScalarDL network. We will make use of the tools available in the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) `client/bin` directory to register and execute the contracts. Please make sure you have access to this directory.
 
-Now, you will need to have your certificate (e.g. `client.pem`) and its corresponding private key (e.g. `client-key.pem`), and Scalar DL up and running. Edit `client.properties` (found in the `conf` directory) to suit your configuration. It should contain lines that look something like:
+Now, you will need to have your certificate (e.g. `client.pem`) and its corresponding private key (e.g. `client-key.pem`), and ScalarDL up and running. Edit `client.properties` (found in the `conf` directory) to suit your configuration. It should contain lines that look something like:
 
 ```bash
 scalar.dl.client.server.host=localhost
@@ -119,7 +119,7 @@ scalar.dl.client.cert_path=conf/client.pem
 scalar.dl.client.private_key_path=conf/client-key.pem
 ```
 
-If everything is set up properly you should be able to register your certificate on the Scalar DL network as
+If everything is set up properly you should be able to register your certificate on the ScalarDL network as
 
 ```bash
 $ ${SCALAR_SDK_HOME}/client/bin/register-cert --properties ./conf/client.properties
@@ -183,7 +183,7 @@ If you were running the application itself, you could execute these commands usi
  
 ## ClientService
 
-You should now have your contracts registered on the Scalar DL network. In order to execute these contracts from an application we will make use of `ClientService` class from the [Scalar DL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk).
+You should now have your contracts registered on the ScalarDL network. In order to execute these contracts from an application we will make use of `ClientService` class from the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk).
 
 The Client SDK is available on [Maven Central](https://search.maven.org/search?q=a:scalardl-client-sdk), and it can be installed in your application using Gradle by adding the following dependency to your `build.gradle`:
 
@@ -223,6 +223,6 @@ result.getResult();
 
 We hope that this has provided you with enough information to get started writing your own apps. Here are some ideas of what you can try next.
  
- - Visit the [Scalar DL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) github page.
- - The [Scalar DL Emulator](https://github.com/scalar-labs/scalardl-emulator) lets you test your contracts on an in-memory ledger.
+ - Visit the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) github page.
+ - The [ScalarDL Emulator](https://github.com/scalar-labs/scalardl-emulator) lets you test your contracts on an in-memory ledger.
 

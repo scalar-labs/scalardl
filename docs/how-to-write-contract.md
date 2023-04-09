@@ -1,13 +1,13 @@
-# A Guide on How to Write a Good Contract for Scalar DL
+# A Guide on How to Write a Good Contract for ScalarDL
 
-This document sets out some guidelines for writing contracts for Scalar DL.
+This document sets out some guidelines for writing contracts for ScalarDL.
 
-## What is a contract for Scalar DL ?
+## What is a contract for ScalarDL ?
 
 
-A contract (a.k.a Smart Contract) for Scalar DL is a Java program extending predefined base contracts (that also extend [ContractBase](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/ContractBase.html) class) written for implementing single business logic. A contract and its arguments are digitally-signed with the contract owner's private key and passed to the Scalar DL. This mechanism allows the contract only to be executed by the owner and makes it possible for the system to detect malicious activity such as data tampering.
+A contract (a.k.a Smart Contract) for ScalarDL is a Java program extending predefined base contracts (that also extend [ContractBase](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/ContractBase.html) class) written for implementing single business logic. A contract and its arguments are digitally-signed with the contract owner's private key and passed to the ScalarDL. This mechanism allows the contract only to be executed by the owner and makes it possible for the system to detect malicious activity such as data tampering.
 
-Before looking at this document, please check the [Getting Started with Scalar DL](getting-started.md) to understand what Scalar DL is and its basic terminologies.
+Before looking at this document, please check the [Getting Started with ScalarDL](getting-started.md) to understand what ScalarDL is and its basic terminologies.
 
 ## Write a simple contract
 
@@ -62,7 +62,7 @@ The old [Contract](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/sca
 As shown above, the overridden `invoke` method accepts [Ledger](
 https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/statemachine/Ledger.html) for interacting with the underlying database, a [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) for the contract argument, and an optional [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/JsonNode.html) for contract properties.
 
-The `Ledger` is a database abstraction that manages a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.  You can interact with the `Ledger` with `get`, `put`, and `scan` APIs. The `get` API is used to retrieve the latest asset record of a specified asset. The `put` API is used to append a new asset record to a specified asset. The `scan` API is used to traverse a specified asset. Note that you can only append an asset record to the ledger with this abstraction. Thus, it is always a good practice to design your data with the abstraction before writing a contract for Scalar DL.
+The `Ledger` is a database abstraction that manages a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.  You can interact with the `Ledger` with `get`, `put`, and `scan` APIs. The `get` API is used to retrieve the latest asset record of a specified asset. The `put` API is used to append a new asset record to a specified asset. The `scan` API is used to traverse a specified asset. Note that you can only append an asset record to the ledger with this abstraction. Thus, it is always a good practice to design your data with the abstraction before writing a contract for ScalarDL.
 
 The contract argument is a runtime argument for the contract specified by the requester. The contract argument is usually used to define runtime variables. For example in a banking application, you may have a Payment contract where a payer and a payee are passed to the contract as the argument every time it is executed.
 
@@ -74,7 +74,7 @@ For example in an agreement application, the business logic for the agreement ca
 The `StateUpdater` contract first checks if the argument has proper variables, matches with an application context, and throws `ContractContextException` if they are not adequately defined. `ContractContextException` is the only throwable exception from a contract, and it is used to let the system know not to retry the contract execution because requirements are not fully satisfied.
 
 Then the contract retrieves an `asset_id` and `state` given from the requester and retrieves `asset` from the Ledger with the specified `asset_id`. And it updates the asset's state if the asset doesn't exist or the asset's state is different from the current state.
-A contract might face some `RuntimeException` when interacting with the Ledger, but it shouldn't catch it in the contract. All the exceptions are treated properly by the Scalar DL executor.
+A contract might face some `RuntimeException` when interacting with the Ledger, but it shouldn't catch it in the contract. All the exceptions are treated properly by the ScalarDL executor.
 
 This contract will just create or update the state of an specified asset, so it doesn't need to return anything to the requester. So in this case, it can return `null`. If you want to return something to a requester, you can return an arbitrary `JsonNode` when using JacksonBasedContract.
 
@@ -92,17 +92,17 @@ Thus, `Ledger` might throw some runtime (unchecked) exceptions in case it can no
 
 ### Determinism
 
-One very important thing to note when you write a contract for Scalar DL is that you have to make the contract deterministic. In other words, a contract must always produce the same output for a given particular input. This is because Scalar DL utilizes determinism to detect tampering.
+One very important thing to note when you write a contract for ScalarDL is that you have to make the contract deterministic. In other words, a contract must always produce the same output for a given particular input. This is because ScalarDL utilizes determinism to detect tampering.
 
-For example, Scalar DL will lazily traverse assets and re-execute contracts to check if there is no discrepancy between the expected outcome and the actual data stored in the ledger. It also utilizes determinism to make the states of multiple independent Scalar DL components (i.e., Ledger and Auditor) the same.
+For example, ScalarDL will lazily traverse assets and re-execute contracts to check if there is no discrepancy between the expected outcome and the actual data stored in the ledger. It also utilizes determinism to make the states of multiple independent ScalarDL components (i.e., Ledger and Auditor) the same.
 
 One common way of creating a non-deterministic contract is to generate the time inside the contract and have the output including the ledger states somehow depend on this time. Such a contract will produce different outputs each time it is executed and makes the system unable to detect tampering. If you need to use the time in a contract, you should pass it to the contract as an argument.
 
 ### Deleting an asset
 
-The assets registered through contracts are not able to be deleted to provide tamper-evidence. However, there are cases where you want to delete some assets to follow the rules and regulations of applications you develop. To provide such a data deletion, Scalar DL supports a feature called `Function`.
+The assets registered through contracts are not able to be deleted to provide tamper-evidence. However, there are cases where you want to delete some assets to follow the rules and regulations of applications you develop. To provide such a data deletion, ScalarDL supports a feature called `Function`.
 
-For more details about `Function`, please check [How to Write Function for Scalar DL](./how-to-write-function.md) guide.
+For more details about `Function`, please check [How to Write Function for ScalarDL](./how-to-write-function.md) guide.
 
 
 ## Write a complex contract
@@ -141,11 +141,11 @@ public class StateUpdaterReader extends JacksonBasedContract {
 
 The `StateUpdaterReader` updates the Ledger just like `StateUpdater` and additionally calls another invoke with the `state-reader` to read what was written. Although this example might not be very convincing, but modularizing contracts (e.g., defining `StateUpdater` separately) can make the contracts reusable.
 
-It's to be noted that all the contracts in the nested invocation are executed transactionally (in an ACID manner) in Scalar DL so that they are executed entirely successfully or they are entirely failed.
+It's to be noted that all the contracts in the nested invocation are executed transactionally (in an ACID manner) in ScalarDL so that they are executed entirely successfully or they are entirely failed.
 
 ## Summary
 
-Here are the best practices for writing good contracts for Scalar DL.
+Here are the best practices for writing good contracts for ScalarDL.
 
 * Design your data properly to fit with Ledger abstraction before writing contracts
 * Throw `ContractContextException` if a contract faces non-recoverable errors
@@ -161,6 +161,6 @@ You can find more contract samples in [caliper-benchmarks](https://github.com/sc
 
 ## References
 
-* [Getting Started with Scalar DL](getting-started.md)
-* [Scalar DL Design Document](design.md)
+* [Getting Started with ScalarDL](getting-started.md)
+* [ScalarDL Design Document](design.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)

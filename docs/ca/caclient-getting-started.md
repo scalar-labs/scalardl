@@ -1,6 +1,6 @@
 # How to get a certificate
 
-This document describes how to get a certificate to enroll in DLT network.
+This document describes how to get a certificate to enroll in ScalarDL network.
 
 ## Prerequisites
 

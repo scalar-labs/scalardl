@@ -1,21 +1,21 @@
-# Getting Started with Scalar DL
+# Getting Started with ScalarDL
 
-This document explains how to get started with Scalar DL by running your first simple contract using the Client SDK.
-Here, we assume that you have already installed Scalar DL, and Scalar DL Ledger is running and listening to 50051 and 50052 ports on localhost. If you don't have such an environment, please follow [the document](./installation-with-docker.md). We also assume that you already have a certificate and a private key required to run contracts.
+This document explains how to get started with ScalarDL by running your first simple contract using the Client SDK.
+Here, we assume that you have already installed ScalarDL, and ScalarDL Ledger is running and listening to 50051 and 50052 ports on localhost. If you don't have such an environment, please follow [the document](./installation-with-docker.md). We also assume that you already have a certificate and a private key required to run contracts.
 
-## What is Scalar DL?
+## What is ScalarDL?
 
-Scalar DL is scalable and practical Byzantine fault detection middleware for transactional database systems, which achieves correctness, scalability, and database agnosticism.
+ScalarDL is scalable and practical Byzantine fault detection middleware for transactional database systems, which achieves correctness, scalability, and database agnosticism.
 
-Scalar DL is composed of Ledger, Auditor, and Client SDK as shown in the following figure. Scalar DL Ledger manages application data in its own unique way using hash-chain and digital signature. Scalar DL Auditor is an optional component and manages a copy of Ledger data without depending on Ledger to identify the discrepancy between Ledger and Auditor data.
+ScalarDL is composed of Ledger, Auditor, and Client SDK as shown in the following figure. ScalarDL Ledger manages application data in its own unique way using hash-chain and digital signature. ScalarDL Auditor is an optional component and manages a copy of Ledger data without depending on Ledger to identify the discrepancy between Ledger and Auditor data.
 The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read the [design doc](design.md) and [implementation details](implementation.md).
 
 <p align="center">
 <img src="images/scalardl.png" width="480" />
 </p>
 
-Scalar DL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
-In this document, you will create a very simple application to manage an asset's status using Scalar DL Client SDK.
+ScalarDL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
+In this document, you will create a very simple application to manage an asset's status using ScalarDL Client SDK.
 
 ## Download the Client SDK
 
@@ -48,10 +48,10 @@ mv scalardl-java-client-sdk-$VERSION client
 ## Configure properties
 
 The first thing you need to do is to configure the Client SDK.
-The following sample properties are the minimum required properties for the Client SDK to interact with Scalar DL Ledger.
+The following sample properties are the minimum required properties for the Client SDK to interact with ScalarDL Ledger.
 ```
 [client.properties]
-# A host name of Scalar DL Ledger
+# A host name of ScalarDL Ledger
 scalar.dl.client.server.host=localhost
 
 # An ID of a certificate holder. It must be configured for each private key and unique in the system.
@@ -74,7 +74,7 @@ Please update the values of the copied `client.properties` file depending on you
 
 ## Register the certificate
 
-Next, let's register your certificate to Scalar DL Ledger. Please check [caclient-getting-started](ca/caclient-getting-started.md) for how to prepare a certificate.
+Next, let's register your certificate to ScalarDL Ledger. Please check [caclient-getting-started](ca/caclient-getting-started.md) for how to prepare a certificate.
 
 This time, let's use a simple tool to register your certificate as follows.
 
@@ -87,7 +87,7 @@ Note that you can only add new certs and cannot update existing certs in place f
 
 ## Create a contract
 
-Contracts in Scalar DL are simply Java classes that extend the predefined base contract classes (such as [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) class) and override the `invoke` method. Let's take a closer look at the [StateUpdater.java](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) contract which creates an asset and associates some states with it.
+Contracts in ScalarDL are simply Java classes that extend the predefined base contract classes (such as [JacksonBasedContract](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/contract/JacksonBasedContract.html) class) and override the `invoke` method. Let's take a closer look at the [StateUpdater.java](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/org1/contract/StateUpdater.java) contract which creates an asset and associates some states with it.
 
 ```java
 package com.org1.contract;
@@ -166,10 +166,10 @@ You can validate the states of Ledger by executing the following command.
 client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
 ```
 
-What the validation does is depending on how you set up and configure Scalar DL.
-Briefly speaking, if only Scalar DL Ledger is used, the validation traverses assets to see if the assets can be recomputed and have a valid hash-chain structure.
-With Scalar DL Ledger and Auditor, the validation checks discrepancies (i.e., Byzantine faults) between the states of Ledger and Auditor without centralized coordination.
-Please read [Getting Started with Scalar DL Auditor](getting-started-auditor.md) for more details about the validation with Auditor.
+What the validation does is depending on how you set up and configure ScalarDL.
+Briefly speaking, if only ScalarDL Ledger is used, the validation traverses assets to see if the assets can be recomputed and have a valid hash-chain structure.
+With ScalarDL Ledger and Auditor, the validation checks discrepancies (i.e., Byzantine faults) between the states of Ledger and Auditor without centralized coordination.
+Please read [Getting Started with ScalarDL Auditor](getting-started-auditor.md) for more details about the validation with Auditor.
 
 ## Create your own contracts
 
@@ -204,20 +204,20 @@ The following is a code snippet showing how to use `ClientService` to execute a 
 First, you should always use `ClientServiceFactory` to create `ClientService` objects.
 `ClientServiceFactory` caches objects required to create `ClientService` and reuses them as much as possible on the basis of given configurations, so `ClientServiceFactory` object should always be reused.
 
-`ClientService` is a thread-safe client that interacts with Scalar DL components (e.g., Ledger and Auditor) to register certificates, register contracts, execute contracts, and validate data.
+`ClientService` is a thread-safe client that interacts with ScalarDL components (e.g., Ledger and Auditor) to register certificates, register contracts, execute contracts, and validate data.
 When you execute a contract, you need to specify the corresponding argument type of the contract. For example, if your contract extends JacksonBasedContract, you need to pass JsonNode argument when you execute the contract.
 
 For more information, please take a look at [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/).
 
 ## Run and test your contracts
 
-To quickly run and test your contracts in your local environment, [Scalar DL Samples](https://github.com/scalar-labs/scalardl-samples) is useful. To run Scalar DL in a production environment, please see [scalar-kubernetes](https://github.com/scalar-labs/scalar-kubernetes) for details.
+To quickly run and test your contracts in your local environment, [ScalarDL Samples](https://github.com/scalar-labs/scalardl-samples) is useful. To run ScalarDL in a production environment, please see [scalar-kubernetes](https://github.com/scalar-labs/scalar-kubernetes) for details.
 
 ## Further reading
 
 * [A Guide on How to Write a Good Contract](how-to-write-contract.md)
 * [A Guide on How to Write a Good Function](how-to-write-function.md)
-* [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
+* [Getting Started with ScalarDL Auditor](getting-started-auditor.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)
-* [Scalar DL Design Document](design.md)
-* [Scalar DL Implementation](implementation.md)
+* [ScalarDL Design Document](design.md)
+* [ScalarDL Implementation](implementation.md)
