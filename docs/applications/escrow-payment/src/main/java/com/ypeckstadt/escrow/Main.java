@@ -9,7 +9,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "app",
-    description = "Scalar DL escrow demo CLI",
+    description = "ScalarDL escrow demo CLI",
     mixinStandardHelpOptions = true,
     version = "1.0",
     subcommands = {

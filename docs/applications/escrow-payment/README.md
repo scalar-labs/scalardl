@@ -1,12 +1,12 @@
-# Scalar DL Escrow payment CLI
+# ScalarDL Escrow payment CLI
 
-The following is a simple Java CLI application to try out and test [Scalar DL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
+The following is a simple Java CLI application to try out and test [ScalarDL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
 
-Scalar DL has support and SDK for multiple languages. In this example, JAVA is used.
+ScalarDL has support and SDK for multiple languages. In this example, JAVA is used.
 
 As this is just a sample project, all commands can be run via Gradle. This is not a production-ready example and is only provided as study material.
 
-Please check out the mentioned Makefile commands and the official Scalar DL documentation to see which commands are being executed.
+Please check out the mentioned Makefile commands and the official ScalarDL documentation to see which commands are being executed.
 
 
 
@@ -80,9 +80,9 @@ The following actions are supported:
 
 ## Setup
 
-### Scalar DL
+### ScalarDL
 
-The code to start up the Scalar DL server is not included in this repository.  To get Scalar DL up and running quickly, please clone the [following repository](https://github.com/scalar-labs/scalardl-samples) and follow the provided instructions on how to get started with Scalar DL.
+The code to start up the ScalarDL server is not included in this repository.  To get ScalarDL up and running quickly, please clone the [following repository](https://github.com/scalar-labs/scalardl-samples) and follow the provided instructions on how to get started with ScalarDL.
 
 ### Certificate
 

@@ -1,10 +1,10 @@
-# A Guide on How to Handle Errors in Scalar DL
+# A Guide on How to Handle Errors in ScalarDL
 
-This document sets out some guidelines for handling errors in Scalar DL.
+This document sets out some guidelines for handling errors in ScalarDL.
 
 ## Basics
 
-Scalar DL expects users to use [Client SDKs](https://github.com/scalar-labs/scalardl/blob/master/docs/index.md#client-sdks) to properly interact with Scalar DL system.
+ScalarDL expects users to use [Client SDKs](https://github.com/scalar-labs/scalardl/blob/master/docs/index.md#client-sdks) to properly interact with ScalarDL system.
 When an error occurs, the Client SDKs return an Exception (or an Error in Javascript-based SDKs) with a status code to users.
 Users are expected to check the status code to identify the cause of errors.
 
@@ -17,7 +17,7 @@ In Java Client SDK, the SDK throws a [ClientException](https://scalar-labs.githu
 ```java
 ClientService clientService = ...;
 try {
-    // interact with Scalar DL through a ClientService object
+    // interact with ScalarDL through a ClientService object
 } catch (ClientException) {
     // e.getStatusCode() returns the status of the error
 }

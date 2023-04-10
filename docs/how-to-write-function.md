@@ -1,14 +1,14 @@
-# A Guide on How to Write Function for Scalar DL
+# A Guide on How to Write Function for ScalarDL
 
-This document sets out some guidelines for writing functions for Scalar DL.
+This document sets out some guidelines for writing functions for ScalarDL.
 
-## What is a function for Scalar DL ?
+## What is a function for ScalarDL ?
 
-A Function (Smart Function) for Scalar DL is a Java program, which extends the predefined base functions such as [JacksonBasedFunction](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/function/JacksonBasedFunction.html) class, written for implementing single business logic. A Function mainly manages the data of a Scalar DL application whereas a Contract manages the evidence of the data. Before looking at this, please check [Getting Started with Scalar DL](getting-started.md) and [How to Write Contract For Scalar DL](how-to-write-contract.md) to understand what Scalar DL is and what Scalar DL can do with contracts.
+A Function (Smart Function) for ScalarDL is a Java program, which extends the predefined base functions such as [JacksonBasedFunction](https://scalar-labs.github.io/scalardl/javadoc/latest/ledger/com/scalar/dl/ledger/function/JacksonBasedFunction.html) class, written for implementing single business logic. A Function mainly manages the data of a ScalarDL application whereas a Contract manages the evidence of the data. Before looking at this, please check [Getting Started with ScalarDL](getting-started.md) and [How to Write Contract For ScalarDL](how-to-write-contract.md) to understand what ScalarDL is and what ScalarDL can do with contracts.
 
 ## Background
 
-Assets managed by Contracts in Scalar DL are tamper-evident and append-only, so their data structure is limited in modeling various applications. Moreover, assets cannot be deleted to guarantee tamper evidence. Many distributed ledger platforms deal with the issue by having another database, such as an RDBMS, in front of a ledger to handle the application's data in the database and write logs to the ledger as evidence. However, this scheme is not ideal since data consistency between the database and the ledger is not always preserved. There could be a case where applications don't have corresponding logs in the ledger due to a catastrophic failure, which defeats the purpose of writing logs to the ledger as evidence. Scalar DL resolves the issue with a different approach by introducing Functions to manage applications' data and making Contracts and Functions execute atomically by utilizing underlying distributed ACID transactions with [Scalar DB](https://github.com/scalar-labs/scalardb).
+Assets managed by Contracts in ScalarDL are tamper-evident and append-only, so their data structure is limited in modeling various applications. Moreover, assets cannot be deleted to guarantee tamper evidence. Many distributed ledger platforms deal with the issue by having another database, such as an RDBMS, in front of a ledger to handle the application's data in the database and write logs to the ledger as evidence. However, this scheme is not ideal since data consistency between the database and the ledger is not always preserved. There could be a case where applications don't have corresponding logs in the ledger due to a catastrophic failure, which defeats the purpose of writing logs to the ledger as evidence. ScalarDL resolves the issue with a different approach by introducing Functions to manage applications' data and making Contracts and Functions execute atomically by utilizing underlying distributed ACID transactions with [ScalarDB](https://github.com/scalar-labs/scalardb).
 
 ## Write a Function
 
@@ -81,11 +81,11 @@ public class Payment extends JacksonBasedFunction {
 }
 ```
 
-It is a money transfer application written with Scalar DB API, where getting specified account balances, transferring a specified amount of money between the two account balances, and updating the balances. Please also read the [Scalar DB docs](https://github.com/scalar-labs/scalardb/blob/master/docs/api-guide.md) for more details about Scalar DB API.
+It is a money transfer application written with ScalarDB API, where getting specified account balances, transferring a specified amount of money between the two account balances, and updating the balances. Please also read the [ScalarDB docs](https://github.com/scalar-labs/scalardb/blob/master/docs/api-guide.md) for more details about ScalarDB API.
 
 ### Base Functions
 
-Similar to predefined base Contracts, Scalar DL also provides predefined base Functions. For example, the above PaymentFunction is based on one of the base Functions called JacksonBasedFunction, which allows you to deal with the Function inputs and output in Jackson's JsonNode format.
+Similar to predefined base Contracts, ScalarDL also provides predefined base Functions. For example, the above PaymentFunction is based on one of the base Functions called JacksonBasedFunction, which allows you to deal with the Function inputs and output in Jackson's JsonNode format.
 
 As of writing this, we provide four base Functions as shown below; however, using JacksonBasedFunction is recommended to balance development productivity and performance well.
 
@@ -102,7 +102,7 @@ The old [Function](https://scalar-labs.github.io/scalardl/javadoc/ledger/com/sca
 
 ### About the `invoke` arguments
 
-Similar to a Contract using `Ledger` object to manage assets, a Function uses `Database` object to manage records of the underlying database. Note that `Database` implements [Scalar DB](https://github.com/scalar-labs/scalardb) interface so that you can do the CRUD operations base on [the data model](https://github.com/scalar-labs/scalardb/blob/master/docs/design.md#data-model) of Scalar DB. 
+Similar to a Contract using `Ledger` object to manage assets, a Function uses `Database` object to manage records of the underlying database. Note that `Database` implements [ScalarDB](https://github.com/scalar-labs/scalardb) interface so that you can do the CRUD operations base on [the data model](https://github.com/scalar-labs/scalardb/blob/master/docs/design.md#data-model) of ScalarDB. 
 
 A `functionArgument` is a runtime argument for the Function specified by the requester. The argument is not digitally signed as opposed to the contract argument so that it can be used to pass data that is stored in the database but it might be deleted at some later point for some reason.
 
@@ -114,7 +114,7 @@ The Function feature is enabled by default; thus, nothing needs to be configured
 
 #### Add an application-specific schema
 
-Since Functions can read and write arbitrary records through the Scalar DB CRUD interface, Scalar DL can't define the database schema for the Function by itself. It is the applications' owner's responsibility to define such schema and apply it to the database by themselves or asking system admins to do it depending on who owns and manages the database. For more details about defining database schema for Scalar DB, please read [Scalar DB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/schema-loader/README.md).
+Since Functions can read and write arbitrary records through the ScalarDB CRUD interface, ScalarDL can't define the database schema for the Function by itself. It is the applications' owner's responsibility to define such schema and apply it to the database by themselves or asking system admins to do it depending on who owns and manages the database. For more details about defining database schema for ScalarDB, please read [ScalarDB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/schema-loader/README.md).
 
 #### Register a Function
 
@@ -139,7 +139,7 @@ You can also do it with the [ClientService](https://scalar-labs.github.io/scalar
 ContractExecutionResult result = clientService.executeContract(contractId, contractArgument, functionId, functionArgument);
 ```
 
-Like a Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together. Scalar DL executes a group of Contracts and Functions in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
+Like a Contract, a Function can invoke another Function so multiple Functions (and multiple Contracts) can be grouped together. ScalarDL executes a group of Contracts and Functions in an ACID manner so that they can be done atomically and in a consistent, isolated, and durable manner.
 
 ## How to use Contracts and Functions properly
 
@@ -147,7 +147,7 @@ Contracts and Functions should be properly used to make the scheme meaningful. A
 
 ## References
 
-* [Getting Started with Scalar DL](getting-started.md)
-* [A Guide on How to Write Contract for Scalar DL](how-to-write-contract.md)
-* [Scalar DL Design Document](design.md)
+* [Getting Started with ScalarDL](getting-started.md)
+* [A Guide on How to Write Contract for ScalarDL](how-to-write-contract.md)
+* [ScalarDL Design Document](design.md)
 * [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/)

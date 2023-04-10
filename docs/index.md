@@ -1,18 +1,18 @@
-# Scalar DL Docs
+# ScalarDL Docs
 
 ## Design and Implementation
-* [Scalar DL Technical Overview](https://speakerdeck.com/scalar/scalar-dl-technical-overview)
-* [Scalar DL Design](design.md)
-* [Scalar DL Implementation](implementation.md)
+* [ScalarDL Technical Overview](https://speakerdeck.com/scalar/scalar-dl-technical-overview)
+* [ScalarDL Design](design.md)
+* [ScalarDL Implementation](implementation.md)
 
 ## How to Use
-* [How to install Scalar DL in your local environment with Docker](installation-with-docker.md) (Partner-only)
-* [Getting Started with Scalar DL](getting-started.md)
-* [A Guide on How to Write a Good Contract for Scalar DL](how-to-write-contract.md)
-* [A Guide on How to Write Function for Scalar DL](how-to-write-function.md)
-* [A Guide on How to Handle Errors in Scalar DL](how-to-handle-errors.md)
-* [A Guide on How to Use Asset Proofs in Scalar DL](how-to-use-proof.md)
-* [Getting Started with Scalar DL Auditor](getting-started-auditor.md)
+* [How to install ScalarDL in your local environment with Docker](installation-with-docker.md) (Partner-only)
+* [Getting Started with ScalarDL](getting-started.md)
+* [A Guide on How to Write a Good Contract for ScalarDL](how-to-write-contract.md)
+* [A Guide on How to Write Function for ScalarDL](how-to-write-function.md)
+* [A Guide on How to Handle Errors in ScalarDL](how-to-handle-errors.md)
+* [A Guide on How to Use Asset Proofs in ScalarDL](how-to-use-proof.md)
+* [Getting Started with ScalarDL Auditor](getting-started-auditor.md)
 * [Trouble-shooting Guide](trouble-shooting-guide.md)
 
 ## Client SDKs
@@ -32,6 +32,6 @@
 * [Simple Banking Application](applications/simple-bank-account/README.md)
 
 ## How to Deploy
-* [Deploy Scalar DL on AWS](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md)
-* [Deploy Scalar DL on Azure](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md)
+* [Deploy ScalarDL on AWS](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md)
+* [Deploy ScalarDL on Azure](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md)
 

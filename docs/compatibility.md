@@ -1,8 +1,8 @@
-# Scalar DL Compatibility Matrix
+# ScalarDL Compatibility Matrix
 
-This document shows Scalar DL Ledger and Auditor compatibility with the Scalar DL Java Client SDK.
+This document shows ScalarDL Ledger and Auditor compatibility with the ScalarDL Java Client SDK.
 
-|Scalar DL Ledger/Auditor version   |Scalar DL Java Client SDK version  |
+|ScalarDL Ledger/Auditor version   |ScalarDL Java Client SDK version  |
 |:----------------------------------|:----------------------------------|
 |3.5  |3.0 - 3.5   |
 |3.4  |3.0 - 3.4   |
