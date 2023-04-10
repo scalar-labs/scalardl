@@ -1,4 +1,4 @@
-## Scalar DL: Byzantine Fault Detection Middleware for Transactional Database Systems
+## ScalarDL: Byzantine Fault Detection Middleware for Transactional Database Systems
 
 ScalarDL is a scalable and practical Byzantine fault detection middleware for transactional database systems that achieves correctness, scalability, and database agnosticism.
 
