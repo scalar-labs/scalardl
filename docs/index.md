@@ -35,3 +35,5 @@
 * [Deploy ScalarDL on AWS](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md)
 * [Deploy ScalarDL on Azure](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md)
 
+## Schema Loader
+* [How to use ScalarDL Schema Loader](schema-loader.md)
