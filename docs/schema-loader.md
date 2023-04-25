@@ -2,12 +2,6 @@
 
 A Docker image that loads the database schemas of ScalarDL using [Schema Tool for Scalar DB](https://github.com/scalar-labs/scalardb/tree/master/schema-loader/).
 
-## How to Build
-
-```console
-docker build . -t ghcr.io/scalar-labs/scalardl-schema-loader:<version>
-```
-
 ## How to Run
 
 ### For Cosmos DB
