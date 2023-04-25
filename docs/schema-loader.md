@@ -1,6 +1,6 @@
-# scalardl-schema-loader
+# ScalarDL Schema Loader
 
-A Docker image that loads the database schema with [Schema Tool for Scalar DB](https://github.com/scalar-labs/scalardb/tree/master/schema-loader/).
+A Docker image that loads the database schemas of ScalarDL using [Schema Tool for Scalar DB](https://github.com/scalar-labs/scalardb/tree/master/schema-loader/).
 
 ## How to Build
 
