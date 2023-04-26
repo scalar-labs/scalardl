@@ -11,7 +11,7 @@ ScalarDL uses authentication in the following three situations:
 * Ledger authentication (for Auditor)
     * Auditor authenticates Ledger using Ledger-generated signatures attached to [Asset Proofs](how-to-use-proof.md).
 * Auditor authentication (for Ledger)
-    * Ledger authenticates Auditor using Auditor-generated signatures attached to client requests.
+    * Ledger authenticates Auditor by using Auditor-generated signatures attached to client requests.
 
 Note that Ledger authentication and Auditor authentication are only used in the Auditor mode. For more details about Auditor, please see the [Getting Started with ScalarDL Auditor](getting-started-auditor.md) and [ScalarDL Implementation](implementation.md).
 
