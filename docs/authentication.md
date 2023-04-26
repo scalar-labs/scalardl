@@ -115,7 +115,8 @@ This section explains what variables you need to configure to use the authentica
 
  After configuration, you must do the following to prepare for issuing execution requests.
 
-### Digital Signatures
+### Digital signatures
+
 * Register clients' certificates to Ledger (and Auditor).
     * Use the client library or the command-line tool (`register-cert`).
 * Register contracts to Ledger (and Auditor).
