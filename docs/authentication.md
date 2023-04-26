@@ -127,6 +127,7 @@ This section explains what variables you need to configure to use the authentica
     * Required only if Auditor is enabled.
 
 ### HMAC
+
 * Register clients' secret keys to Ledger (and Auditor).
   * Use the client library or the command-line tool (`register-secret`).
 * Register contracts to Ledger (and Auditor).
