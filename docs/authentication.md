@@ -29,6 +29,7 @@ Both of these methods have advantages and disadvantages, as described below, but
   * Digital Signatures are very slow. They will add non-negligible performance overhead in exchange for the above benefits.
 
 ### HMAC
+
 * Advantages
     * HMAC is way faster than digital signatures.
 * Disadvantages
