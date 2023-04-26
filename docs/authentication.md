@@ -7,13 +7,15 @@ This document explains the ScalarDL authentication mechanism and how to use it p
 Authentication is one of the key roles in ScalarDL to make the protocol work as expected.
 ScalarDL uses authentication for the following three places:
 * Client authentication (for Ledger and Auditor)
-    * Client authentication authenticates clients by Ledger and Auditor using client-generated signatures attached to requests from clients.
+    * Ledger and Auditor authenticates clients using client-generated signatures attached to requests from the clients.
 * Ledger authentication (for Auditor)
-    * Ledger authentication authenticates Ledger by Auditor using Ledger-generated signatures attached to [Asset Proofs](how-to-use-proof.md).
-* Auditor authentication (for Ledger )
-    * Auditor authentication authenticates Auditor by Ledger using  Auditor-generated signatures attached to client requests.
+    * Auditor authenticates Ledger using Ledger-generated signatures attached to [Asset Proofs](how-to-use-proof.md).
+* Auditor authentication (for Ledger)
+    * Ledger authenticates Auditor using Auditor-generated signatures attached to client requests.
 
 Note that Ledger authentication and Auditor authentication are only used in the Auditor mode. For more details about Auditor, please see the [Getting Started with ScalarDL Auditor](getting-started-auditor.md) and [ScalarDL Implementation](implementation.md).
+
+Also, note that we use the term `signature` here to specify a byte array used for authentication.
 
 ## Authentication methods
 
