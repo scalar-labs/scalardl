@@ -22,7 +22,8 @@ Also, note that we use the term `signature` here to specify a byte array used fo
 ScalarDL supports two authentication methods: digital signatures and HMAC.
 Both of these methods have advantages and disadvantages, as described below, but neither method sacrifices Byzantine fault detection capability.
 
-### Digital Signatures
+### Digital signatures
+
 * Advantages
   * Asset records and asset proofs have non-repudiation property. Specifically, a digital signature attached to a request is stored with the corresponding asset records produced by the request so that the records have non-repudiation property, i.e., we can ensure that the records are created by the owner of the private key that signed the request. Moreover, digital signatures attached to asset proofs returned to a client as the result of execution ensure that the proofs are created by Ledger and Auditor, respectively. If a client (application) keeps the proofs, the client can verify results with the proofs as necessary.
 * Disadvantages
