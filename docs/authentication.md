@@ -123,7 +123,7 @@ This section explains what variables you need to configure to use the authentica
 * Register Auditor's certificates to Ledger.
     * It is needed only when Auditor is enabled.
 * Register Ledger's certificates to Auditor.
-    * It is needed only when Auditor is enabled.
+    * Required only if Auditor is enabled.
 
 ### HMAC
 * Register clients' secret keys to Ledger (and Auditor).
