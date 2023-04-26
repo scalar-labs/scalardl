@@ -19,8 +19,8 @@ Also, note that we use the term `signature` here to specify a byte array used fo
 
 ## Authentication methods
 
-ScalarDL supports two authentication methods: Digital Signatures and HMAC.
-The methods have advantages and disadvantages, as shown below, but Byzantine fault detection capability won't be sacrificed either way.
+ScalarDL supports two authentication methods: digital signatures and HMAC.
+Both of these methods have advantages and disadvantages, as described below, but neither method sacrifices Byzantine fault detection capability.
 
 ### Digital Signatures
 * Advantages
