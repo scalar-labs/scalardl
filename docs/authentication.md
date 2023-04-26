@@ -122,7 +122,7 @@ This section explains what variables you need to configure to use the authentica
     * Use the client library or the command-line tool (`register-cert`).
 * Register contracts to Ledger (and Auditor).
 * Register Auditor's certificates to Ledger.
-    * It is needed only when Auditor is enabled.
+    * Required only if Auditor is enabled.
 * Register Ledger's certificates to Auditor.
     * Required only if Auditor is enabled.
 
