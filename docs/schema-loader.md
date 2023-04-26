@@ -30,7 +30,7 @@ docker run --rm [--env SCHEMA_TYPE=auditor] ghcr.io/scalar-labs/scalardl-schema-
 * For Ledger
   ```console
   docker run --rm \
-    -v <PROPERTIES_FILE_PATH>:/scalardl-schema-loader/database.properties.tmpl \
+    -v <PROPERTIES_FILE_PATH>:/scalardl-schema-loader/database.properties \
     ghcr.io/scalar-labs/scalardl-schema-loader:<version> \
     --config database.properties --coordinator [<SOME_OPTIONS> [, ...]]
   ```
@@ -38,7 +38,7 @@ docker run --rm [--env SCHEMA_TYPE=auditor] ghcr.io/scalar-labs/scalardl-schema-
 * For Auditor
   ```console
   docker run --rm --env SCHEMA_TYPE=auditor \
-    -v <PROPERTIES_FILE_PATH>:/scalardl-schema-loader/database.properties.tmpl \
+    -v <PROPERTIES_FILE_PATH>:/scalardl-schema-loader/database.properties \
     ghcr.io/scalar-labs/scalardl-schema-loader:<version> \
     --config database.properties [<SOME_OPTIONS> [, ...]]
   ```

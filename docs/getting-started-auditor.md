@@ -66,7 +66,7 @@ By default, Auditor assumes Ledger registers its certificate with a name `ledger
 
 Other values are optional here but they need to be updated depending on an environment.
 For example, if you place Ledger and Auditor in different hosts, you need to update `scalar.dl.auditor.ledger.host` for Auditor to be able to access Ledger.
-Please check [the configuration file](https://github.com/scalar-labs/scalar/blob/master/auditor/conf/auditor.properties.tmpl) for more detail.
+Please check [the configuration file](https://github.com/scalar-labs/scalar/blob/master/auditor/conf/auditor.properties) for more detail.
 
 
 ## Start Ledger and Auditor
