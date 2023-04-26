@@ -13,6 +13,7 @@
 * [A Guide on How to Handle Errors in ScalarDL](how-to-handle-errors.md)
 * [A Guide on How to Use Asset Proofs in ScalarDL](how-to-use-proof.md)
 * [Getting Started with ScalarDL Auditor](getting-started-auditor.md)
+* [How to use ScalarDL Schema Loader](schema-loader.md)
 * [Trouble-shooting Guide](trouble-shooting-guide.md)
 
 ## Client SDKs
@@ -34,4 +35,3 @@
 ## How to Deploy
 * [Deploy ScalarDL on AWS](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAWS.md)
 * [Deploy ScalarDL on Azure](https://github.com/scalar-labs/scalar-kubernetes/blob/master/docs/ManualDeploymentGuideScalarDLOnAzure.md)
-
