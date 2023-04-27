@@ -96,7 +96,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.client.entity.id`
             * Used for identifying a client.
         * `scalar.dl.client.entity.identity.hmac.secret_key`
-            * It is used for signing a request.
+            * Used for signing a request.
         * `scalar.dl.client.entity.identity.hmac.key_version`
     * Ledger-side properties
       * `scalar.dl.ledger.authentication.method` (set "hmac")
