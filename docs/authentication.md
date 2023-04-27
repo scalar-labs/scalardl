@@ -34,7 +34,7 @@ Both of these methods have advantages and disadvantages, as described below, but
 * Advantages
     * HMAC is much faster than digital signatures.
 * Disadvantages
-    * Asset records and asset proofs do not have non-repudiation property.
+    * Asset records and asset proofs do not have the nonrepudiation property.
 
 ### Which should I use?
 
