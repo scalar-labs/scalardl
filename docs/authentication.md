@@ -79,7 +79,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.ledger.auditor.cert_holder_id`
           * Used for verifying an Auditor-generated signature attached to a client request.
         * `scalar.dl.ledger.auditor.cert_version`
-          * It is used for verifying an Auditor-generated signature attached to a client request.
+          * Used for verifying an Auditor-generated signature attached to a client request.
     * Auditor-side properties
         * `scalar.dl.auditor.cert_holder_id`
           * It is used for calling Ledger services directly using the client library.
