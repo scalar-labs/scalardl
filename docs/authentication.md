@@ -59,7 +59,7 @@ This section explains what variables you need to configure to use ScalarDL authe
             * Used for registering a certificate for Ledger and Auditor to verify a client-generated signature.
         * `scalar.dl.client.entity.identity.digital_signature.cert_version` (or `scalar.dl.client.cert_version`, which is deprecated.)
         * `scalar.dl.client.entity.identity.digital_signature.private_key_pem` or `scalar.dl.client.entity.identity.digital_signature.private_key_path` (or `scalar.dl.client.private_key_pem` or `scalar.dl.client.private_key_path`, which are deprecated.)
-            * It is used for signing a request.
+            * Used for signing a request.
     * Ledger-side properties
       * `scalar.dl.ledger.authentication.method` (set "digital-signature")
     * Auditor-side properties
