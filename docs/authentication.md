@@ -47,7 +47,7 @@ Note that we plan to update ScalarDL to use only HMAC for Ledger and Auditor aut
 
 This section explains what variables you need to configure to use ScalarDL authentication properly. For details about each variable, see [Javadoc](TODO).
 
-### Digital Signatures
+### Digital signatures
 
 * Client authentication
     * Client-side properties
