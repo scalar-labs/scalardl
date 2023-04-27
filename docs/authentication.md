@@ -94,7 +94,7 @@ This section explains what variables you need to configure to use ScalarDL authe
     * Client-side properties
         * `scalar.dl.client.authentication_method` (set "hmac")
         * `scalar.dl.client.entity.id`
-            * It is used for identifying a client.
+            * Used for identifying a client.
         * `scalar.dl.client.entity.identity.hmac.secret_key`
             * It is used for signing a request.
         * `scalar.dl.client.entity.identity.hmac.key_version`
