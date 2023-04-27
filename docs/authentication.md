@@ -32,7 +32,7 @@ Both of these methods have advantages and disadvantages, as described below, but
 ### HMAC
 
 * Advantages
-    * HMAC is way faster than digital signatures.
+    * HMAC is much faster than digital signatures.
 * Disadvantages
     * Asset records and asset proofs do not have non-repudiation property.
 
