@@ -102,7 +102,7 @@ This section explains what variables you need to configure to use ScalarDL authe
             * Used for identifying a client.
         * `scalar.dl.client.entity.identity.hmac.secret_key`
             * Used for signing a request.
-            * A secret key should be a random long enough value (e.g., 32-character length hex string).
+            * A secret key should be a random, lengthy value (e.g., 32-character length hex string).
         * `scalar.dl.client.entity.identity.hmac.key_version`
     * Ledger-side properties
       * `scalar.dl.ledger.authentication.method` (set to `hmac`)
@@ -115,17 +115,17 @@ This section explains what variables you need to configure to use ScalarDL authe
             * Required because Ledger authentication uses the signatures of asset proofs.
         * `scalar.dl.ledger.servers.authentication.hmac.secret_key`
             * Used for signing and verifying messages and requests between Ledger and Auditor.
-            * A secret key should be a random long enough value (e.g., 32-character length hex string).
+            * A secret key should be a random, lengthy value (e.g., 32-character length hex string).
         * `scalar.dl.ledger.authentication.hmac.cipher_key`
             * Used for encrypting and decrypting the secret keys of clients.
-            * A cipher key should be an unpredictable and long enough value.
+            * A cipher key should be an unpredictable, lengthy value.
     * Auditor-side properties
         * `scalar.dl.auditor.servers.authentication.hmac.secret_key`
-            * Used for signing and verifying messages and requests between Ledger and Auditor. Must be the same key as `scalar.dl.ledger.authentication.hmac.cipher_key`.
-            * A secret key should be a random long enough value (e.g., 32-character length hex string).
+            * Used for signing and verifying messages and requests between Ledger and Auditor. Must be the same key as `scalar.dl.ledger.servers.authentication.hmac.secret_key`.
+            * A secret key should be a random, lengthy value (e.g., 32-character length hex string).
         * `scalar.dl.auditor.authentication.hmac.cipher_key`
             * Used for encrypting and decrypting the secret keys of clients.
-            * A cipher key should be an unpredictable and long enough value.
+            * A cipher key should be an unpredictable, lengthy value.
 
 ## Prepare before executing requests
 
