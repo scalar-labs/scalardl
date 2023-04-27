@@ -69,7 +69,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.ledger.proof.enabled` (set true)
             * Required because Ledger authentication uses the signatures of asset proofs.
         * `scalar.dl.ledger.proof.private_key_pem` or `scalar.dl.ledger.proof.private_key_path`  
-            * It is used for signing Asset Proofs.
+            * Used for signing asset proofs.
     * Auditor-side properties
         * `scalar.dl.auditor.ledger.cert_holder_id`
         * `scalar.dl.auditor.ledger.cert_version`
