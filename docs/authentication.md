@@ -54,7 +54,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.client.auditor.enabled` (set to `true` if you use Auditor)
         * `scalar.dl.client.authentication_method` (set to `digital-signature`)
         * `scalar.dl.client.entity.id` (or `scalar.dl.client.cert_holder_id`, which is deprecated.)
-            * It is used for identifying a client.
+            * Used for identifying a client.
         * `scalar.dl.client.entity.identity.digital_signature.cert_pem` or `scalar.dl.client.entity.identity.digital_signature.cert_path` (or `scalar.dl.client.cert_pem` or `scalar.dl.client.cert_path`, which are deprecated.)
             * It is used for registering a certificate for Ledger and Auditor to verify a client-generated signature.
         * `scalar.dl.client.entity.identity.digital_signature.cert_version` (or `scalar.dl.client.cert_version`, which is deprecated.)
