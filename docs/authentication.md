@@ -41,7 +41,7 @@ Both of these methods have advantages and disadvantages, as described below, but
 If you do not require the nonrepudiation property, you should always use HMAC.
 Technically, you could mix authentication methods, like using digital signatures for client authentication and HMAC for Ledger/Auditor authentication. However, because mixing methods can be very confusing, ScalarDL prohibits such usage.
 
-Note that we plan to update ScalarDL to use only HMAC for Ledger and Auditor authentication for better performance. Similarly, we plan to unbundle Ledger (Auditor) authentication from how we sign asset proofs. With the above changes, we will be able to return digitally-signed asset proofs while using HMAC authentication between Ledger and Auditor.
+Note that we plan to update ScalarDL to use only HMAC for Ledger and Auditor authentication for better performance. Similarly, we plan to unbundle Ledger and Auditor authentication from how we sign asset proofs. With the above changes, we will be able to return digitally signed asset proofs while using HMAC authentication between Ledger and Auditor.
 
 ## Configure
 
