@@ -27,7 +27,7 @@ Both of these methods have advantages and disadvantages, as described below, but
 * Advantages
   * Asset records and asset proofs have the nonrepudiation property. Specifically, a digital signature attached to a request is stored with the corresponding asset records that the request produces so that the records have the nonrepudiation property, i.e., we can ensure that the owner of the private key that signed the request created the records. Moreover, digital signatures attached to asset proofs that are returned to a client as the result of execution ensure that Ledger and Auditor created the proofs, respectively. If a client (application) keeps the proofs, the client can verify the results with the proofs as necessary.
 * Disadvantages
-  * Digital Signatures are very slow. They will add non-negligible performance overhead in exchange for the above benefits.
+  * Digital signatures are very slow. They will add nonnegligible performance overhead in exchange for the above benefits.
 
 ### HMAC
 
