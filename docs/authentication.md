@@ -51,7 +51,7 @@ This section explains what variables you need to configure to use ScalarDL authe
 
 * Client authentication
     * Client-side properties
-        * `scalar.dl.client.auditor.enabled` (set true if you use Auditor)
+        * `scalar.dl.client.auditor.enabled` (set to `true` if you use Auditor)
         * `scalar.dl.client.authentication_method` (set "digital-signature")
         * `scalar.dl.client.entity.id` (or `scalar.dl.client.cert_holder_id`, which is deprecated.)
             * It is used for identifying a client.
