@@ -84,7 +84,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.auditor.cert_holder_id`
           * Used for calling Ledger services directly by using the client library.
         * `scalar.dl.auditor.cert_version`
-          * It is used for calling Ledger services directly using the client library.
+          * Used for calling Ledger services directly by using the client library.
         * `scalar.dl.auditor.private_key_pem` or `scalar.dl.auditor.private_key_path`
           * It is used for signing a client request and a request from Auditor to Ledger.
 
