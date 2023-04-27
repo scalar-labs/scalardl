@@ -119,16 +119,16 @@ This section explains what variables you need to configure to use ScalarDL authe
 
 ### Digital signatures
 
-* Register clients' certificates to Ledger (and Auditor).
+* Register clients' certificates to Ledger (and Auditor, if enabled).
     * Use the client library or the command-line tool (`register-cert`).
-* Register contracts to Ledger (and Auditor).
 * Register Auditor's certificates to Ledger.
     * Required only if Auditor is enabled.
 * Register Ledger's certificates to Auditor.
     * Required only if Auditor is enabled.
+* Register contracts to Ledger (and Auditor, if enabled).
 
 ### HMAC
 
-* Register clients' secret keys to Ledger (and Auditor).
+* Register clients' secret keys to Ledger (and Auditor, if enabled).
   * Use the client library or the command-line tool (`register-secret`).
 * Register contracts to Ledger (and Auditor).
