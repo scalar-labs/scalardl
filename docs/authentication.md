@@ -108,7 +108,7 @@ This section explains what variables you need to configure to use ScalarDL authe
         * `scalar.dl.ledger.proof.enabled` (set true)
             * Required because Ledger authentication uses the signatures of asset proofs.
         * `scalar.dl.ledger.authentication.hmac.cipher_key`
-            * It is used for signing and verifying messages/requests between Ledger and Auditor.
+            * Used for signing and verifying messages and requests between Ledger and Auditor.
     * Auditor-side properties
         * `scalar.dl.auditor.authentication.hmac.cipher_key`
             * It is used for signing and verifying messages/requests between Ledger and Auditor. It must be the same key as `scalar.dl.ledger.authentication.hmac.cipher_key`.
