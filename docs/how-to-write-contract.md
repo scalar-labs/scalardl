@@ -104,6 +104,16 @@ The assets registered through contracts are not able to be deleted to provide ta
 
 For more details about `Function`, please check [How to Write Function for ScalarDL](./how-to-write-function.md) guide.
 
+### Send information to Functions
+
+In non-deprecated Contracts like `JacksonBasedContract`, you can send some information to Functions by calling `void setContext(T context)`.
+Note that the argument type `T` will be decided based on a base Contract class that you use.
+See [this](./how-to-write-function.md#receive-information-from-contracts) for how to receive information from Contracts in Functions.
+
+```Java
+JsonNode context = getObjectMapper().createObjectNode().put(...);
+setContext(context);
+```
 
 ## Write a complex contract
 
