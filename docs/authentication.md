@@ -45,7 +45,7 @@ Note that we plan to update ScalarDL to use only HMAC for Ledger and Auditor aut
 
 ## Configure
 
-This section explains what variables you need to configure to use ScalarDL authentication properly. For details about each variable, see [Javadoc](TODO).
+This section explains what variables you need to configure to use ScalarDL authentication properly. For details about each variable, see [Javadoc](https://scalar-labs.github.io/scalardl/javadoc/latest/).
 
 ### Digital signatures
 
