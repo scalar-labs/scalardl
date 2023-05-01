@@ -112,8 +112,7 @@ A `functionArgument` is a runtime argument for the Function specified by the req
 
 In non-deprecated Functions like `JacksonBasedFunction`, you can receive some information from Contracts by calling `T getContractContext()`.
 Note that the return value can be null if Contracts has nothing set and the base Function class that you use will decide the return value type `T`.
-See [this](./how-to-write-contract.md#send-information-to-functions) for how to send information to Functions from Contracts.
-
+For details on how to send information to Functions from Contracts, see [Send information to Functions](./how-to-write-contract.md#send-information-to-functions).
 
 ```Java
 JsonNode context = getContractContext();
