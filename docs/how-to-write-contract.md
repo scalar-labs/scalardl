@@ -107,7 +107,7 @@ For more details about `Function`, please check [How to Write Function for Scala
 ### Send information to Functions
 
 In non-deprecated Contracts like `JacksonBasedContract`, you can send some information to Functions by calling `void setContext(T context)`.
-Note that the argument type `T` will be decided based on a base Contract class that you use.
+Note that the base Contract class that you use will decide the argument type `T`.
 See [this](./how-to-write-function.md#receive-information-from-contracts) for how to receive information from Contracts in Functions.
 
 ```Java
