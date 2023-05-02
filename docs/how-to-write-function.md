@@ -108,6 +108,16 @@ A `functionArgument` is a runtime argument for the Function specified by the req
 
 `contractArgument` and `contractProperties` are the corresponding contract's argument and properties. See [How to Write a Contract](how-to-write-contract.md) to understand what they are.
 
+### Receive information from Contracts
+
+In non-deprecated Functions like `JacksonBasedFunction`, you can receive some information from Contracts by calling `T getContractContext()`.
+Note that the return value can be null if Contracts has nothing set and the base Function class that you use will decide the return value type `T`.
+For details on how to send information to Functions from Contracts, see [Send information to Functions](./how-to-write-contract.md#send-information-to-functions).
+
+```Java
+JsonNode context = getContractContext();
+```
+
 ### How to use Functions
 
 The Function feature is enabled by default; thus, nothing needs to be configured in Ledger except for the following things. If you want to disable the feature, please set `scalar.dl.ledger.function.enabled` to `false` in the properties of Ledger.
