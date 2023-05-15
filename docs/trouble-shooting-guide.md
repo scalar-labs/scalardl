@@ -210,17 +210,13 @@ There are mainly two inconsistent cases. The first case is when a transaction lo
 
 In the first case, after a transaction has read, inserted or updated some records and has committed them successfully, the following transaction can't get the inserted records or can get the values on the records which are the old values before the transaction. For example, on the right side of the below figure, transaction `TX 2` has transferred 100 coins from the balance of A to that of B, but the balance of A hasn't updated. You might see the success log about `TX 2` in logs of your application, but the record hasn't been updated.
 
-<p align="center">
-<img src="https://github.com/scalar-labs/scalardl/raw/master/docs/images/inconsistency_committed.png" width="480" />
-</p>
+![](images/inconsistency_committed.png)
 
 If you find this just after this committed transaction, it is easy to identify the transaction. However, the following transactions might update the record since it didn't alert you. In this case, you need to trace logs related to the record one by one.
 
 In the second case, after a transaction has failed, other transactions get the inserted or updated values on the records which the transaction tried to update. For example, on the right side of the below figure, transaction `TX 4` has been aborted, but the balance of B has been updated unexpectedly.
 
-<p align="center">
-<img src="https://github.com/scalar-labs/scalardl/raw/master/docs/images/inconsistency_aborted.png" width="480" />
-</p>
+![](images/inconsistency_aborted.png)
 
 As the previous case, it is easy to see that just after the transaction. If not, you need to trace logs and find the suspicious transaction.
 
