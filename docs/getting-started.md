@@ -10,9 +10,7 @@ ScalarDL is scalable and practical Byzantine fault detection middleware for tran
 ScalarDL is composed of Ledger, Auditor, and Client SDK as shown in the following figure. ScalarDL Ledger manages application data in its own unique way using hash-chain and digital signature. ScalarDL Auditor is an optional component and manages a copy of Ledger data without depending on Ledger to identify the discrepancy between Ledger and Auditor data.
 The Client SDK is a set of user-facing programs to interact with Ledger and Auditor. For more details, please read the [design doc](design.md) and [implementation details](implementation.md).
 
-<p align="center">
-<img src="images/scalardl.png" width="480" />
-</p>
+![](images/scalardl.png)
 
 ScalarDL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
 In this document, you will create a very simple application to manage an asset's status using ScalarDL Client SDK.
