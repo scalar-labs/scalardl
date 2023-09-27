@@ -4,7 +4,7 @@
 
 ## Related issues and/or PRs
 
-> If this PR addresses or references any issues and/or other PRs, list them here. For example, "Fixes #123", "Related to #456", or "Addresses #789".
+> If this PR addresses or references any issues and/or other PRs, list them here.
 
 ## Changes made
 
@@ -15,6 +15,8 @@
 > Describe the testing that you have performed to ensure the changes are working as expected. Include details about the test cases or scenarios covered.
 
 ## Checklist
+
+> The following is a best-effort checklist. If any items in this checklist are not applicable to this PR or are dependent on other, unmerged PRs, please still mark the checkboxes after you have read and understood each item.
 
 - [ ] I have commented my code, particularly in hard-to-understand areas.
 - [ ] I have updated the documentation to reflect the changes.
