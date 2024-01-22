@@ -1,3 +1,7 @@
+> [!ATTENTION]
+> 
+> The `docs` folder has been moved to the centralized documentation repository, [docs-internal](https://github.com/scalar-labs/docs-internal). Please update this documentation in that repository instead.
+
 # ScalarDL Schema Loader
 
 A Docker image that loads the database schemas of ScalarDL using [Schema Tool for Scalar DB](https://github.com/scalar-labs/scalardb/tree/master/schema-loader/).

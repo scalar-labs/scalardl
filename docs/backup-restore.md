@@ -1,3 +1,7 @@
+> [!ATTENTION]
+> 
+> The `docs` folder has been moved to the centralized documentation repository, [docs-internal](https://github.com/scalar-labs/docs-internal). Please update this documentation in that repository instead.
+
 # A Guide on How to Backup and Restore Data in ScalarDL
 
 Since ScalarDL uses ScalarDB that provides transaction capability on top of non-transactional (possibly transactional) databases non-invasively,

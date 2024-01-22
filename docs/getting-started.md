@@ -1,3 +1,7 @@
+> [!ATTENTION]
+> 
+> The `docs` folder has been moved to the centralized documentation repository, [docs-internal](https://github.com/scalar-labs/docs-internal). Please update this documentation in that repository instead.
+
 # Getting Started with ScalarDL
 
 This document explains how to get started with ScalarDL by running your first simple contract using the Client SDK.
