@@ -1,3 +1,9 @@
+> [!CAUTION]
+> 
+> The `docs` folder has been moved to the centralized documentation repository, [docs-internal](https://github.com/scalar-labs/docs-internal). Please update this documentation in that repository instead.
+> 
+> To view the ScalarDL documentation, visit [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/).
+
 # ScalarDL Implementation
 
 ScalarDL is scalable and practical Byzantine fault detection middleware for transactional database systems, which achieves correctness, scalability, and database agnosticism.

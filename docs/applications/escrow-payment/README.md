@@ -1,3 +1,9 @@
+> [!CAUTION]
+> 
+> The `docs` folder has been moved to the centralized documentation repository, [docs-internal](https://github.com/scalar-labs/docs-internal). Please update this documentation in that repository instead.
+> 
+> To view the ScalarDL documentation, visit [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/).
+
 # ScalarDL Escrow payment CLI
 
 The following is a simple Java CLI application to try out and test [ScalarDL](https://github.com/scalar-labs/scalardl). PicoCLI is used as a CLI framework.
