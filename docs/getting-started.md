@@ -83,7 +83,7 @@ Next, let's register your certificate to ScalarDL Ledger. Please check [caclient
 This time, let's use a simple tool to register your certificate as follows.
 
 ```shell
-client/bin/register-cert --properties client.properties
+client/bin/scalardl register-cert --properties client.properties
 ```
 
 The registered certificate will allow you to register and execute contracts and will also be used for detecting Byzantine faults in databases.
@@ -144,7 +144,7 @@ This will generate `build/classes/java/main/com/org1/contract/StateUpdater.class
 Let's register your contract. Here again we use a simple tool.
 
 ```shell
-client/bin/register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
+client/bin/scalardl register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
 ```
 
 Please set a globally unique ID for the contract ID (e.g. `StateUpdater` in the above command).
@@ -157,7 +157,7 @@ For example, let's think about a voting application. In the application, anyone 
 Now you are ready to execute the contract with the following command.
 
 ```shell
-client/bin/execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
+client/bin/scalardl execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
 ```
 
 In the contract argument, the value specified with the key `asset_id` must be unique globally for each asset.
@@ -167,7 +167,7 @@ In the contract argument, the value specified with the key `asset_id` must be un
 You can validate the states of Ledger by executing the following command.
 
 ```shell
-client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
+client/bin/scalardl validate-ledger --properties client.properties --asset-id="some_asset"
 ```
 
 What the validation does is depending on how you set up and configure ScalarDL.

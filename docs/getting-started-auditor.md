@@ -99,12 +99,12 @@ As we explained, Ledger needs to register its certificate to Auditor, and Audito
 
 Ledger registers its certificate to Auditor
 ```shell
-client/bin/register-cert --properties client.properties.ledger
+client/bin/scalardl register-cert --properties client.properties.ledger
 ```
 
 Auditor registers its certificate to Ledger
 ```shell
-client/bin/register-cert --properties client.properties.auditor
+client/bin/scalardl register-cert --properties client.properties.auditor
 ```
 
 Please configure `client.properties.ledger` and `client.properties.auditor` properly.
@@ -124,7 +124,7 @@ scalar.dl.client.auditor.host=localhost
 Then, you can register your certificate just like you have been doing usually (without Auditor).
 
 ```shell
-client/bin/register-cert --properties client.properties
+client/bin/scalardl register-cert --properties client.properties
 ```
 
 Note that this registers the certificate to both Ledger and Auditor.
@@ -134,7 +134,7 @@ Note that this registers the certificate to both Ledger and Auditor.
 For registering contracts, you can also do as usual.
 
 ```shell
-client/bin/register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
+client/bin/scalardl register-contract --properties client.properties --contract-id StateUpdater --contract-binary-name com.org1.contract.StateUpdater --contract-class-file build/classes/java/main/com/org1/contract/StateUpdater.class
 ```
 
 Note that this registers the contract to both Ledger and Auditor.
@@ -144,7 +144,7 @@ Note that this registers the contract to both Ledger and Auditor.
 Now you are ready to execute the contract with the following command as usual.
 
 ```shell
-client/bin/execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
+client/bin/scalardl execute-contract --properties client.properties --contract-id StateUpdater --contract-argument '{"asset_id":"some_asset", "state":3}'
 ```
 
 Note that this triggers a little complex protocol between Ledger and Auditor to make them go to the same states without trusting each other.
@@ -156,13 +156,13 @@ You can also always validate the states of Ledger and Auditor to see if they are
 However, validating the states in the Auditor mode uses contract execution; thus, you first need to register [ValidateLedger](https://github.com/scalar-labs/scalardl-java-client-sdk/blob/master/src/main/java/com/scalar/dl/client/contract/ValidateLedger.java) contract as follows. Note that `validate-ledger` is the default contract ID that the client specifies when doing validation.
 
 ```shell
-client/bin/register-contract --properties client.properties --contract-id validate-ledger --contract-binary-name com.scalar.dl.client.contract.ValidateLedger --contract-class-file /path/to/ValdateLedger.class
+client/bin/scalardl register-contract --properties client.properties --contract-id validate-ledger --contract-binary-name com.scalar.dl.client.contract.ValidateLedger --contract-class-file /path/to/ValdateLedger.class
 ```
 
 Then, you can issue the `validate-ledger` command just like as usually you do.
 
 ```shell
-client/bin/validate-ledger --properties client.properties --asset-id="some_asset"
+client/bin/scalardl validate-ledger --properties client.properties --asset-id="some_asset"
 ```
 
 If you want to change the contract ID of `ValidateLedger`, you need to change the following configuration to let the client know about it.

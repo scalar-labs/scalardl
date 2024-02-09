@@ -137,7 +137,7 @@ Since Functions can read and write arbitrary records through the ScalarDB CRUD i
 You then need to register a Function to Ledger before used like you register a Contract.
 
 ```
-client/bin/register-function --properties client.properties --function-id test-function --function-binary-name com.example.function.TestFunction --function-class-file /path/to/TestFunction.class
+client/bin/scalardl register-function --properties client.properties --function-id test-function --function-binary-name com.example.function.TestFunction --function-class-file /path/to/TestFunction.class
 ```
 
 #### Execute a Function
@@ -146,7 +146,7 @@ You can specify a Function to execute along with a Contract to execute.
 For example, you can execute a function as follows with the command-line tool.
 
 ```
-client/bin/execute-contract --properties client.properties --contract-id test-contract --contract-argument '{...}' --function-id test-function --function-argument '{...}'
+client/bin/scalardl execute-contract --properties client.properties --contract-id test-contract --contract-argument '{...}' --function-id test-function --function-argument '{...}'
 ```
 
 You can also do it with the [ClientService](https://scalar-labs.github.io/scalardl/javadoc/latest/client/com/scalar/dl/client/service/ClientService.html) as follows.
