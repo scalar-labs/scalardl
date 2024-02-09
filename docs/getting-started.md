@@ -21,6 +21,26 @@ The Client SDK is a set of user-facing programs to interact with Ledger and Audi
 ScalarDL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
 In this document, you will create a very simple application to manage an asset's status using ScalarDL Client SDK.
 
+## Install a JDK
+
+Because ScalarDL is written in Java, using Java is one of the easist ways to build your ScalarDL applications.
+In such a case, you must have one of the following Java Development Kits (JDKs) installed in your environment:
+
+- [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version (8, 11, or 17)
+- [OpenJDK](https://openjdk.org/install/) LTS version (8, 11, or 17)
+
+Also, since ScalarDL is built with JDK 8, you need to use JDK 8 to build your contracts.
+If you use JDK versions other than 8, specify `-release 8` option for `javac` or define what toolchain to use in your Gradle and Maven configurations.
+For the Gradle and Maven configurations, check [the Gradle doc](https://docs.gradle.org/current/userguide/toolchains.html) and [the Maven doc](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
+
+{% capture notice--info %}
+**Note**
+
+We recommend using the LTS versions mentioned above, but other non-LTS versions may work.
+
+In addition, other JDKs should work with ScalarDL, but we haven't tested them.
+{% endcapture %}
+
 ## Download the Client SDK
 
 The Client SDK library is available on [Maven Central](https://search.maven.org/search?q=a:scalardl-java-client-sdk). You can install it in your application using your build tool such as Gradle.
