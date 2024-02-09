@@ -29,7 +29,7 @@ In such a case, you must have one of the following Java Development Kits (JDKs) 
 - [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version (8, 11, or 17)
 - [OpenJDK](https://openjdk.org/install/) LTS version (8, 11, or 17)
 
-Also, since ScalarDL is built with JDK 8, you need to use JDK 8 to build your contracts.
+Also, since ScalarDL is built with JDK 8, you must use JDK 8 to build your contracts.
 If you use JDK versions other than 8, specify `-release 8` option for `javac` or define what toolchain to use in your Gradle and Maven configurations.
 For the Gradle and Maven configurations, check [the Gradle doc](https://docs.gradle.org/current/userguide/toolchains.html) and [the Maven doc](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
 
