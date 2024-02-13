@@ -13,7 +13,7 @@ register-all: register-cert register-contracts
 
 register-cert:
 	@echo "Registering certificate ..."
-	@client/bin/register-cert --properties client.properties
+	@client/bin/scalardl register-cert --properties client.properties
 
 assemble: clear
 	@echo "Building contracts ..."
@@ -21,21 +21,21 @@ assemble: clear
 
 register-contracts: assemble
 	@echo "Registering contracts ..."
-	@client/bin/register-contract --properties client.properties --contract-id AddAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.AddAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/AddAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id AddItem_foo --contract-binary-name com.ypeckstadt.escrow.contract.item.AddItem --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/item/AddItem.class
-	@client/bin/register-contract --properties client.properties --contract-id AddOrder_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.AddOrder --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/AddOrder.class
-	@client/bin/register-contract --properties client.properties --contract-id CancelOrder_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.CancelOrder --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/CancelOrder.class
-	@client/bin/register-contract --properties client.properties --contract-id ChargeAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.ChargeAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/ChargeAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id SetOrderToReceivedStatus_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.SetOrderToReceivedStatus --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/SetOrderToReceivedStatus.class
-	@client/bin/register-contract --properties client.properties --contract-id SetOrderToShippedStatus_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.SetOrderToShippedStatus --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/SetOrderToShippedStatus.class
-	@client/bin/register-contract --properties client.properties --contract-id ViewAccountHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.ViewAccountHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/ViewAccountHistory.class
-	@client/bin/register-contract --properties client.properties --contract-id ViewItem_foo --contract-binary-name com.ypeckstadt.escrow.contract.item.ViewItem --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/item/ViewItem.class
-	@client/bin/register-contract --properties client.properties --contract-id DebitEscrowAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.DebitEscrowAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/DebitEscrowAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id CreditEscrowAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.CreditEscrowAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/CreditEscrowAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id CreditAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.CreditAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/CreditAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id DebitAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.DebitAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/DebitAccount.class
-	@client/bin/register-contract --properties client.properties --contract-id ViewOrderHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.ViewOrderHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/ViewOrderHistory.class
-	@client/bin/register-contract --properties client.properties --contract-id ViewEscrowAccountHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.escrowAccount.ViewEscrowAccountHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/escrowAccount/ViewEscrowAccountHistory.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id AddAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.AddAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/AddAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id AddItem_foo --contract-binary-name com.ypeckstadt.escrow.contract.item.AddItem --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/item/AddItem.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id AddOrder_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.AddOrder --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/AddOrder.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id CancelOrder_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.CancelOrder --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/CancelOrder.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id ChargeAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.ChargeAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/ChargeAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id SetOrderToReceivedStatus_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.SetOrderToReceivedStatus --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/SetOrderToReceivedStatus.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id SetOrderToShippedStatus_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.SetOrderToShippedStatus --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/SetOrderToShippedStatus.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id ViewAccountHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.ViewAccountHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/ViewAccountHistory.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id ViewItem_foo --contract-binary-name com.ypeckstadt.escrow.contract.item.ViewItem --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/item/ViewItem.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id DebitEscrowAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.DebitEscrowAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/DebitEscrowAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id CreditEscrowAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.CreditEscrowAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/CreditEscrowAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id CreditAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.CreditAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/CreditAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id DebitAccount_foo --contract-binary-name com.ypeckstadt.escrow.contract.account.DebitAccount --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/account/DebitAccount.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id ViewOrderHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.order.ViewOrderHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/order/ViewOrderHistory.class
+	@client/bin/scalardl register-contract --properties client.properties --contract-id ViewEscrowAccountHistory_foo --contract-binary-name com.ypeckstadt.escrow.contract.escrowAccount.ViewEscrowAccountHistory --contract-class-file build/classes/java/main/com/ypeckstadt/escrow/contract/escrowAccount/ViewEscrowAccountHistory.class
 
 clear:
 	@rm -rf build
