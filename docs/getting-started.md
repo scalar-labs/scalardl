@@ -56,6 +56,8 @@ We recommend using the LTS versions mentioned above, but other non-LTS versions 
 In addition, other JDKs should work with ScalarDL, but we haven't tested them.
 {% endcapture %}
 
+<div class="notice--info">{{ notice--info | markdownify }}</div>
+
 ## Download the Client SDK
 
 The Client SDK library is available on [Maven Central](https://search.maven.org/search?q=a:scalardl-java-client-sdk). You can install it in your application using your build tool such as Gradle.
