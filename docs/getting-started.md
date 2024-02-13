@@ -23,7 +23,7 @@ In this document, you will create a very simple application to manage an asset's
 
 ## Install a JDK
 
-Because ScalarDL is written in Java, using Java is one of the easist ways to build your ScalarDL applications.
+Because ScalarDL is written in Java, using Java is one of the easiest ways to build a ScalarDL applications.
 In such a case, you must have one of the following Java Development Kits (JDKs) installed in your environment:
 
 - [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version (8, 11, or 17)
@@ -32,6 +32,23 @@ In such a case, you must have one of the following Java Development Kits (JDKs) 
 Also, since ScalarDL is built with JDK 8, you need to use JDK 8 to build your contracts.
 If you use JDK versions other than 8, specify `-release 8` option for `javac` or define what toolchain to use in your Gradle and Maven configurations.
 For the Gradle and Maven configurations, check [the Gradle doc](https://docs.gradle.org/current/userguide/toolchains.html) and [the Maven doc](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
+
+{% capture notice--warning %}
+**Attention**
+Since ScalarDL is built with JDK 8, contracts must be a JDK 8-compatible binary.
+If you use a version other than JDK 8, you must configure your build tool to build the JDK 8-compatible binary.
+There are several ways to specify binary compatibility, including using the `--release 8` option for javac or setting Gradle (or Maven) configurations to use the JDK 8 toolchain as follows.
+
+```gradle
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+```
+
+For more details about thee Gradle and Maven configurations, see [Toolchains for JVM projects for Gradle](https://docs.gradle.org/current/userguide/toolchains.html) and [Guide to Using Toolchains for Maven](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
+{% endcapture %}
 
 {% capture notice--info %}
 **Note**
