@@ -50,6 +50,8 @@ java {
 For more details about the Gradle and Maven configurations, see [Toolchains for JVM projects for Gradle](https://docs.gradle.org/current/userguide/toolchains.html) and [Guide to Using Toolchains for Maven](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
 {% endcapture %}
 
+<div class="notice--warning">{{ notice--warning | markdownify }}</div>
+
 {% capture notice--info %}
 **Note**
 
