@@ -21,6 +21,43 @@ The Client SDK is a set of user-facing programs to interact with Ledger and Audi
 ScalarDL (Ledger and Auditor) abstracts data as a set of assets, where each asset is composed of the history of a record identified by a key called `asset_id` and a historical version number called `age`.
 In this document, you will create a very simple application to manage an asset's status using ScalarDL Client SDK.
 
+## Install a JDK
+
+Because ScalarDL is written in Java, using Java is one of the easiest ways to build a ScalarDL applications.
+In such a case, you must have one of the following Java Development Kits (JDKs) installed in your environment:
+
+- [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version (8, 11, or 17)
+- [OpenJDK](https://openjdk.org/install/) LTS version (8, 11, or 17)
+
+{% capture notice--warning %}
+**Attention**
+Since ScalarDL is built with JDK 8, contracts must be a JDK 8-compatible binary.
+If you use a version other than JDK 8, you must configure your build tool to build the JDK 8-compatible binary.
+There are several ways to specify binary compatibility, including using the `--release 8` option for javac or setting Gradle (or Maven) configurations to use the JDK 8 toolchain as follows.
+
+```gradle
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+```
+
+For more details about the Gradle and Maven configurations, see [Toolchains for JVM projects for Gradle](https://docs.gradle.org/current/userguide/toolchains.html) and [Guide to Using Toolchains for Maven](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
+{% endcapture %}
+
+<div class="notice--warning">{{ notice--warning | markdownify }}</div>
+
+{% capture notice--info %}
+**Note**
+
+We recommend using the LTS versions mentioned above, but other non-LTS versions may work.
+
+In addition, other JDKs should work with ScalarDL, but we haven't tested them.
+{% endcapture %}
+
+<div class="notice--info">{{ notice--info | markdownify }}</div>
+
 ## Download the Client SDK
 
 The Client SDK library is available on [Maven Central](https://search.maven.org/search?q=a:scalardl-java-client-sdk). You can install it in your application using your build tool such as Gradle.
