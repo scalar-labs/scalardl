@@ -15,6 +15,10 @@ plugins {
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
 
+startScripts {
+    mainClassName = 'com.scalar.application.bankaccount.Application'
+}
+
 bootJar {
     baseName = 'gs-rest-service'
     version =  '0.1.0'
