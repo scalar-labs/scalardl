@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,7 +30,7 @@ public class TransferTest {
   @Mock private Asset fromAsset;
   @Mock private Asset toAsset;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(fromAsset.data()).thenReturn(Json.createObjectBuilder().add(BALANCE_KEY, 1).build());

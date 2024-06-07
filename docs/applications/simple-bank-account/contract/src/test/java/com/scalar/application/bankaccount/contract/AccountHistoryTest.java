@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -32,7 +32,7 @@ public class AccountHistoryTest {
   private final Contract contract = new AccountHistory();
   @Mock private Ledger ledger;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.initMocks(this);
   }

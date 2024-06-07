@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -27,7 +27,7 @@ public class WithdrawTest {
   @Mock private Ledger ledger;
   @Mock private Asset asset;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     when(asset.data()).thenReturn(Json.createObjectBuilder().add(BALANCE_KEY, 1).build());

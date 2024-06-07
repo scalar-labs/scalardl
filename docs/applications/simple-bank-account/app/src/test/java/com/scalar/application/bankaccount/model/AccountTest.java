@@ -3,15 +3,15 @@ package com.scalar.application.bankaccount.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.assertThatCode;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AccountTest {
   private static final String ACCOUNT_ID = "account-id";
   private static final long BALANCE = 123;
   private Account account;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     account = new Account(ACCOUNT_ID, BALANCE);
   }
