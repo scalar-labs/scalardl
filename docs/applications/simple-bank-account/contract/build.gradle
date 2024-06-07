@@ -7,14 +7,18 @@ repositories {
     mavenCentral()
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 group = 'com.scalar.application.simple-bank-account'
 version = '0.1'
 
 dependencies {
-    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '4.11.0'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile 'org.assertj:assertj-core:3.9.1'
+    implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.11.0'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.assertj:assertj-core:3.9.1'
 }
