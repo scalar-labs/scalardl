@@ -42,7 +42,6 @@ dependencies {
         exclude module: 'logback-classic'
     }
     implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
     testImplementation 'org.assertj:assertj-core:3.9.1'
 }
