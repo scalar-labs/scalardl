@@ -1,14 +1,11 @@
 package com.scalar.application.bankaccount.repository;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.service.ClientModule;
 import com.scalar.dl.client.service.ClientService;
+import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import java.io.File;
 import java.io.IOException;
-import javax.inject.Singleton;
 import javax.json.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@Singleton
 public class AccountRepository {
   private static final Logger logger = LogManager.getLogger(AccountRepository.class);
   private static final String ACCOUNT_HISTORY_ID = "account-history";
@@ -28,9 +24,8 @@ public class AccountRepository {
 
   public AccountRepository(@Value("${client.properties.path}") String properties)
       throws IOException {
-    Injector injector =
-        Guice.createInjector(new ClientModule(new ClientConfig(new File(properties))));
-    this.clientService = injector.getInstance(ClientService.class);
+    ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
+    this.clientService = clientServiceFactory.create(new ClientConfig(new File(properties)));
   }
 
   public ContractExecutionResult create(JsonObject argument) {
@@ -40,8 +35,7 @@ public class AccountRepository {
   }
 
   public ContractExecutionResult history(JsonObject argument) {
-    ContractExecutionResult result =
-        clientService.executeContract(ACCOUNT_HISTORY_ID, argument);
+    ContractExecutionResult result = clientService.executeContract(ACCOUNT_HISTORY_ID, argument);
     logResponse("history", result);
     return result;
   }
@@ -68,7 +62,7 @@ public class AccountRepository {
     logger.info(
         header
             + ": ("
-            + (result.getResult().isPresent() ? result.getResult().get() : "{}")
+            + (result.getContractResult().isPresent() ? result.getContractResult().get() : "{}")
             + ")");
   }
 }
