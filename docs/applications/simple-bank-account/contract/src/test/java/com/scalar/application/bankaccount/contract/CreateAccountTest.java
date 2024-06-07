@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,10 +25,16 @@ public class CreateAccountTest {
   private final Contract contract = new CreateAccount();
   @Mock private Ledger ledger;
   @Mock private Asset asset;
+  private AutoCloseable closeable;
 
   @BeforeEach
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    closeable.close();
   }
 
   @Test

@@ -13,6 +13,7 @@ import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -26,11 +27,17 @@ public class WithdrawTest {
   private final Contract contract = new Withdraw();
   @Mock private Ledger ledger;
   @Mock private Asset asset;
+  private AutoCloseable closeable;
 
   @BeforeEach
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
     when(asset.data()).thenReturn(Json.createObjectBuilder().add(BALANCE_KEY, 1).build());
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    closeable.close();
   }
 
   @Test

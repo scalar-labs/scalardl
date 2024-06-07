@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,10 +32,16 @@ public class AccountHistoryTest {
   private final String START_KEY = "start";
   private final Contract contract = new AccountHistory();
   @Mock private Ledger ledger;
+  private AutoCloseable closeable;
 
   @BeforeEach
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    closeable = MockitoAnnotations.openMocks(this);
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    closeable.close();
   }
 
   @Test
