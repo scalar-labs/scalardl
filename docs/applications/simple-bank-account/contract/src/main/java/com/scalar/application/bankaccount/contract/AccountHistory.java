@@ -20,16 +20,16 @@ public class AccountHistory extends Contract {
 
     AssetFilter filter = new AssetFilter(argument.getString("id"));
     if (argument.containsKey("start")) {
-      filter.withStartVersion(argument.getInt("start"), true);
+      filter.withStartAge(argument.getInt("start"), true);
     }
     if (argument.containsKey("end")) {
-      filter.withEndVersion(argument.getInt("end"), false);
+      filter.withEndAge(argument.getInt("end"), false);
     }
     if (argument.containsKey("limit")) {
       filter.withLimit(argument.getInt("limit"));
     }
     if (argument.containsKey("order") && argument.getString("order").equals("asc")) {
-      filter.withVersionOrder(AssetFilter.VersionOrder.ASC);
+      filter.withAgeOrder(AssetFilter.AgeOrder.ASC);
     }
 
     List<Asset> history = ledger.scan(filter);

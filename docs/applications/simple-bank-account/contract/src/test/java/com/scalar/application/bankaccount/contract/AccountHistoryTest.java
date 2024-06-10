@@ -81,7 +81,7 @@ public class AccountHistoryTest {
     // Assert
     verify(ledger).scan(filter.capture());
     assertThat(filter.getValue().getId()).isEqualTo(ID);
-    assertThat(filter.getValue().getStartVersion().get()).isEqualTo(3);
+    assertThat(filter.getValue().getStartAge().get()).isEqualTo(3);
     assertThat(filter.getValue().isStartInclusive()).isEqualTo(true);
   }
 
@@ -97,7 +97,7 @@ public class AccountHistoryTest {
     // Assert
     verify(ledger).scan(filter.capture());
     assertThat(filter.getValue().getId()).isEqualTo(ID);
-    assertThat(filter.getValue().getEndVersion().get()).isEqualTo(END);
+    assertThat(filter.getValue().getEndAge().get()).isEqualTo(END);
     assertThat(filter.getValue().isEndInclusive()).isEqualTo(false);
   }
 
@@ -117,7 +117,7 @@ public class AccountHistoryTest {
   }
 
   @Test
-  public void invoke_ArgumentWithAscVersionOrderSpecified_ShouldCallScanCorrectly() {
+  public void invoke_ArgumentWithAscAgeOrderSpecified_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
     JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).add(ORDER_KEY, ASC).build();
@@ -128,7 +128,7 @@ public class AccountHistoryTest {
     // Assert
     verify(ledger).scan(filter.capture());
     assertThat(filter.getValue().getId()).isEqualTo(ID);
-    assertThat(filter.getValue().getVersionOrder().get()).isEqualTo(AssetFilter.VersionOrder.ASC);
+    assertThat(filter.getValue().getAgeOrder().get()).isEqualTo(AssetFilter.AgeOrder.ASC);
   }
 
   @Test
@@ -150,11 +150,11 @@ public class AccountHistoryTest {
     // Assert
     verify(ledger).scan(filter.capture());
     assertThat(filter.getValue().getId()).isEqualTo(ID);
-    assertThat(filter.getValue().getStartVersion().get()).isEqualTo(START);
+    assertThat(filter.getValue().getStartAge().get()).isEqualTo(START);
     assertThat(filter.getValue().isStartInclusive()).isEqualTo(true);
-    assertThat(filter.getValue().getEndVersion().get()).isEqualTo(END);
+    assertThat(filter.getValue().getEndAge().get()).isEqualTo(END);
     assertThat(filter.getValue().isEndInclusive()).isEqualTo(false);
     assertThat(filter.getValue().getLimit()).isEqualTo(LIMIT);
-    assertThat(filter.getValue().getVersionOrder().get()).isEqualTo(AssetFilter.VersionOrder.ASC);
+    assertThat(filter.getValue().getAgeOrder().get()).isEqualTo(AssetFilter.AgeOrder.ASC);
   }
 }
