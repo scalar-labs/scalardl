@@ -4,14 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 
-import com.scalar.dl.ledger.contract.Contract;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalar.dl.ledger.database.AssetFilter;
+import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
-import com.scalar.dl.ledger.database.Ledger;
-import java.util.Optional;
+import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.UUID;
-import javax.json.Json;
-import javax.json.JsonObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +29,8 @@ public class AccountHistoryTest {
   private final String ORDER_KEY = "order";
   private final int START = 3;
   private final String START_KEY = "start";
-  private final Contract contract = new AccountHistory();
-  @Mock private Ledger ledger;
+  private final JacksonBasedContract contract = new AccountHistory();
+  @Mock private Ledger<JsonNode> ledger;
   private AutoCloseable closeable;
 
   @BeforeEach
@@ -47,10 +46,10 @@ public class AccountHistoryTest {
   @Test
   public void invoke_EmptyArgument_ShouldThrowContractContextException() {
     // Arrange
-    JsonObject argument = Json.createObjectBuilder().build();
+    JsonNode argument = new ObjectMapper().createObjectNode();
 
     // Act-assert
-    assertThatThrownBy(() -> contract.invoke(ledger, argument, Optional.empty()))
+    assertThatThrownBy(() -> contract.invoke(ledger, argument, null))
         .isInstanceOf(ContractContextException.class)
         .hasMessageStartingWith("a required key is missing:");
   }
@@ -59,10 +58,10 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithId_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());
@@ -73,10 +72,10 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithStartVersion_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).add(START_KEY, 3).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID).put(START_KEY, 3);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());
@@ -89,10 +88,10 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithEndVersion_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).add(END_KEY, END).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID).put(END_KEY, END);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());
@@ -105,10 +104,10 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithLimit_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).add(LIMIT_KEY, LIMIT).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID).put(LIMIT_KEY, LIMIT);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());
@@ -120,10 +119,10 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithAscAgeOrderSpecified_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).add(ORDER_KEY, ASC).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID).put(ORDER_KEY, ASC);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());
@@ -135,17 +134,17 @@ public class AccountHistoryTest {
   public void invoke_ArgumentWithEverythingSpecified_ShouldCallScanCorrectly() {
     // Arrange
     ArgumentCaptor<AssetFilter> filter = ArgumentCaptor.forClass(AssetFilter.class);
-    JsonObject argument =
-        Json.createObjectBuilder()
-            .add(ID_KEY, ID)
-            .add(START_KEY, START)
-            .add(END_KEY, END)
-            .add(LIMIT_KEY, LIMIT)
-            .add(ORDER_KEY, ASC)
-            .build();
+    JsonNode argument =
+        new ObjectMapper()
+            .createObjectNode()
+            .put(ID_KEY, ID)
+            .put(START_KEY, START)
+            .put(END_KEY, END)
+            .put(LIMIT_KEY, LIMIT)
+            .put(ORDER_KEY, ASC);
 
     // Act
-    contract.invoke(ledger, argument, Optional.empty());
+    contract.invoke(ledger, argument, null);
 
     // Assert
     verify(ledger).scan(filter.capture());

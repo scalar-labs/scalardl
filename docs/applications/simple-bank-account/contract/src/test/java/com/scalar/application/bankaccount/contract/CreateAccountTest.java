@@ -4,14 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import com.scalar.dl.ledger.asset.Asset;
-import com.scalar.dl.ledger.contract.Contract;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scalar.dl.ledger.statemachine.Asset;
+import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
-import com.scalar.dl.ledger.database.Ledger;
+import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Optional;
 import java.util.UUID;
-import javax.json.Json;
-import javax.json.JsonObject;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,9 +22,9 @@ import org.mockito.MockitoAnnotations;
 public class CreateAccountTest {
   private final String ID = UUID.randomUUID().toString();
   private final String ID_KEY = "id";
-  private final Contract contract = new CreateAccount();
-  @Mock private Ledger ledger;
-  @Mock private Asset asset;
+  private final JacksonBasedContract contract = new CreateAccount();
+  @Mock private Ledger<JsonNode> ledger;
+  @Mock private Asset<JsonNode> asset;
   private AutoCloseable closeable;
 
   @BeforeEach
@@ -40,10 +40,10 @@ public class CreateAccountTest {
   @Test
   public void invoke_EmptyArgument_ShouldThrowContractContextException() {
     // Arrange
-    JsonObject argument = Json.createObjectBuilder().build();
+    JsonNode argument = new ObjectMapper().createObjectNode();
 
     // Act-assert
-    assertThatThrownBy(() -> contract.invoke(ledger, argument, Optional.empty()))
+    assertThatThrownBy(() -> contract.invoke(ledger, argument, null))
         .isInstanceOf(ContractContextException.class)
         .hasMessageStartingWith("a required key is missing:");
   }
@@ -51,24 +51,24 @@ public class CreateAccountTest {
   @Test
   public void invoke_AccountDoesNotExist_ShouldReturnSucceeded() {
     // Arrange
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID);
     when(ledger.get(ID)).thenReturn(Optional.empty());
 
     // Act
-    JsonObject response = contract.invoke(ledger, argument, Optional.empty());
+    JsonNode response = contract.invoke(ledger, argument, null);
 
     // Assert
-    assertThat(response.getString("status")).isEqualTo("succeeded");
+    assertThat(response.get("status").asText()).isEqualTo("succeeded");
   }
 
   @Test
   public void invoke_AccountExists_ShouldThrowContractContextException() {
     // Arrange
-    JsonObject argument = Json.createObjectBuilder().add(ID_KEY, ID).build();
+    JsonNode argument = new ObjectMapper().createObjectNode().put(ID_KEY, ID);
     when(ledger.get(ID)).thenReturn(Optional.of(asset));
 
     // Act-assert
-    assertThatThrownBy(() -> contract.invoke(ledger, argument, Optional.empty()))
+    assertThatThrownBy(() -> contract.invoke(ledger, argument, null))
         .isInstanceOf(ContractContextException.class)
         .hasMessage("account already exists");
   }

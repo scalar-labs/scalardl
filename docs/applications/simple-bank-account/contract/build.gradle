@@ -22,6 +22,7 @@ version = '0.1'
 
 dependencies {
     implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
+    testImplementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.11.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
