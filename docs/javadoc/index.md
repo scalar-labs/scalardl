@@ -1,6 +1,9 @@
 # ScalarDL Javadoc
 
 * [latest](./latest/index.md)
+* [3.9.1](./3.9.1/index.md)
+* [3.9.0](./3.9.0/index.md)
+* [3.8.1](./3.8.1/index.md)
 * [3.8.0](./3.8.0/index.md)
 * [3.7.0](./3.7.0/index.md)
 * [3.6.0](./3.6.0/index.md)

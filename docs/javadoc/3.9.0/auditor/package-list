@@ -1,0 +1,12 @@
+com.scalar
+com.scalar.dl.auditor.audit
+com.scalar.dl.auditor.config
+com.scalar.dl.auditor.contract
+com.scalar.dl.auditor.crypto
+com.scalar.dl.auditor.database
+com.scalar.dl.auditor.database.scalardb
+com.scalar.dl.auditor.model
+com.scalar.dl.auditor.orderer
+com.scalar.dl.auditor.orderer.scalardb
+com.scalar.dl.auditor.server
+com.scalar.dl.auditor.service
