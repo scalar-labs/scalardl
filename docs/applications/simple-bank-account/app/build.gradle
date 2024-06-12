@@ -48,5 +48,5 @@ dependencies {
     implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.assertj:assertj-core:3.9.1'
+    testImplementation 'org.assertj:assertj-core:3.26.0'
 }
