@@ -139,17 +139,17 @@ To register your contracts you can create a `contracts.toml` file in the `conf` 
 [[contracts]]
 contract-id = "create-account"
 contract-binary-name = "com.scalar.application.bankaccount.contract.CreateAccount"
-contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/CreateAccount.class"
+contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/CreateAccount.class"
 
 [[contracts]]
 contract-id = "deposit"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Deposit"
-contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Deposit.class"
+contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/Deposit.class"
 
 [[contracts]]
 contract-id = "transfer"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Transfer"
-contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"  
+contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"
 ```
 
 In this example we will register three contracts: `CreateAccount.java`, `Deposit.java`, and `Transfer.java`. The `contract-binary-name` and `contract-class-file` are determined, but you are free to choose the `contract-id` as you wish. The `contract-id` is how you can refer to a specific contract using `ClientService`, as we will see below.
@@ -157,7 +157,7 @@ In this example we will register three contracts: `CreateAccount.java`, `Deposit
 Once your toml file is written you can register all the specified contracts as
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-contracts --properties ./conf/client.properties --contracts-file ./conf/contracts.toml
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-contracts --properties contract/conf/client.properties --contracts-file contract/conf/contracts.toml
 ```
 
 Each successfully registered contract should return status code 200.
@@ -169,20 +169,20 @@ You can now execute any registered contracts if you would like. For example, use
 Create two accounts with ids `a111` and `b222`. (Contract ids can be any string.)
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "a111"}'
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "b222"}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties contract/conf/client.properties --contract-id create-account --contract-argument '{"id": "a111"}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties contract/conf/client.properties --contract-id create-account --contract-argument '{"id": "b222"}'
 ```
 
 Now, deposit 100 into account `a111`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id deposit --contract-argument '{"id": "a111", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties contract/conf/client.properties --contract-id deposit --contract-argument '{"id": "a111", "amount": 100}'
 ```
 
 Finally, transfer 25 from `a111` to `b222`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties contract/conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
 ```
 
 If you were running the application itself, you could execute these commands using the [API endpoints](./docs/api_endpoints.md).
@@ -195,7 +195,7 @@ The Client SDK is available on [Maven Central](https://search.maven.org/search?q
 
 ```groovy
 dependencies {
-    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
+    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
 }
 ```
 
