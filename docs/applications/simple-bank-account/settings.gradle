@@ -1,1 +1,3 @@
 rootProject.name = 'simple-bank-account'
+include 'contract'
+include 'app'
