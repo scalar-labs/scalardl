@@ -1,24 +1,24 @@
 [[contracts]]
 contract-id = "account-history"
 contract-binary-name = "com.scalar.application.bankaccount.contract.AccountHistory"
-contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/AccountHistory.class"
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/AccountHistory.class"
 
 [[contracts]]
 contract-id = "create-account"
 contract-binary-name = "com.scalar.application.bankaccount.contract.CreateAccount"
-contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/CreateAccount.class"
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/CreateAccount.class"
 
 [[contracts]]
 contract-id = "deposit"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Deposit"
-contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/Deposit.class"
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Deposit.class"
 
 [[contracts]]
 contract-id = "transfer"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Transfer"
-contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"
 
 [[contracts]]
 contract-id = "withdraw"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Withdraw"
-contract-class-file = "contract/build/classes/java/main/com/scalar/application/bankaccount/contract/Withdraw.class"
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Withdraw.class"
