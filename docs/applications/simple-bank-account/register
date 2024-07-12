@@ -1,4 +1,0 @@
-#!/bin/bash
-
-${SCALAR_SDK_HOME}/client/bin/scalardl register-cert --properties ./contract/conf/client.properties
-${SCALAR_SDK_HOME}/client/bin/scalardl register-contracts --properties ./contract/conf/client.properties --contracts-file ./contract/conf/contracts.toml
