@@ -119,7 +119,7 @@ $ ./gradlew build
 
 You should now have written and compiled your contracts. Before you can execute them, however, you will need to register them on the ScalarDL network. We will make use of the tools available in the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk) `client/bin` directory to register and execute the contracts. Please make sure you have access to this directory.
 
-Now, you will need to have your certificate (e.g. `client.pem`) and its corresponding private key (e.g. `client-key.pem`), and ScalarDL up and running. Edit `client.properties` (found in the `contract/conf` directory) to suit your configuration. It should contain lines that look something like:
+Now, you will need to have your certificate (e.g. `client.pem`) and its corresponding private key (e.g. `client-key.pem`), and ScalarDL up and running. Edit `client.properties` (found in the `conf` directory) to suit your configuration. It should contain lines that look something like:
 
 ```bash
 scalar.dl.client.server.host=localhost
@@ -133,12 +133,12 @@ If everything is set up properly you should be able to register your certificate
 
 ```bash
 $ cd contract
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-cert --properties ./contract/conf/client.properties
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-cert --properties ../conf/client.properties
 ```
 
 You should receive status code 200 if successful.
 
-To register your contracts you can create a `contracts.toml` file in the `contract/conf` directory using the following format:
+To register your contracts you can create a `contracts.toml` file in the `conf` directory using the following format:
 
 ```toml
 [[contracts]]
