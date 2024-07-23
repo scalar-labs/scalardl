@@ -1,0 +1,80 @@
+plugins {
+    id 'com.diffplug.spotless' version '6.13.0'
+    id 'com.github.spotbugs' version '5.2.5'
+    id 'net.ltgt.errorprone' version '3.1.0'
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'com.diffplug.spotless'
+
+ext {
+    scalarDlVersion = '3.9.0'
+    scalarDbVersion = '3.13.0'
+    junitVersion = '5.10.3'
+    junitPlatformVersion = '1.10.3'
+    mockitoVersion = '4.11.0'
+    assertjVersion = '3.26.0'
+    errorproneVersion = '2.10.0'
+    errorproneJavacVersion = '9+181-r4173-1'
+    spotbugsVersion = '4.8.6'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: "${scalarDlVersion}"
+    implementation group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "${junitVersion}"
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: "${junitVersion}"
+    testImplementation group: 'org.junit.platform', name: 'junit-platform-console', version: "${junitPlatformVersion}"
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: "${mockitoVersion}"
+    testImplementation group: 'org.mockito', name: 'mockito-inline', version: "${mockitoVersion}"
+
+    // for Error Prone
+    errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
+    errorproneJavac "com.google.errorprone:javac:${errorproneJavacVersion}"
+
+    // for SpotBugs
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugsVersion}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat('1.7')
+    }
+}
+
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    effort = 'default'
+    reportLevel = 'default'
+    maxHeapSize = '1g'
+    extraArgs = [ '-nested:false' ]
+    jvmArgs = [ '-Duser.language=en' ]
+}
+
+spotbugsMain.reports {
+    html.enabled = true
+}
+
+spotbugsTest.reports {
+    html.enabled = true
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
