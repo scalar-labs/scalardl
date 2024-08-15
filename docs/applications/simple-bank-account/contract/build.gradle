@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+group = 'com.scalar.application.simple-bank-account'
+version = '0.1'
+
+dependencies {
+    implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
+    testImplementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '4.11.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.assertj:assertj-core:3.26.0'
+}

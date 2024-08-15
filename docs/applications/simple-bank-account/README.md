@@ -20,7 +20,7 @@ This application uses five contracts:
 - `Transfer.java`
 - `Withdraw.java`
 
-(which can be found in [`src/main/java/com/scalar/application/bankaccount/contract`](./src/main/java/com/scalar/application/bankaccount/contract)). These contracts will be registered by the bank and will allow the bank to, respectively, view account histories, create accounts, deposit funds to an account, transfer funds between accounts, and withdraw funds from accounts.
+(which can be found in [`contract/src/main/java/com/scalar/application/bankaccount/contract`](./contract/src/main/java/com/scalar/application/bankaccount/contract)). These contracts will be registered by the bank and will allow the bank to, respectively, view account histories, create accounts, deposit funds to an account, transfer funds between accounts, and withdraw funds from accounts.
 
 The overall architecture of this application can be viewed as follows. (Note again that this use case is for simplicity, and in practice may look a bit different.)
 
@@ -31,6 +31,8 @@ The overall architecture of this application can be viewed as follows. (Note aga
 Download the [ScalarDL Client SDK](https://github.com/scalar-labs/scalardl-client-sdk). Make sure ScalarDL is running and register all the required contracts by executing
 
 ```
+$ ./gradlew build
+$ cd contract
 $ SCALAR_SDK_HOME=/path/to/scalardl-client-sdk ./register
 ```
 Run the application using IntelliJ (or the IDE of your choice), or by executing `gradle bootRun` in the project home directory. It should create a server on `localhost:8080` to which you can send HTTP requests in order to interact with the app. See the [API documentation](./docs/api_endpoints.md) for more information. To create HTTP requests we have found that [Postman](https://www.getpostman.com/) is quite nice.
@@ -43,50 +45,52 @@ In this tutorial we will not discuss the detail at the level of web services or 
 
 ### Contracts
 
-Contracts are Java classes which extend the `Contract` class and override the `invoke` method. Let's take a closer look at the `Deposit.java` contract. 
+Contracts are Java classes which extend the `JacksonBasedContract` class and override the `invoke` method. Let's take a closer look at the `Deposit.java` contract.
 
 ```java
 package com.scalar.application.bankaccount.contract;
 
-import com.scalar.dl.ledger.asset.Asset;
-import com.scalar.dl.ledger.contract.Contract;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.scalar.dl.ledger.statemachine.Asset;
+import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
-import com.scalar.dl.ledger.database.Ledger;
+import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Optional;
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.annotation.Nullable;
 
-public class Deposit extends Contract {
+public class Deposit extends JacksonBasedContract {
   @Override
-  public JsonObject invoke(Ledger ledger, JsonObject argument, Optional<JsonObject> property) {
-    if (!(argument.containsKey("id") && argument.containsKey("amount"))) {
+  public JsonNode invoke(
+      Ledger<JsonNode> ledger, JsonNode argument, @Nullable JsonNode properties) {
+    if (!argument.has("id") || !argument.has("amount")) {
       throw new ContractContextException("a required key is missing: id and/or amount");
     }
 
-    String id = argument.getString("id");
-    long amount = argument.getJsonNumber("amount").longValue();
+    String id = argument.get("id").asText();
+    long amount = argument.get("amount").asLong();
 
     if (amount < 0) {
       throw new ContractContextException("amount is negative");
     }
 
-    Optional<Asset> response = ledger.get(id);
+    Optional<Asset<JsonNode>> asset = ledger.get(id);
 
-    if (!response.isPresent()) {
+    if (!asset.isPresent()) {
       throw new ContractContextException("account does not exist");
     }
 
-    long oldBalance = response.get().data().getInt("balance");
+    long oldBalance = asset.get().data().get("balance").asLong();
     long newBalance = oldBalance + amount;
 
-    ledger.put(id, Json.createObjectBuilder().add("balance", newBalance).build());
-    return Json.createObjectBuilder()
-        .add("status", "succeeded")
-        .add("old_balance", oldBalance)
-        .add("new_balance", newBalance)
-        .build();
+    ledger.put(id, getObjectMapper().createObjectNode().put("balance", newBalance));
+    return getObjectMapper()
+        .createObjectNode()
+        .put("status", "succeeded")
+        .put("old_balance", oldBalance)
+        .put("new_balance", newBalance);
   }
 }
+
 ```
 
 In order for this contract to function properly the user must supply an account `id` and an `amount`. So the first thing to do is check whether the argument contains these two keys, and if not, throw a `ContractContextException`.
@@ -95,15 +99,15 @@ In order for this contract to function properly the user must supply an account 
  
 So, assuming that we have an `id` and an `amount`, we do a quick non-negative check on `amount` and again throw a `ContractContextException` if it is. Now we are ready to interact with the `ledger`.
  
-There are three methods that can be called on `ledger`: `get(String s)`, `put(String s, JsonObject jsonObject)`, and `scan(AssetFilter assetFilter)`. `get(String s)` will retrieve the asset `s` from the ledger. `put(String s, JsonObject argument)` will associate the asset `s` with the data `jsonObject` and increase the age of the asset. `scan(AssetFilter assetFilter)` will return a version of the history of an asset as specified in the `AssetFilter`.
+There are three methods that can be called on `ledger`: `get(String s)`, `put(String s, JsonNode jsonNode)`, and `scan(AssetFilter assetFilter)`. `get(String s)` will retrieve the asset `s` from the ledger. `put(String s, JsonNode jsonNode)` will associate the asset `s` with the data `jsonNode` and increase the age of the asset. `scan(AssetFilter assetFilter)` will return a version of the history of an asset as specified in the `AssetFilter`.
  
 **Note:** ledger does not permit blind writes, i.e., before performing a `put` on a particular asset, we must first `get` that asset. Furthermore `scan` is only allowed in read-only contracts, which means a single contract cannot both `scan` and `put`.
  
 The rest of the contract proceeds in a straightforward manner. We first `get` the asset from the ledger, retrieve its current balance, add the deposit amount to it, and finally `put` the asset back into the ledger with its new balance.
 
-At the end we must return a `JsonObject`. What the `JsonObject` contains is up to the designer of the contract. Here we have decided to include a `status` message, the `old_balance`, and the `new_balance`.
+At the end we must return a `JsonNode`. What the `JsonNode` contains is up to the designer of the contract. Here we have decided to include a `status` message, the `old_balance`, and the `new_balance`.
 
-If you wish, you can view the other contracts that this application uses in [`scr/main/java/com/scalar/application/bankaccount/contract`](./src/main/java/com/scalar/application/bankaccount/contract).
+If you wish, you can view the other contracts that this application uses in [`contract/scr/main/java/com/scalar/application/bankaccount/contract`](./contract/src/main/java/com/scalar/application/bankaccount/contract).
  
 Once you have written your contracts you will need to compile them, and this can be done as
 
@@ -128,7 +132,8 @@ scalar.dl.client.private_key_path=conf/client-key.pem
 If everything is set up properly you should be able to register your certificate on the ScalarDL network as
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-cert --properties ./conf/client.properties
+$ cd contract
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-cert --properties ../conf/client.properties
 ```
 
 You should receive status code 200 if successful.
@@ -149,7 +154,7 @@ contract-class-file = "build/classes/java/main/com/scalar/application/bankaccoun
 [[contracts]]
 contract-id = "transfer"
 contract-binary-name = "com.scalar.application.bankaccount.contract.Transfer"
-contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"  
+contract-class-file = "build/classes/java/main/com/scalar/application/bankaccount/contract/Transfer.class"
 ```
 
 In this example we will register three contracts: `CreateAccount.java`, `Deposit.java`, and `Transfer.java`. The `contract-binary-name` and `contract-class-file` are determined, but you are free to choose the `contract-id` as you wish. The `contract-id` is how you can refer to a specific contract using `ClientService`, as we will see below.
@@ -157,7 +162,7 @@ In this example we will register three contracts: `CreateAccount.java`, `Deposit
 Once your toml file is written you can register all the specified contracts as
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-contracts --properties ./conf/client.properties --contracts-file ./conf/contracts.toml
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl register-contracts --properties ../conf/client.properties --contracts-file ../conf/contracts.toml
 ```
 
 Each successfully registered contract should return status code 200.
@@ -169,20 +174,20 @@ You can now execute any registered contracts if you would like. For example, use
 Create two accounts with ids `a111` and `b222`. (Contract ids can be any string.)
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "a111"}'
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id create-account --contract-argument '{"id": "b222"}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id create-account --contract-argument '{"id": "a111"}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id create-account --contract-argument '{"id": "b222"}'
 ```
 
 Now, deposit 100 into account `a111`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id deposit --contract-argument '{"id": "a111", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id deposit --contract-argument '{"id": "a111", "amount": 100}'
 ```
 
 Finally, transfer 25 from `a111` to `b222`:
 
 ```bash
-$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ./conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
 ```
 
 If you were running the application itself, you could execute these commands using the [API endpoints](./docs/api_endpoints.md).
@@ -195,18 +200,15 @@ The Client SDK is available on [Maven Central](https://search.maven.org/search?q
 
 ```groovy
 dependencies {
-    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '2.0.4'
+    compile group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
 }
 ```
 
 The following snippet shows how you can instantiate a `ClientService` object, where `properties` should be the path to your `client.properties` file.
 
 ```java
-Injector injector =
-        Guice.createInjector(new ClientModule(new ClientConfig(new File(properties))));
-try (ClientService clientService = injector.getInstance(ClientService.class)) {
-  ...
-}
+ClientServiceFactory factory = new ClientServiceFactory();
+ClientService service = factory.create(new ClientConfig(new File(properties));
 ```
 
 `ClientService` contains a method `executeContract(String id, JsonObject argument)` which can be used to, of course, execute a contract. For example:
