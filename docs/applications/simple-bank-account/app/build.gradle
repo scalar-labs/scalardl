@@ -2,26 +2,16 @@ buildscript {
     repositories {
         mavenCentral()
     }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:3.3.0")
-    }
 }
 
 plugins {
     id 'java'
     id 'application'
     id 'idea'
-    id "org.springframework.boot" version "3.3.0"
-    id "io.spring.dependency-management" version "1.1.5"
 }
 
 application {
     mainClass = 'com.scalar.application.bankaccount.Application'
-}
-
-bootJar {
-    archiveBaseName = 'gs-rest-service'
-    archiveVersion =  '0.1.0'
 }
 
 repositories {
@@ -42,10 +32,10 @@ group = 'com.scalar.application.simple-bank-account'
 version = '0.1'
 
 dependencies {
-    implementation('org.springframework.boot:spring-boot-starter-web') {
+    implementation('org.springframework.boot:spring-boot-starter-web:3.3.0') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2:3.3.0'
     implementation group: 'com.scalar-labs', name: 'scalardl-java-client-sdk', version: '3.9.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
