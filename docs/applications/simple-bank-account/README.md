@@ -169,7 +169,7 @@ Each successfully registered contract should return status code 200.
 
 ### Executing contracts
 
-You can now execute any registered contracts if you would like. For example, use our register contracts to create a couple of accounts, deposit funds into one of the accounts, and transfer some of these funds to the other account.
+You can now execute any registered contracts if you would like. For example, use our register contracts to create a couple of accounts, deposit funds into one of the accounts, and transfer some of these funds to the other account, check the account history.
 
 Create two accounts with ids `a111` and `b222`. (Contract ids can be any string.)
 
@@ -188,6 +188,35 @@ Finally, transfer 25 from `a111` to `b222`:
 
 ```bash
 $ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id transfer --contract-argument '{"from": "a111", "to": "b222", "amount": 100}'
+```
+
+You can check the balance history of account `a111` as follows:
+
+```bash
+$ ${SCALAR_SDK_HOME}/client/bin/scalardl execute-contract --properties ../conf/client.properties --contract-id account-history --contract-argument '{"id": "a111"}'
+Contract result:
+{
+  "status" : "succeeded",
+  "history" : [ {
+    "id" : "a111",
+    "age" : 2,
+    "data" : {
+      "balance" : 0
+    }
+  }, {
+    "id" : "a111",
+    "age" : 1,
+    "data" : {
+      "balance" : 100
+    }
+  }, {
+    "id" : "a111",
+    "age" : 0,
+    "data" : {
+      "balance" : 0
+    }
+  } ]
+}
 ```
 
 If you were running the application itself, you could execute these commands using the [API endpoints](./docs/api_endpoints.md).
