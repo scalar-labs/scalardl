@@ -41,8 +41,8 @@ public class AccountHistory extends JacksonBasedContract {
               getObjectMapper()
                   .createObjectNode()
                   .put("id", asset.id())
-                  .put("data", asset.data().asText())
-                  .put("age", asset.age());
+                  .put("age", asset.age())
+                  .set("data", asset.data());
           result.add(json);
         });
 
