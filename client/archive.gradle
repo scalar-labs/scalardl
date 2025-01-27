@@ -1,0 +1,58 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'scalardl-java-client-sdk'
+            from components.java
+            artifact distTar
+            artifact distZip
+            artifact javadocJar
+            artifact sourcesJar
+            pom {
+                name = 'ScalarDL Java Client SDK'
+                description = 'A client-side Java library to interact with ScalarDL.'
+                url = 'https://github.com/scalar-labs/scalardl-java-client-sdk'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hiroyuki'
+                        name = 'Hiroyuki Yamada'
+                        email = 'hiroyuki.yamada@scalar-labs.com'
+                    }
+                    developer {
+                        id = 'jnmt'
+                        name = 'Jun Nemoto'
+                        email = 'jun.nemoto@scalar-labs.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/scalar-labs/scalardl-java-client-sdk.git'
+                    developerConnection = 'scm:git:https://github.com/scalar-labs/scalardl-java-client-sdk.git'
+                    url = 'https://github.com/scalar-labs/scalardl-java-client-sdk'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = "${ossrhUsername}"
+                password = "${ossrhPassword}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}

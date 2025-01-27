@@ -1,0 +1,318 @@
+plugins {
+    id 'com.palantir.docker' version '0.25.0'
+    id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
+    id "com.github.spotbugs" version "${spotbugsPluginVersion}"
+}
+
+apply plugin:'application'
+startScripts.enabled = false
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+}
+
+dependencies {
+    api project(':common')
+    implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
+    implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4jVersion}"
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4jVersion}"
+    api group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
+    api group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
+    api group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
+
+    // for Error Prone
+    errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
+    errorproneJavac "com.google.errorprone:javac:${errorproneJavacVersion}"
+
+    // for SpotBugs
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugsVersion}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+}
+
+task CertificateRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.CertificateRegistration'
+    applicationName = 'register-cert'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task SecretRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.SecretRegistration'
+    applicationName = 'register-secret'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task FunctionRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.FunctionRegistration'
+    applicationName = 'register-function'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task FunctionsRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.FunctionsRegistration'
+    applicationName = 'register-functions'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task ContractRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.ContractRegistration'
+    applicationName = 'register-contract'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task ContractsRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.ContractsRegistration'
+    applicationName = 'register-contracts'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task ContractsListing(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.ContractsListing'
+    applicationName = 'list-contracts'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task ContractExecution(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.ContractExecution'
+    applicationName = 'execute-contract'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task LedgerValidation(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.LedgerValidation'
+    applicationName = 'validate-ledger'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task MultiLedgersValidation(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.MultiLedgersValidation'
+    applicationName = 'validate-ledgers'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task StateUpdaterSimpleBench(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.StateUpdaterSimpleBench'
+    applicationName = 'state-updater-simple-bench'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task StateUpdaterLoader(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.StateUpdaterLoader'
+    applicationName = 'state-updater-loader'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task SmallbankBench(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.SmallbankBench'
+    applicationName = 'smallbank-bench'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task SmallbankLoader(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.SmallbankLoader'
+    applicationName = 'smallbank-loader'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+applicationDistribution.into('bin') {
+    from(CertificateRegistration)
+    from(SecretRegistration)
+    from(FunctionRegistration)
+    from(FunctionsRegistration)
+    from(ContractRegistration)
+    from(ContractsRegistration)
+    from(ContractsListing)
+    from(ContractExecution)
+    from(LedgerValidation)
+    from(MultiLedgersValidation)
+    from(StateUpdaterSimpleBench)
+    from(StateUpdaterLoader)
+    from(SmallbankBench)
+    from(SmallbankLoader)
+    fileMode = 0755
+}
+
+jar {
+    from(project(':ledger').sourceSets.main.output) {
+        include "com/scalar/dl/ledger/asset/Asset.class"
+        include "com/scalar/dl/ledger/asset/AssetMetadata.class"
+        include "com/scalar/dl/ledger/contract/Contract.class"
+        include "com/scalar/dl/ledger/contract/ContractBase.class"
+        include "com/scalar/dl/ledger/contract/ContractManager.class"
+        include "com/scalar/dl/ledger/contract/JacksonBasedContract.class"
+        include "com/scalar/dl/ledger/contract/JsonpBasedContract.class"
+        include "com/scalar/dl/ledger/contract/StringBasedContract.class"
+        include "com/scalar/dl/ledger/crypto/CertificateEntry*.class"
+        include "com/scalar/dl/ledger/crypto/ClientIdentityKey.class"
+        include "com/scalar/dl/ledger/database/AssetFilter*.class"
+        include "com/scalar/dl/ledger/database/Database.class"
+        include "com/scalar/dl/ledger/database/Ledger.class"
+        include "com/scalar/dl/ledger/exception/ContractContextException.class"
+        include "com/scalar/dl/ledger/exception/ContractException.class"
+        include "com/scalar/dl/ledger/exception/LedgerException.class"
+        include "com/scalar/dl/ledger/function/Function.class"
+        include "com/scalar/dl/ledger/function/FunctionBase.class"
+        include "com/scalar/dl/ledger/function/FunctionManager.class"
+        include "com/scalar/dl/ledger/function/JacksonBasedFunction.class"
+        include "com/scalar/dl/ledger/function/JsonpBasedFunction.class"
+        include "com/scalar/dl/ledger/function/StringBasedFunction.class"
+        include "com/scalar/dl/ledger/model/AbstractRequest.class"
+        include "com/scalar/dl/ledger/statemachine/Asset.class"
+        include "com/scalar/dl/ledger/statemachine/AssetMetadata.class"
+        include "com/scalar/dl/ledger/statemachine/Ledger.class"
+    }
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    from(project(':ledger').sourceSets.main.java) {
+        include "com/scalar/dl/ledger/asset/Asset.java"
+        include "com/scalar/dl/ledger/asset/AssetMetadata.java"
+        include "com/scalar/dl/ledger/contract/Contract.java"
+        include "com/scalar/dl/ledger/contract/ContractBase.java"
+        include "com/scalar/dl/ledger/contract/ContractManager.java"
+        include "com/scalar/dl/ledger/contract/JacksonBasedContract.java"
+        include "com/scalar/dl/ledger/contract/JsonpBasedContract.java"
+        include "com/scalar/dl/ledger/contract/StringBasedContract.java"
+        include "com/scalar/dl/ledger/crypto/CertificateEntry*.java"
+        include "com/scalar/dl/ledger/crypto/ClientIdentityKey.java"
+        include "com/scalar/dl/ledger/database/AssetFilter*.java"
+        include "com/scalar/dl/ledger/database/Database.java"
+        include "com/scalar/dl/ledger/database/Ledger.java"
+        include "com/scalar/dl/ledger/exception/ContractContextException.java"
+        include "com/scalar/dl/ledger/exception/ContractException.java"
+        include "com/scalar/dl/ledger/exception/LedgerException.java"
+        include "com/scalar/dl/ledger/function/Function.java"
+        include "com/scalar/dl/ledger/function/FunctionBase.java"
+        include "com/scalar/dl/ledger/function/FunctionManager.java"
+        include "com/scalar/dl/ledger/function/JacksonBasedFunction.java"
+        include "com/scalar/dl/ledger/function/JsonpBasedFunction.java"
+        include "com/scalar/dl/ledger/function/StringBasedFunction.java"
+        include "com/scalar/dl/ledger/model/AbstractRequest.java"
+        include "com/scalar/dl/ledger/statemachine/Asset.java"
+        include "com/scalar/dl/ledger/statemachine/AssetMetadata.java"
+        include "com/scalar/dl/ledger/statemachine/Ledger.java"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+javadoc {
+    title = "ScalarDL Java Client SDK ${version}"
+    source += sourceSets.main.java
+    source += project(':ledger').sourceSets.main.java
+    include "com/scalar/dl/client/**"
+    include "com/scalar/dl/ledger/asset/Asset.java"
+    include "com/scalar/dl/ledger/asset/AssetMetadata.java"
+    include "com/scalar/dl/ledger/contract/Contract.java"
+    include "com/scalar/dl/ledger/contract/ContractBase.java"
+    include "com/scalar/dl/ledger/contract/ContractEntry.java"
+    include "com/scalar/dl/ledger/contract/ContractMachine.java"
+    include "com/scalar/dl/ledger/contract/ContractManager.java"
+    include "com/scalar/dl/ledger/contract/JacksonBasedContract.java"
+    include "com/scalar/dl/ledger/contract/JsonpBasedContract.java"
+    include "com/scalar/dl/ledger/contract/StringBasedContract.java"
+    include "com/scalar/dl/ledger/crypto/CertificateEntry*.java"
+    include "com/scalar/dl/ledger/crypto/ClientIdentityKey.java"
+    include "com/scalar/dl/ledger/database/AssetFilter*.java"
+    include "com/scalar/dl/ledger/database/ContractRegistry.java"
+    include "com/scalar/dl/ledger/database/Database.java"
+    include "com/scalar/dl/ledger/database/Ledger.java"
+    include "com/scalar/dl/ledger/exception/*.java"
+    include "com/scalar/dl/ledger/function/Function.java"
+    include "com/scalar/dl/ledger/function/FunctionBase.java"
+    include "com/scalar/dl/ledger/function/FunctionManager.java"
+    include "com/scalar/dl/ledger/function/JacksonBasedFunction.java"
+    include "com/scalar/dl/ledger/function/JsonpBasedFunction.java"
+    include "com/scalar/dl/ledger/function/StringBasedFunction.java"
+    include "com/scalar/dl/ledger/model/*.java"
+    include "com/scalar/dl/ledger/statemachine/Asset.java"
+    include "com/scalar/dl/ledger/statemachine/AssetMetadata.java"
+    include "com/scalar/dl/ledger/statemachine/Ledger.java"
+}
+
+task testJar(type: Jar) {
+  classifier = 'tests'
+  from sourceSets.test.output
+}
+
+task integrationTest(type: Test) {
+    description 'Runs the integration tests.'
+    group 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
+    shouldRunAfter test
+}
+
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    effort = 'default'
+    reportLevel = 'default'
+    maxHeapSize = '1g'
+    extraArgs = [ '-nested:false' ]
+    jvmArgs = [ '-Duser.language=en' ]
+}
+
+spotbugsMain.reports {
+    html.enabled = true
+}
+
+spotbugsTest.reports {
+    html.enabled = true
+}
+
+spotbugsIntegrationTest.reports {
+    html.enabled = true
+}
+
+
+check.dependsOn -= integrationTest  // build should not depend on the integration tests
+
+// For testing only
+docker {
+    name "ghcr.io/scalar-labs/scalar-client:$dockerVersion"
+    files tasks.distTar.outputs, 'conf/client.properties.tmpl', 'conf/log4j2.properties.tmpl'
+}
+
+distZip {
+    archiveFileName = "scalardl-java-client-sdk-${project.version}.zip"
+}
+
+archivesBaseName = "scalardl-java-client-sdk"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+    (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+     project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
+}

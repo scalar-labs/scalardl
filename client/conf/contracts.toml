@@ -1,0 +1,9 @@
+[[contracts]]
+contract-id = "state-updater"
+contract-binary-name = "com.org1.contract.StateUpdater"
+contract-class-file = "build/classes/java/main/com/org1/contract/StateUpdater.class"
+
+[[contracts]]
+contract-id = "state-reader"
+contract-binary-name = "com.org1.contract.StateReader"
+contract-class-file = "build/classes/java/main/com/org1/contract/StateReader.class"

@@ -1,0 +1,64 @@
+plugins {
+    id "com.google.protobuf" version "0.8.17"
+}
+
+dependencies {
+    api group: 'io.grpc', name: 'grpc-stub', version: "${grpcVersion}"
+    api group: 'io.grpc', name: 'grpc-netty', version: "${grpcVersion}"
+    api group: 'io.grpc', name: 'grpc-protobuf', version: "${grpcVersion}"
+    api group: 'io.grpc', name: 'grpc-services', version: "${grpcVersion}"
+    compileOnly group: 'org.apache.tomcat', name: 'annotations-api', version: '6.0.53' // necessary for Java 9+
+
+    // To expose gRPC generated classes to the sub-projects
+    api(group: 'com.scalar-labs', name: 'scalar-admin', version: '1.2.0') {
+        exclude group: 'io.grpc', module: 'grpc-alts'
+        exclude group: 'io.grpc', module: 'grpc-netty'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-stub'
+        exclude group: 'org.slf4j'
+    }
+}
+
+protobuf {
+    protoc { artifact = "com.google.protobuf:protoc:${protocVersion}" }
+    plugins {
+        grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+    }
+    generateProtoTasks {
+        all()*.plugins { grpc {} }
+    }
+    generatedFilesBaseDir = "$projectDir/src"
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Inform IDEs like IntelliJ IDEA, Eclipse or NetBeans about the generated code.
+sourceSets {
+    main {
+        java {
+            srcDirs "${projectDir}/src/main/grpc"
+            srcDirs "${projectDir}/src/main/java"
+        }
+    }
+}
+
+archivesBaseName = "scalardl-rpc"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+    (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+     project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
+}
+
+// plugin com.google.protobuf generates tasks in runtime so that we have do declare dependencies dynamically
+tasks.whenTaskAdded { t ->
+  if (t.name.equals('generateProto')) {
+    processResources.dependsOn += t
+    sourcesJar.dependsOn += t
+  }
+}

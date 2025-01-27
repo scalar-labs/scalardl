@@ -1,0 +1,112 @@
+#
+# For ledger
+#
+
+# Name of ledger ("Scalar Ledger" by default). It is used to identify a ledger.
+scalar.dl.ledger.name={{ default .Env.SCALAR_DL_LEDGER_NAME "" }}
+
+# Namespace of ledger tables ("scalar" by default).
+scalar.dl.ledger.namespace={{ default .Env.SCALAR_DL_LEDGER_NAMESPACE "" }}
+
+# The authentication method for a client and Ledger servers. Use "digital-signature" (default) or "hmac".
+# This has to be consistent with the client configuration.
+scalar.dl.ledger.authentication.method={{ default .Env.SCALAR_DL_LEDGER_AUTHENTICATION_METHOD "" }}
+
+# A cipher key used to encrypt and decrypt the HMAC secret keys of client entities.
+# This variable is used only when scalar.dl.ledger.authentication.method is "hmac".
+# Please set an unpredictable and long enough value.
+scalar.dl.ledger.authentication.hmac.cipher_key={{ default .Env.SCALAR_DL_LEDGER_AUTHENTICATION_HMAC_CIPHER_KEY "" }}
+
+# Server port (50051 by default).
+scalar.dl.ledger.server.port={{ default .Env.SCALAR_DL_LEDGER_SERVER_PORT "" }}
+
+# Server privileged port (50052 by default).
+scalar.dl.ledger.server.privileged_port={{ default .Env.SCALAR_DL_LEDGER_SERVER_PRIVILEGED_PORT "" }}
+
+# Server admin port (50053 by default).
+scalar.dl.ledger.server.admin_port={{ default .Env.SCALAR_DL_LEDGER_SERVER_ADMIN_PORT "" }}
+
+# Prometheus exporter port (8080 by default). Prometheus exporter will not be started if a negative number is given.
+scalar.dl.ledger.server.prometheus_exporter_port={{ default .Env.SCALAR_DL_LEDGER_SERVER_PROMETHEUS_EXPORTER_PORT "" }}
+
+# A flag to enable TLS between clients and servers (false by default).
+scalar.dl.ledger.server.tls.enabled={{ default .Env.SCALAR_DL_LEDGER_SERVER_TLS_ENABLED "" }}
+
+# Certificate chain file used for TLS communication.
+# It can be empty if scalar.dl.ledger.server.tls.enabled=false.
+scalar.dl.ledger.server.tls.cert_chain_path={{ default .Env.SCALAR_DL_LEDGER_SERVER_TLS_CERT_CHAIN_PATH "" }}
+
+# A private key file used for TLS communication.
+# It can be empty if scalar.dl.ledger.server.tls.enabled=false .
+scalar.dl.ledger.server.tls.private_key_path={{ default .Env.SCALAR_DL_LEDGER_SERVER_TLS_PRIVATE_KEY_PATH "" }}
+
+# A flag to enable asset proof that is used to verify assets (false by default).
+# This feature must be enabled in both client and server.
+scalar.dl.ledger.proof.enabled={{ default .Env.SCALAR_DL_LEDGER_PROOF_ENABLED "" }}
+
+# The path of a private key file in PEM format. Either this or scalar.dl.ledger.proof.private_key_pem is used for signing proofs with digital signatures.
+# The signatures are also used for Auditor to authenticate the corresponding proofs from Ledger if scalar.dl.ledger.servers.authentication.hmac.secret_key is empty.
+scalar.dl.ledger.proof.private_key_path={{ default .Env.SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PATH "" }}
+
+# PEM-encoded private key data. Either this or scalar.dl.ledger.proof.private_key_path is used for signing proofs with digital signatures.
+# The signatures are also used for Auditor to authenticate the corresponding proofs from Ledger if scalar.dl.ledger.servers.authentication.hmac.secret_key is empty.
+scalar.dl.ledger.proof.private_key_pem={{ default .Env.SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM "" }}
+
+# A flag to enable function for mutable database (true by default).
+scalar.dl.ledger.function.enabled={{ default .Env.SCALAR_DL_LEDGER_FUNCTION_ENABLED "" }}
+
+# A flag to use nonce as a transaction ID (true by default).
+scalar.dl.ledger.nonce_txid.enabled={{ default .Env.SCALAR_DL_LEDGER_NONCE_TXID_ENABLED "" }}
+
+# A flag to use Auditor (disabled by default).
+scalar.dl.ledger.auditor.enabled={{ default .Env.SCALAR_DL_LEDGER_AUDITOR_ENABLED "" }}
+
+# A secret key of HMAC for the authentication of messages between (Ledger and Auditor) servers. The same key has to be set in the corresponding Auditor as well.
+# If this is not set, Ledger uses digital signature authentication using scalar.dl.ledger.proof.private_key_pem/path for signing and
+# scalar.dl.ledger.auditor.cert_holder_id and its corresponding certificate (stored in the database) for verification.
+scalar.dl.ledger.servers.authentication.hmac.secret_key={{ default .Env.SCALAR_DL_LEDGER_SERVERS_AUTHENTICATION_HMAC_SECRET_KEY "" }}
+
+# This will be deleted in release 5.0.0 since Ledger-Auditor authentication will use HMAC only.
+# Auditor certificate holder ID ("auditor" by default).
+scalar.dl.ledger.auditor.cert_holder_id={{ default .Env.SCALAR_DL_LEDGER_AUDITOR_CERT_HOLDER_ID "" }}
+
+# This will be deleted in release 5.0.0 since Ledger-Auditor authentication will use HMAC only.
+# Auditor certificate version (1 by default).
+scalar.dl.ledger.auditor.cert_version={{ default .Env.SCALAR_DL_LEDGER_AUDITOR_CERT_VERSION "" }}
+
+# Binary names of contracts that can be executed
+scalar.dl.ledger.executable_contracts={{ default .Env.SCALAR_DL_LEDGER_EXECUTABLE_CONTRACTS "" }}
+
+# A flag to access asset table directly without going through asset_metadata (false by default).
+# This should be set to false for some databases such as Cassandra that incur multiple database lookups for scanning a clustering key with limit 1.
+# This should be set to true if an underlying database can utilize index scan to access the latest asset entry efficiently.
+scalar.dl.ledger.direct_asset_access.enabled={{ default .Env.SCALAR_DL_LEDGER_DIRECT_ASSET_ACCESS_ENABLED "" }}
+
+# A flag to manage transaction states by Ledger (false by default).
+# This must be enabled when using JdbcTransactionManager as the transaction manager of ScalarDB.
+scalar.dl.ledger.tx_state_management.enabled={{ default .Env.SCALAR_DL_LEDGER_TX_STATE_MANAGEMENT_ENABLED "" }}
+
+#
+# For database
+#
+
+# Comma separated contact points
+scalar.db.contact_points={{ default .Env.SCALAR_DB_CONTACT_POINTS "" }}
+
+# Port number for all the contact points. Default port number for each database is used if empty.
+scalar.db.contact_port={{ default .Env.SCALAR_DB_CONTACT_PORT "" }}
+
+# Credential information to access the database
+scalar.db.username={{ default .Env.SCALAR_DB_USERNAME "" }}
+scalar.db.password={{ default .Env.SCALAR_DB_PASSWORD "" }}
+
+# Storage implementation. Either cassandra or cosmos can be set. Default storage is cassandra.
+scalar.db.storage={{ default .Env.SCALAR_DB_STORAGE "" }}
+
+# Default isolation level. Either SNAPSHOT or SERIALIZABLE can be specified. SNAPSHOT is used by default.
+scalar.db.isolation_level={{ default .Env.SCALAR_DB_ISOLATION_LEVEL "" }}
+
+# Default serializable strategy for ConsensusCommit transaction manager.
+# Either EXTRA_READ or EXTRA_WRITE can be specified. EXTRA_READ is used by default.
+# If SNAPSHOT is specified, this is ignored.
+scalar.db.consensuscommit.serializable_strategy={{ default .Env.SCALAR_DB_CONSENSUSCOMMIT_SERIALIZABLE_STRATEGY "" }}

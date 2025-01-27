@@ -1,0 +1,96 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'jacoco'
+    apply plugin: 'java-library-distribution'
+
+    project.version = '3.8.4'
+
+    ext {
+        grpcVersion = '1.68.1'
+        protocVersion = '3.25.5'
+        picoCliVersion = '4.1.4'
+        guiceVersion = '5.0.1'
+        guavaVersion = '31.0.1-jre'
+        kafkaVersion = '2.1.0'
+        pulsarVersion = '2.7.2'
+        slf4jVersion = '1.7.32'
+        log4jVersion = '2.17.1'
+        jsonpVersion = '1.1.4'
+        jacksonVersion = '2.13.4.2'
+        toml4jVersion = '0.7.2'
+        scalarDbVersion = '3.12.4'
+        resilience4jRetryVersion = '1.7.1'
+        dropwizardMetricsVersion = '4.2.2'
+        prometheusVersion = '0.12.0'
+        jettyVersion = '9.4.43.v20210629'
+        assertjVersion = '3.9.1'
+        junitVersion = '4.12'
+        mockitoVersion = '4.6.0'
+        errorproneVersion = '2.10.0'
+        errorproneJavacVersion = '9+181-r4173-1'
+        errorpronePluginVersion = '2.0.2'
+        spotbugsVersion = '4.7.1'
+        spotbugsPluginVersion = '5.0.9'
+        commonsTextVersion = '1.10.0'
+        stefanbirknerSystemLambdaVersion = '1.2.1'
+        bouncyCastleCryptoVersion = '1.70'
+
+        dockerVersion = project.properties['dockerVersion'] ?: project.version
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+
+    dependencies {
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: "${slf4jVersion}"
+        implementation group: 'com.google.inject', name: 'guice', version: "${guiceVersion}"
+        implementation group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
+        implementation group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
+        implementation group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
+        testImplementation group: 'junit', name: 'junit', version: "${junitVersion}"
+        testImplementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
+        testImplementation group: 'org.mockito', name: 'mockito-core', version: "${mockitoVersion}"
+        testImplementation group: 'org.mockito', name: 'mockito-inline', version: "${mockitoVersion}"
+    }
+
+    test {
+        maxHeapSize "512m"
+        testLogging.showStandardStreams = true
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group = "com.scalar-labs"
+
+    distZip {
+        archiveFileName = "${project.name}.zip"
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        dependsOn += test
+    }
+
+    distTar {
+        archiveFileName = "${project.name}.tar"
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        dependsOn += test
+    }
+
+    installDist {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    task javadocJar(type: Jar) {
+        classifier = 'javadoc'
+        from javadoc
+    }
+
+    task dockerfileLint(type: Exec) {
+        description 'Lint the Dockerfile'
+        executable "${rootDir}/scripts/docker/lint.sh"
+    }
+}

@@ -14,4 +14,5 @@ ScalarDL is mainly maintained by the Scalar Engineering Team, but of course we a
 * For filing bugs, suggesting improvements, or requesting new features, help us out by opening an issue.
 
 ## License
-ScalarDL is licensed under commercial license only. Please [contact us](https://scalar-labs.com/contact_us/) for more information.
+
+ScalarDL is dual-licensed under both the Apache 2.0 License (found in the LICENSE file in the root directory) and a commercial license. You may select, at your option, one of the licenses. The commercial license includes several enterprise-grade features such as ScalarDL Auditor. For more information about the commercial license, please [contact us](https://www.scalar-labs.com/contact).

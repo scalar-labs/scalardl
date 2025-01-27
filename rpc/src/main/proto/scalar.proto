@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.scalar.dl.rpc";
+option java_outer_classname = "ScalarProto";
+
+import "google/protobuf/empty.proto";
+import "scalar/protobuf/admin.proto";
+
+package rpc;
+
+// Ledger service definition.
+service Ledger {
+    rpc RegisterContract (ContractRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc ListContracts (ContractsListingRequest) returns (ContractsListingResponse) {
+    }
+    rpc ExecuteContract (ContractExecutionRequest) returns (ContractExecutionResponse) {
+    }
+    rpc ValidateLedger (LedgerValidationRequest) returns (LedgerValidationResponse) {
+    }
+    rpc RetrieveAssetProof (AssetProofRetrievalRequest) returns (AssetProofRetrievalResponse) {
+    }
+    rpc AbortExecution (ExecutionAbortRequest) returns (ExecutionAbortResponse) {
+    }
+}
+
+service LedgerPrivileged {
+    rpc RegisterCert (CertificateRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterFunction (FunctionRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc RetrieveState (StateRetrievalRequest) returns (StateRetrievalResponse) {
+    }
+}
+
+service Auditor {
+    rpc RegisterContract (ContractRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc ListContracts (ContractsListingRequest) returns (ContractsListingResponse) {
+    }
+    rpc OrderExecution(ContractExecutionRequest) returns (ExecutionOrderingResponse) {
+    }
+    rpc ValidateExecution(ExecutionValidationRequest) returns (ContractExecutionResponse) {
+    }
+}
+
+service AuditorPrivileged {
+    rpc RegisterCert (CertificateRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+}
+
+message CertificateRegistrationRequest {
+    string entity_id = 1;
+    uint32 key_version = 2;
+    string cert_pem = 3;
+}
+
+message SecretRegistrationRequest {
+    string entity_id = 1;
+    uint32 key_version = 2;
+    string secret_key = 3;
+}
+
+message FunctionRegistrationRequest {
+    string function_id = 1;
+    string function_binary_name = 2;
+    bytes function_byte_code = 3;
+}
+
+message ContractRegistrationRequest {
+    string contract_id = 1;
+    string contract_binary_name = 2;
+    bytes contract_byte_code = 3;
+    string contract_properties = 4;
+    string entity_id = 5;
+    uint32 key_version = 6;
+    bytes signature = 7;
+}
+
+message ContractsListingRequest {
+    string entity_id = 1;
+    uint32 key_version = 2;
+    string contract_id = 3;
+    bytes signature = 4;
+}
+
+message ContractExecutionRequest {
+    string contract_id = 1;
+    string contract_argument = 2;
+    string entity_id = 3;
+    uint32 key_version = 4;
+    string function_argument = 5;
+    bytes signature = 6;
+    bytes auditor_signature = 7;
+    bool use_function_ids = 8;
+    repeated string function_ids = 9;
+    string nonce = 10;
+}
+
+message LedgerValidationRequest {
+    string asset_id = 1;
+    uint32 start_age = 2;
+    uint32 end_age = 3;
+    string entity_id = 4;
+    uint32 key_version = 5;
+    bytes signature = 6;
+}
+
+message AssetProofRetrievalRequest {
+    string asset_id = 1;
+    int32 age = 2;
+    string entity_id = 3;
+    uint32 key_version = 4;
+    bytes signature = 5;
+}
+
+message ExecutionAbortRequest {
+    string nonce = 1;
+    string entity_id = 2;
+    uint32 key_version = 3;
+    bytes signature = 4;
+}
+
+message StateRetrievalRequest {
+    string transaction_id = 1;
+}
+
+message ExecutionValidationRequest {
+    ContractExecutionRequest request = 1;
+    repeated AssetProof proofs = 2;
+}
+
+message ContractsListingResponse {
+    string json = 1;
+}
+
+message ContractExecutionResponse {
+    string contract_result = 1; // the result of contract execution
+    repeated AssetProof proofs = 2; // proofs given from the ledger server
+    string function_result = 3; // the result of function execution
+}
+
+message LedgerValidationResponse {
+    uint32 status_code = 1;
+    AssetProof proof = 2; // a proof given from the ledger server
+}
+
+message AssetProofRetrievalResponse {
+    AssetProof proof = 1;
+    string ledger_name = 2;
+}
+
+message AssetProof {
+    string asset_id = 1;
+    uint32 age = 2;
+    string nonce = 3;
+    string input = 4;
+    bytes hash = 5;
+    bytes prev_hash = 6;
+    bytes signature = 7;
+}
+
+enum TransactionState {
+    TRANSACTION_STATE_UNSPECIFIED = 0;
+    TRANSACTION_STATE_COMMITTED = 1;
+    TRANSACTION_STATE_ABORTED = 2;
+    TRANSACTION_STATE_UNKNOWN = 3;
+}
+
+message ExecutionAbortResponse {
+    TransactionState state = 1;
+}
+
+message StateRetrievalResponse {
+    TransactionState state = 1;
+}
+
+message Status {
+    uint32 code = 1;
+    string message = 2;
+}
+
+message ExecutionOrderingResponse {
+    bytes signature = 1;
+}
+

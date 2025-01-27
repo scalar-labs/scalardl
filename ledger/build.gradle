@@ -1,0 +1,174 @@
+plugins {
+    id 'com.palantir.docker' version '0.25.0'
+    id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
+    id "com.github.spotbugs" version "${spotbugsPluginVersion}"
+}
+
+apply plugin:'application'
+startScripts.enabled = false
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+
+    // Everything below has been added as there is a bug in Gradle that prevents us from
+    // creating the security manager. If this ever gets fixed we can move the permission
+    // test to the unit tests directory and delete everything below.
+    permissionTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/permission-test/java')
+        }
+        resources.srcDir file('src/permission-test/resources')
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    permissionTestImplementation.extendsFrom testImplementation
+}
+
+dependencies {
+    implementation project(':common')
+    implementation(group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}") {
+        exclude group: 'io.grpc', module: 'grpc-stub'
+        exclude group: 'io.grpc', module: 'grpc-netty'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-services'
+    }
+    implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
+    implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
+    implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4jVersion}"
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4jVersion}"
+
+    // The following packages are provided for ScalarDL contracts in runtime
+    implementation group: 'org.hashids', name: 'hashids', version: '1.0.3'
+    implementation group: 'com.github.everit-org.json-schema', name: 'org.everit.json.schema', version: '1.14.4'
+
+    testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
+
+    // for Error Prone
+    errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
+    errorproneJavac "com.google.errorprone:javac:${errorproneJavacVersion}"
+
+    // for SpotBugs
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugsVersion}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+}
+
+task testJar(type: Jar) {
+    classifier 'tests'
+    from sourceSets.test.output
+}
+
+task LedgerServer(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.ledger.server.LedgerServer'
+    applicationName = 'scalar-ledger'
+    defaultJvmOpts = ["-Djava.security.manager", "-Djava.security.policy=security.policy"]
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+applicationDistribution.into('bin') {
+    from(LedgerServer)
+    fileMode = 0755
+}
+
+docker {
+    name "ghcr.io/scalar-labs/scalar-ledger:$dockerVersion"
+    files tasks.distTar.outputs, 'conf/ledger.properties.tmpl', 'conf/log4j2.properties.tmpl', 'docker-entrypoint.sh'
+}
+
+task integrationTestCassandra(type: Test) {
+    description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
+    group 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
+    shouldRunAfter test
+    options {
+        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+    }
+}
+
+task integrationTestDynamo(type: Test) {
+    useJUnitPlatform()
+    description 'Runs the integration tests with Consensus Commit transaction manager on DynamoDB.'
+    group 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
+    shouldRunAfter test
+    options {
+        systemProperty('scalardb.storage', 'dynamo')
+        systemProperty('scalardb.transaction_manager', 'consensus-commit')
+        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+    }
+}
+
+task integrationTestMysql(type: Test) {
+    description 'Runs the integration tests with JDBC transaction manager on MySQL.'
+    group 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
+    shouldRunAfter test
+    options {
+        systemProperty('scalardb.storage', 'jdbc')
+        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
+        systemProperty('scalardb.username', 'root')
+        systemProperty('scalardb.password', 'mysql')
+        systemProperty('scalardb.transaction_manager', 'jdbc')
+        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+    }
+}
+
+task integrationTest(type: Test) {
+    dependsOn integrationTestCassandra
+    dependsOn integrationTestDynamo
+    dependsOn integrationTestMysql
+}
+
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    effort = 'default'
+    reportLevel = 'default'
+    maxHeapSize = '1g'
+    extraArgs = [ '-nested:false' ]
+    jvmArgs = [ '-Duser.language=en' ]
+}
+
+spotbugsMain.reports {
+    html.enabled = true
+}
+
+spotbugsTest.reports {
+    html.enabled = true
+}
+
+spotbugsIntegrationTest.reports {
+    html.enabled = true
+}
+
+check.dependsOn -= integrationTest  // build should not depend on the integration tests
+
+task copyTestJarsToTestLib(type: Copy) {
+    from configurations.testRuntimeClasspath
+    into file("$buildDir/test-libs")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+test.dependsOn += copyTestJarsToTestLib
+test.dependsOn += compileIntegrationTestJava
+test.dependsOn += compilePermissionTestJava
