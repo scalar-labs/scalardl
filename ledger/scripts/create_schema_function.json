@@ -1,0 +1,16 @@
+{
+  "test.function_test": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "id": "TEXT",
+      "balance": "INT"
+    },
+    "compaction-strategy": "LCS"
+  }
+}
+

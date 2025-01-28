@@ -1,0 +1,131 @@
+{
+  "scalar.asset": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+      "age"
+    ],
+    "columns": {
+      "id": "TEXT",
+      "age": "INT",
+      "argument": "TEXT",
+      "contract_id": "TEXT",
+      "hash": "BLOB",
+      "input": "TEXT",
+      "output": "TEXT",
+      "prev_hash": "BLOB",
+      "signature": "BLOB"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "scalar.asset_metadata": {
+    "transaction": true,
+    "partition-key": [
+      "asset_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "asset_id": "TEXT",
+      "latest_age": "INT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "scalar.contract": {
+    "transaction": false,
+    "partition-key": [
+      "cert_holder_id"
+    ],
+    "clustering-key": [
+      "cert_version",
+      "id"
+    ],
+    "columns": {
+      "id": "TEXT",
+      "cert_holder_id": "TEXT",
+      "cert_version": "INT",
+      "binary_name": "TEXT",
+      "properties": "TEXT",
+      "registered_at": "BIGINT",
+      "signature": "BLOB"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "scalar.contract_class": {
+    "transaction": false,
+    "partition-key": [
+      "binary_name"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "binary_name": "TEXT",
+      "byte_code": "BLOB"
+    },
+    "compaction-strategy": "STCS"
+  },
+  "scalar.function": {
+    "transaction": false,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "id": "TEXT",
+      "binary_name": "TEXT",
+      "byte_code": "BLOB",
+      "registered_at": "BIGINT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "scalar.certificate": {
+    "transaction": false,
+    "partition-key": [
+      "holder_id"
+    ],
+    "clustering-key": [
+      "version"
+    ],
+    "columns": {
+      "holder_id": "TEXT",
+      "version": "INT",
+      "pem": "TEXT",
+      "registered_at": "BIGINT"
+    },
+    "compaction-strategy": "STCS"
+  },
+  "scalar.secret": {
+    "transaction": false,
+    "partition-key": [
+      "entity_id"
+    ],
+    "clustering-key": [
+      "key_version"
+    ],
+    "columns": {
+      "entity_id": "TEXT",
+      "key_version": "INT",
+      "secret_key": "BLOB",
+      "registered_at": "BIGINT"
+    },
+    "compaction-strategy": "STCS"
+  },
+  "scalar.tx_state": {
+    "transaction": false,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "id": "TEXT",
+      "state": "INT",
+      "created_at": "BIGINT"
+    },
+    "compaction-strategy": "STCS"
+  }
+}
+

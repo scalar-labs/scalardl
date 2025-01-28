@@ -1,0 +1,31 @@
+name: Vulnerability Check
+
+on:
+  workflow_call:
+    inputs:
+      target-ref:
+        description: 'Target ref (branch, tag, release) to scan'
+        required: true
+        type: string
+        default: 'main'
+      find-latest-release:
+        description: 'Flag to find the latest version for specified `target-ref`'
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CR_PAT:
+        required: true
+      SLACK_SECURITY_WEBHOOK_URL:
+        required: false
+
+jobs:
+  call-vuln-check:
+    uses: scalar-labs/actions/.github/workflows/vuln-check-reusable.yaml@main
+    with:
+      target-ref: ${{ inputs.target-ref }}
+      find-latest-release: ${{ inputs.find-latest-release }}
+      images: '[["ScalarDL Ledger", "scalar-ledger"], ["ScalarDL Client", "scalar-client"]]'
+    secrets:
+      CR_PAT: ${{ secrets.CR_PAT }}
+      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}

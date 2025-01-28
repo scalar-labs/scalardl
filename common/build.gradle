@@ -1,0 +1,86 @@
+plugins {
+    id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
+    id "com.github.spotbugs" version "${spotbugsPluginVersion}"
+}
+
+dependencies {
+    api project(':rpc')
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncyCastleCryptoVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncyCastleCryptoVersion}"
+    implementation group: 'io.dropwizard.metrics', name: 'metrics-core', version: "${dropwizardMetricsVersion}"
+    implementation group: 'io.dropwizard.metrics', name: 'metrics-jmx', version: "${dropwizardMetricsVersion}"
+    implementation group: 'io.prometheus', name: 'simpleclient_dropwizard', version: "${prometheusVersion}"
+    implementation group: 'io.prometheus', name: 'simpleclient_servlet', version: "${prometheusVersion}"
+    implementation group: 'io.prometheus', name: 'simpleclient_hotspot', version: "${prometheusVersion}"
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: "${jettyVersion}"
+    implementation "org.apache.commons:commons-text:${commonsTextVersion}"
+
+    testImplementation "com.github.stefanbirkner:system-lambda:${stefanbirknerSystemLambdaVersion}"
+
+    // for Error Prone
+    errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
+    errorproneJavac "com.google.errorprone:javac:${errorproneJavacVersion}"
+
+    // for SpotBugs
+    spotbugs "com.github.spotbugs:spotbugs:${spotbugsVersion}"
+    compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+    testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+javadoc {
+    title = "ScalarDL Common ${version}"
+    source += sourceSets.main.java
+    source += project(':ledger').sourceSets.main.java
+    include "com/scalar/dl/ledger/asset/AssetProof.java"
+    include "com/scalar/dl/ledger/config/*.java"
+    include "com/scalar/dl/ledger/database/TransactionState.java"
+    include "com/scalar/dl/ledger/database/AssetFilter.java"
+    include "com/scalar/dl/ledger/exception/*.java"
+    include "com/scalar/dl/ledger/model/*.java"
+    include "com/scalar/dl/ledger/proof/*.java"
+    include "com/scalar/dl/ledger/service/*.java"
+    include "com/scalar/dl/ledger/statemachine/*.java"
+}
+
+spotless {
+    java {
+        target 'src/*/java/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat(googleJavaFormatVersion)
+    }
+}
+
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    effort = 'default'
+    reportLevel = 'default'
+    maxHeapSize = '1g'
+    extraArgs = [ '-nested:false' ]
+    jvmArgs = [ '-Duser.language=en' ]
+}
+
+spotbugsMain.reports {
+    html.enabled = true
+}
+
+spotbugsTest.reports {
+    html.enabled = true
+}
+
+archivesBaseName = "scalardl-common"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+    (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+     project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
+}

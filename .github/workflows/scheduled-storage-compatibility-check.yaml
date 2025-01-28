@@ -1,0 +1,19 @@
+name: Scheduled Storage Compatibility Check
+
+on:
+  schedule:
+    # UTC
+    - cron: '0 10 * * SUN'
+
+jobs:
+  call-storage-compatibility-check-for-master:
+    uses: ./.github/workflows/storage-compatibility-check.yaml
+    with:
+      target-ref: master
+    secrets: inherit
+
+  call-storage-compatibility-check-for-3:
+    uses: ./.github/workflows/storage-compatibility-check.yaml
+    with:
+      target-ref: 3
+    secrets: inherit
