@@ -1,0 +1,17 @@
+name: Auto-PR
+
+on:
+  pull_request:
+    branches:
+      - master
+      - "[0-9]+"
+      - "[0-9]+.[0-9]+"
+    types:
+      - closed
+
+jobs:
+  if_merged:
+    uses: scalar-labs/actions/.github/workflows/auto-pr-reusable.yaml@main
+    secrets: inherit
+    with:
+      project_base_name: "ScalarDL"

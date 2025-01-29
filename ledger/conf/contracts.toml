@@ -1,0 +1,7 @@
+[[contracts]]
+# A contract that updates the status of an asset
+contract-binary-name = "com.org1.contract.StateUpdater"
+
+[[contracts]]
+# A contract that reads the status of an asset
+contract-binary-name = "com.org1.contract.StateReader"

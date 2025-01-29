@@ -1,0 +1,11 @@
+name: Manual Storage Compatibility Check Trigger
+
+on:
+  workflow_dispatch:
+
+jobs:
+  call-storage-compatibility-check:
+    uses: ./.github/workflows/storage-compatibility-check.yaml
+    with:
+      target-ref: ${{ github.ref_name }}
+    secrets: inherit

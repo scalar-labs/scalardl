@@ -1,0 +1,134 @@
+name: Storage Compatibility Check
+
+on:
+  workflow_call:
+    inputs:
+      target-ref:
+        description: 'Target ref (branch, tag, release) to check'
+        required: true
+        type: string
+        default: 'master'
+
+jobs:
+  integration-test-with-cassandra:
+    name: Integration testing with the Consensus Commit transaction manager on Cassandra
+    runs-on: ubuntu-latest
+
+    services:
+      cassandra:
+        image: cassandra:3.11
+        env:
+          MAX_HEAP_SIZE: 2048m
+          HEAP_NEWSIZE: 512m
+        ports:
+          - 9042:9042
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+
+  integration-test-with-cosmos:
+    name: Integration testing with the Consensus Commit transaction manager on Cosmos DB
+    runs-on: ubuntu-latest-l
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Prepare own schema.json
+        id: schema
+        run: |
+          SUFFIX=$(echo "_${{ inputs.target-ref }}" | tr '.' '_')
+          sed -i s/scalar/scalar${SUFFIX}/ ledger/scripts/create_schema.json
+          sed -i s/test/test${SUFFIX}/ ledger/scripts/create_schema_function.json
+          echo "namespace_suffix=${SUFFIX}" >> $GITHUB_OUTPUT
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -Xmx6g -XX:MaxDirectMemorySize=4g \
+          -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          -Dscalardl.namespace_suffix="${{ steps.schema.outputs.namespace_suffix }}" \
+          -Dscalardb.storage=cosmos \
+          -Dscalardb.contact_points="${{ secrets.COSMOS_URI }}" \
+          -Dscalardb.password="${{ secrets.COSMOS_KEY }}" \
+          -Dscalardb.cosmos.ru=800 \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+
+  integration-test-with-dynamo:
+    name: Integration testing with the Consensus Commit transaction manager on DynamoDB
+    runs-on: ubuntu-latest
+
+    services:
+      dynamodb:
+        image: amazon/dynamodb-local:1.17.0
+        ports:
+          - 8000:8000
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          -Dscalardb.storage=dynamo \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
