@@ -7,7 +7,6 @@ public class Constants {
   public static final String BALANCE_ATTRIBUTE_NAME = "balance";
   public static final String CONTRACT_ID_ATTRIBUTE_NAME = "contract_id";
   public static final String EXECUTE_NESTED_ATTRIBUTE_NAME = "execute_nested";
-  public static final String NAMESPACE_ATTRIBUTE_NAME = "namespace";
   public static final String CREATE_CONTRACT_ID1 = "Create";
   public static final String CREATE_CONTRACT_ID2 = "CreateWithJsonp";
   public static final String CREATE_CONTRACT_ID3 = "CreateWithJackson";

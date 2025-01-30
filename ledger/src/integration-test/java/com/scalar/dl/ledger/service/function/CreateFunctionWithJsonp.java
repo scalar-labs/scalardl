@@ -30,15 +30,11 @@ public class CreateFunctionWithJsonp extends JsonpBasedFunction {
 
     String id = functionArgument.getString(Constants.ID_ATTRIBUTE_NAME);
     int balance = functionArgument.getInt(Constants.BALANCE_ATTRIBUTE_NAME);
-    String namespace =
-        functionArgument.containsKey(Constants.NAMESPACE_ATTRIBUTE_NAME)
-            ? functionArgument.getString(Constants.NAMESPACE_ATTRIBUTE_NAME)
-            : Constants.FUNCTION_NAMESPACE;
 
     Put put =
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, balance)
-            .forNamespace(namespace)
+            .forNamespace(Constants.FUNCTION_NAMESPACE)
             .forTable(Constants.FUNCTION_TABLE);
 
     database.put(put);

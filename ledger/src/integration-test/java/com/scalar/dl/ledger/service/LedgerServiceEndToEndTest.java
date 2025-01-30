@@ -33,7 +33,6 @@ import static com.scalar.dl.ledger.service.Constants.GET_BALANCE_CONTRACT_ID4;
 import static com.scalar.dl.ledger.service.Constants.HOLDER_CHECKER_CONTRACT_ID;
 import static com.scalar.dl.ledger.service.Constants.ID_ATTRIBUTE_NAME;
 import static com.scalar.dl.ledger.service.Constants.KEY_VERSION;
-import static com.scalar.dl.ledger.service.Constants.NAMESPACE_ATTRIBUTE_NAME;
 import static com.scalar.dl.ledger.service.Constants.PAYMENT_CONTRACT_ID1;
 import static com.scalar.dl.ledger.service.Constants.PAYMENT_CONTRACT_ID2;
 import static com.scalar.dl.ledger.service.Constants.PAYMENT_CONTRACT_ID3;
@@ -149,7 +148,6 @@ public class LedgerServiceEndToEndTest {
   private static final String FUNCTION_CLASS_DIR =
       "build/classes/java/integrationTest/com/scalar/dl/ledger/service/function/";
   private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
-  private static final String PROP_NAMESPACE_SUFFIX = "scalardl.namespace_suffix";
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
   private static final String PROP_USERNAME = "scalardb.username";
@@ -180,17 +178,12 @@ public class LedgerServiceEndToEndTest {
   private static Path databaseSchemaPath;
   private static DistributedStorageAdmin storageAdmin;
   private static Map<String, String> creationOptions = new HashMap<>();
-  private static String namespace;
-  private static String functionNamespace;
 
   @BeforeAll
   public static void setUpBeforeClass() throws Exception {
     ledgerSchemaPath = Paths.get(System.getProperty("user.dir") + "/scripts/create_schema.json");
     databaseSchemaPath =
         Paths.get(System.getProperty("user.dir") + "/scripts/create_schema_function.json");
-    String suffix = System.getProperty(PROP_NAMESPACE_SUFFIX, "");
-    namespace = NAMESPACE + suffix;
-    functionNamespace = FUNCTION_NAMESPACE + suffix;
     props = createProperties();
     ledgerConfig = new LedgerConfig(props);
     StorageFactory factory = new StorageFactory(new DatabaseConfig(props));
@@ -337,9 +330,9 @@ public class LedgerServiceEndToEndTest {
 
   @AfterEach
   public void tearDown() throws ExecutionException {
-    storageAdmin.truncateTable(namespace, ASSET_TABLE);
-    storageAdmin.truncateTable(namespace, ASSET_METADATA_TABLE);
-    storageAdmin.truncateTable(functionNamespace, FUNCTION_TABLE);
+    storageAdmin.truncateTable(NAMESPACE, ASSET_TABLE);
+    storageAdmin.truncateTable(NAMESPACE, ASSET_METADATA_TABLE);
+    storageAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
     storageService.close();
     transactionService.close();
   }
@@ -357,15 +350,14 @@ public class LedgerServiceEndToEndTest {
         System.getProperty(PROP_DYNAMO_ENDPOINT_OVERRIDE, DEFAULT_DYNAMO_ENDPOINT_OVERRIDE);
 
     Properties props = new Properties();
-    props.put(LedgerConfig.NAMESPACE, namespace);
-    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
-      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
-    }
     props.put(DatabaseConfig.STORAGE, storage);
     props.put(DatabaseConfig.CONTACT_POINTS, contactPoints);
     props.put(DatabaseConfig.USERNAME, username);
     props.put(DatabaseConfig.PASSWORD, password);
     props.put(DatabaseConfig.TRANSACTION_MANAGER, transactionManager);
+    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
+      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
+    }
 
     if (storage.equals(CosmosConfig.STORAGE_NAME)) {
       creationOptions = ImmutableMap.of(CosmosAdmin.REQUEST_UNIT, requestUnit);
@@ -1017,7 +1009,7 @@ public class LedgerServiceEndToEndTest {
     // remove the middle record maliciously
     Delete delete =
         new Delete(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 1))
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.delete(delete);
 
@@ -1041,7 +1033,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toPrevHashValue("tamperd".getBytes(StandardCharsets.UTF_8)))
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1065,7 +1057,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toOutputValue("{\"balance\":7000}")) // instead of 700
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1089,7 +1081,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toInputValue("{\"A\":{\"age\":2},\"B\":{\"age\":1}}"))
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1121,7 +1113,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toArgumentValue(argument.toString()))
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1176,7 +1168,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toOutputValue("{\"balance\":7000}")) // instead of 700
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1198,7 +1190,7 @@ public class LedgerServiceEndToEndTest {
     Put put =
         new Put(new Key(AssetAttribute.ID, SOME_ASSET_ID_1), new Key(AssetAttribute.AGE, 2))
             .withValue(AssetAttribute.toOutputValue("{\"balance\":7000}")) // instead of 700
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     storageService.put(put);
 
@@ -1315,7 +1307,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1362,7 +1354,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1410,7 +1402,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1457,7 +1449,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1505,7 +1497,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1551,7 +1543,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1594,7 +1586,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -1620,7 +1612,6 @@ public class LedgerServiceEndToEndTest {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, functionNamespace)
             .build();
 
     byte[] serialized =
@@ -1644,7 +1635,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1669,7 +1660,6 @@ public class LedgerServiceEndToEndTest {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, functionNamespace)
             .build();
     List<String> functionIds = Collections.singletonList(CreateFunction.class.getName());
     String argument = Argument.format(contractArgument, nonce, functionIds);
@@ -1694,7 +1684,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1719,7 +1709,6 @@ public class LedgerServiceEndToEndTest {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, functionNamespace)
             .build();
 
     byte[] serialized =
@@ -1743,7 +1732,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1768,7 +1757,6 @@ public class LedgerServiceEndToEndTest {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, functionNamespace)
             .build();
     List<String> functionIds = Collections.singletonList(CreateFunctionWithJsonp.class.getName());
     String argument = Argument.format(contractArgument, nonce, functionIds);
@@ -1793,7 +1781,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1818,8 +1806,7 @@ public class LedgerServiceEndToEndTest {
         mapper
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(NAMESPACE_ATTRIBUTE_NAME, functionNamespace);
+            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1);
     String contractArgumentString = jacksonSerDe.serialize(contractArgument);
     String functionArgumentString = jacksonSerDe.serialize(functionArgument);
 
@@ -1844,7 +1831,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1870,8 +1857,7 @@ public class LedgerServiceEndToEndTest {
         mapper
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(NAMESPACE_ATTRIBUTE_NAME, functionNamespace);
+            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1);
     String functionArgumentString = jacksonSerDe.serialize(functionArgument);
     List<String> functionIds = Collections.singletonList(CreateFunctionWithJackson.class.getName());
     String argument = Argument.format(contractArgument, nonce, functionIds);
@@ -1896,7 +1882,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -1914,7 +1900,7 @@ public class LedgerServiceEndToEndTest {
     String nonce = UUID.randomUUID().toString();
     List<String> functionIds = Collections.singletonList(CreateFunctionWithString.class.getName());
     String argument = Argument.format(SOME_ASSET_ID_1 + "," + SOME_AMOUNT_1, nonce, functionIds);
-    String functionArgument = SOME_ID + "," + SOME_AMOUNT_1 + "," + functionNamespace;
+    String functionArgument = SOME_ID + "," + SOME_AMOUNT_1;
 
     byte[] serialized =
         ContractExecutionRequest.serialize(CREATE_CONTRACT_ID4, argument, ENTITY_ID_A, KEY_VERSION);
@@ -1936,7 +1922,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         new Get(new Key(ID_ATTRIBUTE_NAME, SOME_ID))
-            .forNamespace(functionNamespace)
+            .forNamespace(FUNCTION_NAMESPACE)
             .forTable(FUNCTION_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> functionResult = transaction.get(get);
@@ -2002,14 +1988,12 @@ public class LedgerServiceEndToEndTest {
         mapper
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(NAMESPACE_ATTRIBUTE_NAME, functionNamespace);
+            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1);
     JsonNode functionArgument2 =
         mapper
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_2)
-            .put(NAMESPACE_ATTRIBUTE_NAME, functionNamespace);
+            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_2);
     List<String> functionIds = Collections.singletonList(CreateFunctionWithJackson.class.getName());
     String argument1 = Argument.format(contractArgument1, nonce1, functionIds);
     String argument2 = Argument.format(contractArgument2, nonce2, functionIds);
@@ -2049,7 +2033,7 @@ public class LedgerServiceEndToEndTest {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(functionNamespace)
+            .namespace(FUNCTION_NAMESPACE)
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID))
             .build();
@@ -2474,7 +2458,7 @@ public class LedgerServiceEndToEndTest {
     Get get =
         new Get(new Key(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1), new Key(ASSET_AGE_COLUMN_NAME, 0))
             .withConsistency(Consistency.SEQUENTIAL)
-            .forNamespace(namespace)
+            .forNamespace(NAMESPACE)
             .forTable(ASSET_TABLE);
     DistributedTransaction transaction = transactionService.start();
     Optional<Result> result = transaction.get(get);
@@ -2700,7 +2684,7 @@ public class LedgerServiceEndToEndTest {
     DistributedTransaction transaction = transactionService.start();
     Scan scan =
         Scan.newBuilder()
-            .namespace(namespace)
+            .namespace(NAMESPACE)
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .build();

@@ -30,15 +30,11 @@ public class CreateFunctionWithJackson extends JacksonBasedFunction {
 
     String id = functionArgument.get(Constants.ID_ATTRIBUTE_NAME).asText();
     int balance = functionArgument.get(Constants.BALANCE_ATTRIBUTE_NAME).asInt();
-    String namespace =
-        functionArgument.has(Constants.NAMESPACE_ATTRIBUTE_NAME)
-            ? functionArgument.get(Constants.NAMESPACE_ATTRIBUTE_NAME).asText()
-            : Constants.FUNCTION_NAMESPACE;
 
     Put put =
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, balance)
-            .forNamespace(namespace)
+            .forNamespace(Constants.FUNCTION_NAMESPACE)
             .forTable(Constants.FUNCTION_TABLE);
 
     database.put(put);

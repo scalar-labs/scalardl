@@ -28,17 +28,16 @@ public class CreateFunctionWithString extends StringBasedFunction {
     }
     // <id>,<balance>
     List<String> elements = Splitter.on(',').splitToList(functionArgument);
-    if (elements.size() != 2 && elements.size() != 3) {
+    if (elements.size() != 2) {
       throw new ContractContextException("invalid argument format");
     }
     String id = elements.get(0);
     int balance = Integer.parseInt(elements.get(1));
-    String namespace = elements.size() == 3 ? elements.get(2) : Constants.FUNCTION_NAMESPACE;
 
     Put put =
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, balance)
-            .forNamespace(namespace)
+            .forNamespace(Constants.FUNCTION_NAMESPACE)
             .forTable(Constants.FUNCTION_TABLE);
 
     database.put(put);

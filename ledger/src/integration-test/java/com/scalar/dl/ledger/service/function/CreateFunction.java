@@ -25,15 +25,11 @@ public class CreateFunction extends Function {
 
     String id = functionArgument.get().getString(Constants.ID_ATTRIBUTE_NAME);
     int balance = functionArgument.get().getInt(Constants.BALANCE_ATTRIBUTE_NAME);
-    String namespace =
-        functionArgument.get().containsKey(Constants.NAMESPACE_ATTRIBUTE_NAME)
-            ? functionArgument.get().getString(Constants.NAMESPACE_ATTRIBUTE_NAME)
-            : Constants.FUNCTION_NAMESPACE;
 
     Put put =
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, balance)
-            .forNamespace(namespace)
+            .forNamespace(Constants.FUNCTION_NAMESPACE)
             .forTable(Constants.FUNCTION_TABLE);
 
     database.put(put);
