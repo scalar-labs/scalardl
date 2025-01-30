@@ -21,8 +21,6 @@ import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetRecord;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
-import com.scalar.dl.ledger.error.CommonError;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
@@ -30,6 +28,7 @@ import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.proof.AssetProof;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
@@ -146,24 +145,21 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
       transaction.commit();
     } catch (CrudConflictException e) {
-      throw new ConflictException(
-          LedgerError.PUTTING_ASSET_FAILED_DUE_TO_CONFLICT,
-          e,
-          Collections.emptyMap(),
-          e.getMessage());
+      throw new ConflictException("putting asset records failed", e, Collections.emptyMap());
     } catch (CommitConflictException e) {
-      throw new ConflictException(
-          LedgerError.COMMITTING_ASSET_FAILED_DUE_TO_CONFLICT, e, getAssetIds(), e.getMessage());
+      throw new ConflictException("committing asset records failed", e, getAssetIds());
     } catch (com.scalar.db.exception.transaction.UnknownTransactionStatusException e) {
       if (e.getUnknownTransactionId().isPresent()) {
         throw new UnknownTransactionStatusException(
-            LedgerError.UNKNOWN_ASSET_STATUS, e, e.getUnknownTransactionId().get(), e.getMessage());
+            "asset status is unknown", e, e.getUnknownTransactionId().get());
       } else {
-        throw new UnknownTransactionStatusException(
-            LedgerError.UNKNOWN_ASSET_STATUS, e, null, e.getMessage());
+        throw new UnknownTransactionStatusException("asset status is unknown", e);
       }
     } catch (CrudException | CommitException e) {
-      throw new DatabaseException(LedgerError.PUTTING_OR_COMMITTING_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "putting or committing asset records failed for some reason",
+          e,
+          StatusCode.DATABASE_ERROR);
     }
 
     if (config.isProofEnabled() && request != null) {
@@ -177,7 +173,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     try {
       transaction.abort();
     } catch (AbortException e) {
-      throw new DatabaseException(LedgerError.ABORTING_TRANSACTION_FAILED, e, e.getMessage());
+      throw new DatabaseException("abort failed", e, StatusCode.DATABASE_ERROR);
     }
     if (config.isTxStateManagementEnabled()) {
       stateManager.putAbort(transaction.getId());
@@ -201,7 +197,8 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
     Optional<Result> result = get(assetId, assetMetadata.get().getAge());
     if (!result.isPresent()) {
-      throw new ValidationException(LedgerError.INCONSISTENT_ASSET_METADATA);
+      throw new ValidationException(
+          "asset_metadata and asset are inconsistent.", StatusCode.INCONSISTENT_STATES);
     }
 
     return result;
@@ -216,10 +213,9 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
               .forTable(TABLE);
       return transaction.get(get);
     } catch (CrudConflictException e) {
-      throw new ConflictException(
-          LedgerError.RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException("asset retrieval failed due to conflict", e);
     } catch (CrudException e) {
-      throw new DatabaseException(LedgerError.RETRIEVING_ASSET_FAILED, e, e.getMessage());
+      throw new DatabaseException("asset retrieval failed", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -236,10 +232,9 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       }
       return Optional.of(results.get(0));
     } catch (CrudConflictException e) {
-      throw new ConflictException(
-          LedgerError.RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException("asset retrieval failed due to conflict", e);
     } catch (CrudException e) {
-      throw new DatabaseException(LedgerError.RETRIEVING_ASSET_FAILED, e, e.getMessage());
+      throw new DatabaseException("asset retrieval failed", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -247,10 +242,9 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     try {
       return transaction.scan(scan);
     } catch (CrudConflictException e) {
-      throw new ConflictException(
-          LedgerError.RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException("asset retrieval failed due to conflict", e);
     } catch (CrudException e) {
-      throw new DatabaseException(LedgerError.RETRIEVING_ASSET_FAILED, e, e.getMessage());
+      throw new DatabaseException("asset retrieval failed", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -292,10 +286,9 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
           transaction.put(put);
         }
       } catch (CrudConflictException e) {
-        throw new ConflictException(
-            LedgerError.PUTTING_ASSET_METADATA_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+        throw new ConflictException("putting asset metadata failed due to conflict", e);
       } catch (CrudException e) {
-        throw new DatabaseException(LedgerError.PUTTING_ASSET_METADATA_FAILED, e, e.getMessage());
+        throw new DatabaseException("putting asset metadata failed", e, StatusCode.DATABASE_ERROR);
       }
     }
 
@@ -306,11 +299,10 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       try {
         result = transaction.get(get);
       } catch (CrudConflictException e) {
-        throw new ConflictException(
-            LedgerError.RETRIEVING_ASSET_METADATA_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+        throw new ConflictException("asset metadata retrieval failed due to conflict", e);
       } catch (CrudException e) {
         throw new DatabaseException(
-            LedgerError.RETRIEVING_ASSET_METADATA_FAILED, e, e.getMessage());
+            "asset metadata retrieval failed", e, StatusCode.DATABASE_ERROR);
       }
 
       return result.map(AssetMetadata::new);
@@ -333,8 +325,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
         this.id = getIdFrom(result);
         this.age = getAgeFrom(result);
       } catch (Exception e) {
-        throw new UnexpectedValueException(
-            CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+        throw new UnexpectedValueException(e);
       }
     }
 

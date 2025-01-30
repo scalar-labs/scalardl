@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.crypto;
 
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.exception.UnloadableKeyException;
 import java.io.ByteArrayInputStream;
@@ -47,7 +46,7 @@ public class DigitalSignatureValidator implements SignatureValidator {
       InputStream input = new ByteArrayInputStream(certPem.getBytes(StandardCharsets.UTF_8));
       this.cert = (X509Certificate) factory.generateCertificate(input);
     } catch (CertificateException e) {
-      throw new UnloadableKeyException(CommonError.LOADING_CERTIFICATE_FAILED, e, e.getMessage());
+      throw new UnloadableKeyException("Failed in getting a validator from the certificate.", e);
     }
   }
 
@@ -74,7 +73,7 @@ public class DigitalSignatureValidator implements SignatureValidator {
       signature.update(toBeValidated);
       return signature.verify(signatureBytes);
     } catch (java.security.SignatureException | NoSuchAlgorithmException | InvalidKeyException e) {
-      throw new SignatureException(CommonError.SIGNATURE_VALIDATION_FAILED, e.getMessage());
+      throw new SignatureException(e.getMessage());
     }
   }
 
@@ -116,7 +115,7 @@ public class DigitalSignatureValidator implements SignatureValidator {
     try {
       return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new UnloadableKeyException(CommonError.LOADING_KEY_FAILED, e.getMessage());
+      throw new UnloadableKeyException(e.getMessage());
     }
   }
 }

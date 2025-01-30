@@ -2,7 +2,6 @@ package com.scalar.dl.client.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 
@@ -71,23 +70,20 @@ public class HmacIdentityConfig {
     }
 
     public HmacIdentityConfig.Builder secretKeyVersion(int secretKeyVersion) {
-      checkArgument(
-          secretKeyVersion >= 0,
-          CommonError.SECRET_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+      checkArgument(secretKeyVersion >= 0);
       this.secretKeyVersion = secretKeyVersion;
       return this;
     }
 
     public HmacIdentityConfig.Builder secretKey(String secretKey) {
-      checkArgument(secretKey != null, CommonError.SECRET_KEY_REQUIRED.buildMessage());
+      checkArgument(secretKey != null);
       this.secretKey = secretKey;
       return this;
     }
 
     public HmacIdentityConfig build() {
       if (entityId == null || secretKeyVersion < 0 || secretKey == null) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("Required fields are not given.");
       }
       return new HmacIdentityConfig(this);
     }

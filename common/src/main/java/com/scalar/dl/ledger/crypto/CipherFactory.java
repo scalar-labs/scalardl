@@ -1,7 +1,7 @@
 package com.scalar.dl.ledger.crypto;
 
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SecurityException;
+import com.scalar.dl.ledger.service.StatusCode;
 import java.security.spec.KeySpec;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -20,7 +20,7 @@ public class CipherFactory {
       return new Cipher(
           new SecretKeySpec(factory.generateSecret(spec).getEncoded(), ENCRYPTION_ALGORITHM));
     } catch (Exception e) {
-      throw new SecurityException(CommonError.CREATING_CIPHER_KEY_FAILED, e, e.getMessage());
+      throw new SecurityException("Creating a cipher key failed.", e, StatusCode.UNLOADABLE_KEY);
     }
   }
 }

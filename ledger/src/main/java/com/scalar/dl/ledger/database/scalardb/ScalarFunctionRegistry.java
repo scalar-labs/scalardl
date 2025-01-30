@@ -10,11 +10,10 @@ import com.scalar.db.api.Result;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.database.FunctionRegistry;
-import com.scalar.dl.ledger.error.CommonError;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.function.FunctionEntry;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 
@@ -44,7 +43,7 @@ public class ScalarFunctionRegistry implements FunctionRegistry {
     try {
       storage.put(put);
     } catch (ExecutionException e) {
-      throw new DatabaseException(LedgerError.BINDING_FUNCTION_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't bind the function", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -58,7 +57,8 @@ public class ScalarFunctionRegistry implements FunctionRegistry {
     try {
       storage.delete(delete);
     } catch (ExecutionException e) {
-      throw new DatabaseException(LedgerError.UNBINDING_FUNCTION_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't delete the function from storage", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -72,7 +72,8 @@ public class ScalarFunctionRegistry implements FunctionRegistry {
     try {
       return storage.get(get).map(this::toFunctionEntry);
     } catch (ExecutionException e) {
-      throw new DatabaseException(LedgerError.GETTING_FUNCTION_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the function from storage", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -100,8 +101,7 @@ public class ScalarFunctionRegistry implements FunctionRegistry {
           getBytesFrom(result),
           getRegisteredAtFrom(result));
     } catch (Exception e) {
-      throw new UnexpectedValueException(
-          CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+      throw new UnexpectedValueException(e);
     }
   }
 }

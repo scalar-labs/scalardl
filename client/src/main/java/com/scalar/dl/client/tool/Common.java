@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.service.StatusCode;
 import javax.annotation.Nullable;
@@ -38,7 +37,7 @@ public class Common {
     try {
       System.out.println(mapper.writeValueAsString(json));
     } catch (JsonProcessingException e) {
-      throw new ClientException(ClientError.PROCESSING_JSON_FAILED, e, e.getMessage());
+      throw new ClientException("can't process json.", e, StatusCode.RUNTIME_ERROR);
     }
   }
 }

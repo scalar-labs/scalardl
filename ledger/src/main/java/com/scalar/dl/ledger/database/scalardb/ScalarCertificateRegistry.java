@@ -13,10 +13,10 @@ import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.crypto.CertificateEntry;
 import com.scalar.dl.ledger.database.CertificateRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.concurrent.Immutable;
 
@@ -45,7 +45,7 @@ public class ScalarCertificateRegistry implements CertificateRegistry {
     try {
       storage.put(put);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.BINDING_CERTIFICATE_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't bind the public key", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -61,7 +61,7 @@ public class ScalarCertificateRegistry implements CertificateRegistry {
     try {
       storage.delete(delete);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.UNBINDING_CERTIFICATE_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't unbind the public key", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -80,9 +80,10 @@ public class ScalarCertificateRegistry implements CertificateRegistry {
           storage
               .get(get)
               .orElseThrow(
-                  () -> new MissingCertificateException(CommonError.CERTIFICATE_NOT_FOUND));
+                  () -> new MissingCertificateException("the specified public key not found"));
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.GETTING_CERTIFICATE_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the public key from storage", e, StatusCode.DATABASE_ERROR);
     }
 
     return toCertEntry(result);
@@ -112,8 +113,7 @@ public class ScalarCertificateRegistry implements CertificateRegistry {
           getPemFrom(result),
           getRegisteredAtFrom(result));
     } catch (Exception e) {
-      throw new UnexpectedValueException(
-          CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+      throw new UnexpectedValueException(e);
     }
   }
 }

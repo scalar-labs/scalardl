@@ -6,7 +6,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -160,7 +159,7 @@ public class AssetProof {
     byte[] bytes = serialize(id, age, nonce, input, hash, prevHash);
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(CommonError.PROOF_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException("The proof signature can't be validated with the validator.");
     }
   }
 
@@ -354,8 +353,7 @@ public class AssetProof {
           || hash == null
           || signature == null
           || (age >= 1 && prevHash == null)) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("Required fields are not given.");
       }
       return new AssetProof(this);
     }

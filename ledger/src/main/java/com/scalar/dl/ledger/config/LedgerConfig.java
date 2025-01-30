@@ -7,8 +7,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.moandjiezana.toml.Toml;
 import com.scalar.db.config.DatabaseConfig;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitConfig;
-import com.scalar.dl.ledger.error.LedgerError;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.FileInputStream;
@@ -410,8 +408,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
       hmacCipherKey = ConfigUtils.getString(props, AUTHENTICATION_HMAC_CIPHER_KEY, null);
       if (hmacCipherKey == null) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_CIPHER_KEY_REQUIRED_FOR_HMAC.buildMessage(
-                AUTHENTICATION_HMAC_CIPHER_KEY));
+            AUTHENTICATION_HMAC_CIPHER_KEY + " must be set if HMAC authentication is used.");
       }
     }
     port = ConfigUtils.getInt(props, SERVER_PORT, DEFAULT_PORT);
@@ -445,28 +442,35 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     if (isAuditorEnabled) {
       if (!isProofEnabled) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_PROOF_MUST_BE_ENABLED.buildMessage(PROOF_ENABLED));
+            PROOF_ENABLED + " must be set to true if auditor is enabled.");
       }
       serversAuthHmacSecretKey =
           ConfigUtils.getString(props, SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, null);
       if (serversAuthHmacSecretKey == null && proofPrivateKey == null) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR.buildMessage(
+            String.format(
+                "Authentication between Ledger and Auditor is not correctly configured."
+                    + "Set %s or set a private key with %s or %s.",
                 SERVERS_AUTHENTICATION_HMAC_SECRET_KEY,
                 PROOF_PRIVATE_KEY_PATH,
                 PROOF_PRIVATE_KEY_PEM));
       }
       if (authenticationMethod == AuthenticationMethod.HMAC && serversAuthHmacSecretKey == null) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR_HMAC
-                .buildMessage(SERVERS_AUTHENTICATION_HMAC_SECRET_KEY));
+            String.format(
+                "Authentication between Ledger and Auditor is not correctly configured."
+                    + "Set %s if you use HMAC authentication with Auditor enabled.",
+                SERVERS_AUTHENTICATION_HMAC_SECRET_KEY));
       }
     } else { // Auditor disabled
       if (isProofEnabled) {
         checkArgument(
             proofPrivateKey != null,
-            LedgerError.CONFIG_PRIVATE_KEY_PEM_OR_PATH_REQUIRED_FOR_PROOF_ENABLED.buildMessage(
-                PROOF_PRIVATE_KEY_PEM, PROOF_PRIVATE_KEY_PATH));
+            "either "
+                + PROOF_PRIVATE_KEY_PEM
+                + " or "
+                + PROOF_PRIVATE_KEY_PATH
+                + " must be set if proof is enabled.");
       }
     }
     auditorCertHolderId =
@@ -503,21 +507,14 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     if (transactionManager.equals("jdbc")) {
       if (isAuditorEnabled && !isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_ENABLED_FOR_JDBC_TRANSACTION
-                .buildMessage(TX_STATE_MANAGEMENT_ENABLED));
+            TX_STATE_MANAGEMENT_ENABLED
+                + " must be set to true when using JdbcTransactionManager in the Auditor mode.");
       }
     } else if (transactionManager.equals("consensus-commit")) {
       if (isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
-            LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_DISABLED_FOR_CONSENSUS_COMMIT
-                .buildMessage(TX_STATE_MANAGEMENT_ENABLED));
-      }
-
-      ConsensusCommitConfig consensusCommitConfig = new ConsensusCommitConfig(databaseConfig);
-      if (consensusCommitConfig.isCoordinatorGroupCommitEnabled()) {
-        throw new IllegalArgumentException(
-            LedgerError.CONFIG_GROUP_COMMIT_MUST_BE_DISABLED.buildMessage(
-                ConsensusCommitConfig.COORDINATOR_GROUP_COMMIT_ENABLED));
+            TX_STATE_MANAGEMENT_ENABLED
+                + " must be disabled when using ConsensusCommitManager for performance reasons.");
       }
     }
   }

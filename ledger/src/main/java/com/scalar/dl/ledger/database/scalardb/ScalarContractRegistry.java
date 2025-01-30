@@ -19,10 +19,10 @@ import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
 import com.scalar.dl.ledger.contract.ContractEntry;
 import com.scalar.dl.ledger.database.ContractRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.Arrays;
@@ -56,7 +56,9 @@ public class ScalarContractRegistry implements ContractRegistry {
   @Override
   public void bind(ContractEntry entry) {
     if (hasDifferentClassWithSameName(entry)) {
-      throw new DatabaseException(CommonError.DIFFERENT_CLASS_WITH_SAME_NAME);
+      throw new DatabaseException(
+          "the contract binary name has been already registered with a different byte code.",
+          StatusCode.CONTRACT_ALREADY_REGISTERED);
     }
 
     ScalarContractEntry wrapped = new ScalarContractEntry(entry);
@@ -83,13 +85,13 @@ public class ScalarContractRegistry implements ContractRegistry {
     } catch (NoMutationException e) {
       // it's already registered
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.BINDING_CONTRACT_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't bind the contract", e, StatusCode.DATABASE_ERROR);
     }
 
     try {
       storage.put(putForContract);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.BINDING_CONTRACT_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't bind the contract", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -139,7 +141,8 @@ public class ScalarContractRegistry implements ContractRegistry {
           .map(r -> toContractEntry(r, get(prepareGetForClass(getNameFrom(r)))))
           .collect(Collectors.toList());
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.SCANNING_CONTRACT_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the contracts from storage", e, StatusCode.DATABASE_ERROR);
     } finally {
       if (scanner != null) {
         try {
@@ -169,11 +172,10 @@ public class ScalarContractRegistry implements ContractRegistry {
 
   private Result get(Get get) {
     try {
-      return storage
-          .get(get)
-          .orElseThrow(() -> new MissingContractException(CommonError.CONTRACT_NOT_FOUND));
+      return storage.get(get).orElseThrow(() -> new MissingContractException("contract not found"));
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.GETTING_CONTRACT_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the contract from storage", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -242,8 +244,7 @@ public class ScalarContractRegistry implements ContractRegistry {
           getRegisteredAtFrom(forContract),
           getSignatureFrom(forContract));
     } catch (Exception e) {
-      throw new UnexpectedValueException(
-          CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+      throw new UnexpectedValueException(e);
     }
   }
 }

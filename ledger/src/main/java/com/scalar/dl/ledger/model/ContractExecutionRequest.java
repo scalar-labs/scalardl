@@ -3,8 +3,6 @@ package com.scalar.dl.ledger.model;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.CommonError;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.util.Argument;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -153,7 +151,7 @@ public class ContractExecutionRequest extends AbstractRequest {
     byte[] bytes = serialize(contractId, contractArgument, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(CommonError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException("The request signature can't be validated with the validator.");
     }
   }
 
@@ -169,7 +167,8 @@ public class ContractExecutionRequest extends AbstractRequest {
     byte[] bytes = buffer.array();
 
     if (!validator.validate(bytes, auditorSignature)) {
-      throw new SignatureException(LedgerError.AUDITOR_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException(
+          "The signature from an auditor can't be validated with the validator.");
     }
   }
 

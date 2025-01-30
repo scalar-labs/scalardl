@@ -10,7 +10,6 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.ClientMode;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.client.util.RequestSigner;
@@ -97,7 +96,7 @@ public class ClientService implements AutoCloseable {
     checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getDigitalSignatureIdentityConfig() != null,
-        ClientError.CONFIG_DIGITAL_SIGNATURE_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
+        "Please enable digital signature authentication to call the method.");
     CertificateRegistrationRequest request =
         CertificateRegistrationRequest.newBuilder()
             .setEntityId(config.getDigitalSignatureIdentityConfig().getEntityId())
@@ -138,7 +137,7 @@ public class ClientService implements AutoCloseable {
     checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getHmacIdentityConfig() != null,
-        ClientError.CONFIG_HMAC_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
+        "Please enable HMAC authentication to call the method.");
     SecretRegistrationRequest request =
         SecretRegistrationRequest.newBuilder()
             .setEntityId(config.getHmacIdentityConfig().getEntityId())
@@ -181,10 +180,9 @@ public class ClientService implements AutoCloseable {
    */
   public void registerFunction(String id, String name, byte[] functionBytes) {
     checkClientMode(ClientMode.CLIENT);
-    checkArgument(id != null, ClientError.SERVICE_FUNCTION_ID_CANNOT_BE_NULL.buildMessage());
-    checkArgument(name != null, ClientError.SERVICE_FUNCTION_NAME_CANNOT_BE_NULL.buildMessage());
-    checkArgument(
-        functionBytes != null, ClientError.SERVICE_FUNCTION_BYTES_CANNOT_BE_NULL.buildMessage());
+    checkArgument(id != null, "id cannot be null");
+    checkArgument(name != null, "name cannot be null");
+    checkArgument(functionBytes != null, "functionBytes cannot be null");
 
     FunctionRegistrationRequest request =
         FunctionRegistrationRequest.newBuilder()
@@ -207,10 +205,9 @@ public class ClientService implements AutoCloseable {
    */
   public void registerFunction(String id, String name, String functionPath) {
     checkClientMode(ClientMode.CLIENT);
-    checkArgument(id != null, ClientError.SERVICE_FUNCTION_ID_CANNOT_BE_NULL.buildMessage());
-    checkArgument(name != null, ClientError.SERVICE_FUNCTION_NAME_CANNOT_BE_NULL.buildMessage());
-    checkArgument(
-        functionPath != null, ClientError.SERVICE_FUNCTION_PATH_CANNOT_BE_NULL.buildMessage());
+    checkArgument(id != null, "id cannot be null");
+    checkArgument(name != null, "name cannot be null");
+    checkArgument(functionPath != null, "functionPath cannot be null");
 
     byte[] functionBytes = Common.fileToBytes(functionPath);
     registerFunction(id, name, functionBytes);
@@ -380,8 +377,7 @@ public class ClientService implements AutoCloseable {
    */
   public void registerContract(
       String id, String name, String contractPath, @Nullable String properties) {
-    checkArgument(
-        contractPath != null, ClientError.SERVICE_CONTRACT_PATH_CANNOT_BE_NULL.buildMessage());
+    checkArgument(contractPath != null, "contractPath cannot be null");
     byte[] contractBytes = Common.fileToBytes(contractPath);
     registerContract(id, name, contractBytes, properties);
   }
@@ -400,10 +396,9 @@ public class ClientService implements AutoCloseable {
   public void registerContract(
       String id, String name, byte[] contractBytes, @Nullable String properties) {
     checkClientMode(ClientMode.CLIENT);
-    checkArgument(id != null, ClientError.SERVICE_CONTRACT_ID_CANNOT_BE_NULL.buildMessage());
-    checkArgument(name != null, ClientError.SERVICE_CONTRACT_NAME_CANNOT_BE_NULL.buildMessage());
-    checkArgument(
-        contractBytes != null, ClientError.SERVICE_CONTRACT_BYTES_CANNOT_BE_NULL.buildMessage());
+    checkArgument(id != null, "id cannot be null");
+    checkArgument(name != null, "name cannot be null");
+    checkArgument(contractBytes != null, "contractBytes cannot be null");
 
     ContractRegistrationRequest.Builder builder =
         ContractRegistrationRequest.newBuilder()
@@ -500,19 +495,12 @@ public class ClientService implements AutoCloseable {
    * functions have to be based on JSONP, such as {@code JsonpBasedContract} and {@code
    * JsonpBasedFunction}.
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce, String contractId, JsonObject contractArgument) {
     return executeContract(nonce, contractId, contractArgument, null, null);
@@ -550,10 +538,6 @@ public class ClientService implements AutoCloseable {
    * execute with the specified contract, but this feature is deprecated and will be removed in
    * release 5.0.0.</b>
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
@@ -562,7 +546,6 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
   @Deprecated
   public ContractExecutionResult executeContract(
       String nonce,
@@ -604,10 +587,6 @@ public class ClientService implements AutoCloseable {
    * functions have to be based on JSONP, such as {@code JsonpBasedContract} and {@code
    * JsonpBasedFunction}.
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
@@ -615,10 +594,7 @@ public class ClientService implements AutoCloseable {
    * @param functionArgument an argument of the function
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce,
       String contractId,
@@ -651,19 +627,12 @@ public class ClientService implements AutoCloseable {
    * Executes the specified contract with the specified argument. The contract has to be based on
    * Jackson (i.e., {@code JacksonBasedContract}).
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce, String contractId, JsonNode contractArgument) {
     return executeContract(nonce, contractId, contractArgument, null, null);
@@ -695,10 +664,6 @@ public class ClientService implements AutoCloseable {
    * functions have to be based on Jackson, such as {@code JacksonBasedContract} and {@code
    * JacksonBasedFunction}.
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
@@ -706,10 +671,7 @@ public class ClientService implements AutoCloseable {
    * @param functionArgument an argument of the function
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce,
       String contractId,
@@ -742,19 +704,12 @@ public class ClientService implements AutoCloseable {
    * Executes the specified contract with the specified argument. The contract has to be based on
    * String (i.e., {@code StringBasedContract}).
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce, String contractId, String contractArgument) {
     return executeContractInternal(
@@ -791,10 +746,6 @@ public class ClientService implements AutoCloseable {
    * functions have to be based on String, such as {@code StringBasedContract} and {@code
    * StringBasedFunction}.
    *
-   * <p><b>This method is only for internal use and will be removed in release 5.0.0. Users should
-   * not depend on it. Instead, execute contracts without specifying a nonce by using other
-   * methods.</b>
-   *
    * @param nonce a unique ID of the execution request
    * @param contractId an ID of the contract
    * @param contractArgument an argument of the contract
@@ -802,10 +753,7 @@ public class ClientService implements AutoCloseable {
    * @param functionArgument an argument of the function
    * @return {@link ContractExecutionResult}
    * @throws ClientException if a request fails for some reason
-   * @deprecated This method will be removed in release 5.0.0.
    */
-  @VisibleForTesting
-  @Deprecated
   public ContractExecutionResult executeContract(
       String nonce,
       String contractId,
@@ -827,11 +775,8 @@ public class ClientService implements AutoCloseable {
       List<String> functionIds,
       @Nullable String functionArgument) {
     checkClientMode(ClientMode.CLIENT);
-    checkArgument(
-        contractId != null, ClientError.SERVICE_CONTRACT_ID_CANNOT_BE_NULL.buildMessage());
-    checkArgument(
-        contractArgument != null,
-        ClientError.SERVICE_CONTRACT_ARGUMENT_CANNOT_BE_NULL.buildMessage());
+    checkArgument(contractId != null, "contractId cannot be null");
+    checkArgument(contractArgument != null, "contractArgument cannot be null");
 
     ContractExecutionRequest.Builder builder =
         ContractExecutionRequest.newBuilder()
@@ -894,9 +839,8 @@ public class ClientService implements AutoCloseable {
    */
   public LedgerValidationResult validateLedger(String assetId, int startAge, int endAge) {
     checkClientMode(ClientMode.CLIENT);
-    checkArgument(assetId != null, ClientError.SERVICE_ASSET_ID_CANNOT_BE_NULL.buildMessage());
-    checkArgument(
-        endAge >= startAge && startAge >= 0, ClientError.SERVICE_INVALID_ASSET_AGES.buildMessage());
+    checkArgument(assetId != null, "assetId cannot be null");
+    checkArgument(endAge >= startAge && startAge >= 0, "invalid ages specified");
 
     if (config.isAuditorEnabled()) {
       return validateLedgerWithContractExecution(assetId, startAge, endAge);
@@ -927,8 +871,8 @@ public class ClientService implements AutoCloseable {
 
     if (config.isAuditorEnabled()) {
       throw new UnsupportedOperationException(
-          ClientError.CONFIG_VALIDATE_LEDGER_WITH_AUDITOR_NOT_SUPPORTED_WITH_INTERMEDIARY_MODE
-              .buildMessage());
+          "validateLedger with Auditor is not supported in the intermediary mode. "
+              + "Please execute ValidateLedger contract simply for validating assets.");
     }
 
     LedgerValidationRequest request;
@@ -953,9 +897,7 @@ public class ClientService implements AutoCloseable {
   }
 
   private void checkClientMode(ClientMode expected) {
-    checkArgument(
-        config.getClientMode().equals(expected),
-        ClientError.CONFIG_WRONG_CLIENT_MODE_SPECIFIED.buildMessage());
+    checkArgument(config.getClientMode().equals(expected), "wrong mode specified.");
   }
 
   private String getEntityId() {

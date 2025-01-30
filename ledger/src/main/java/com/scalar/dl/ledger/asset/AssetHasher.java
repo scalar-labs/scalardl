@@ -6,7 +6,6 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import com.scalar.dl.ledger.error.CommonError;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.concurrent.Immutable;
 
@@ -93,8 +92,7 @@ public class AssetHasher {
           || argument == null
           || signature == null
           || (age > 0 && prevHash == null)) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("required elements are missing");
       }
 
       // TODO: generalize

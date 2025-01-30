@@ -2,7 +2,6 @@ package com.scalar.dl.ledger.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -120,16 +119,13 @@ public class TargetConfig {
     }
 
     public TargetConfig.Builder port(int port) {
-      checkArgument(
-          port >= 0, CommonError.PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+      checkArgument(port >= 0);
       this.port = port;
       return this;
     }
 
     public TargetConfig.Builder privilegedPort(int privilegedPort) {
-      checkArgument(
-          privilegedPort >= 0,
-          CommonError.PORT_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+      checkArgument(privilegedPort >= 0);
       this.privilegedPort = privilegedPort;
       return this;
     }
@@ -161,8 +157,7 @@ public class TargetConfig {
 
     public TargetConfig build() {
       if (host == null || port < 0 || privilegedPort < 0) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("Required fields are not given.");
       }
       return new TargetConfig(this);
     }

@@ -1,14 +1,11 @@
 package com.scalar.dl.ledger.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.asset.AssetHasher;
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -110,12 +107,11 @@ public class HashValidatorTest {
         createAssetMock(
             tampered, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -128,12 +124,11 @@ public class HashValidatorTest {
         createAssetMock(
             ID, tampered, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -154,12 +149,11 @@ public class HashValidatorTest {
             PREV_HASH,
             hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -180,12 +174,11 @@ public class HashValidatorTest {
             PREV_HASH,
             hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -198,12 +191,11 @@ public class HashValidatorTest {
         createAssetMock(
             ID, AGE, INPUT, DATA, tampered, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -215,12 +207,11 @@ public class HashValidatorTest {
     InternalAsset asset =
         createAssetMock(ID, AGE, INPUT, DATA, CONTRACT_ID, tampered, SIGNATURE, PREV_HASH, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -234,12 +225,11 @@ public class HashValidatorTest {
         createAssetMock(
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, tampered, PREV_HASH, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -253,12 +243,11 @@ public class HashValidatorTest {
         createAssetMock(
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, tampered, hash);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 
   @Test
@@ -272,11 +261,10 @@ public class HashValidatorTest {
         createAssetMock(
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, tampered);
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_HASH);
   }
 }

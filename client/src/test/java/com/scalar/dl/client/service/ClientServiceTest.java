@@ -33,8 +33,6 @@ import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -61,14 +59,15 @@ public class ClientServiceTest {
   private static final int ANY_KEY_VERSION = 1;
   private static final String ANY_CONTRACT_ID = "id";
   private static final String ANY_CONTRACT_NAME = "name";
+  private static final String ANY_CONTRACT_PATH = "/dev/null";
   private static final String ANY_CONTRACT_ARGUMENT = "{\"asset_id\":\"asset_id\"}";
   private static final String ANY_CONTRACT_RESULT = "{\"result\":\"contract_result\"}";
   private static final String ANY_ASSET_ID = "asset_id";
   private static final String ANY_FUNCTION_ID = "id";
   private static final String ANY_FUNCTION_NAME = "name";
+  private static final String ANY_FUNCTION_PATH = "/dev/null";
   private static final String ANY_FUNCTION_RESULT = "{\"result\":\"function_result\"}";
   private static final byte[] ANY_HASH = "hash".getBytes(StandardCharsets.UTF_8);
-  private static final String ANY_FILE_NAME = "file_name";
   @Mock private LedgerClient client;
   @Mock private AuditorClient auditorClient;
   private ClientServiceHandler handler;
@@ -77,10 +76,9 @@ public class ClientServiceTest {
   @Mock private DigitalSignatureIdentityConfig digitalSignatureIdentityConfig;
   @Mock private HmacIdentityConfig hmacIdentityConfig;
   private ClientService service;
-  private String anyFilePath;
 
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() {
     MockitoAnnotations.openMocks(this);
     handler = spy(new DefaultClientServiceHandler(client, auditorClient));
     signer = spy(new RequestSigner(new DigitalSignatureSigner(ANY_PRIVATE_KEY)));
@@ -93,7 +91,6 @@ public class ClientServiceTest {
     when(hmacIdentityConfig.getSecretKeyVersion()).thenReturn(ANY_KEY_VERSION);
     when(hmacIdentityConfig.getSecretKey()).thenReturn(ANY_SECRET_KEY);
     service = spy(new ClientService(config, handler, signer));
-    anyFilePath = File.createTempFile(ANY_FILE_NAME, "").getPath();
   }
 
   @Test
@@ -210,7 +207,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
 
     // Act
-    service.registerFunction(ANY_FUNCTION_ID, ANY_FUNCTION_NAME, anyFilePath);
+    service.registerFunction(ANY_FUNCTION_ID, ANY_FUNCTION_NAME, ANY_FUNCTION_PATH);
 
     // Assert
     verify(client).register(any(FunctionRegistrationRequest.class));
@@ -239,7 +236,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
 
     // Act
-    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, anyFilePath);
+    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, ANY_CONTRACT_PATH);
 
     // Assert
     verify(digitalSignatureIdentityConfig).getEntityId();
@@ -259,7 +256,7 @@ public class ClientServiceTest {
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
 
     // Act
-    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, anyFilePath);
+    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, ANY_CONTRACT_PATH);
 
     // Assert
     verify(hmacIdentityConfig).getEntityId();
@@ -297,7 +294,7 @@ public class ClientServiceTest {
     when(config.isAuditorEnabled()).thenReturn(true);
 
     // Act
-    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, anyFilePath);
+    service.registerContract(ANY_CONTRACT_ID, ANY_CONTRACT_NAME, ANY_CONTRACT_PATH);
 
     // Assert
     verify(digitalSignatureIdentityConfig).getEntityId();

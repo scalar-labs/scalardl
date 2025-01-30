@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.exception;
 
-import com.scalar.dl.ledger.error.ScalarDlError;
 import com.scalar.dl.ledger.service.StatusCode;
 
 public class LedgerException extends RuntimeException {
@@ -14,10 +13,6 @@ public class LedgerException extends RuntimeException {
   public LedgerException(String message, Throwable cause, StatusCode code) {
     super(message, cause);
     this.code = code;
-  }
-
-  public LedgerException(ScalarDlError error, Object... args) {
-    this(error.buildMessage(args), error.getStatusCode());
   }
 
   public StatusCode getCode() {

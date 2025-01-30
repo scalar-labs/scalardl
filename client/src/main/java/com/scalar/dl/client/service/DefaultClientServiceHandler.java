@@ -2,7 +2,6 @@ package com.scalar.dl.client.service;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
@@ -201,7 +200,8 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
       ContractExecutionResponse ledgerResponse, ContractExecutionResponse auditorResponse) {
     Runnable throwError =
         () -> {
-          throw new ValidationException(ClientError.INCONSISTENT_RESULTS);
+          throw new ValidationException(
+              "The results from Ledger and Auditor don't match", StatusCode.INCONSISTENT_STATES);
         };
 
     if (!ledgerResponse.getContractResult().equals(auditorResponse.getContractResult())

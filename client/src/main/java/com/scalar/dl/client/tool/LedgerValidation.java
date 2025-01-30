@@ -7,12 +7,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.proof.AssetProof;
+import com.scalar.dl.ledger.service.StatusCode;
 import java.io.File;
 import java.util.Base64;
 import java.util.List;
@@ -69,7 +69,9 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
                       Integer.parseInt(idAndAges.get(1)),
                       Integer.parseInt(idAndAges.get(2)));
             } else {
-              throw new ClientException(ClientError.OPTION_ASSET_ID_IS_MALFORMED);
+              throw new ClientException(
+                  "--asset-id is malformed: the format should be \"[assetId]\" or \"[assetId],[startAge],[endAge]\".",
+                  StatusCode.INVALID_REQUEST);
             }
             ObjectNode json =
                 mapper.createObjectNode().put(Common.STATUS_CODE_KEY, result.getCode().toString());
@@ -84,11 +86,12 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
       printStackTrace(e);
       return 1;
     } catch (NumberFormatException e) {
-      System.out.println(ClientError.OPTION_ASSET_ID_CONTAINS_INVALID_INTEGER);
+      System.out.println("--asset-id contains an invalid integer.");
       printStackTrace(e);
       return 1;
     } catch (IndexOutOfBoundsException e) {
-      System.out.println(ClientError.OPTION_ASSET_ID_IS_MALFORMED.buildMessage());
+      System.out.println(
+          "--asset-id is malformed: the format should be \"[assetId]\" or \"[assetId],[startAge],[endAge]\".");
       printStackTrace(e);
       return 1;
     } finally {

@@ -3,7 +3,6 @@ package com.scalar.dl.ledger.config;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.scalar.dl.ledger.error.CommonError;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -59,7 +58,7 @@ public final class ConfigUtils {
       return Integer.parseInt(value);
     } catch (NumberFormatException ignored) {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_NUMBER_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a number. value: " + value);
     }
   }
 
@@ -73,7 +72,7 @@ public final class ConfigUtils {
       return Integer.parseInt(value);
     } catch (NumberFormatException ignored) {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_NUMBER_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a number. value: " + value);
     }
   }
 
@@ -86,7 +85,7 @@ public final class ConfigUtils {
       return Long.parseLong(value);
     } catch (NumberFormatException ignored) {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_NUMBER_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a number. value: " + value);
     }
   }
 
@@ -100,7 +99,7 @@ public final class ConfigUtils {
       return Long.parseLong(value);
     } catch (NumberFormatException ignored) {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_NUMBER_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a number. value: " + value);
     }
   }
 
@@ -114,7 +113,7 @@ public final class ConfigUtils {
       return Boolean.parseBoolean(value);
     } else {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_BOOLEAN_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a boolean value. value: " + value);
     }
   }
 
@@ -130,7 +129,7 @@ public final class ConfigUtils {
       return Boolean.parseBoolean(value);
     } else {
       throw new IllegalArgumentException(
-          CommonError.CONFIG_UTILS_INVALID_BOOLEAN_FORMAT.buildMessage(name, value));
+          "the specified value of '" + name + "' is not a boolean value. value: " + value);
     }
   }
 
@@ -154,8 +153,7 @@ public final class ConfigUtils {
     try {
       return new String(Files.readAllBytes(new File(path).toPath()), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new UncheckedIOException(
-          CommonError.CONFIG_UTILS_READING_FILE_FAILED.buildMessage(path), e);
+      throw new UncheckedIOException(e);
     }
   }
 

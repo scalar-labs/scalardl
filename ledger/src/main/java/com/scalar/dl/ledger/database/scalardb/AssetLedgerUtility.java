@@ -14,7 +14,6 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetRecord;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.util.Argument;
 
@@ -61,8 +60,7 @@ public class AssetLedgerUtility {
       builder.hash(result.getValue(HASH).get().getAsBytes().get());
       return builder.build();
     } catch (Exception e) {
-      throw new UnexpectedValueException(
-          CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+      throw new UnexpectedValueException(e);
     }
   }
 }

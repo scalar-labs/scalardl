@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
@@ -268,8 +267,7 @@ public class AssetRecord implements InternalAsset {
 
     public AssetRecord build() {
       if (id == null || age < 0) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("required values are not set properly.");
       }
       return new AssetRecord(this);
     }

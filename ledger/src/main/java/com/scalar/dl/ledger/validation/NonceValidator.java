@@ -1,8 +1,6 @@
 package com.scalar.dl.ledger.validation;
 
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -30,7 +28,13 @@ public class NonceValidator implements LedgerValidator {
     String nonce = Argument.getNonce(record.argument());
 
     if (seenNonces.contains(nonce)) {
-      throw new ValidationException(LedgerError.VALIDATION_FAILED_FOR_NONCE, record.id(), nonce);
+      LogHolder.LOGGER.error(
+          "Validation failed: "
+              + record.id()
+              + " contains the nonce '"
+              + nonce
+              + "' more than once");
+      return StatusCode.INVALID_NONCE;
     }
 
     seenNonces.add(nonce);

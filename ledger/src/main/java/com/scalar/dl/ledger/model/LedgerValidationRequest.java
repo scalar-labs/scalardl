@@ -1,7 +1,6 @@
 package com.scalar.dl.ledger.model;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.ByteBuffer;
@@ -125,7 +124,7 @@ public class LedgerValidationRequest extends AbstractRequest {
     byte[] bytes = serialize(assetId, startAge, endAge, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(LedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException("The request signature can't be validated with the validator.");
     }
   }
 

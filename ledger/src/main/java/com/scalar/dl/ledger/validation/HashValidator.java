@@ -2,8 +2,6 @@ package com.scalar.dl.ledger.validation;
 
 import com.scalar.dl.ledger.asset.AssetHasher;
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -35,7 +33,8 @@ public class HashValidator implements LedgerValidator {
             .get();
 
     if (!Arrays.equals(hash, record.hash())) {
-      throw new ValidationException(LedgerError.VALIDATION_FAILED_FOR_HASH);
+      logError("validation failed for hash", hash, record.hash());
+      return StatusCode.INVALID_HASH;
     }
     return StatusCode.OK;
   }

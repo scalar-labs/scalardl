@@ -2,7 +2,6 @@ package com.scalar.dl.client.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 
@@ -80,29 +79,26 @@ public class DigitalSignatureIdentityConfig {
     }
 
     public DigitalSignatureIdentityConfig.Builder certVersion(int certVersion) {
-      checkArgument(
-          certVersion >= 0,
-          CommonError.CERT_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+      checkArgument(certVersion >= 0);
       this.certVersion = certVersion;
       return this;
     }
 
     public DigitalSignatureIdentityConfig.Builder cert(String cert) {
-      checkArgument(cert != null, CommonError.PRIVATE_KEY_AND_CERT_REQUIRED.buildMessage());
+      checkArgument(cert != null);
       this.cert = cert;
       return this;
     }
 
     public DigitalSignatureIdentityConfig.Builder privateKey(String privateKey) {
-      checkArgument(privateKey != null, CommonError.PRIVATE_KEY_AND_CERT_REQUIRED.buildMessage());
+      checkArgument(privateKey != null);
       this.privateKey = privateKey;
       return this;
     }
 
     public DigitalSignatureIdentityConfig build() {
       if (entityId == null || certVersion < 0 || cert == null || privateKey == null) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("Required fields are not given.");
       }
       return new DigitalSignatureIdentityConfig(this);
     }

@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.config;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Arrays;
 
 public enum AuthenticationMethod {
@@ -22,9 +21,6 @@ public enum AuthenticationMethod {
     return Arrays.stream(AuthenticationMethod.values())
         .filter(v -> v.method.equals(method))
         .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    CommonError.INVALID_AUTHENTICATION_METHOD.buildMessage(method)));
+        .orElseThrow(() -> new IllegalArgumentException("Invalid method name:" + method));
   }
 }

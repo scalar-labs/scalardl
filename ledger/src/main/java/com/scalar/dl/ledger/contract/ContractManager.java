@@ -7,12 +7,13 @@ import com.google.inject.Inject;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.database.ContractRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.ContractValidationException;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingContractException;
+import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.exception.UnloadableContractException;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +75,8 @@ public class ContractManager {
       get(entry.getKey());
       // Throw an exception because registering the same contract might cause invalidation of ledger
       // entries
-      throw new DatabaseException(CommonError.CONTRACT_ALREADY_REGISTERED);
+      throw new DatabaseException(
+          "the contract entry is already registered.", StatusCode.CONTRACT_ALREADY_REGISTERED);
     } catch (MissingContractException e) {
       // ignore
     }
@@ -132,7 +134,7 @@ public class ContractManager {
       // Errors should not be caught in general but it is necessary in our case
       // since contract creators and the loader are usually different and the loader should let
       // the creators know what is happening for them to take proper actions.
-      throw new UnloadableContractException(CommonError.LOADING_CONTRACT_FAILED, e, e.getMessage());
+      throw new UnloadableContractException(e.getMessage(), e);
     }
   }
 
@@ -147,7 +149,7 @@ public class ContractManager {
     try {
       return clazz.getConstructor().newInstance();
     } catch (Exception e) {
-      throw new UnloadableContractException(CommonError.LOADING_CONTRACT_FAILED, e.getMessage());
+      throw new UnloadableContractException("can't load the contract.");
     }
   }
 
@@ -165,10 +167,15 @@ public class ContractManager {
             entry.getEntityId(),
             entry.getKeyVersion());
 
-    if (!validator.validate(serialized, entry.getSignature())) {
-      // The contract was properly registered with the correct signature,
-      // so this validation failure indicates potential malicious behavior.
-      throw new ContractValidationException(CommonError.CONTRACT_VALIDATION_FAILED);
+    try {
+      if (!validator.validate(serialized, entry.getSignature())) {
+        // the contract was properly registered with correct signature,
+        // so this validation failure indicates potential malicious behavior.
+        throw new ContractValidationException(
+            "contract validation failed for some bad reason potentially.");
+      }
+    } catch (SignatureException e) {
+      throw new SignatureException("signature object might not be initialized properly.");
     }
   }
 }

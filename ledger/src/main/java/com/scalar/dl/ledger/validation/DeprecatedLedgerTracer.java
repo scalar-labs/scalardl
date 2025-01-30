@@ -2,7 +2,6 @@ package com.scalar.dl.ledger.validation;
 
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.Ledger;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.AssetMetadata;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedgerReturnable;
@@ -89,7 +88,8 @@ public class DeprecatedLedgerTracer extends LedgerTracerBase<JsonObject>
       public AssetMetadata metadata() {
         com.scalar.dl.ledger.asset.AssetMetadata metadata = asset.metadata();
         if (metadata == null) {
-          throw new IllegalStateException(CommonError.METADATA_NOT_AVAILABLE.buildMessage());
+          throw new IllegalStateException(
+              "The metadata is not available since the asset has not been committed yet.");
         }
         return new AssetMetadata() {
           @Override

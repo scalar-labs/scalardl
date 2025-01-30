@@ -34,28 +34,27 @@ public class ScalarDlCommandLineTest {
 
       // Assert
       String expected =
-          String.join(
-              System.lineSeparator(),
-              "Usage: scalardl [COMMAND]",
-              "These are ScalarDL commands used in various situations:",
-              "",
-              "register identity information",
-              "  register-cert       Register a specified certificate.",
-              "  register-secret     Register a specified secret.",
-              "",
-              "register business logic",
-              "  register-contract   Register a specified contract.",
-              "  register-contracts  Register specified contracts.",
-              "  register-function   Register a specified function.",
-              "  register-functions  Register specified functions.",
-              "",
-              "execute and list the registered business logic",
-              "  execute-contract    Execute a specified contract.",
-              "  list-contracts      List registered contracts.",
-              "",
-              "validate ledger",
-              "  validate-ledger     Validate a specified asset in a ledger.",
-              "");
+          new StringBuilder()
+              .append("Usage: scalardl [COMMAND]\n")
+              .append("These are ScalarDL commands used in various situations:\n")
+              .append("\n")
+              .append("register identity information\n")
+              .append("  register-cert       Register a specified certificate.\n")
+              .append("  register-secret     Register a specified secret.\n")
+              .append("\n")
+              .append("register business logic\n")
+              .append("  register-contract   Register a specified contract.\n")
+              .append("  register-contracts  Register specified contracts.\n")
+              .append("  register-function   Register a specified function.\n")
+              .append("  register-functions  Register specified functions.\n")
+              .append("\n")
+              .append("execute and list the registered business logic\n")
+              .append("  execute-contract    Execute a specified contract.\n")
+              .append("  list-contracts      List registered contracts.\n")
+              .append("\n")
+              .append("validate ledger\n")
+              .append("  validate-ledger     Validate a specified asset in a ledger.\n")
+              .toString();
       assertThat(actual).isEqualTo(expected);
     }
   }

@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Splitter;
 import com.scalar.dl.ledger.crypto.ClientIdentityKey;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.ContractValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
@@ -309,7 +308,7 @@ public class ContractEntry {
     public static Key deserialize(String keyString) {
       List<String> parts = Splitter.on(DELIMITER).splitToList(keyString);
       if (parts.size() != 3) {
-        throw new ContractValidationException(CommonError.INVALID_CONTRACT_ID_FORMAT);
+        throw new ContractValidationException("invalid contract ID format.");
       }
       return new Key(parts.get(2), parts.get(0), Integer.parseInt(parts.get(1)));
     }

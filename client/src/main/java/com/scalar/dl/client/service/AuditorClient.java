@@ -1,10 +1,10 @@
 package com.scalar.dl.client.service;
 
 import com.google.inject.Inject;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.rpc.RpcUtil;
 import com.scalar.dl.ledger.config.TargetConfig;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
 import com.scalar.dl.ledger.service.ThrowableFunction;
 import com.scalar.dl.rpc.AuditorGrpc;
@@ -66,7 +66,7 @@ public class AuditorClient extends AbstractAuditorClient {
       channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
       privilegedChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
-      throw new ClientException(ClientError.SHUTTING_DOWN_CHANNEL_FAILED, e, e.getMessage());
+      throw new ClientException(e.getMessage(), e, StatusCode.RUNTIME_ERROR);
     }
   }
 

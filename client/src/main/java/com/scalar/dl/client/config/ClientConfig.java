@@ -3,7 +3,6 @@ package com.scalar.dl.client.config;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ConfigUtils;
 import com.scalar.dl.ledger.config.GrpcClientConfig;
@@ -392,8 +391,7 @@ public class ClientConfig {
       }
       checkArgument(
           entityId != null,
-          ClientError.CONFIG_ENTITY_ID_OR_CERT_HOLDER_ID_REQUIRED.buildMessage(
-              ENTITY_ID, CERT_HOLDER_ID));
+          ENTITY_ID + " or " + CERT_HOLDER_ID + " are missing but either is required.");
 
       // identity based on digital signature
       certVersion = ConfigUtils.getInt(props, DS_CERT_VERSION, 0);
@@ -440,7 +438,7 @@ public class ClientConfig {
         hmacIdentityConfig = createHmacIdentityConfig();
       } else {
         throw new IllegalArgumentException(
-            ClientError.CONFIG_INVALID_AUTHENTICATION_METHOD_FOR_CLIENT_MODE.buildMessage());
+            "Authentication method must be either digital-signature or hmac for the client mode.");
       }
     } else {
       // for intermediary mode
@@ -454,7 +452,7 @@ public class ClientConfig {
                   .toLowerCase());
       if (authenticationMethod != AuthenticationMethod.PASS_THROUGH) {
         throw new IllegalArgumentException(
-            ClientError.CONFIG_INVALID_AUTHENTICATION_METHOD_FOR_INTERMEDIARY_MODE.buildMessage());
+            "Authentication method must be pass-through for the intermediary mode.");
       }
     }
     isTlsEnabled = ConfigUtils.getBoolean(props, TLS_ENABLED, DEFAULT_TLS_ENABLED);
@@ -504,11 +502,10 @@ public class ClientConfig {
     if (authenticationMethod == AuthenticationMethod.DIGITAL_SIGNATURE
         && (cert == null || privateKey == null)) {
       throw new IllegalArgumentException(
-          ClientError.CONFIG_CERT_AND_KEY_REQUIRED_FOR_DIGITAL_SIGNATURE.buildMessage());
+          "Both cert and private_key must be set to use digital signature.");
     }
     if (authenticationMethod == AuthenticationMethod.HMAC && secretKey == null) {
-      throw new IllegalArgumentException(
-          ClientError.CONFIG_SECRET_KEY_REQUIRED_FOR_HMAC.buildMessage());
+      throw new IllegalArgumentException("secret_key must be set to use HMAC authentication.");
     }
   }
 

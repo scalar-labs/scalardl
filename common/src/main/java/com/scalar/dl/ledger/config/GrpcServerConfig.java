@@ -2,7 +2,6 @@ package com.scalar.dl.ledger.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Objects;
 
 public class GrpcServerConfig {
@@ -51,19 +50,13 @@ public class GrpcServerConfig {
     Builder() {}
 
     public GrpcServerConfig.Builder maxInboundMessageSize(int maxInboundMessageSize) {
-      checkArgument(
-          maxInboundMessageSize >= 0,
-          CommonError.GRPC_MAX_INBOUND_MESSAGE_SIZE_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO
-              .buildMessage());
+      checkArgument(maxInboundMessageSize >= 0);
       this.maxInboundMessageSize = maxInboundMessageSize;
       return this;
     }
 
     public GrpcServerConfig.Builder maxInboundMetadataSize(int maxInboundMetadataSize) {
-      checkArgument(
-          maxInboundMetadataSize >= 0,
-          CommonError.GRPC_MAX_INBOUND_METADATA_SIZE_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO
-              .buildMessage());
+      checkArgument(maxInboundMetadataSize >= 0);
       this.maxInboundMetadataSize = maxInboundMetadataSize;
       return this;
     }

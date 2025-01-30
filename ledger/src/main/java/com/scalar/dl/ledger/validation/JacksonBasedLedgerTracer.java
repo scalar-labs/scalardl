@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetScanner;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.AssetInput;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
@@ -32,7 +32,9 @@ public class JacksonBasedLedgerTracer extends LedgerTracerBase<JsonNode> {
         eachInput -> {
           InternalAsset asset = scanner.doGet(eachInput.id(), eachInput.age());
           if (asset == null) {
-            throw new ValidationException(LedgerError.INCONSISTENT_INPUT_DEPENDENCIES);
+            throw new ValidationException(
+                "the asset specified by input dependencies is not found. ",
+                StatusCode.INCONSISTENT_STATES);
           }
           inputs.put(eachInput.id(), new MetadataComprisedAsset<>(asset, serde::deserialize));
         });

@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.util.Argument;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
@@ -206,8 +205,7 @@ public class RequestProof {
           || entityId == null
           || keyVersion < 1
           || signature == null) {
-        throw new IllegalArgumentException(
-            CommonError.REQUIRED_FIELDS_ARE_NOT_GIVEN.buildMessage());
+        throw new IllegalArgumentException("Required fields are not given.");
       }
       return new RequestProof(this);
     }

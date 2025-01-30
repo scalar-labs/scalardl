@@ -1,7 +1,6 @@
 package com.scalar.dl.ledger.contract;
 
 import com.scalar.dl.ledger.crypto.ClientIdentityKey;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -19,7 +18,7 @@ public class ContractMachine {
     } else if (contract instanceof ContractBase) {
       this.contractBase = (ContractBase<?>) contract;
     } else {
-      throw new IllegalArgumentException(CommonError.UNSUPPORTED_CONTRACT.buildMessage());
+      throw new IllegalArgumentException("unsupported contract type");
     }
   }
 
@@ -74,7 +73,7 @@ public class ContractMachine {
     } else if (contractBase instanceof StringBasedContract) {
       return DeserializationType.STRING;
     } else {
-      throw new IllegalStateException(CommonError.UNSUPPORTED_CONTRACT.buildMessage());
+      throw new IllegalStateException("unsupported contract instance");
     }
   }
 }

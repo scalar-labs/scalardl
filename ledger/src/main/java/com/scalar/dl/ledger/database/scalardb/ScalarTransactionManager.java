@@ -18,9 +18,9 @@ import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.database.TransactionState;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -63,7 +63,7 @@ public class ScalarTransactionManager implements TransactionManager {
         transaction = manager.start(request.getNonce());
       }
     } catch (TransactionException e) {
-      throw new DatabaseException(LedgerError.STARTING_TRANSACTION_FAILED, e, e.getMessage());
+      throw new DatabaseException("starting a transaction failed", e, StatusCode.DATABASE_ERROR);
     }
 
     MutableDatabase<Get, Scan, Put, Delete, Result> database = null;
@@ -98,7 +98,8 @@ public class ScalarTransactionManager implements TransactionManager {
         return convert(manager.getState(transactionId));
       }
     } catch (TransactionException e) {
-      throw new DatabaseException(LedgerError.GETTING_TRANSACTION_STATE_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the transaction state: " + transactionId, e, StatusCode.DATABASE_ERROR);
     }
   }
 

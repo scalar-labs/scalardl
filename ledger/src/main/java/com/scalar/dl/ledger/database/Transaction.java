@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.database;
 
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
@@ -38,8 +37,7 @@ public class Transaction {
       case STRING:
         return new StringBasedAssetLedger(ledger);
       default:
-        throw new IllegalArgumentException(
-            CommonError.UNSUPPORTED_DESERIALIZATION_TYPE.buildMessage(type));
+        throw new IllegalArgumentException("unsupported deserialization type");
     }
   }
 

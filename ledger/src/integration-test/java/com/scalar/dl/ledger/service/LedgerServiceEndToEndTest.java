@@ -75,8 +75,6 @@ import com.scalar.db.schemaloader.SchemaLoaderException;
 import com.scalar.db.service.StorageFactory;
 import com.scalar.db.service.StorageService;
 import com.scalar.db.service.TransactionService;
-import com.scalar.db.storage.cosmos.CosmosAdmin;
-import com.scalar.db.storage.cosmos.CosmosConfig;
 import com.scalar.db.storage.dynamo.DynamoAdmin;
 import com.scalar.db.storage.dynamo.DynamoConfig;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
@@ -153,8 +151,8 @@ public class LedgerServiceEndToEndTest {
   private static final String PROP_USERNAME = "scalardb.username";
   private static final String PROP_PASSWORD = "scalardb.password";
   private static final String PROP_TRANSACTION_MANAGER = "scalardb.transaction_manager";
-  private static final String PROP_COSMOS_REQUEST_UNIT = "scalardb.cosmos.ru";
   private static final String PROP_DYNAMO_ENDPOINT_OVERRIDE = "scalardb.dynamo.endpoint_override";
+  private static final String DEFAULT_SYSTEM_NAMESPACE_NAME = "scalardb";
   private static final String DEFAULT_STORAGE = "cassandra";
   private static final String DEFAULT_CONTACT_POINTS = "localhost";
   private static final String DEFAULT_USERNAME = "cassandra";
@@ -344,8 +342,6 @@ public class LedgerServiceEndToEndTest {
     String password = System.getProperty(PROP_PASSWORD, DEFAULT_PASSWORD);
     String transactionManager =
         System.getProperty(PROP_TRANSACTION_MANAGER, DEFAULT_TRANSACTION_MANAGER);
-    String requestUnit =
-        System.getProperty(PROP_COSMOS_REQUEST_UNIT, CosmosAdmin.DEFAULT_REQUEST_UNIT);
     String endpointOverride =
         System.getProperty(PROP_DYNAMO_ENDPOINT_OVERRIDE, DEFAULT_DYNAMO_ENDPOINT_OVERRIDE);
 
@@ -359,14 +355,9 @@ public class LedgerServiceEndToEndTest {
       props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
     }
 
-    if (storage.equals(CosmosConfig.STORAGE_NAME)) {
-      creationOptions = ImmutableMap.of(CosmosAdmin.REQUEST_UNIT, requestUnit);
-    }
-
     if (storage.equals(DynamoConfig.STORAGE_NAME)) {
       props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
-      props.put(
-          DynamoConfig.TABLE_METADATA_NAMESPACE, DatabaseConfig.DEFAULT_SYSTEM_NAMESPACE_NAME);
+      props.put(DynamoConfig.TABLE_METADATA_NAMESPACE, DEFAULT_SYSTEM_NAMESPACE_NAME);
       creationOptions =
           ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
     }
@@ -1964,85 +1955,6 @@ public class LedgerServiceEndToEndTest {
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(ContractContextException.class);
-  }
-
-  @Test
-  public void execute_FunctionTwiceWithPutButWithoutGet_ShouldPutRecordAndUpdateItCorrectly()
-      throws TransactionException {
-    // Arrange
-    String nonce1 = UUID.randomUUID().toString();
-    String nonce2 = UUID.randomUUID().toString();
-    JsonNode contractArgument1 =
-        mapper
-            .createObjectNode()
-            .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
-            .put(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(Argument.NONCE_KEY_NAME, nonce1);
-    JsonNode contractArgument2 =
-        mapper
-            .createObjectNode()
-            .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
-            .put(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_2)
-            .put(Argument.NONCE_KEY_NAME, nonce2);
-    JsonNode functionArgument1 =
-        mapper
-            .createObjectNode()
-            .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1);
-    JsonNode functionArgument2 =
-        mapper
-            .createObjectNode()
-            .put(ID_ATTRIBUTE_NAME, SOME_ID)
-            .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_2);
-    List<String> functionIds = Collections.singletonList(CreateFunctionWithJackson.class.getName());
-    String argument1 = Argument.format(contractArgument1, nonce1, functionIds);
-    String argument2 = Argument.format(contractArgument2, nonce2, functionIds);
-    byte[] serialized1 =
-        ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, argument1, ENTITY_ID_A, KEY_VERSION);
-    byte[] serialized2 =
-        ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, argument2, ENTITY_ID_A, KEY_VERSION);
-    ContractExecutionRequest request1 =
-        new ContractExecutionRequest(
-            nonce1,
-            ENTITY_ID_A,
-            KEY_VERSION,
-            CREATE_CONTRACT_ID3,
-            argument1,
-            Collections.singletonList(CreateFunctionWithJackson.class.getName()),
-            jacksonSerDe.serialize(functionArgument1),
-            dsSigner1.sign(serialized1),
-            null);
-    ContractExecutionRequest request2 =
-        new ContractExecutionRequest(
-            nonce2,
-            ENTITY_ID_A,
-            KEY_VERSION,
-            CREATE_CONTRACT_ID3,
-            argument2,
-            Collections.singletonList(CreateFunctionWithJackson.class.getName()),
-            jacksonSerDe.serialize(functionArgument2),
-            dsSigner1.sign(serialized2),
-            null);
-
-    // Act
-    ledgerService.execute(request1);
-    ledgerService.execute(request2);
-
-    // Assert
-    Get get =
-        Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
-            .table(FUNCTION_TABLE)
-            .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID))
-            .build();
-    DistributedTransaction transaction = transactionService.start();
-    Optional<Result> functionResult = transaction.get(get);
-    transaction.commit();
-    assertThat(functionResult.isPresent()).isTrue();
-    assertThat(functionResult.get().getValue(BALANCE_ATTRIBUTE_NAME).get().getAsInt())
-        .isEqualTo(SOME_AMOUNT_2);
   }
 
   @Test

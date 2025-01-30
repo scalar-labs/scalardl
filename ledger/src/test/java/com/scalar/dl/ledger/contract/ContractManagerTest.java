@@ -22,7 +22,6 @@ import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
 import com.scalar.dl.ledger.database.ContractRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.ContractValidationException;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingContractException;
@@ -314,13 +313,12 @@ public class ContractManagerTest {
     doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyInt());
     manager = spy(new ContractManager(registry, loader, clientKeyValidator));
     SecurityException toThrow = mock(SecurityException.class);
-    when(toThrow.getMessage()).thenReturn("details");
     doThrow(toThrow).when(loader).defineClass(entry);
 
     // Act
     AssertionsForClassTypes.assertThatThrownBy(() -> manager.getInstance(entry))
         .isInstanceOf(UnloadableContractException.class)
-        .hasMessage(CommonError.LOADING_CONTRACT_FAILED.buildMessage("details"));
+        .hasCause(toThrow);
 
     // Assert
     verify(manager).validateContract(entry);

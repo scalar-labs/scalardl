@@ -5,8 +5,7 @@ import com.scalar.dl.ledger.contract.ContractMachine;
 import com.scalar.dl.ledger.crypto.ClientIdentityKey;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
@@ -25,19 +24,24 @@ public class ContractValidator implements LedgerValidator {
 
   @Override
   public StatusCode validate(Ledger<?> ledger, ContractMachine contract, InternalAsset record) {
-    ClientIdentityKey clientIdentityKey = contract.getClientIdentityKey();
-    SignatureValidator validator =
-        clientKeyValidator.getValidator(
-            clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
-    byte[] serialized =
-        ContractExecutionRequest.serialize(
-            ContractEntry.Key.deserialize(record.contractId()).getId(),
-            record.argument(),
-            clientIdentityKey.getEntityId(),
-            clientIdentityKey.getKeyVersion());
-    if (validator.validate(serialized, record.signature())) {
-      return StatusCode.OK;
+    try {
+      ClientIdentityKey clientIdentityKey = contract.getClientIdentityKey();
+      SignatureValidator validator =
+          clientKeyValidator.getValidator(
+              clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
+      byte[] serialized =
+          ContractExecutionRequest.serialize(
+              ContractEntry.Key.deserialize(record.contractId()).getId(),
+              record.argument(),
+              clientIdentityKey.getEntityId(),
+              clientIdentityKey.getKeyVersion());
+      if (validator.validate(serialized, record.signature())) {
+        return StatusCode.OK;
+      }
+      return StatusCode.INVALID_CONTRACT;
+    } catch (LedgerException e) {
+      LogHolder.LOGGER.error("validation failed", e);
+      throw e;
     }
-    throw new ValidationException(LedgerError.VALIDATION_FAILED_FOR_CONTRACT);
   }
 }

@@ -123,9 +123,6 @@ public enum StatusCode {
   /** StatusCode: 413. This indicates that the given secret is already registered. */
   SECRET_ALREADY_REGISTERED(413),
 
-  /** StatusCode: 414. This indicates that the argument is invalid. */
-  INVALID_ARGUMENT(414),
-
   /**
    * StatusCode: 500. This indicates that the system encountered a database error such as IO error.
    */

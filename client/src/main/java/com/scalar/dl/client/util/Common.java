@@ -1,7 +1,7 @@
 package com.scalar.dl.client.util;
 
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.ledger.service.StatusCode;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +12,7 @@ public class Common {
     try {
       return Files.readAllBytes(new File(filePath).toPath());
     } catch (IOException e) {
-      throw new ClientException(ClientError.READING_FILE_FAILED, e, filePath, e.getMessage());
+      throw new ClientException("can't read " + filePath, e, StatusCode.RUNTIME_ERROR);
     }
   }
 }

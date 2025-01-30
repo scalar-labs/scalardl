@@ -80,9 +80,8 @@ public class ContractExecutionTest {
         assertThat(exitCode).isEqualTo(0);
 
         String stdout = outputStreamCaptor.toString(UTF_8.name()).trim();
-        String separator = System.lineSeparator();
-        assertThat(stdout).contains("Contract result:" + separator + "[ \"CONTRACT_RESULT\" ]");
-        assertThat(stdout).contains("Function result:" + separator + "[ \"FUNCTION_RESULT\" ]");
+        assertThat(stdout).contains("Contract result:\n[ \"CONTRACT_RESULT\" ]");
+        assertThat(stdout).contains("Function result:\n[ \"FUNCTION_RESULT\" ]");
       }
     }
 

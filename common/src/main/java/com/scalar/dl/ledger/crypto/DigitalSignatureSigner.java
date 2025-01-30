@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.crypto;
 
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.exception.UnloadableKeyException;
 import com.scalar.dl.ledger.util.CryptoUtils;
@@ -39,7 +38,7 @@ public class DigitalSignatureSigner implements SignatureSigner {
     try {
       this.privateKey = CryptoUtils.getPrivateKey(new StringReader(privateKeyInPem));
     } catch (IOException | IllegalArgumentException e) {
-      throw new UnloadableKeyException(CommonError.LOADING_KEY_FAILED, e.getMessage());
+      throw new UnloadableKeyException(e.getMessage());
     }
   }
 
@@ -65,7 +64,7 @@ public class DigitalSignatureSigner implements SignatureSigner {
       signature.update(bytes);
       return signature.sign();
     } catch (java.security.SignatureException | NoSuchAlgorithmException | InvalidKeyException e) {
-      throw new SignatureException(CommonError.SIGNATURE_SIGNING_FAILED, e.getMessage());
+      throw new SignatureException(e.getMessage());
     }
   }
 
@@ -73,7 +72,7 @@ public class DigitalSignatureSigner implements SignatureSigner {
     try {
       return new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new UnloadableKeyException(CommonError.LOADING_KEY_FAILED, e.getMessage());
+      throw new UnloadableKeyException(e.getMessage());
     }
   }
 }

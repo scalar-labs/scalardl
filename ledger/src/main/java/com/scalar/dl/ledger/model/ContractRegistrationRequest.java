@@ -3,7 +3,6 @@ package com.scalar.dl.ledger.model;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.ByteBuffer;
@@ -172,7 +171,7 @@ public class ContractRegistrationRequest extends AbstractRequest {
             getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(CommonError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException("The request signature can't be validated with the validator.");
     }
   }
 

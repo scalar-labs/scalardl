@@ -17,7 +17,6 @@ import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
 import com.scalar.dl.ledger.database.TransactionState;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ public class TransactionStateManager {
 
     if (state == COMMITTED || state == ABORTED) {
       throw new ConflictException(
-          LedgerError.TRANSACTION_ALREADY_COMMITTED_OR_ABORTED, state.toString().toLowerCase());
+          "the transaction state has already been " + state.toString().toLowerCase());
     }
 
     put(transaction, transactionId, COMMITTED);

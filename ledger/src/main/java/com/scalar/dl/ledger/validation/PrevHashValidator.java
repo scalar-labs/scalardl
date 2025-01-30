@@ -2,8 +2,6 @@ package com.scalar.dl.ledger.validation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -42,8 +40,8 @@ public class PrevHashValidator implements LedgerValidator {
 
   private boolean validate(InternalAsset record) {
     if (prevHash != null && !Arrays.equals(prevHash, record.prevHash())) {
-      throw new ValidationException(
-          LedgerError.VALIDATION_FAILED_FOR_PREV_HASH, prevHash, record.prevHash());
+      logError("validation failed for prev_hash", prevHash, record.prevHash());
+      return false;
     }
     return true;
   }

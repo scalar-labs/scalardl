@@ -4,8 +4,8 @@ import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetScanner;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
@@ -31,7 +31,7 @@ public class TransactionAssetScanner implements AssetScanner {
       return assets;
     } catch (Exception e) {
       transaction.abort();
-      throw new DatabaseException(LedgerError.RETRIEVING_ASSET_FAILED, e, e.getMessage());
+      throw new DatabaseException("asset retrieval failed", e, StatusCode.DATABASE_ERROR);
     }
   }
 }

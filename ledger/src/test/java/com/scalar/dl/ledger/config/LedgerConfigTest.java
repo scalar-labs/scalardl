@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.scalar.db.config.DatabaseConfig;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitConfig;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -546,34 +545,6 @@ public class LedgerConfigTest {
     props.setProperty(LedgerConfig.PROOF_ENABLED, "false");
     props.setProperty(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
     props.setProperty(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SOME_SECRET_KEY);
-
-    // Act
-    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
-
-    // Assert
-    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  public void
-      constructor_ConsensusCommitWithGroupCommitDisabledSpecified_ShouldConstructProperly() {
-    // Arrange
-    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
-    props.setProperty(ConsensusCommitConfig.COORDINATOR_GROUP_COMMIT_ENABLED, "false");
-
-    // Act
-    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
-
-    // Assert
-    assertThat(thrown).doesNotThrowAnyException();
-  }
-
-  @Test
-  public void
-      constructor_ConsensusCommitWithGroupCommitEnabledSpecified_ShouldThrowIllegalArgumentException() {
-    // Arrange
-    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
-    props.setProperty(ConsensusCommitConfig.COORDINATOR_GROUP_COMMIT_ENABLED, "true");
 
     // Act
     Throwable thrown = catchThrowable(() -> new LedgerConfig(props));

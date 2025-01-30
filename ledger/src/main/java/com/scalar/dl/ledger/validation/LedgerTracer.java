@@ -7,9 +7,8 @@ import com.scalar.dl.ledger.asset.MetadataComprisedAsset;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetScanner;
 import com.scalar.dl.ledger.database.Ledger;
-import com.scalar.dl.ledger.error.CommonError;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import java.util.HashMap;
@@ -49,7 +48,9 @@ public class LedgerTracer implements Ledger {
           JsonObject json = value.asJsonObject();
           InternalAsset asset = scanner.doGet(id, json.getInt("age"));
           if (asset == null) {
-            throw new ValidationException(LedgerError.INCONSISTENT_INPUT_DEPENDENCIES);
+            throw new ValidationException(
+                "the asset specified by input dependencies is not found. ",
+                StatusCode.INCONSISTENT_STATES);
           }
           inputs.put(id, Optional.of(new MetadataComprisedAsset(asset, serde::deserialize)));
         });
@@ -118,7 +119,8 @@ public class LedgerTracer implements Ledger {
 
       @Override
       public AssetMetadata metadata() {
-        throw new IllegalStateException(CommonError.METADATA_NOT_AVAILABLE.buildMessage());
+        throw new IllegalStateException(
+            "The metadata is not available since the asset has not been committed yet.");
       }
     };
   }

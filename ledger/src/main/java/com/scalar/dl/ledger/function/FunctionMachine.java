@@ -1,7 +1,6 @@
 package com.scalar.dl.ledger.function;
 
 import com.scalar.dl.ledger.database.Database;
-import com.scalar.dl.ledger.error.LedgerError;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -17,7 +16,7 @@ public class FunctionMachine {
     } else if (function instanceof FunctionBase) {
       this.functionBase = (FunctionBase<?, ?, ?, ?, ?, ?>) function;
     } else {
-      throw new IllegalArgumentException(LedgerError.UNSUPPORTED_FUNCTION.buildMessage());
+      throw new IllegalArgumentException("unsupported function type");
     }
   }
 

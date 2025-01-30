@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.util;
 
-import com.scalar.dl.ledger.error.CommonError;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -39,13 +38,11 @@ public final class CryptoUtils {
     try (PEMParser pemParser = new PEMParser(Files.newBufferedReader(Paths.get(certChainPath)))) {
       Object data = pemParser.readObject();
       if (!(data instanceof X509CertificateHolder)) {
-        throw new IllegalArgumentException(
-            CommonError.INVALID_CERTIFICATE.buildMessage(certChainPath));
+        throw new IllegalArgumentException("Invalid certificate: " + certChainPath);
       }
       return new JcaX509CertificateConverter().getCertificate((X509CertificateHolder) data);
     } catch (IOException | CertificateException e) {
-      throw new IllegalArgumentException(
-          CommonError.READING_CERTIFICATE_FAILED.buildMessage(certChainPath, e.getMessage()), e);
+      throw new IllegalArgumentException("Reading the certificate failed: " + certChainPath, e);
     }
   }
 
@@ -53,11 +50,9 @@ public final class CryptoUtils {
     try (Reader reader = Files.newBufferedReader(Paths.get(privateKeyPath))) {
       return getPrivateKey(reader);
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(
-          CommonError.INVALID_PRIVATE_KEY.buildMessage(privateKeyPath));
+      throw new IllegalArgumentException("Invalid private key: " + privateKeyPath);
     } catch (IOException e) {
-      throw new IllegalArgumentException(
-          CommonError.READING_CERTIFICATE_FAILED.buildMessage(privateKeyPath, e.getMessage()), e);
+      throw new IllegalArgumentException("Reading the private key failed: " + privateKeyPath, e);
     }
   }
 
@@ -87,8 +82,7 @@ public final class CryptoUtils {
       keystore.setKeyEntry("key", key, keyPassword.toCharArray(), new X509Certificate[] {cert});
       return keystore;
     } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-      throw new IllegalArgumentException(
-          CommonError.CREATING_KEY_STORE_FAILED.buildMessage(e.getMessage()), e);
+      throw new IllegalArgumentException("Creating a key store failed", e);
     }
   }
 }

@@ -1,7 +1,5 @@
 package com.scalar.dl.ledger.database;
 
-import com.scalar.dl.ledger.error.CommonError;
-
 public enum TransactionState {
   COMMITTED(1),
   ABORTED(2),
@@ -23,7 +21,6 @@ public enum TransactionState {
         return state;
       }
     }
-    throw new IllegalArgumentException(
-        CommonError.INVALID_TRANSACTION_STATE_SPECIFIED.buildMessage());
+    throw new IllegalArgumentException("invalid id specified.");
   }
 }

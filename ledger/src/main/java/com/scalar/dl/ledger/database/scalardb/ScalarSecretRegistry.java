@@ -15,9 +15,9 @@ import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.crypto.Cipher;
 import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.database.SecretRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.Nullable;
@@ -51,7 +51,7 @@ public class ScalarSecretRegistry implements SecretRegistry {
     try {
       storage.put(put);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.BINDING_SECRET_KEY_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't bind the secret key", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -67,7 +67,7 @@ public class ScalarSecretRegistry implements SecretRegistry {
     try {
       storage.delete(delete);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.UNBINDING_SECRET_KEY_FAILED, e, e.getMessage());
+      throw new DatabaseException("can't unbind the secret key", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -84,7 +84,8 @@ public class ScalarSecretRegistry implements SecretRegistry {
     try {
       return storage.get(get).map(this::toSecretEntry).orElse(null);
     } catch (ExecutionException e) {
-      throw new DatabaseException(CommonError.GETTING_SECRET_KEY_FAILED, e, e.getMessage());
+      throw new DatabaseException(
+          "can't get the secret key from storage", e, StatusCode.DATABASE_ERROR);
     }
   }
 
@@ -96,8 +97,7 @@ public class ScalarSecretRegistry implements SecretRegistry {
       long registeredAt = result.getBigInt(SecretEntry.REGISTERED_AT);
       return new SecretEntry(entityId, keyVersion, decryptedSecretKey, registeredAt);
     } catch (Exception e) {
-      throw new UnexpectedValueException(
-          CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
+      throw new UnexpectedValueException(e);
     }
   }
 

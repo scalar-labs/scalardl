@@ -1,9 +1,18 @@
 package com.scalar.dl.ledger.exception;
 
-import com.scalar.dl.ledger.error.ScalarDlError;
 import com.scalar.dl.ledger.service.StatusCode;
 
 public class UnexpectedValueException extends ValidationException {
+  private static final String DEFAULT_MESSAGE =
+      "Unexpected record value is observed. There is a chance of a bug or tampering.";
+
+  public UnexpectedValueException() {
+    super(DEFAULT_MESSAGE, StatusCode.INCONSISTENT_STATES);
+  }
+
+  public UnexpectedValueException(Throwable cause) {
+    super(DEFAULT_MESSAGE, cause, StatusCode.INCONSISTENT_STATES);
+  }
 
   public UnexpectedValueException(String message, StatusCode code) {
     super(message, code);
@@ -11,13 +20,5 @@ public class UnexpectedValueException extends ValidationException {
 
   public UnexpectedValueException(String message, Throwable cause, StatusCode code) {
     super(message, cause, code);
-  }
-
-  public UnexpectedValueException(ScalarDlError error, Object... args) {
-    super(error.buildMessage(args), error.getStatusCode());
-  }
-
-  public UnexpectedValueException(ScalarDlError error, Throwable cause, Object... args) {
-    super(error.buildMessage(args), error.getStatusCode());
   }
 }

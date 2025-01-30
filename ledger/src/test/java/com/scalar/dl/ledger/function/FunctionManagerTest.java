@@ -5,14 +5,12 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.database.FunctionRegistry;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.MissingFunctionException;
 import com.scalar.dl.ledger.exception.UnloadableFunctionException;
 import java.util.Optional;
@@ -147,31 +145,14 @@ public class FunctionManagerTest {
   }
 
   @Test
-  public void getInstance_NonexistingFunctionIdGiven_ShouldThrowMissingFunctionException() {
+  public void getInstance_NonexistingFunctionIdGiven_ShouldThrowUnloadableFunctionException() {
     // Arrange
     when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.empty());
 
     // Act
     assertThatThrownBy(() -> manager.getInstance(ANY_FUNCTION_ID))
-        .isInstanceOf(MissingFunctionException.class);
-
-    // Assert
-    verify(manager).defineClass(ANY_FUNCTION_ID);
-  }
-
-  @Test
-  public void
-      getInstance_LoadingFailedNotDueToFunctionMissing_ShouldThrowUnloadableFunctionException() {
-    // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
-    SecurityException toThrow = mock(SecurityException.class);
-    when(toThrow.getMessage()).thenReturn("details");
-    doThrow(toThrow).when(loader).defineClass(entry);
-
-    // Act
-    assertThatThrownBy(() -> manager.getInstance(ANY_FUNCTION_ID))
         .isInstanceOf(UnloadableFunctionException.class)
-        .hasMessage(LedgerError.LOADING_FUNCTION_FAILED.buildMessage("details"));
+        .hasCauseExactlyInstanceOf(MissingFunctionException.class);
 
     // Assert
     verify(manager).defineClass(ANY_FUNCTION_ID);

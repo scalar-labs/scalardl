@@ -1,13 +1,10 @@
 package com.scalar.dl.ledger.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -51,11 +48,10 @@ public class PrevHashValidatorTest {
     InternalAsset asset = mock(InternalAsset.class);
     when(asset.prevHash()).thenReturn("prevHashx".getBytes(StandardCharsets.UTF_8));
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_PREV_HASH.buildMessage())
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_PREV_HASH);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_PREV_HASH);
   }
 }

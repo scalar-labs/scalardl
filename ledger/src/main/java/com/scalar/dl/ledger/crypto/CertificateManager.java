@@ -7,9 +7,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import com.scalar.dl.ledger.database.CertificateRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.concurrent.Immutable;
 
@@ -55,7 +55,9 @@ public class CertificateManager {
   public void register(CertificateEntry entry) {
     try {
       registry.lookup(entry.getKey());
-      throw new DatabaseException(CommonError.CERTIFICATE_ALREADY_REGISTERED);
+      throw new DatabaseException(
+          "The specified certificate is already registered",
+          StatusCode.CERTIFICATE_ALREADY_REGISTERED);
     } catch (MissingCertificateException e) {
       registry.bind(entry);
     }

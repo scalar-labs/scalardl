@@ -1,13 +1,10 @@
 package com.scalar.dl.ledger.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import javax.json.Json;
@@ -54,11 +51,10 @@ public class OutputValidatorTest {
     JsonObject tampered = Json.createObjectBuilder().add("x", 1).build();
     when(asset.data()).thenReturn(tampered.toString());
 
-    // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_OUTPUT.buildMessage(ANY_RECOMPUTED, tampered))
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_OUTPUT);
+    // Act
+    StatusCode result = validator.validate(ledger, contract, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.INVALID_OUTPUT);
   }
 }

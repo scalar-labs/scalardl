@@ -1,13 +1,10 @@
 package com.scalar.dl.ledger.validation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.contract.ContractMachine;
-import com.scalar.dl.ledger.error.LedgerError;
-import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -78,13 +75,11 @@ public class ArgumentValidatorTest {
     assets.add(assets.get(1)); // duplicate a nonce
     List<StatusCode> results = new ArrayList<>();
 
-    // Act Asset
-    assertThatThrownBy(
-            () -> assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset))))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_NONCE);
+    // Act
+    assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset)));
+
+    // Assert
+    assertThat(results).contains(StatusCode.INVALID_NONCE);
   }
 
   @Test
@@ -107,12 +102,10 @@ public class ArgumentValidatorTest {
     assets.add(assets.get(1)); // duplicate a nonce
     List<StatusCode> results = new ArrayList<>();
 
-    // Act Asset
-    assertThatThrownBy(
-            () -> assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset))))
-        .isInstanceOf(ValidationException.class)
-        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
-        .extracting("code")
-        .isEqualTo(StatusCode.INVALID_NONCE);
+    // Act
+    assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset)));
+
+    // Assert
+    assertThat(results).contains(StatusCode.INVALID_NONCE);
   }
 }

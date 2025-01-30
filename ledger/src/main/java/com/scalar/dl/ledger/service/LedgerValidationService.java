@@ -10,7 +10,6 @@ import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.database.scalardb.AssetProofComposer;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.AssetProofRetrievalRequest;
@@ -67,7 +66,9 @@ public class LedgerValidationService extends ValidationService {
 
     if (config.isAuditorEnabled()) {
       // With Auditor, we only provide linearizable validation by executing the contract.
-      throw new LedgerException(LedgerError.INVALID_AUDITOR_CONFIGURATION);
+      throw new LedgerException(
+          "Configuration mismatch detected. Check the Auditor setting in the client or Ledger",
+          StatusCode.INVALID_REQUEST);
     } else {
       return validate(request.getAssetId(), request.getStartAge(), request.getEndAge());
     }
@@ -95,14 +96,14 @@ public class LedgerValidationService extends ValidationService {
       try {
         code = validateEach(validators, asset);
       } catch (ValidationException e) {
-        assert e.getCode() != null;
-        code = e.getCode();
-        LOGGER.error(e.getMessage());
-      } catch (LedgerException e) {
-        LOGGER.error("validation failed", e);
-        throw e;
+        if (e.getCode() != null) {
+          code = e.getCode();
+        } else {
+          throw e;
+        }
       }
       if (code != StatusCode.OK) {
+        LOGGER.error("Validation failed with " + code);
         return new LedgerValidationResult(code, proofComposer.create(asset), null);
       }
       last = asset;
@@ -128,7 +129,7 @@ public class LedgerValidationService extends ValidationService {
         return asset.get();
       }
     }
-    throw new ValidationException(LedgerError.ASSET_NOT_FOUND);
+    throw new ValidationException("The specified asset is not found.", StatusCode.ASSET_NOT_FOUND);
   }
 
   private Optional<InternalAsset> getAsset(String assetId) {

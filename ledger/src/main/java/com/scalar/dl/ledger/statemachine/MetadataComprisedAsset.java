@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.statemachine;
 
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.util.Argument;
 import java.util.function.Function;
 
@@ -38,7 +37,8 @@ public class MetadataComprisedAsset<T> implements Asset<T> {
   public AssetMetadata metadata() {
     if (asset.hash() == null) {
       // if one of the metadata is null, we can assume the other metadata is also null.
-      throw new IllegalStateException(CommonError.METADATA_NOT_AVAILABLE.buildMessage());
+      throw new IllegalStateException(
+          "The metadata is not available since the asset has not been committed yet.");
     }
     return new AssetMetadata() {
       @Override

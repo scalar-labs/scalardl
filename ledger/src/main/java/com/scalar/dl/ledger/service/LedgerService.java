@@ -10,7 +10,6 @@ import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.function.FunctionEntry;
 import com.scalar.dl.ledger.function.FunctionManager;
@@ -67,7 +66,8 @@ public class LedgerService {
   public void register(ContractRegistrationRequest request) {
     if (!config.getExecutableContractNames().isEmpty()
         && !config.getExecutableContractNames().contains(request.getContractBinaryName())) {
-      throw new DatabaseException(LedgerError.CONTRACT_IS_NOT_ALLOWED_TO_BE_EXECUTED);
+      throw new DatabaseException(
+          "the contract class is not allowed to be executed.", StatusCode.INVALID_REQUEST);
     }
     base.register(request);
   }
@@ -84,12 +84,12 @@ public class LedgerService {
     if (config.isAuditorEnabled()) {
       checkArgument(
           request.getAuditorSignature() != null,
-          LedgerError.AUDITOR_SIGNATURE_REQUIRED.buildMessage());
+          "auditor signature has to be included in the request when Auditor is enabled.");
       validateSignatureFromAuditor(request);
     } else { // Auditor is disabled
       checkArgument(
           request.getAuditorSignature() == null,
-          LedgerError.AUDITOR_NOT_CONFIGURED.buildMessage(LedgerConfig.AUDITOR_ENABLED));
+          LedgerConfig.AUDITOR_ENABLED + " must be enabled to make auditing work.");
     }
 
     return executor.execute(request);

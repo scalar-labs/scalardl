@@ -1,8 +1,8 @@
 package com.scalar.dl.client.rpc;
 
-import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.config.TargetConfig;
+import com.scalar.dl.ledger.service.StatusCode;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.ByteArrayInputStream;
@@ -23,7 +23,7 @@ public class RpcUtil {
                           config.getTargetTlsCaRootCert().getBytes(StandardCharsets.UTF_8)))
                   .build());
         } catch (SSLException e) {
-          throw new ClientException(ClientError.CONFIGURING_SSL_FAILED, e, e.getMessage());
+          throw new ClientException("couldn't configure SSL.", e, StatusCode.RUNTIME_ERROR);
         }
       }
       // Use a certificate from the trusted CAs if it's not given

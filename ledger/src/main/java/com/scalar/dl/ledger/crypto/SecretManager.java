@@ -7,8 +7,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import com.scalar.dl.ledger.database.SecretRegistry;
-import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.service.StatusCode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.concurrent.Immutable;
 
@@ -58,7 +58,8 @@ public class SecretManager {
   public void register(SecretEntry entry) {
     SecretEntry existing = registry.lookup(entry.getKey());
     if (existing != null) {
-      throw new DatabaseException(CommonError.SECRET_ALREADY_REGISTERED);
+      throw new DatabaseException(
+          "The specified secret is already registered", StatusCode.SECRET_ALREADY_REGISTERED);
     }
     registry.bind(entry);
   }

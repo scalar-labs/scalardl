@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.scalar.dl.ledger.error.CommonError;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,8 +53,7 @@ public class Argument {
     } else if (argument instanceof JsonNode) {
       return prefix + jacksonSerDe.serialize((JsonNode) argument);
     } else {
-      throw new IllegalArgumentException(
-          CommonError.UNSUPPORTED_DESERIALIZATION_TYPE.buildMessage(argument.getClass()));
+      throw new IllegalArgumentException("unsupported type " + argument.getClass() + " specified.");
     }
   }
 
@@ -72,7 +70,7 @@ public class Argument {
       List<String> elements = getElements(argument);
       List<String> versionNonce = Splitter.on(NONCE_SEPARATOR).splitToList(elements.get(0));
       if (versionNonce.size() != 2) {
-        throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
+        throw new IllegalArgumentException("the argument format looks illegal");
       }
       return versionNonce.get(1);
     } else {
@@ -117,7 +115,7 @@ public class Argument {
   private static List<String> getElements(String argument) {
     List<String> elements = Splitter.on(ARGUMENT_SEPARATOR).splitToList(argument);
     if (elements.size() != 2 && elements.size() != 3) {
-      throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
+      throw new IllegalArgumentException("the argument format looks illegal");
     }
     return elements;
   }

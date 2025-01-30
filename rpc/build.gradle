@@ -10,7 +10,7 @@ dependencies {
     compileOnly group: 'org.apache.tomcat', name: 'annotations-api', version: '6.0.53' // necessary for Java 9+
 
     // To expose gRPC generated classes to the sub-projects
-    api(group: 'com.scalar-labs', name: 'scalar-admin', version: "${scalarAdminVersion}") {
+    api(group: 'com.scalar-labs', name: 'scalar-admin', version: '1.2.0') {
         exclude group: 'io.grpc', module: 'grpc-alts'
         exclude group: 'io.grpc', module: 'grpc-netty'
         exclude group: 'io.grpc', module: 'grpc-protobuf'
