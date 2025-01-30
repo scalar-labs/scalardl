@@ -3,8 +3,8 @@ package com.scalar.dl.ledger.crypto;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class DigitalSignatureValidatorTest {
   private static final String PRIVATE_KEY_A =
@@ -55,7 +55,7 @@ public class DigitalSignatureValidatorTest {
   private DigitalSignatureSigner signer;
   private DigitalSignatureValidator validator;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     validator = new DigitalSignatureValidator(CERTIFICATE_A);

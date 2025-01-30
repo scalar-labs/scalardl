@@ -59,8 +59,8 @@ import java.util.List;
 import java.util.Optional;
 import javax.json.JsonObject;
 import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -118,7 +118,7 @@ public class LedgerValidationServiceTest {
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
 
-  @BeforeEach
+  @Before
   public void init() {
     MockitoAnnotations.openMocks(this);
     when(config.isAuditorEnabled()).thenReturn(false);

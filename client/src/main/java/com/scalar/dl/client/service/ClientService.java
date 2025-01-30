@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Guice;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.scalar.dl.client.config.ClientConfig;
@@ -13,20 +14,27 @@ import com.scalar.dl.client.config.ClientMode;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.client.util.RequestSigner;
+import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.ledger.util.JacksonSerDe;
+import com.scalar.dl.rpc.AssetProof;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
+import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
+import com.scalar.dl.rpc.ExecutionOrderingResponse;
+import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -68,21 +76,28 @@ public class ClientService implements AutoCloseable {
   static final String VALIDATE_LEDGER_START_AGE_KEY = "start_age";
   static final String VALIDATE_LEDGER_END_AGE_KEY = "end_age";
   private final ClientConfig config;
-  private final ClientServiceHandler handler;
+  private final AbstractLedgerClient client;
+  private final AbstractAuditorClient auditorClient;
   private final RequestSigner signer;
 
   /**
    * Constructs a {@code ClientService} with the specified {@link ClientConfig}, {@link
-   * ClientServiceHandler} and {@link RequestSigner}.
+   * AbstractLedgerClient} and {@link RequestSigner}. This constructor shouldn't be called
+   * explicitly and should be called implicitly by {@link Guice}.
    *
    * @param config a configuration for the client
-   * @param handler a client service handler to interact the server(s)
+   * @param client a client for the ledger server
+   * @param auditorClient a client for the auditor server
    * @param signer a request signer for requests
    */
   public ClientService(
-      ClientConfig config, ClientServiceHandler handler, @Nullable RequestSigner signer) {
+      ClientConfig config,
+      AbstractLedgerClient client,
+      @Nullable AbstractAuditorClient auditorClient,
+      @Nullable RequestSigner signer) {
     this.config = config;
-    this.handler = handler;
+    this.client = client;
+    this.auditorClient = auditorClient;
     this.signer = signer;
   }
 
@@ -104,7 +119,8 @@ public class ClientService implements AutoCloseable {
             .setCertPem(config.getDigitalSignatureIdentityConfig().getCert())
             .build();
 
-    handler.registerCertificate(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -125,7 +141,8 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    handler.registerCertificate(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -145,7 +162,8 @@ public class ClientService implements AutoCloseable {
             .setSecretKey(config.getHmacIdentityConfig().getSecretKey())
             .build();
 
-    handler.registerSecret(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -166,7 +184,8 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    handler.registerSecret(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -191,7 +210,7 @@ public class ClientService implements AutoCloseable {
             .setFunctionByteCode(ByteString.copyFrom(functionBytes))
             .build();
 
-    handler.registerFunction(request);
+    client.register(request);
   }
 
   /**
@@ -229,7 +248,7 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    handler.registerFunction(request);
+    client.register(request);
   }
 
   /**
@@ -412,7 +431,8 @@ public class ClientService implements AutoCloseable {
     }
     ContractRegistrationRequest request = signer.sign(builder).build();
 
-    handler.registerContract(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -431,7 +451,8 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    handler.registerContract(request);
+    registerToAuditor(request);
+    client.register(request);
   }
 
   /**
@@ -453,7 +474,7 @@ public class ClientService implements AutoCloseable {
     }
     ContractsListingRequest request = signer.sign(builder).build();
 
-    return handler.listContracts(request);
+    return client.list(request);
   }
 
   /**
@@ -473,7 +494,7 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    return handler.listContracts(request);
+    return client.list(request);
   }
 
   /**
@@ -794,7 +815,9 @@ public class ClientService implements AutoCloseable {
     }
     ContractExecutionRequest request = signer.sign(builder).build();
 
-    return handler.executeContract(request);
+    ContractExecutionRequest ordered = order(request);
+
+    return client.execute(ordered, r -> validate(ordered, r));
   }
 
   /**
@@ -814,7 +837,9 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    return handler.executeContract(request);
+    ContractExecutionRequest ordered = order(request);
+
+    return client.execute(ordered, r -> validate(ordered, r));
   }
 
   /**
@@ -854,7 +879,7 @@ public class ClientService implements AutoCloseable {
               .setEndAge(endAge);
       LedgerValidationRequest request = signer.sign(builder).build();
 
-      return handler.validateLedger(request);
+      return client.validate(request);
     }
   }
 
@@ -882,7 +907,7 @@ public class ClientService implements AutoCloseable {
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    return handler.validateLedger(request);
+    return client.validate(request);
   }
 
   /**
@@ -922,6 +947,101 @@ public class ClientService implements AutoCloseable {
     }
   }
 
+  private void registerToAuditor(CertificateRegistrationRequest request) {
+    if (!config.isAuditorEnabled()) {
+      return;
+    }
+    try {
+      auditorClient.register(request);
+    } catch (ClientException e) {
+      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)) {
+        throw e;
+      }
+    }
+  }
+
+  private void registerToAuditor(SecretRegistrationRequest request) {
+    if (!config.isAuditorEnabled()) {
+      return;
+    }
+    try {
+      auditorClient.register(request);
+    } catch (ClientException e) {
+      if (!e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
+        throw e;
+      }
+    }
+  }
+
+  private void registerToAuditor(ContractRegistrationRequest request) {
+    if (!config.isAuditorEnabled()) {
+      return;
+    }
+    try {
+      auditorClient.register(request);
+    } catch (ClientException e) {
+      if (!e.getStatusCode().equals(StatusCode.CONTRACT_ALREADY_REGISTERED)) {
+        throw e;
+      }
+    }
+  }
+
+  private ContractExecutionRequest order(ContractExecutionRequest request) {
+    if (!config.isAuditorEnabled()) {
+      return request;
+    }
+
+    ExecutionOrderingResponse response = auditorClient.order(request);
+
+    return ContractExecutionRequest.newBuilder(request)
+        .setAuditorSignature(response.getSignature())
+        .build();
+  }
+
+  private ContractExecutionResponse validate(
+      ContractExecutionRequest request, ContractExecutionResponse ledgerResponse) {
+    if (!config.isAuditorEnabled()) {
+      return null;
+    }
+    ExecutionValidationRequest req =
+        ExecutionValidationRequest.newBuilder()
+            .setRequest(request)
+            .addAllProofs(ledgerResponse.getProofsList())
+            .build();
+
+    ContractExecutionResponse auditorResponse = auditorClient.validate(req);
+
+    validateResponses(ledgerResponse, auditorResponse);
+
+    return auditorResponse;
+  }
+
+  private void validateResponses(
+      ContractExecutionResponse ledgerResponse, ContractExecutionResponse auditorResponse) {
+    Runnable throwError =
+        () -> {
+          throw new ValidationException(
+              "The results from Ledger and Auditor don't match", StatusCode.INCONSISTENT_STATES);
+        };
+
+    if (!ledgerResponse.getContractResult().equals(auditorResponse.getContractResult())
+        || ledgerResponse.getProofsCount() != auditorResponse.getProofsCount()) {
+      throwError.run();
+    }
+
+    Map<String, AssetProof> map = new HashMap<>();
+    ledgerResponse.getProofsList().forEach(p -> map.put(p.getAssetId(), p));
+    auditorResponse
+        .getProofsList()
+        .forEach(
+            p2 -> {
+              AssetProof p1 = map.get(p2.getAssetId());
+              if (p1 == null || p1.getAge() != p2.getAge() || !p1.getHash().equals(p2.getHash())) {
+                throwError.run();
+              }
+            });
+  }
+
   private LedgerValidationResult validateLedgerWithContractExecution(
       String assetId, int startAge, int endAge) {
     JsonObjectBuilder argumentBuilder =
@@ -938,8 +1058,13 @@ public class ClientService implements AutoCloseable {
   }
 
   @VisibleForTesting
-  ClientServiceHandler getClientServiceHandler() {
-    return handler;
+  AbstractLedgerClient getLedgerClient() {
+    return client;
+  }
+
+  @VisibleForTesting
+  AbstractAuditorClient getAuditorClient() {
+    return auditorClient;
   }
 
   @VisibleForTesting

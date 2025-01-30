@@ -54,26 +54,6 @@ service AuditorPrivileged {
     }
 }
 
-service Gateway {
-    rpc RegisterContract (ContractRegistrationRequest) returns (google.protobuf.Empty) {
-    }
-    rpc ListContracts (ContractsListingRequest) returns (ContractsListingResponse) {
-    }
-    rpc ExecuteContract (ContractExecutionRequest) returns (ContractExecutionResponse) {
-    }
-    rpc ValidateLedger (LedgerValidationRequest) returns (LedgerValidationResponse) {
-    }
-}
-
-service GatewayPrivileged {
-    rpc RegisterCert (CertificateRegistrationRequest) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterFunction (FunctionRegistrationRequest) returns (google.protobuf.Empty) {
-    }
-}
-
 message CertificateRegistrationRequest {
     string entity_id = 1;
     uint32 key_version = 2;

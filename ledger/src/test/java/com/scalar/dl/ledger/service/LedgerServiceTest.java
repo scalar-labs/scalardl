@@ -31,8 +31,8 @@ import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -64,7 +64,7 @@ public class LedgerServiceTest {
   private static final String SOME_FUNCTION_NAME = "function_name";
   private static final byte[] SOME_FUNCTION_BYTE_CODE = "function".getBytes(StandardCharsets.UTF_8);
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 

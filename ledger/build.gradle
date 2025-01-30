@@ -1,5 +1,5 @@
 plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'com.palantir.docker' version '0.25.0'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
@@ -32,8 +32,6 @@ sourceSets {
 
 configurations {
     integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-    integrationTestCompileOnly.extendsFrom testCompileOnly
     permissionTestImplementation.extendsFrom testImplementation
 }
 
@@ -91,7 +89,6 @@ docker {
 }
 
 task integrationTestCassandra(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -119,7 +116,6 @@ task integrationTestDynamo(type: Test) {
 }
 
 task integrationTestMysql(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with JDBC transaction manager on MySQL.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -140,15 +136,6 @@ task integrationTest(type: Test) {
     dependsOn integrationTestCassandra
     dependsOn integrationTestDynamo
     dependsOn integrationTestMysql
-}
-
-spotless {
-    java {
-        target 'src/*/java/**/*.java'
-        importOrder()
-        removeUnusedImports()
-        googleJavaFormat(googleJavaFormatVersion)
-    }
 }
 
 spotbugs {

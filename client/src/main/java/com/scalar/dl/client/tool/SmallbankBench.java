@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -24,7 +23,14 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "smallbank-bench", description = "Execute smallbank workload concurrently.")
-public class SmallbankBench extends CommonOptions implements Callable<Integer> {
+public class SmallbankBench implements Callable<Integer> {
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
 
   @CommandLine.Option(
       names = {"--num-accounts"},
@@ -61,6 +67,12 @@ public class SmallbankBench extends CommonOptions implements Callable<Integer> {
       description = "transact_savings, deposit_checking, send_payment, write_check, amalgamate")
   private List<String> operations = DEFAULT_OPERATIONS;
 
+  @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
+
   private static final AtomicInteger counter = new AtomicInteger();
   private static final AtomicInteger totalCounter = new AtomicInteger();
   private static final AtomicLong latencyTotal = new AtomicLong();
@@ -78,10 +90,7 @@ public class SmallbankBench extends CommonOptions implements Callable<Integer> {
   @Override
   public Integer call() throws Exception {
     ClientServiceFactory factory = new ClientServiceFactory();
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
 
     long durationMillis = duration * 1000L;
     long rampUpTimeMillis = rampUpTime * 1000L;

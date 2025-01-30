@@ -71,17 +71,6 @@ scalar.dl.client.tls.override_authority={{ default .Env.SCALAR_DL_CLIENT_TLS_OVE
 # If this is given, clients will add "authorization: <credential>" http/2 header.
 scalar.dl.client.authorization.credential={{ default .Env.SCALAR_DL_CLIENT_AUTHORIZATION_CREDENTIAL "" }}
 
-# A deadline that is after the given duration from now for each request.
-scalar.dl.client.grpc.deadline_duration_millis={{ default .Env.SCALAR_DL_CLIENT_GRPC_DEADLINE_DURATION_MILLIS "" }}
-
-# The maximum message size allowed for a single gRPC frame.
-# If an inbound message larger than this limit is received, it will not be processed, and the RPC will fail with RESOURCE_EXHAUSTED.
-scalar.dl.client.grpc.max_inbound_message_size={{ default .Env.SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_MESSAGE_SIZE "" }}
-
-# The maximum size of metadata allowed to be received.
-# This is cumulative size of the entries with some overhead, as defined for HTTP/2's SETTINGS_MAX_HEADER_LIST_SIZE. The default is 8 KiB.
-scalar.dl.client.grpc.max_inbound_metadata_size={{ default .Env.SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_METADATA_SIZE "" }}
-
 # Optional. A client mode. CLIENT OR INTERMEDIARY. CLIENT by default.
 # In INTERMEDIARY mode, this client recieves a signed serialized request from another client, 
 # and sends it to a server.

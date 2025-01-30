@@ -20,9 +20,6 @@ public class FunctionManager {
   }
 
   public void register(FunctionEntry entry) {
-    // verify if a specified function is loadable.
-    getInstance(entry);
-
     registry.bind(entry);
   }
 
@@ -32,31 +29,15 @@ public class FunctionManager {
         () -> new MissingFunctionException("the specified function is not found."));
   }
 
-  public FunctionMachine getInstance(FunctionEntry entry) {
-    Class<?> functionClazz = defineClass(entry);
-    FunctionMachine function = new FunctionMachine(createInstance(functionClazz));
-    function.initialize(this);
-    return function;
-  }
-
   public FunctionMachine getInstance(String id) {
-    Class<?> functionClazz = defineClass(id);
+    Class<?> functionClazz = findClass(id);
     FunctionMachine function = new FunctionMachine(createInstance(functionClazz));
     function.initialize(this);
     return function;
   }
 
   @VisibleForTesting
-  Class<?> defineClass(FunctionEntry entry) {
-    try {
-      return loader.defineClass(entry);
-    } catch (Exception e) {
-      throw new UnloadableFunctionException(e.getMessage(), e);
-    }
-  }
-
-  @VisibleForTesting
-  Class<?> defineClass(String id) {
+  public Class<?> findClass(String id) {
     try {
       return loader.defineClass(get(id));
     } catch (Exception e) {

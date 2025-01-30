@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -19,9 +18,10 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.RSAPrivateKey;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class CryptoUtilsTest {
   private static final String SOME_PRIVATE_KEY_PATH = "private_key_path";
@@ -85,7 +85,7 @@ public class CryptoUtilsTest {
           + "-----END CERTIFICATE-----";
   private static final String SOME_INVALID_PEM = "invalid_pem";
 
-  @TempDir Path folder;
+  @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private void writeToFile(File file, String content) throws IOException {
     BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
@@ -93,16 +93,16 @@ public class CryptoUtilsTest {
     writer.close();
   }
 
-  @BeforeEach
+  @Before
   public void setUp() {}
 
   @Test
-  void createKeyStore_EcdsaCertAndKeyGiven_ShouldReturnKeyStore()
+  public void createKeyStore_EcdsaCertAndKeyGiven_ShouldReturnKeyStore()
       throws IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
     // Arrange
-    File certificatePath = folder.resolve(SOME_CERTIFICATE_PATH).toFile();
+    File certificatePath = folder.newFile(SOME_CERTIFICATE_PATH);
     writeToFile(certificatePath.getCanonicalFile(), SOME_CERTIFICATE_PEM);
-    File privateKeyPath = folder.resolve(SOME_PRIVATE_KEY_PATH).toFile();
+    File privateKeyPath = folder.newFile(SOME_PRIVATE_KEY_PATH);
     writeToFile(privateKeyPath.getCanonicalFile(), SOME_EC_PRIVATE_KEY_SEC1_PEM);
 
     // Act
@@ -116,12 +116,12 @@ public class CryptoUtilsTest {
   }
 
   @Test
-  void createKeyStore_RsaCertAndKeyGiven_ShouldReturnKeyStore()
+  public void createKeyStore_RsaCertAndKeyGiven_ShouldReturnKeyStore()
       throws IOException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException {
     // Arrange
-    File certificatePath = folder.resolve(SOME_CERTIFICATE_PATH).toFile();
+    File certificatePath = folder.newFile(SOME_CERTIFICATE_PATH);
     writeToFile(certificatePath.getCanonicalFile(), SOME_CERTIFICATE_PEM);
-    File privateKeyPath = folder.resolve(SOME_PRIVATE_KEY_PATH).toFile();
+    File privateKeyPath = folder.newFile(SOME_PRIVATE_KEY_PATH);
     writeToFile(privateKeyPath.getCanonicalFile(), SOME_RSA_PRIVATE_KEY_PEM);
 
     // Act
@@ -135,12 +135,12 @@ public class CryptoUtilsTest {
   }
 
   @Test
-  void createKeyStore_CorrectCertAndInvalidKeyGiven_ShouldThrowIllegalArgumentException()
+  public void createKeyStore_CorrectCertAndInvalidKeyGiven_ShouldThrowIllegalArgumentException()
       throws IOException {
     // Arrange
-    File certificatePath = folder.resolve(SOME_CERTIFICATE_PATH).toFile();
+    File certificatePath = folder.newFile(SOME_CERTIFICATE_PATH);
     writeToFile(certificatePath.getCanonicalFile(), SOME_CERTIFICATE_PEM);
-    File privateKeyPath = folder.resolve(SOME_PRIVATE_KEY_PATH).toFile();
+    File privateKeyPath = folder.newFile(SOME_PRIVATE_KEY_PATH);
     writeToFile(privateKeyPath.getCanonicalFile(), SOME_INVALID_PEM);
 
     // Act Assert
@@ -154,12 +154,12 @@ public class CryptoUtilsTest {
   }
 
   @Test
-  void createKeyStore_InvalidCertAndCorrectKeyGiven_ShouldThrowIllegalArgumentException()
+  public void createKeyStore_InvalidCertAndCorrectKeyGiven_ShouldThrowIllegalArgumentException()
       throws IOException {
     // Arrange
-    File certificatePath = folder.resolve(SOME_CERTIFICATE_PATH).toFile();
+    File certificatePath = folder.newFile(SOME_CERTIFICATE_PATH);
     writeToFile(certificatePath.getCanonicalFile(), SOME_INVALID_PEM);
-    File privateKeyPath = folder.resolve(SOME_PRIVATE_KEY_PATH).toFile();
+    File privateKeyPath = folder.newFile(SOME_PRIVATE_KEY_PATH);
     writeToFile(privateKeyPath.getCanonicalFile(), SOME_EC_PRIVATE_KEY_SEC1_PEM);
 
     // Act Assert
@@ -173,7 +173,7 @@ public class CryptoUtilsTest {
   }
 
   @Test
-  void getPrivateKey_EcSec1KeyGiven_ShouldReturnPrivateKey() throws IOException {
+  public void getPrivateKey_EcSec1KeyGiven_ShouldReturnPrivateKey() throws IOException {
     // Arrange
     Reader reader = new StringReader(SOME_EC_PRIVATE_KEY_SEC1_PEM);
 
@@ -186,7 +186,7 @@ public class CryptoUtilsTest {
   }
 
   @Test
-  void getPrivateKey_EcPkcs8KeyGiven_ShouldReturnPrivateKey() throws IOException {
+  public void getPrivateKey_EcPkcs8KeyGiven_ShouldReturnPrivateKey() throws IOException {
     // Arrange
     Reader reader = new StringReader(SOME_EC_PRIVATE_KEY_PKCS8_PEM);
 

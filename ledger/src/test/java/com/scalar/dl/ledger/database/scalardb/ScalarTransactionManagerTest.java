@@ -26,8 +26,8 @@ import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -43,7 +43,7 @@ public class ScalarTransactionManagerTest {
   @Mock private LedgerConfig config;
   private ScalarTransactionManager transactionManager;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

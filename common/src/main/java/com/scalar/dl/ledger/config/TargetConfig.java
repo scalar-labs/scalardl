@@ -15,7 +15,6 @@ public class TargetConfig {
   private final String tlsCaRootCert;
   private final String tlsOverrideAuthority;
   private final String authorizationCredential;
-  private final GrpcClientConfig grpcClientConfig;
 
   private TargetConfig(TargetConfig.Builder builder) {
     this.host = builder.host;
@@ -25,7 +24,6 @@ public class TargetConfig {
     this.tlsCaRootCert = builder.tlsCaRootCert;
     this.tlsOverrideAuthority = builder.tlsOverrideAuthority;
     this.authorizationCredential = builder.authorizationCredential;
-    this.grpcClientConfig = builder.grpcClientConfig;
   }
 
   public String getTargetHost() {
@@ -57,10 +55,6 @@ public class TargetConfig {
   @Nullable
   public String getTargetAuthorizationCredential() {
     return authorizationCredential;
-  }
-
-  public GrpcClientConfig getGrpcClientConfig() {
-    return grpcClientConfig;
   }
 
   @Override
@@ -100,7 +94,6 @@ public class TargetConfig {
     private String tlsCaRootCert;
     private String tlsOverrideAuthority;
     private String authorizationCredential;
-    private GrpcClientConfig grpcClientConfig;
 
     Builder() {
       this.host = null;
@@ -109,7 +102,6 @@ public class TargetConfig {
       this.tlsEnabled = false;
       this.tlsCaRootCert = null;
       this.authorizationCredential = null;
-      this.grpcClientConfig = null;
     }
 
     public TargetConfig.Builder host(String host) {
@@ -147,11 +139,6 @@ public class TargetConfig {
 
     public TargetConfig.Builder authorizationCredential(@Nullable String authorizationCredential) {
       this.authorizationCredential = authorizationCredential;
-      return this;
-    }
-
-    public TargetConfig.Builder grpcClientConfig(@Nullable GrpcClientConfig grpcClientConfig) {
-      this.grpcClientConfig = grpcClientConfig;
       return this;
     }
 

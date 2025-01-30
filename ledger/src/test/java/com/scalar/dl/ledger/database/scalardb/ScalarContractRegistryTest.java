@@ -13,7 +13,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.DistributedStorage;
@@ -38,10 +37,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class ScalarContractRegistryTest {
   private static final String ANY_ID = "id";
@@ -58,18 +57,12 @@ public class ScalarContractRegistryTest {
   @Mock private DistributedStorage storage;
   private ScalarContractRegistry registry;
   private ContractEntry entry = null;
-  private AutoCloseable closeable;
 
-  @BeforeEach
+  @Before
   public void setUp() {
-    closeable = openMocks(this);
+    MockitoAnnotations.initMocks(this);
     registry = new ScalarContractRegistry(storage);
     entry = prepareContractEntry(ANY_ID, ANY_NAME);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    closeable.close();
   }
 
   private Result prepareResultForContract(ContractEntry entry) {

@@ -17,8 +17,8 @@ import com.scalar.dl.ledger.statemachine.StringBasedAssetLedger;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -28,7 +28,7 @@ public class ContractMachineTest {
   @Mock private CertificateEntry.Key certKey;
   private ContractMachine machine;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

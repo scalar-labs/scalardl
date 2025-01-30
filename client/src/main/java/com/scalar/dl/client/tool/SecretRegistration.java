@@ -1,8 +1,6 @@
 package com.scalar.dl.client.tool;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -12,7 +10,20 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "register-secret", description = "Register a specified secret.")
-public class SecretRegistration extends CommonOptions implements Callable<Integer> {
+public class SecretRegistration implements Callable<Integer> {
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
+
+  @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new SecretRegistration()).execute(args);
@@ -21,27 +32,15 @@ public class SecretRegistration extends CommonOptions implements Callable<Intege
 
   @Override
   public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
-  }
+    ClientServiceFactory factory = new ClientServiceFactory();
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
 
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory) throws Exception {
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
-    return call(factory, service);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service) {
     try {
       service.registerSecret();
       Common.printOutput(null);
       return 0;
     } catch (ClientException e) {
       Common.printError(e);
-      printStackTrace(e);
       return 1;
     } finally {
       factory.close();

@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.Get;
@@ -19,25 +18,19 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Optional;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class FunctionMachineTest {
   @Mock private Database<Get, Scan, Put, Delete, Result> database;
   @Mock private FunctionManager functionManager;
   private FunctionMachine machine;
-  private AutoCloseable closeable;
 
-  @BeforeEach
+  @Before
   public void setUp() {
-    closeable = openMocks(this);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    closeable.close();
+    MockitoAnnotations.initMocks(this);
   }
 
   @Test

@@ -24,8 +24,8 @@ import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -40,7 +40,7 @@ public class ScalarSecretRegistryTest {
   @Mock private Cipher cipher;
   @InjectMocks private ScalarSecretRegistry registry;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

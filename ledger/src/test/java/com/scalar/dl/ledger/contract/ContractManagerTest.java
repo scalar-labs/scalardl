@@ -2,7 +2,6 @@ package com.scalar.dl.ledger.contract;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -29,8 +28,8 @@ import com.scalar.dl.ledger.exception.UnloadableContractException;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import java.nio.charset.StandardCharsets;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -86,7 +85,7 @@ public class ContractManagerTest {
   @Mock private DigitalSignatureValidator validator;
   private ContractManager manager;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 
@@ -133,15 +132,12 @@ public class ContractManagerTest {
   public void register_ContractEntryGiven_ShouldBind() {
     // Arrange
     when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
-    doReturn(TestJsonpBasedContract.class).when(loader).defineClass(entry);
 
     // Act
     manager.register(entry);
 
     // Assert
     verify(registry).lookup(entry.getKey());
-    verify(validator).validate(any(), any());
-    verify(manager).defineClass(entry);
     verify(registry).bind(entry);
   }
 
@@ -153,37 +149,6 @@ public class ContractManagerTest {
 
     // Act Assert
     assertThatThrownBy(() -> manager.register(entry)).isInstanceOf(DatabaseException.class);
-
-    verify(validator, never()).validate(any(), any());
-    verify(manager, never()).defineClass(entry);
-    verify(registry, never()).bind(entry);
-  }
-
-  @Test
-  public void register_ValidationFailed_ShouldThrowException() {
-    // Arrange
-    when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
-    when(validator.validate(any(), any())).thenReturn(false);
-
-    // Act Assert
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
-
-    assertThat(thrown).isExactlyInstanceOf(ContractValidationException.class);
-    verify(registry, never()).bind(entry);
-  }
-
-  @Test
-  public void register_LoadFailedWithRuntimeException_ShouldThrowException() {
-    // Arrange
-    when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
-    doThrow(RuntimeException.class).when(loader).defineClass(entry);
-
-    // Act Assert
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
-
-    assertThat(thrown).isExactlyInstanceOf(UnloadableContractException.class);
-    verify(manager).defineClass(entry);
-    verify(registry, never()).bind(entry);
   }
 
   @Test

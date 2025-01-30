@@ -11,8 +11,8 @@ import com.scalar.dl.ledger.statemachine.InternalAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -24,7 +24,7 @@ public class SnapshotTest {
   @Mock private InternalAsset assetRecord;
   @Mock private InternalAsset asset;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     snapshot = new Snapshot(readSet, writeSet);

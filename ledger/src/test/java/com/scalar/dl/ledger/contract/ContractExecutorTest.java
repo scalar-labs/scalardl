@@ -13,7 +13,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.google.common.collect.ImmutableMap;
 import com.scalar.dl.ledger.config.LedgerConfig;
@@ -40,12 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class ContractExecutorTest {
   private static final String ANY_ENTITY_ID = "entity_id";
@@ -73,16 +72,10 @@ public class ContractExecutorTest {
   @Mock private StringBasedAssetLedger stringBasedAssetLedger;
   @Mock private Database database;
   @Mock private Transaction transaction;
-  private AutoCloseable closeable;
 
-  @BeforeEach
+  @Before
   public void setUp() {
-    closeable = openMocks(this);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    closeable.close();
+    MockitoAnnotations.initMocks(this);
   }
 
   private void configureBehaviors(int contractArgumentVersion, boolean useFunction) {

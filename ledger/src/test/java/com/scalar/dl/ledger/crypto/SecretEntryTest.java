@@ -3,7 +3,7 @@ package com.scalar.dl.ledger.crypto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class SecretEntryTest {
   private static final String SOME_ENTITY_ID = "entity_id";

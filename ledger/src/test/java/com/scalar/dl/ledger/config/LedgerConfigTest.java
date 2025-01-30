@@ -11,8 +11,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class LedgerConfigTest {
   private static final String SOME_NUMBER = "9999";
@@ -22,11 +22,9 @@ public class LedgerConfigTest {
   private static final String SOME_NAME = "My Ledger";
   private static final String SOME_SECRET_KEY = "secret-key";
   private static final String SOME_CIPHER_KEY = "cipher-key";
-  private static final String SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE = "2048";
-  private static final String SOME_GRPC_MAX_INBOUND_METADATA_SIZE = "1024";
   private Properties props;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     props = new Properties();
     props.setProperty(DatabaseConfig.CONTACT_POINTS, "localhost");
@@ -51,11 +49,7 @@ public class LedgerConfigTest {
     assertThat(config.getAdminPort()).isEqualTo(LedgerConfig.DEFAULT_ADMIN_PORT);
     assertThat(config.getPrometheusExporterPort())
         .isEqualTo(LedgerConfig.DEFAULT_PROMETHEUS_EXPORTER_PORT);
-    assertThat(config.getDecommissioningDurationSecs())
-        .isEqualTo(LedgerConfig.DEFAULT_DECOMMISSIONING_DURATION_SECS);
     assertThat(config.isServerTlsEnabled()).isEqualTo(LedgerConfig.DEFAULT_TLS_ENABLED);
-    assertThat(config.getGrpcServerConfig().getMaxInboundMessageSize()).isEqualTo(0);
-    assertThat(config.getGrpcServerConfig().getMaxInboundMetadataSize()).isEqualTo(0);
     assertThat(config.isProofEnabled()).isEqualTo(LedgerConfig.DEFAULT_PROOF_ENABLED);
     assertThat(config.isFunctionEnabled()).isEqualTo(LedgerConfig.DEFAULT_FUNCTION_ENABLED);
     assertThat(config.isAuditorEnabled()).isEqualTo(LedgerConfig.DEFAULT_AUDITOR_ENABLED);
@@ -105,18 +99,6 @@ public class LedgerConfigTest {
   }
 
   @Test
-  public void getDecommissioningDurationSecs_PropertiesGiven_ShouldReturnSpecified() {
-    // Arrange
-    props.setProperty(LedgerConfig.SERVER_DECOMMISSIONING_DURATION_SECS, "60");
-
-    // Act
-    LedgerConfig config = new LedgerConfig(props);
-
-    // Assert
-    assertThat(config.getDecommissioningDurationSecs()).isEqualTo(60);
-  }
-
-  @Test
   public void isTlsEnabled_PropertiesGiven_ShouldReturnSpecified() {
     // Arrange
     props.setProperty(LedgerConfig.SERVER_TLS_ENABLED, "true");
@@ -152,34 +134,6 @@ public class LedgerConfigTest {
 
     // Assert
     assertThat(config.getServerTlsPrivateKeyPath()).isEqualTo(SOME_PATH);
-  }
-
-  @Test
-  public void getMaxInboundMessageSize_PropertiesGiven_ShouldReturnSpecified() {
-    // Arrange
-    props.setProperty(
-        LedgerConfig.SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE, SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE);
-
-    // Act
-    LedgerConfig config = new LedgerConfig(props);
-
-    // Assert
-    assertThat(config.getGrpcServerConfig().getMaxInboundMessageSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE));
-  }
-
-  @Test
-  public void getMaxInboundMetadataSize_PropertiesGiven_ShouldReturnSpecified() {
-    // Arrange
-    props.setProperty(
-        LedgerConfig.SERVER_GRPC_MAX_INBOUND_METADATA_SIZE, SOME_GRPC_MAX_INBOUND_METADATA_SIZE);
-
-    // Act
-    LedgerConfig config = new LedgerConfig(props);
-
-    // Assert
-    assertThat(config.getGrpcServerConfig().getMaxInboundMetadataSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_METADATA_SIZE));
   }
 
   @Test

@@ -9,13 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class ConfigUtilsTest {
-  @TempDir private Path folder;
+  @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private void writeToFile(File file, String content) throws IOException {
     BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
@@ -121,7 +121,7 @@ public class ConfigUtilsTest {
   @Test
   public void getStringFromFilePath_ShouldBehaveCorrectly() throws IOException {
     // Arrange
-    File filePath = folder.resolve("some_file").toFile();
+    File filePath = folder.newFile("some_file");
     writeToFile(filePath.getCanonicalFile(), "value");
     Properties properties = new Properties();
     properties.setProperty("name1", filePath.getCanonicalPath());

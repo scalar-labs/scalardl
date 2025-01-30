@@ -123,8 +123,8 @@ import javax.annotation.Nullable;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -148,7 +148,7 @@ public class LedgerServiceIntegrationTest {
   private HmacSigner hmacSigner;
   private HmacValidator hmacValidator;
 
-  @BeforeEach
+  @Before
   public void setUp() throws UnloadableKeyException {
     MockitoAnnotations.openMocks(this);
 

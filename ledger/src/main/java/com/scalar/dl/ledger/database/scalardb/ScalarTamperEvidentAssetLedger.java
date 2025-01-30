@@ -305,7 +305,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
             "asset metadata retrieval failed", e, StatusCode.DATABASE_ERROR);
       }
 
-      return result.map(AssetMetadata::new);
+      return result.map(r -> new AssetMetadata(result.get()));
     }
   }
 
@@ -328,13 +328,6 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
         throw new UnexpectedValueException(e);
       }
     }
-
-    /**
-     * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-     * remains partially initialized and may be vulnerable to Finalizer attacks."
-     */
-    @Override
-    protected final void finalize() {}
 
     /**
      * Returns the id of the asset.

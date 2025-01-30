@@ -12,25 +12,22 @@ import static org.mockito.Mockito.when;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.ClientMode;
 import com.scalar.dl.client.config.DigitalSignatureIdentityConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.config.HmacIdentityConfig;
 import com.scalar.dl.client.util.RequestSigner;
 import com.scalar.dl.ledger.config.TargetConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ClientServiceFactoryTest {
   @Mock private ClientConfig config;
-  @Mock private GatewayClientConfig gatewayClientConfig;
   @Mock private LedgerClient ledgerClient;
   @Mock private AuditorClient auditorClient;
-  @Mock private GatewayClient gatewayClient;
   @Mock private RequestSigner requestSigner;
   private ClientServiceFactory factory;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     factory = spy(new ClientServiceFactory());
@@ -55,12 +52,9 @@ public class ClientServiceFactoryTest {
     ClientService service = factory.create(config);
 
     // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getAuditorClient())
-        .isNull();
+    assertThat(service.getLedgerClient()).isEqualTo(ledgerClient);
     assertThat(service.getRequestSigner()).isEqualTo(requestSigner);
+    assertThat(service.getAuditorClient()).isNull();
     verify(factory).createLedgerClient(ledgerTargetConfig);
     verify(factory).createRequestSigner(digitalSignatureIdentityConfig);
     verify(factory, never()).createRequestSigner(any(HmacIdentityConfig.class));
@@ -82,12 +76,9 @@ public class ClientServiceFactoryTest {
     ClientService service = factory.create(config);
 
     // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getAuditorClient())
-        .isNull();
+    assertThat(service.getLedgerClient()).isEqualTo(ledgerClient);
     assertThat(service.getRequestSigner()).isEqualTo(requestSigner);
+    assertThat(service.getAuditorClient()).isNull();
     verify(factory).createLedgerClient(ledgerTargetConfig);
     verify(factory).createRequestSigner(hmacIdentityConfig);
     verify(factory, never()).createRequestSigner(any(DigitalSignatureIdentityConfig.class));
@@ -114,11 +105,8 @@ public class ClientServiceFactoryTest {
     ClientService service = factory.create(config);
 
     // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient);
+    assertThat(service.getLedgerClient()).isEqualTo(ledgerClient);
+    assertThat(service.getAuditorClient()).isEqualTo(auditorClient);
     assertThat(service.getRequestSigner()).isEqualTo(requestSigner);
     verify(factory).createLedgerClient(ledgerTargetConfig);
     verify(factory).createAuditorClient(auditorTargetConfig);
@@ -148,19 +136,11 @@ public class ClientServiceFactoryTest {
     ClientService service2 = factory.create(config);
 
     // Assert
-    assertThat(service1.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service1.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(
-            ((DefaultClientServiceHandler) service1.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient);
+    assertThat(service1.getLedgerClient()).isEqualTo(ledgerClient);
+    assertThat(service1.getAuditorClient()).isEqualTo(auditorClient);
     assertThat(service1.getRequestSigner()).isEqualTo(requestSigner);
-    assertThat(service2.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service2.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(
-            ((DefaultClientServiceHandler) service2.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient);
+    assertThat(service2.getLedgerClient()).isEqualTo(ledgerClient);
+    assertThat(service2.getAuditorClient()).isEqualTo(auditorClient);
     assertThat(service2.getRequestSigner()).isEqualTo(requestSigner);
     verify(factory).createLedgerClient(ledgerTargetConfig);
     verify(factory).createAuditorClient(auditorTargetConfig);
@@ -203,19 +183,11 @@ public class ClientServiceFactoryTest {
     ClientService service2 = factory.create(config2);
 
     // Assert
-    assertThat(service1.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service1.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(
-            ((DefaultClientServiceHandler) service1.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient);
+    assertThat(service1.getLedgerClient()).isEqualTo(ledgerClient);
+    assertThat(service1.getAuditorClient()).isEqualTo(auditorClient);
     assertThat(service1.getRequestSigner()).isEqualTo(requestSigner);
-    assertThat(service2.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service2.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient2);
-    assertThat(
-            ((DefaultClientServiceHandler) service2.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient2);
+    assertThat(service2.getLedgerClient()).isEqualTo(ledgerClient2);
+    assertThat(service2.getAuditorClient()).isEqualTo(auditorClient2);
     assertThat(service2.getRequestSigner()).isEqualTo(requestSigner2);
     verify(factory).createLedgerClient(ledgerTargetConfig1);
     verify(factory).createAuditorClient(auditorTargetConfig1);
@@ -244,171 +216,12 @@ public class ClientServiceFactoryTest {
     ClientService service = factory.create(config);
 
     // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getLedgerClient())
-        .isEqualTo(ledgerClient);
-    assertThat(((DefaultClientServiceHandler) service.getClientServiceHandler()).getAuditorClient())
-        .isEqualTo(auditorClient);
+    assertThat(service.getLedgerClient()).isEqualTo(ledgerClient);
+    assertThat(service.getAuditorClient()).isEqualTo(auditorClient);
     assertThat(service.getRequestSigner()).isNull();
     verify(factory).createLedgerClient(ledgerTargetConfig);
     verify(factory).createAuditorClient(auditorTargetConfig);
     verify(factory, never()).createRequestSigner(any(DigitalSignatureIdentityConfig.class));
     verify(factory, never()).createRequestSigner(any(HmacIdentityConfig.class));
-  }
-
-  @Test
-  public void
-      create_GatewayClientConfigWithDigitalSignatureIdentityGiven_ShouldCreateClientService() {
-    // Arrange
-    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
-    DigitalSignatureIdentityConfig digitalSignatureIdentityConfig =
-        mock(DigitalSignatureIdentityConfig.class);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
-    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
-    doReturn(gatewayClient).when(factory).createGatewayClient(any());
-    doReturn(requestSigner)
-        .when(factory)
-        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-
-    // Act
-    ClientService service = factory.create(gatewayClientConfig);
-
-    // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(((GatewayClientServiceHandler) service.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service.getRequestSigner()).isEqualTo(requestSigner);
-    verify(factory).createGatewayClient(gatewayTargetConfig);
-    verify(factory).createRequestSigner(digitalSignatureIdentityConfig);
-    verify(factory, never()).createRequestSigner(any(HmacIdentityConfig.class));
-  }
-
-  @Test
-  public void create_GatewayClientConfigWithHmacIdentityGiven_ShouldCreateClientService() {
-    // Arrange
-    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
-    HmacIdentityConfig hmacIdentityConfig = mock(HmacIdentityConfig.class);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
-    when(config.getHmacIdentityConfig()).thenReturn(hmacIdentityConfig);
-    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
-    doReturn(gatewayClient).when(factory).createGatewayClient(any());
-    doReturn(requestSigner).when(factory).createRequestSigner(any(HmacIdentityConfig.class));
-
-    // Act
-    ClientService service = factory.create(gatewayClientConfig);
-
-    // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(((GatewayClientServiceHandler) service.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service.getRequestSigner()).isEqualTo(requestSigner);
-    verify(factory).createGatewayClient(gatewayTargetConfig);
-    verify(factory).createRequestSigner(hmacIdentityConfig);
-    verify(factory, never()).createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-  }
-
-  @Test
-  public void create_GatewayClientConfigWithIntermediaryModeGiven_ShouldCreateClientService() {
-    // Arrange
-    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
-    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
-    when(config.getHmacIdentityConfig()).thenReturn(null);
-    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
-    doReturn(gatewayClient).when(factory).createGatewayClient(any());
-
-    // Act
-    ClientService service = factory.create(gatewayClientConfig);
-
-    // Assert
-    assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(((GatewayClientServiceHandler) service.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service.getRequestSigner()).isNull();
-    verify(factory, never()).createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    verify(factory, never()).createRequestSigner(any(HmacIdentityConfig.class));
-  }
-
-  @Test
-  public void
-      create_GatewayClientConfigWithTheSameInternalConfigGiven_ShouldCreateClientServicesWithSameInternalInstances() {
-    // Arrange
-    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
-    DigitalSignatureIdentityConfig digitalSignatureIdentityConfig =
-        mock(DigitalSignatureIdentityConfig.class);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
-    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
-    doReturn(gatewayClient).when(factory).createGatewayClient(any());
-    doReturn(requestSigner)
-        .when(factory)
-        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-
-    // Act
-    ClientService service1 = factory.create(gatewayClientConfig);
-    ClientService service2 = factory.create(gatewayClientConfig);
-
-    // Assert
-    assertThat(service1.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(
-            ((GatewayClientServiceHandler) service1.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service1.getRequestSigner()).isEqualTo(requestSigner);
-    assertThat(service2.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(
-            ((GatewayClientServiceHandler) service2.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service2.getRequestSigner()).isEqualTo(requestSigner);
-    verify(factory).createGatewayClient(gatewayTargetConfig);
-    verify(factory).createRequestSigner(digitalSignatureIdentityConfig);
-  }
-
-  @Test
-  public void
-      create_GatewayClientConfigWithDifferentInternalConfigGiven_ShouldCreateClientServicesWithDifferentInternalInstances() {
-    // Arrange
-    GatewayClientConfig gatewayClientConfig2 = mock(GatewayClientConfig.class);
-    ClientConfig config2 = mock(ClientConfig.class);
-    TargetConfig gatewayTargetConfig1 = mock(TargetConfig.class);
-    DigitalSignatureIdentityConfig digitalSignatureIdentityConfig1 =
-        mock(DigitalSignatureIdentityConfig.class);
-    TargetConfig gatewayTargetConfig2 = mock(TargetConfig.class);
-    DigitalSignatureIdentityConfig digitalSignatureIdentityConfig2 =
-        mock(DigitalSignatureIdentityConfig.class);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig1);
-    when(config2.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig2);
-    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(gatewayClientConfig2.getClientConfig()).thenReturn(config2);
-    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig1);
-    when(gatewayClientConfig2.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig2);
-    doReturn(gatewayClient).when(factory).createGatewayClient(gatewayTargetConfig1);
-    doReturn(requestSigner).when(factory).createRequestSigner(digitalSignatureIdentityConfig1);
-    GatewayClient gatewayClient2 = mock(GatewayClient.class);
-    RequestSigner requestSigner2 = mock(RequestSigner.class);
-    doReturn(gatewayClient2).when(factory).createGatewayClient(gatewayTargetConfig2);
-    doReturn(requestSigner2).when(factory).createRequestSigner(digitalSignatureIdentityConfig2);
-
-    // Act
-    ClientService service1 = factory.create(gatewayClientConfig);
-    ClientService service2 = factory.create(gatewayClientConfig2);
-
-    // Assert
-    assertThat(service1.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(
-            ((GatewayClientServiceHandler) service1.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient);
-    assertThat(service1.getRequestSigner()).isEqualTo(requestSigner);
-    assertThat(service2.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
-    assertThat(
-            ((GatewayClientServiceHandler) service2.getClientServiceHandler()).getGatewayClient())
-        .isEqualTo(gatewayClient2);
-    assertThat(service2.getRequestSigner()).isEqualTo(requestSigner2);
-    verify(factory).createGatewayClient(gatewayTargetConfig1);
-    verify(factory).createRequestSigner(digitalSignatureIdentityConfig1);
-    verify(factory).createGatewayClient(gatewayTargetConfig2);
-    verify(factory).createRequestSigner(digitalSignatureIdentityConfig2);
   }
 }

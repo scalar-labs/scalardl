@@ -2,11 +2,9 @@ package com.scalar.dl.client.tool;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -23,10 +21,17 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "register-contracts", description = "Register specified contracts.")
-public class ContractsRegistration extends CommonOptions implements Callable<Integer> {
+public class ContractsRegistration implements Callable<Integer> {
   static final String REGISTRATION_FAILED_CONTRACTS_TOML_FILE =
       "registration-failed-contracts.toml";
   static final String TOML_TABLES_NAME = "contracts";
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
 
   @CommandLine.Option(
       names = {"--contracts-file"},
@@ -34,6 +39,12 @@ public class ContractsRegistration extends CommonOptions implements Callable<Int
       paramLabel = "CONTRACTS_FILE",
       description = "A file including contracts to register in TOML format.")
   private String contractsFile;
+
+  @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new ContractsRegistration()).execute(args);
@@ -43,22 +54,7 @@ public class ContractsRegistration extends CommonOptions implements Callable<Int
   @Override
   public Integer call() throws Exception {
     ClientServiceFactory factory = new ClientServiceFactory();
-    File contractsFileObj = new File(contractsFile);
-    return call(factory, contractsFileObj);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, File contractsFile) throws Exception {
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
-    return call(factory, service, contractsFile);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service, File contractsFile)
-      throws Exception {
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
 
     List<Toml> succeeded = new ArrayList<Toml>();
@@ -67,21 +63,13 @@ public class ContractsRegistration extends CommonOptions implements Callable<Int
 
     try {
       new Toml()
-          .read(contractsFile)
+          .read(new File(contractsFile))
           .getTables(TOML_TABLES_NAME)
           .forEach(
               each -> {
                 String id = each.getString("contract-id");
                 String binaryName = each.getString("contract-binary-name");
                 String classFile = each.getString("contract-class-file");
-
-                // All of them are required values to register a function.
-                // Thus, the malformed table is skipped if one of them doesn't exist.
-                if (id == null || binaryName == null || classFile == null) {
-                  failed.add(each);
-                  return;
-                }
-
                 JsonNode properties = null;
 
                 if (each.contains("contract-properties")) {
@@ -97,7 +85,6 @@ public class ContractsRegistration extends CommonOptions implements Callable<Int
                   succeeded.add(each);
                 } catch (ClientException e) {
                   Common.printError(e);
-                  printStackTrace(e);
                   if (e.getStatusCode() == StatusCode.CONTRACT_ALREADY_REGISTERED) {
                     alreadyRegistered.add(each);
                   } else {

@@ -9,8 +9,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObjectBuilder;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
 public class AssetInputTest {
@@ -19,7 +19,7 @@ public class AssetInputTest {
   private static final int SOME_ASSET_AGE1 = 1;
   private static final int SOME_ASSET_AGE2 = 2;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

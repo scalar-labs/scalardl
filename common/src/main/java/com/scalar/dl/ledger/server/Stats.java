@@ -6,20 +6,13 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer.Context;
 import com.codahale.metrics.jmx.JmxReporter;
 import com.google.common.base.CaseFormat;
-import com.scalar.dl.ledger.config.ServerConfig;
-import com.scalar.dl.ledger.util.CryptoUtils;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 import io.prometheus.client.exporter.MetricsServlet;
 import io.prometheus.client.hotspot.DefaultExports;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,57 +69,23 @@ public class Stats {
     Runtime.getRuntime().addShutdownHook(new Thread(reporter::stop));
   }
 
-  public void startPrometheusExporter(ServerConfig config) {
-    try {
-      CollectorRegistry.defaultRegistry.register(new DropwizardExports(metricRegistry));
-      DefaultExports.initialize();
+  public void startPrometheusExporter(int port) {
+    CollectorRegistry.defaultRegistry.register(new DropwizardExports(metricRegistry));
+    DefaultExports.initialize();
 
-      Server server = createServer(config);
-      ServletContextHandler context = new ServletContextHandler();
-      context.setContextPath("/");
-      server.setHandler(context);
-      context.addServlet(new ServletHolder(new MetricsServlet()), "/stats/prometheus");
-      server.setStopAtShutdown(true);
+    Server server = new Server(port);
+    ServletContextHandler context = new ServletContextHandler();
+    context.setContextPath("/");
+    server.setHandler(context);
+    context.addServlet(new ServletHolder(new MetricsServlet()), "/stats/prometheus");
+    server.setStopAtShutdown(true);
+
+    try {
       server.start();
-      LOGGER.info(
-          "Prometheus exporter started, listening on {}"
-              + (config.isServerTlsEnabled() ? " with TLS" : ""),
-          config.getPrometheusExporterPort());
+      LOGGER.info("Prometheus exporter started, listening on {}.", port);
     } catch (Exception e) {
       LOGGER.error("Failed to start Prometheus exporter.", e);
     }
-  }
-
-  private Server createServer(ServerConfig config) {
-    Server server = new Server();
-    ServerConnector connector;
-    if (config.isServerTlsEnabled()) {
-      // Disable SNI host check to allow Prometheus to connect
-      SecureRequestCustomizer secureRequestCustomizer = new SecureRequestCustomizer();
-      secureRequestCustomizer.setSniHostCheck(false);
-      HttpConnectionFactory httpConnectionFactory = new HttpConnectionFactory();
-      httpConnectionFactory.getHttpConfiguration().addCustomizer(secureRequestCustomizer);
-
-      connector =
-          new ServerConnector(server, createSslContextFactory(config), httpConnectionFactory);
-    } else {
-      connector = new ServerConnector(server);
-    }
-    connector.setPort(config.getPrometheusExporterPort());
-    server.setConnectors(new Connector[] {connector});
-    return server;
-  }
-
-  private SslContextFactory createSslContextFactory(ServerConfig config) {
-    // We can use a dummy password because the key store is not persisted
-    String keyPassword = "Dummy_password1234!";
-
-    SslContextFactory sslContextFactory = new SslContextFactory.Server();
-    sslContextFactory.setKeyStore(
-        CryptoUtils.createKeyStore(
-            config.getServerTlsCertChainPath(), config.getServerTlsPrivateKeyPath(), keyPassword));
-    sslContextFactory.setKeyStorePassword(keyPassword);
-    return sslContextFactory;
   }
 
   public static TimerContext emptyTimerContext() {

@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class AssetHasherTest {
   private static final String ANY_ID = "id";

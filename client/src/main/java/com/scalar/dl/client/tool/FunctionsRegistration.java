@@ -1,10 +1,8 @@
 package com.scalar.dl.client.tool;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -19,15 +17,28 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "register-functions", description = "Register specified functions.")
-public class FunctionsRegistration extends CommonOptions implements Callable<Integer> {
+public class FunctionsRegistration implements Callable<Integer> {
   static final String REGISTRATION_FAILED_FUNCTIONS_TOML_FILE =
       "registration-failed-functions.toml";
   static final String TOML_TABLES_NAME = "functions";
 
   @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
+
+  @CommandLine.Option(
       names = {"--functions-file"},
       required = true,
-      paramLabel = "FUNCTIONS_FILE",
+      paramLabel = "FUNCTION_FILE",
       description = "A file including functions to register in TOML format.")
   private String functionsFile;
 
@@ -40,41 +51,20 @@ public class FunctionsRegistration extends CommonOptions implements Callable<Int
   @Override
   public Integer call() throws Exception {
     ClientServiceFactory factory = new ClientServiceFactory();
-    File functionsFileObj = new File(functionsFile);
-    return call(factory, functionsFileObj);
-  }
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
 
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, File functionsFile) throws Exception {
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
-    return call(factory, service, functionsFile);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service, File functionsFile)
-      throws Exception {
     List<Toml> succeeded = new ArrayList<Toml>();
     List<Toml> failed = new ArrayList<Toml>();
 
     try {
       new Toml()
-          .read(functionsFile)
+          .read(new File(functionsFile))
           .getTables(TOML_TABLES_NAME)
           .forEach(
               each -> {
                 String id = each.getString("function-id");
                 String binaryName = each.getString("function-binary-name");
                 String classFile = each.getString("function-class-file");
-
-                // All of them are required values to register a function.
-                // Thus, the malformed table is skipped if one of them doesn't exist.
-                if (id == null || binaryName == null || classFile == null) {
-                  failed.add(each);
-                  return;
-                }
 
                 try {
                   System.out.printf("Register function %s as %s%n", binaryName, id);
@@ -83,7 +73,6 @@ public class FunctionsRegistration extends CommonOptions implements Callable<Int
                   succeeded.add(each);
                 } catch (ClientException e) {
                   Common.printError(e);
-                  printStackTrace(e);
                   failed.add(each);
                 }
               });

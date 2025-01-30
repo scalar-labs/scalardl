@@ -1,11 +1,8 @@
 package com.scalar.dl.ledger.function;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,8 +11,8 @@ import com.scalar.dl.ledger.database.FunctionRegistry;
 import com.scalar.dl.ledger.exception.MissingFunctionException;
 import com.scalar.dl.ledger.exception.UnloadableFunctionException;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,39 +23,22 @@ public class FunctionManagerTest {
   @Mock private FunctionLoader loader;
   private FunctionManager manager;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 
     manager = spy(new FunctionManager(registry, loader));
-    when(entry.getId()).thenReturn(ANY_FUNCTION_ID);
   }
 
   @Test
   public void register_FunctionEntryGiven_ShouldBind() {
     // Arrange
-    doReturn(TestJacksonBasedFunction.class).when(loader).defineClass(entry);
 
     // Act
     manager.register(entry);
 
     // Assert
-    verify(manager).defineClass(entry);
     verify(registry).bind(entry);
-  }
-
-  @Test
-  public void register_LoadFailedWithRuntimeException_ShouldThrowException() {
-    // Arrange
-    doThrow(RuntimeException.class).when(loader).defineClass(entry);
-
-    // Act
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
-
-    // Assert
-    assertThat(thrown).isExactlyInstanceOf(UnloadableFunctionException.class);
-    verify(manager).defineClass(entry);
-    verify(registry, never()).bind(entry);
   }
 
   @Test
@@ -155,6 +135,6 @@ public class FunctionManagerTest {
         .hasCauseExactlyInstanceOf(MissingFunctionException.class);
 
     // Assert
-    verify(manager).defineClass(ANY_FUNCTION_ID);
+    verify(manager).findClass(ANY_FUNCTION_ID);
   }
 }

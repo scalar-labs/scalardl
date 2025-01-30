@@ -45,8 +45,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -83,7 +83,7 @@ public class LedgerServicePermissionTest {
   @Mock private AuditorKeyValidator auditorKeyValidator;
   private LedgerService service;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 

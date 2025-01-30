@@ -127,13 +127,12 @@ import javax.annotation.Nullable;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIf;
-import org.junit.jupiter.api.condition.EnabledIf;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class LedgerServiceEndToEndTest {
   private static final String NAMESPACE = "scalar";
@@ -177,7 +176,7 @@ public class LedgerServiceEndToEndTest {
   private static DistributedStorageAdmin storageAdmin;
   private static Map<String, String> creationOptions = new HashMap<>();
 
-  @BeforeAll
+  @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     ledgerSchemaPath = Paths.get(System.getProperty("user.dir") + "/scripts/create_schema.json");
     databaseSchemaPath =
@@ -314,19 +313,19 @@ public class LedgerServiceEndToEndTest {
     System.setSecurityManager(new SecurityManager());
   }
 
-  @AfterAll
+  @AfterClass
   public static void tearDownAfterClass() throws SchemaLoaderException {
     storageAdmin.close();
     SchemaLoader.unload(props, ledgerSchemaPath, true);
     SchemaLoader.unload(props, databaseSchemaPath, true);
   }
 
-  @BeforeEach
+  @Before
   public void setUp() {
     createServices(new LedgerConfig(props));
   }
 
-  @AfterEach
+  @After
   public void tearDown() throws ExecutionException {
     storageAdmin.truncateTable(NAMESPACE, ASSET_TABLE);
     storageAdmin.truncateTable(NAMESPACE, ASSET_METADATA_TABLE);
@@ -961,8 +960,7 @@ public class LedgerServiceEndToEndTest {
 
     // Act Assert
     List<String> assetIds = Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2);
-    assetIds
-        .parallelStream()
+    assetIds.parallelStream()
         .forEach(
             assetId ->
                 AccessController.doPrivileged(
@@ -1120,11 +1118,11 @@ public class LedgerServiceEndToEndTest {
   }
 
   @Test
-  @DisabledIf(
-      value = "isTxStateManagementEnabled",
-      disabledReason =
-          "When tx_state_management is enabled, ScalarDL does not allow transactions to be committed using the same nonce.")
   public void validate_AssetAContainsDuplicateNonce_ShouldReturnFalseWithNonceValidatorError() {
+    // When tx_state_management is enabled, ScalarDL does not allow transactions to be committed
+    // using the same nonce.
+    Assume.assumeFalse(isTxStateManagementEnabled());
+
     // Arrange
     createAssets(Optional.of(UUID.randomUUID()), DeserializationType.DEPRECATED, false);
 
@@ -1139,8 +1137,9 @@ public class LedgerServiceEndToEndTest {
   }
 
   @Test
-  @EnabledIf("isTxStateManagementEnabled")
   public void validate_ExecuteContractWithDuplicateNonce_ShouldThrowConflictException() {
+    Assume.assumeTrue(isTxStateManagementEnabled());
+
     // Arrange Act Assert
     Assertions.assertThatThrownBy(
             () ->

@@ -7,8 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
 public class RequestProofTest {
@@ -18,7 +18,7 @@ public class RequestProofTest {
   private static final int SOME_KEY_VERSION = 1;
   private static final byte[] SOME_SIGNATURE = "some_signature".getBytes(StandardCharsets.UTF_8);
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

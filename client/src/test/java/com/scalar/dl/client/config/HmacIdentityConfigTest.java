@@ -3,7 +3,7 @@ package com.scalar.dl.client.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class HmacIdentityConfigTest {
   private static final String SOME_ENTITY_ID = "some_entity_id";

@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -31,7 +31,7 @@ public class JacksonBasedLedgerTracerTest {
   private JacksonBasedLedgerTracer ledger;
   @Mock private AssetScanner scanner;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     ledger = new JacksonBasedLedgerTracer(scanner);

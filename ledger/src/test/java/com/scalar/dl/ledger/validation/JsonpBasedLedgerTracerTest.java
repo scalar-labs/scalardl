@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,7 +30,7 @@ public class JsonpBasedLedgerTracerTest {
   private JsonpBasedLedgerTracer ledger;
   @Mock private AssetScanner scanner;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     ledger = new JsonpBasedLedgerTracer(scanner);

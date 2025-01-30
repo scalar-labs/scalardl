@@ -27,8 +27,8 @@ import com.scalar.dl.ledger.crypto.CertificateEntry;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -41,7 +41,7 @@ public class ScalarCertificateRegistryTest {
   @Mock private DistributedStorage storage;
   @InjectMocks private ScalarCertificateRegistry registry;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

@@ -1,5 +1,5 @@
 plugins {
-    id "com.google.protobuf" version "0.9.4"
+    id "com.google.protobuf" version "0.8.17"
 }
 
 dependencies {
@@ -27,6 +27,7 @@ protobuf {
     generateProtoTasks {
         all()*.plugins { grpc {} }
     }
+    generatedFilesBaseDir = "$projectDir/src"
 }
 
 task sourcesJar(type: Jar) {

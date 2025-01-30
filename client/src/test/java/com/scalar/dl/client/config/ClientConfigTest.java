@@ -11,10 +11,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class ClientConfigTest {
   private static final String SOME_ENTITY_ID = "some_entity_id";
@@ -38,9 +38,6 @@ public class ClientConfigTest {
   private static final String SOME_TLS_CA_ROOT_CERT_PEM = "tls.ca_root_cert_string";
   private static final String SOME_TLS_OVERRIDE_AUTHORITY = "tls_override_authority";
   private static final String SOME_AUTHORIZATION_CREDENTIAL = "authorization.credential";
-  private static final String SOME_GRPC_DEADLINE_DEADLINE_DURATION_MILLIS = "30000";
-  private static final String SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE = "2048";
-  private static final String SOME_GRPC_MAX_INBOUND_METADATA_SIZE = "1024";
   private static final String SOME_AUDITOR_ENABLED = "true";
   private static final String SOME_AUDITOR_HOST = "192.168.1.100";
   private static final String SOME_AUDITOR_PORT = "70051";
@@ -54,7 +51,7 @@ public class ClientConfigTest {
       "authorization.credential.auditor";
   private static final String SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID = "validate";
 
-  @TempDir Path folder;
+  @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private void writeToFile(File file, String content) throws IOException {
     BufferedWriter writer = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
@@ -78,10 +75,6 @@ public class ClientConfigTest {
     props.put(ClientConfig.TLS_CA_ROOT_CERT_PEM, SOME_TLS_CA_ROOT_CERT_PEM);
     props.put(ClientConfig.TLS_OVERRIDE_AUTHORITY, SOME_TLS_OVERRIDE_AUTHORITY);
     props.put(ClientConfig.AUTHORIZATION_CREDENTIAL, SOME_AUTHORIZATION_CREDENTIAL);
-    props.put(
-        ClientConfig.GRPC_DEADLINE_DURATION_MILLIS, SOME_GRPC_DEADLINE_DEADLINE_DURATION_MILLIS);
-    props.put(ClientConfig.GRPC_MAX_INBOUND_MESSAGE_SIZE, SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE);
-    props.put(ClientConfig.GRPC_MAX_INBOUND_METADATA_SIZE, SOME_GRPC_MAX_INBOUND_METADATA_SIZE);
     props.put(ClientConfig.AUDITOR_ENABLED, SOME_AUDITOR_ENABLED);
     props.put(ClientConfig.AUDITOR_HOST, SOME_AUDITOR_HOST);
     props.put(ClientConfig.AUDITOR_PORT, SOME_AUDITOR_PORT);
@@ -118,13 +111,6 @@ public class ClientConfigTest {
         .isEqualTo(SOME_TLS_OVERRIDE_AUTHORITY);
     assertThat(ledgerTargetConfig.getTargetAuthorizationCredential())
         .isEqualTo(SOME_AUTHORIZATION_CREDENTIAL);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig()).isNotNull();
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getDeadlineDurationMillis())
-        .isEqualTo(Long.parseLong(SOME_GRPC_DEADLINE_DEADLINE_DURATION_MILLIS));
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMessageSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE));
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMetadataSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_METADATA_SIZE));
     assertThat(config.isAuditorEnabled()).isEqualTo(true);
     assertThat(auditorTargetConfig).isNotNull();
     assertThat(auditorTargetConfig.getTargetHost()).isEqualTo(SOME_AUDITOR_HOST);
@@ -140,13 +126,13 @@ public class ClientConfigTest {
   @Test
   public void constructor_AllPropertiesWithPathGiven_ShouldCreateInstance() throws IOException {
     // Arrange
-    File certPath = folder.resolve(SOME_CERT_PATH).toFile();
+    File certPath = folder.newFile(SOME_CERT_PATH);
     writeToFile(certPath.getCanonicalFile(), SOME_CERT_PEM);
-    File privateKeyPath = folder.resolve(SOME_PRIVATE_KEY_PATH).toFile();
+    File privateKeyPath = folder.newFile(SOME_PRIVATE_KEY_PATH);
     writeToFile(privateKeyPath.getCanonicalFile(), SOME_PRIVATE_KEY_PEM);
-    File tlsCaRootCertPath = folder.resolve(SOME_TLS_CA_ROOT_CERT_PATH).toFile();
+    File tlsCaRootCertPath = folder.newFile(SOME_TLS_CA_ROOT_CERT_PATH);
     writeToFile(tlsCaRootCertPath.getCanonicalFile(), SOME_TLS_CA_ROOT_CERT_PEM);
-    File auditorTlsCaRootCertPath = folder.resolve(SOME_AUDITOR_TLS_CA_ROOT_CERT_PATH).toFile();
+    File auditorTlsCaRootCertPath = folder.newFile(SOME_AUDITOR_TLS_CA_ROOT_CERT_PATH);
     writeToFile(auditorTlsCaRootCertPath.getCanonicalFile(), SOME_AUDITOR_TLS_CA_ROOT_CERT_PEM);
 
     Properties props = new Properties();
@@ -163,10 +149,6 @@ public class ClientConfigTest {
     props.put(ClientConfig.TLS_CA_ROOT_CERT_PATH, tlsCaRootCertPath.getCanonicalPath());
     props.put(ClientConfig.TLS_OVERRIDE_AUTHORITY, SOME_TLS_OVERRIDE_AUTHORITY);
     props.put(ClientConfig.AUTHORIZATION_CREDENTIAL, SOME_AUTHORIZATION_CREDENTIAL);
-    props.put(
-        ClientConfig.GRPC_DEADLINE_DURATION_MILLIS, SOME_GRPC_DEADLINE_DEADLINE_DURATION_MILLIS);
-    props.put(ClientConfig.GRPC_MAX_INBOUND_MESSAGE_SIZE, SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE);
-    props.put(ClientConfig.GRPC_MAX_INBOUND_METADATA_SIZE, SOME_GRPC_MAX_INBOUND_METADATA_SIZE);
     props.put(ClientConfig.AUDITOR_ENABLED, SOME_AUDITOR_ENABLED);
     props.put(ClientConfig.AUDITOR_HOST, SOME_AUDITOR_HOST);
     props.put(ClientConfig.AUDITOR_PORT, SOME_AUDITOR_PORT);
@@ -204,13 +186,6 @@ public class ClientConfigTest {
         .isEqualTo(SOME_TLS_OVERRIDE_AUTHORITY);
     assertThat(ledgerTargetConfig.getTargetAuthorizationCredential())
         .isEqualTo(SOME_AUTHORIZATION_CREDENTIAL);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig()).isNotNull();
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getDeadlineDurationMillis())
-        .isEqualTo(Long.parseLong(SOME_GRPC_DEADLINE_DEADLINE_DURATION_MILLIS));
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMessageSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_MESSAGE_SIZE));
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMetadataSize())
-        .isEqualTo(Integer.parseInt(SOME_GRPC_MAX_INBOUND_METADATA_SIZE));
     assertThat(config.isAuditorEnabled()).isEqualTo(true);
     assertThat(auditorTargetConfig).isNotNull();
     assertThat(auditorTargetConfig.getTargetHost()).isEqualTo(SOME_AUDITOR_HOST);
@@ -249,11 +224,6 @@ public class ClientConfigTest {
     assertThat(ledgerTargetConfig.getTargetPrivilegedPort())
         .isEqualTo(ClientConfig.DEFAULT_SERVER_PRIVILEGED_PORT);
     assertThat(ledgerTargetConfig.isTargetTlsEnabled()).isEqualTo(ClientConfig.DEFAULT_TLS_ENABLED);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig()).isNotNull();
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getDeadlineDurationMillis())
-        .isEqualTo(ClientConfig.DEFAULT_DEADLINE_DURATION_MILLIS);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMessageSize()).isEqualTo(0);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMetadataSize()).isEqualTo(0);
     assertThat(config.getClientMode()).isEqualTo(ClientConfig.DEFAULT_CLIENT_MODE);
     assertThat(config.getAuthenticationMethod())
         .isEqualTo(ClientConfig.DEFAULT_AUTHENTICATION_METHOD);
@@ -335,11 +305,6 @@ public class ClientConfigTest {
     assertThat(ledgerTargetConfig.getTargetPrivilegedPort())
         .isEqualTo(ClientConfig.DEFAULT_SERVER_PRIVILEGED_PORT);
     assertThat(ledgerTargetConfig.isTargetTlsEnabled()).isEqualTo(ClientConfig.DEFAULT_TLS_ENABLED);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig()).isNotNull();
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getDeadlineDurationMillis())
-        .isEqualTo(ClientConfig.DEFAULT_DEADLINE_DURATION_MILLIS);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMessageSize()).isEqualTo(0);
-    assertThat(ledgerTargetConfig.getGrpcClientConfig().getMaxInboundMetadataSize()).isEqualTo(0);
     assertThat(config.getClientMode()).isEqualTo(ClientMode.INTERMEDIARY);
     assertThat(config.isAuditorEnabled()).isEqualTo(ClientConfig.DEFAULT_AUDITOR_ENABLED);
     assertThat(config.getAuthenticationMethod()).isEqualTo(AuthenticationMethod.PASS_THROUGH);

@@ -11,8 +11,8 @@ import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ServersHmacAuthenticatable;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,7 +26,7 @@ public class ClientKeyValidatorTest {
   @Mock private HmacValidator hmacValidator;
   @Mock private ServersHmacAuthenticatable serversHmacAuthenticatable;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }

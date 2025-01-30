@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.ClientMode;
 import com.scalar.dl.client.config.DigitalSignatureIdentityConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.config.HmacIdentityConfig;
 import com.scalar.dl.client.util.RequestSigner;
 import com.scalar.dl.ledger.config.TargetConfig;
@@ -26,7 +25,6 @@ public class ClientServiceFactory {
   private ClientConfig config;
   private final Map<TargetConfig, AbstractLedgerClient> ledgerClients = new ConcurrentHashMap<>();
   private final Map<TargetConfig, AbstractAuditorClient> auditorClients = new ConcurrentHashMap<>();
-  private final Map<TargetConfig, AbstractGatewayClient> gatewayClients = new ConcurrentHashMap<>();
   private final Map<DigitalSignatureIdentityConfig, RequestSigner> dsSigners =
       new ConcurrentHashMap<>();
   private final Map<HmacIdentityConfig, RequestSigner> hmacSigners = new ConcurrentHashMap<>();
@@ -71,37 +69,7 @@ public class ClientServiceFactory {
           auditorClients.computeIfAbsent(
               config.getAuditorTargetConfig(), this::createAuditorClient);
     }
-    ClientServiceHandler handler = new DefaultClientServiceHandler(ledgerClient, auditorClient);
 
-    return createClientService(config, handler);
-  }
-
-  /**
-   * Returns a {@link ClientService} instance.
-   *
-   * @param config a gateway client config
-   * @return a {@link ClientService} instance
-   */
-  public ClientService create(GatewayClientConfig config) {
-    // GatewayClient is reused if the specified target is the same
-    AbstractGatewayClient gatewayClient =
-        gatewayClients.computeIfAbsent(config.getGatewayTargetConfig(), this::createGatewayClient);
-    ClientServiceHandler handler = new GatewayClientServiceHandler(gatewayClient);
-
-    return createClientService(config.getClientConfig(), handler);
-  }
-
-  /**
-   * Cleans up all the resources managed by the factory. This must be called after finishing up all
-   * the interactions with the {@link ClientService}s that it creates.
-   */
-  public void close() {
-    ledgerClients.values().forEach(Client::shutdown);
-    auditorClients.values().forEach(Client::shutdown);
-    gatewayClients.values().forEach(Client::shutdown);
-  }
-
-  private ClientService createClientService(ClientConfig config, ClientServiceHandler handler) {
     // RequestSigner is reused if the specified identity is the same
     RequestSigner signer = null;
     if (config.getDigitalSignatureIdentityConfig() != null) {
@@ -115,7 +83,16 @@ public class ClientServiceFactory {
       assert config.getClientMode().equals(ClientMode.INTERMEDIARY);
     }
 
-    return new ClientService(config, handler, signer);
+    return new ClientService(config, ledgerClient, auditorClient, signer);
+  }
+
+  /**
+   * Cleans up all the resources managed by the factory. This must be called after finishing up all
+   * the interactions with the {@link ClientService}s that it creates.
+   */
+  public void close() {
+    ledgerClients.values().forEach(Client::shutdown);
+    auditorClients.values().forEach(Client::shutdown);
   }
 
   @VisibleForTesting
@@ -126,11 +103,6 @@ public class ClientServiceFactory {
   @VisibleForTesting
   AbstractAuditorClient createAuditorClient(TargetConfig config) {
     return new AuditorClient(config);
-  }
-
-  @VisibleForTesting
-  AbstractGatewayClient createGatewayClient(TargetConfig config) {
-    return new GatewayClient(config);
   }
 
   @VisibleForTesting

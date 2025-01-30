@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -20,27 +19,21 @@ import com.scalar.db.io.IntValue;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.exception.ConflictException;
 import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class TransactionStateManagerTest {
   private static final String SOME_TX_ID = "some_tx_id";
   @Mock private DistributedTransactionManager manager;
   @InjectMocks private TransactionStateManager stateManager;
-  private AutoCloseable closeable;
 
-  @BeforeEach
+  @Before
   public void setUp() {
-    closeable = openMocks(this);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    closeable.close();
+    MockitoAnnotations.initMocks(this);
   }
 
   @Test

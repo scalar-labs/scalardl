@@ -39,8 +39,8 @@ import java.util.Collections;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -70,17 +70,15 @@ public class ClientServiceTest {
   private static final byte[] ANY_HASH = "hash".getBytes(StandardCharsets.UTF_8);
   @Mock private LedgerClient client;
   @Mock private AuditorClient auditorClient;
-  private ClientServiceHandler handler;
   private RequestSigner signer;
   @Mock private ClientConfig config;
   @Mock private DigitalSignatureIdentityConfig digitalSignatureIdentityConfig;
   @Mock private HmacIdentityConfig hmacIdentityConfig;
   private ClientService service;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    handler = spy(new DefaultClientServiceHandler(client, auditorClient));
     signer = spy(new RequestSigner(new DigitalSignatureSigner(ANY_PRIVATE_KEY)));
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
     when(digitalSignatureIdentityConfig.getCert()).thenReturn(ANY_CERT);
@@ -90,7 +88,7 @@ public class ClientServiceTest {
     when(hmacIdentityConfig.getEntityId()).thenReturn(ANY_ENTITY_ID);
     when(hmacIdentityConfig.getSecretKeyVersion()).thenReturn(ANY_KEY_VERSION);
     when(hmacIdentityConfig.getSecretKey()).thenReturn(ANY_SECRET_KEY);
-    service = spy(new ClientService(config, handler, signer));
+    service = spy(new ClientService(config, client, auditorClient, signer));
   }
 
   @Test
@@ -328,8 +326,6 @@ public class ClientServiceTest {
   @Test
   public void executeContract_CorrectInputsGiven_ShouldExecuteProperly() {
     // Arrange
-    handler = new DefaultClientServiceHandler(client, null);
-    service = spy(new ClientService(config, handler, signer));
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     JsonObject argument = Json.createReader(new StringReader(ANY_CONTRACT_ARGUMENT)).readObject();
     ContractExecutionResult result =
@@ -354,8 +350,6 @@ public class ClientServiceTest {
   @Test
   public void executeContract_HmacAuthConfiguredAndCorrectInputsGiven_ShouldExecuteProperly() {
     // Arrange
-    handler = new DefaultClientServiceHandler(client, null);
-    service = spy(new ClientService(config, handler, signer));
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     JsonObject argument = Json.createReader(new StringReader(ANY_CONTRACT_ARGUMENT)).readObject();
@@ -381,8 +375,6 @@ public class ClientServiceTest {
   @Test
   public void executeContract_SerializedBinaryGiven_ShouldExecuteProperly() {
     // Arrange
-    handler = new DefaultClientServiceHandler(client, null);
-    service = spy(new ClientService(config, handler, null));
     when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
     when(config.getHmacIdentityConfig()).thenReturn(null);

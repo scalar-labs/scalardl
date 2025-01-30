@@ -42,13 +42,4 @@ public class RpcUtil {
       builder.intercept(new AuthorizationInterceptor(config.getTargetAuthorizationCredential()));
     }
   }
-
-  public static void configureDataSize(NettyChannelBuilder builder, TargetConfig config) {
-    if (config.getGrpcClientConfig().getMaxInboundMessageSize() > 0) {
-      builder.maxInboundMessageSize(config.getGrpcClientConfig().getMaxInboundMessageSize());
-    }
-    if (config.getGrpcClientConfig().getMaxInboundMetadataSize() > 0) {
-      builder.maxInboundMetadataSize(config.getGrpcClientConfig().getMaxInboundMetadataSize());
-    }
-  }
 }

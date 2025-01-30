@@ -48,15 +48,6 @@ javadoc {
     include "com/scalar/dl/ledger/statemachine/*.java"
 }
 
-spotless {
-    java {
-        target 'src/*/java/**/*.java'
-        importOrder()
-        removeUnusedImports()
-        googleJavaFormat(googleJavaFormatVersion)
-    }
-}
-
 spotbugs {
     ignoreFailures = false
     showStackTraces = true

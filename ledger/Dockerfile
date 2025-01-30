@@ -30,6 +30,14 @@ WORKDIR /scalar
 # ledger.tar to build/docker.
 ADD ./ledger.tar .
 
+ENV SCALAR_DB_CONTACT_POINTS 'cassandra'
+ENV SCALAR_DB_CONTACT_PORT '9042'
+ENV SCALAR_DB_USERNAME ''
+ENV SCALAR_DB_PASSWORD ''
+ENV SCALAR_DB_STORAGE 'cassandra'
+ENV SCALAR_DL_LEDGER_FUNCTION_ENABLED 'true'
+ENV SCALAR_DL_LEDGER_NONCE_TXID_ENABLED 'true'
+
 # it needs to CD to ledger to see security.policy
 WORKDIR /scalar/ledger
 
@@ -44,12 +52,12 @@ RUN chown -R scalar:scalar /scalar/ledger
 USER 201
 
 ENV JAVA_OPT_MAX_RAM_PERCENTAGE '60.0'
-ENV JAVA_OPTS '-Dlog4j.configurationFile=file:/tmp/log4j2.properties'
+ENV JAVA_OPTS '-Dlog4j.configurationFile=file:log4j2.properties'
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD ["dockerize", "-template", "ledger.properties.tmpl:/tmp/ledger.properties", \
-    "-template", "log4j2.properties.tmpl:/tmp/log4j2.properties", \
-    "./bin/scalar-ledger", "--config=/tmp/ledger.properties"]
+CMD ["dockerize", "-template", "ledger.properties.tmpl:ledger.properties", \
+    "-template", "log4j2.properties.tmpl:log4j2.properties", \
+    "./bin/scalar-ledger", "--config=ledger.properties"]
 
 EXPOSE 50051

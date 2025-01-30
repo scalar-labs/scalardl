@@ -2,14 +2,13 @@ package com.scalar.dl.ledger.contract;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.scalar.dl.ledger.crypto.CertificateEntry;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.MockitoAnnotations;
 
 public class ContractEntryKeyTest {
   private static final String CONTRACT_ID1 = "contract_id1";
@@ -21,16 +20,9 @@ public class ContractEntryKeyTest {
   private static final int VERSION1 = 1;
   private static final int VERSION2 = 2;
 
-  private AutoCloseable closeable;
-
-  @BeforeEach
+  @Before
   public void setUp() {
-    closeable = openMocks(this);
-  }
-
-  @AfterEach
-  public void tearDown() throws Exception {
-    closeable.close();
+    MockitoAnnotations.initMocks(this);
   }
 
   @SuppressWarnings("SelfEquals")

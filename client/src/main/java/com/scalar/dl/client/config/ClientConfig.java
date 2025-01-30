@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ConfigUtils;
-import com.scalar.dl.ledger.config.GrpcClientConfig;
 import com.scalar.dl.ledger.config.TargetConfig;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
@@ -28,7 +27,6 @@ public class ClientConfig {
   @VisibleForTesting static final int DEFAULT_CERT_VERSION = 1;
   @VisibleForTesting static final int DEFAULT_SECRET_KEY_VERSION = 1;
   @VisibleForTesting static final boolean DEFAULT_TLS_ENABLED = false;
-  @VisibleForTesting static final long DEFAULT_DEADLINE_DURATION_MILLIS = 60000;
   @VisibleForTesting static final boolean DEFAULT_AUDITOR_ENABLED = false;
   @VisibleForTesting static final String DEFAULT_AUDITOR_HOST = "localhost";
   @VisibleForTesting static final int DEFAULT_AUDITOR_PORT = 40051;
@@ -190,28 +188,6 @@ public class ClientConfig {
    */
   public static final String AUTHORIZATION_CREDENTIAL = PREFIX + "authorization.credential";
   /**
-   * <code>scalar.dl.client.grpc.deadline_duration_millis</code> (Optional)<br>
-   * A deadline that is after the given duration from now for each request.
-   */
-  public static final String GRPC_DEADLINE_DURATION_MILLIS =
-      PREFIX + "grpc.deadline_duration_millis";
-  /**
-   * <code>scalar.dl.client.grpc.max_inbound_message_size</code> (Optional)<br>
-   * The maximum message size allowed for a single gRPC frame. If an inbound message larger than
-   * this limit is received, it will not be processed, and the RPC will fail with
-   * RESOURCE_EXHAUSTED.
-   */
-  public static final String GRPC_MAX_INBOUND_MESSAGE_SIZE =
-      PREFIX + "grpc.max_inbound_message_size";
-  /**
-   * <code>scalar.dl.client.grpc.max_inbound_metadata_size</code> (Optional)<br>
-   * The maximum size of metadata allowed to be received. This is cumulative size of the entries
-   * with some overhead, as defined for HTTP/2's SETTINGS_MAX_HEADER_LIST_SIZE. The default is 8
-   * KiB.
-   */
-  public static final String GRPC_MAX_INBOUND_METADATA_SIZE =
-      PREFIX + "grpc.max_inbound_metadata_size";
-  /**
    * <code>scalar.dl.client.mode</code> (Optional)<br>
    * A client mode. CLIENT OR INTERMEDIARY. CLIENT by default. In INTERMEDIARY mode, this client
    * receives a signed serialized request from another client, and sends it to a server.
@@ -293,7 +269,6 @@ public class ClientConfig {
   private String tlsCaRootCert;
   private String tlsOverrideAuthority;
   private String authorizationCredential;
-  private GrpcClientConfig grpcClientConfig;
   private ClientMode clientMode;
   private boolean isAuditorEnabled;
   private String auditorHost;
@@ -329,13 +304,6 @@ public class ClientConfig {
     load();
   }
 
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
-
   public AuthenticationMethod getAuthenticationMethod() {
     return authenticationMethod;
   }
@@ -370,10 +338,6 @@ public class ClientConfig {
 
   public String getAuditorLinearizableValidationContractId() {
     return auditorLinearizableValidationContractId;
-  }
-
-  public GrpcClientConfig getGrpcClientConfig() {
-    return grpcClientConfig;
   }
 
   private void load() {
@@ -462,14 +426,6 @@ public class ClientConfig {
     }
     tlsOverrideAuthority = ConfigUtils.getString(props, TLS_OVERRIDE_AUTHORITY, null);
     authorizationCredential = ConfigUtils.getString(props, AUTHORIZATION_CREDENTIAL, null);
-    grpcClientConfig =
-        GrpcClientConfig.newBuilder()
-            .deadlineDurationMillis(
-                ConfigUtils.getLong(
-                    props, GRPC_DEADLINE_DURATION_MILLIS, DEFAULT_DEADLINE_DURATION_MILLIS))
-            .maxInboundMessageSize(ConfigUtils.getInt(props, GRPC_MAX_INBOUND_MESSAGE_SIZE, 0))
-            .maxInboundMetadataSize(ConfigUtils.getInt(props, GRPC_MAX_INBOUND_METADATA_SIZE, 0))
-            .build();
     isAuditorEnabled = ConfigUtils.getBoolean(props, AUDITOR_ENABLED, DEFAULT_AUDITOR_ENABLED);
     if (isAuditorEnabled) {
       auditorHost = ConfigUtils.getString(props, AUDITOR_HOST, DEFAULT_AUDITOR_HOST);
@@ -538,7 +494,6 @@ public class ClientConfig {
         .tlsCaRootCert(tlsCaRootCert)
         .tlsOverrideAuthority(tlsOverrideAuthority)
         .authorizationCredential(authorizationCredential)
-        .grpcClientConfig(grpcClientConfig)
         .build();
   }
 
@@ -555,7 +510,6 @@ public class ClientConfig {
         .tlsCaRootCert(auditorTlsCaRootCert)
         .tlsOverrideAuthority(auditorTlsOverrideAuthority)
         .authorizationCredential(auditorAuthorizationCredential)
-        .grpcClientConfig(grpcClientConfig)
         .build();
   }
 }

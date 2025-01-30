@@ -14,8 +14,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -25,7 +25,7 @@ public class ArgumentValidatorTest {
   @Mock private ContractMachine contract;
   private NonceValidator validator;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     validator = new NonceValidator();

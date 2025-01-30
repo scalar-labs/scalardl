@@ -31,8 +31,8 @@ RUN chown -R scalar:scalar /scalar
 
 USER 201
 
-ENV JAVA_OPTS -Dlog4j.configurationFile=file:/tmp/log4j2.properties
+ENV JAVA_OPTS -Dlog4j.configurationFile=file:log4j2.properties
 
-CMD ["dockerize", "-template", "client.properties.tmpl:/tmp/client.properties", \
-    "-template", "log4j2.properties.tmpl:/tmp/log4j2.properties", \
+CMD ["dockerize", "-template", "client.properties.tmpl:client.properties", \
+    "-template", "log4j2.properties.tmpl:log4j2.properties", \
     "tail", "-f", "/dev/null"]

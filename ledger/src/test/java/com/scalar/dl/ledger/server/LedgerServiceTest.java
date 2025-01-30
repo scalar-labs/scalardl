@@ -2,7 +2,6 @@ package com.scalar.dl.ledger.server;
 
 import static com.scalar.dl.ledger.server.TypeConverter.convert;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,8 +25,8 @@ import com.scalar.dl.rpc.LedgerValidationResponse;
 import io.grpc.stub.StreamObserver;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -55,15 +54,12 @@ public class LedgerServiceTest {
   @Mock private com.scalar.dl.ledger.service.LedgerService ledger;
   @Mock private LedgerValidationService validation;
   @Mock private LedgerConfig config;
-  @Mock private GateKeeper gateKeeper;
   private LedgerService grpc;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    doNothing().when(gateKeeper).letIn();
-    doNothing().when(gateKeeper).letOut();
-    CommonService commonService = new CommonService(null, gateKeeper);
+    CommonService commonService = new CommonService(null, null);
     grpc = new LedgerService(ledger, validation, commonService, config);
   }
 

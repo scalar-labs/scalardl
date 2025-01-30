@@ -81,11 +81,7 @@ public class ContractManager {
       // ignore
     }
 
-    // validate the signature of a specified contract.
     validateContract(entry);
-    // verify if a specified contract is loadable.
-    loadContract(entry);
-
     registry.bind(entry);
   }
 
@@ -126,8 +122,7 @@ public class ContractManager {
     return contract;
   }
 
-  @VisibleForTesting
-  Class<?> defineClass(ContractEntry entry) {
+  private Class<?> defineClass(ContractEntry entry) {
     try {
       return loader.defineClass(entry);
     } catch (Exception | NoClassDefFoundError e) {

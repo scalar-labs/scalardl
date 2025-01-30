@@ -21,7 +21,7 @@ public class LedgerServerModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(GateKeeper.class).in(Singleton.class);
+    bind(GateKeeper.class).to(SynchronizedGateKeeper.class).in(Singleton.class);
     bind(CommonService.class).in(Singleton.class);
   }
 

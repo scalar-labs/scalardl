@@ -40,14 +40,6 @@ scalar.dl.ledger.server.tls.cert_chain_path={{ default .Env.SCALAR_DL_LEDGER_SER
 # It can be empty if scalar.dl.ledger.server.tls.enabled=false .
 scalar.dl.ledger.server.tls.private_key_path={{ default .Env.SCALAR_DL_LEDGER_SERVER_TLS_PRIVATE_KEY_PATH "" }}
 
-# The maximum message size allowed for a single gRPC frame.
-#If an inbound message larger than this limit is received, it will not be processed, and the RPC will fail with RESOURCE_EXHAUSTED.
-scalar.dl.ledger.server.grpc.max_inbound_message_size={{ default .Env.SCALAR_DL_LEDGER_SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE "" }}
-
-# The maximum size of metadata allowed to be received.
-# This is cumulative size of the entries with some overhead, as defined for HTTP/2's SETTINGS_MAX_HEADER_LIST_SIZE. The default is 8 KiB.
-scalar.dl.ledger.server.grpc.max_inbound_metadata_size={{ default .Env.SCALAR_DL_LEDGER_SERVER_GRPC_MAX_INBOUND_METADATA_SIZE "" }}
-
 # A flag to enable asset proof that is used to verify assets (false by default).
 # This feature must be enabled in both client and server.
 scalar.dl.ledger.proof.enabled={{ default .Env.SCALAR_DL_LEDGER_PROOF_ENABLED "" }}
@@ -118,8 +110,3 @@ scalar.db.isolation_level={{ default .Env.SCALAR_DB_ISOLATION_LEVEL "" }}
 # Either EXTRA_READ or EXTRA_WRITE can be specified. EXTRA_READ is used by default.
 # If SNAPSHOT is specified, this is ignored.
 scalar.db.consensuscommit.serializable_strategy={{ default .Env.SCALAR_DB_CONSENSUSCOMMIT_SERIALIZABLE_STRATEGY "" }}
-
-# License key and certificate file.
-scalar.dl.licensing.license_key={{ default .Env.SCALAR_DL_LICENSING_LICENSE_KEY "" }}
-scalar.dl.licensing.license_check_cert_path={{ default .Env.SCALAR_DL_LICENSING_LICENSE_CHECK_CERT_PATH "" }}
-scalar.dl.licensing.license_check_cert_pem={{ default .Env.SCALAR_DL_LICENSING_LICENSE_CHECK_CERT_PEM "" }}

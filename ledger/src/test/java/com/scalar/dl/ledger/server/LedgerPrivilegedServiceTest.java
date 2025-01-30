@@ -1,7 +1,6 @@
 package com.scalar.dl.ledger.server;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -14,8 +13,8 @@ import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.stub.StreamObserver;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -30,15 +29,12 @@ public class LedgerPrivilegedServiceTest {
   private static final String SOME_FUNCTION_BINARY_NAME = "function_name";
   private static final byte[] SOME_FUNCTION_BYTE_CODE = "function".getBytes(StandardCharsets.UTF_8);
   @Mock private LedgerService ledger;
-  @Mock private GateKeeper gateKeeper;
   private LedgerPrivilegedService grpc;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    doNothing().when(gateKeeper).letIn();
-    doNothing().when(gateKeeper).letOut();
-    CommonService commonService = new CommonService(null, gateKeeper);
+    CommonService commonService = new CommonService(null, null);
     grpc = new LedgerPrivilegedService(ledger, commonService);
   }
 

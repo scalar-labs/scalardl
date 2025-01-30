@@ -43,13 +43,6 @@ public class DigitalSignatureSigner implements SignatureSigner {
   }
 
   /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
-
-  /**
    * Signs the given byte array with a {@link Signature}.
    *
    * @param bytes the byte array to sign

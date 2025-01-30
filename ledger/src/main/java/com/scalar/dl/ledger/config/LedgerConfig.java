@@ -35,7 +35,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   @VisibleForTesting static final int DEFAULT_PRIVILEGED_PORT = 50052;
   @VisibleForTesting static final int DEFAULT_ADMIN_PORT = 50053;
   @VisibleForTesting static final int DEFAULT_PROMETHEUS_EXPORTER_PORT = 8080;
-  @VisibleForTesting static final int DEFAULT_DECOMMISSIONING_DURATION_SECS = 30;
   @VisibleForTesting static final boolean DEFAULT_TLS_ENABLED = false;
   @VisibleForTesting static final boolean DEFAULT_PROOF_ENABLED = false;
   @VisibleForTesting static final boolean DEFAULT_FUNCTION_ENABLED = true;
@@ -99,13 +98,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   public static final String SERVER_PROMETHEUS_EXPORTER_PORT =
       SERVER_PREFIX + "prometheus_exporter_port";
   /**
-   * <code>scalar.dl.ledger.server.decommissioning_duration_secs</code> (Optional)<br>
-   * Decommissioning duration (30 seconds by default) where the servers are running but returning
-   * NOT_SERVING to a gRPC health check request.
-   */
-  public static final String SERVER_DECOMMISSIONING_DURATION_SECS =
-      SERVER_PREFIX + "decommissioning_duration_secs";
-  /**
    * <code>scalar.dl.ledger.server.tls.enabled</code><br>
    * A flag to enable TLS between clients and servers (false by default).
    */
@@ -120,22 +112,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * Private key file used for TLS communication.
    */
   public static final String SERVER_TLS_PRIVATE_KEY_PATH = SERVER_PREFIX + "tls.private_key_path";
-  /**
-   * <code>scalar.dl.ledger.server.grpc.max_inbound_message_size</code> (Optional)<br>
-   * The maximum message size allowed for a single gRPC frame. If an inbound message larger than
-   * this limit is received, it will not be processed, and the RPC will fail with
-   * RESOURCE_EXHAUSTED.
-   */
-  public static final String SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE =
-      SERVER_PREFIX + "grpc.max_inbound_message_size";
-  /**
-   * <code>scalar.dl.ledger.server.grpc.max_inbound_metadata_size</code> (Optional)<br>
-   * The maximum size of metadata allowed to be received. This is cumulative size of the entries
-   * with some overhead, as defined for HTTP/2's SETTINGS_MAX_HEADER_LIST_SIZE. The default is 8
-   * KiB.
-   */
-  public static final String SERVER_GRPC_MAX_INBOUND_METADATA_SIZE =
-      SERVER_PREFIX + "grpc.max_inbound_metadata_size";
   /**
    * <code>scalar.dl.ledger.proof.enabled</code><br>
    * A flag to enable asset proof that is used to verify assets (false by default). This feature
@@ -231,11 +207,9 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private int privilegedPort;
   private int adminPort;
   private int prometheusExporterPort;
-  private int decommissioningDurationSecs;
   private boolean isServerTlsEnabled;
   private String serverTlsCertChainPath;
   private String serverTlsPrivateKeyPath;
-  private GrpcServerConfig grpcServerConfig;
   private boolean isProofEnabled;
   private String proofPrivateKey;
   private boolean isFunctionEnabled;
@@ -266,13 +240,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     props.putAll(properties);
     load();
   }
-
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
 
   public DatabaseConfig getDatabaseConfig() {
     return new DatabaseConfig(props);
@@ -326,11 +293,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   }
 
   @Override
-  public int getDecommissioningDurationSecs() {
-    return decommissioningDurationSecs;
-  }
-
-  @Override
   public boolean isServerTlsEnabled() {
     return isServerTlsEnabled;
   }
@@ -343,11 +305,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   @Override
   public String getServerTlsPrivateKeyPath() {
     return serverTlsPrivateKeyPath;
-  }
-
-  @Override
-  public GrpcServerConfig getGrpcServerConfig() {
-    return grpcServerConfig;
   }
 
   public boolean isProofEnabled() {
@@ -417,19 +374,9 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     prometheusExporterPort =
         ConfigUtils.getInt(
             props, SERVER_PROMETHEUS_EXPORTER_PORT, DEFAULT_PROMETHEUS_EXPORTER_PORT);
-    decommissioningDurationSecs =
-        ConfigUtils.getInt(
-            props, SERVER_DECOMMISSIONING_DURATION_SECS, DEFAULT_DECOMMISSIONING_DURATION_SECS);
     isServerTlsEnabled = ConfigUtils.getBoolean(props, SERVER_TLS_ENABLED, DEFAULT_TLS_ENABLED);
     serverTlsCertChainPath = ConfigUtils.getString(props, SERVER_TLS_CERT_CHAIN_PATH, null);
     serverTlsPrivateKeyPath = ConfigUtils.getString(props, SERVER_TLS_PRIVATE_KEY_PATH, null);
-    grpcServerConfig =
-        GrpcServerConfig.newBuilder()
-            .maxInboundMessageSize(
-                ConfigUtils.getInt(props, SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE, 0))
-            .maxInboundMetadataSize(
-                ConfigUtils.getInt(props, SERVER_GRPC_MAX_INBOUND_METADATA_SIZE, 0))
-            .build();
     isProofEnabled = ConfigUtils.getBoolean(props, PROOF_ENABLED, DEFAULT_PROOF_ENABLED);
     if (isProofEnabled) {
       proofPrivateKey = ConfigUtils.getString(props, PROOF_PRIVATE_KEY_PEM, null);
@@ -529,11 +476,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
         .add(SERVER_PRIVILEGED_PORT, getPrivilegedPort())
         .add(SERVER_ADMIN_PORT, getAdminPort())
         .add(SERVER_PROMETHEUS_EXPORTER_PORT, getPrometheusExporterPort())
-        .add(SERVER_DECOMMISSIONING_DURATION_SECS, getDecommissioningDurationSecs())
         .add(SERVER_TLS_ENABLED, isServerTlsEnabled())
         .add(SERVER_TLS_CERT_CHAIN_PATH, getServerTlsCertChainPath())
-        .add(SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE, grpcServerConfig.getMaxInboundMessageSize())
-        .add(SERVER_GRPC_MAX_INBOUND_METADATA_SIZE, grpcServerConfig.getMaxInboundMetadataSize())
         .add(PROOF_ENABLED, isProofEnabled())
         .add(FUNCTION_ENABLED, isFunctionEnabled())
         .add(AUDITOR_ENABLED, isAuditorEnabled())

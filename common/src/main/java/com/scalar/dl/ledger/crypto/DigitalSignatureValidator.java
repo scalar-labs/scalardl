@@ -51,13 +51,6 @@ public class DigitalSignatureValidator implements SignatureValidator {
   }
 
   /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
-
-  /**
    * Validates the signature corresponds to the certificate.
    *
    * @param toBeValidated a byte array whose signature will be validated

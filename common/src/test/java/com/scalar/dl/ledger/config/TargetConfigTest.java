@@ -3,7 +3,7 @@ package com.scalar.dl.ledger.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class TargetConfigTest {
   private static final String SOME_HOST = "some_host";

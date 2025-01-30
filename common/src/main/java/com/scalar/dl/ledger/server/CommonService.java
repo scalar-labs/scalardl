@@ -12,7 +12,6 @@ import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.StreamObserver;
-import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,7 @@ public class CommonService {
   private final GateKeeper gateKeeper;
 
   @Inject
-  public CommonService(Stats stats, @Nonnull GateKeeper gateKeeper) {
+  public CommonService(Stats stats, GateKeeper gateKeeper) {
     this.stats = stats;
     this.gateKeeper = gateKeeper;
   }
@@ -32,7 +31,9 @@ public class CommonService {
   public <T> void serve(ThrowableConsumer<T> f, T request, StreamObserver<Empty> responseObserver) {
     boolean isGatePassed = false;
     try (TimerContext unused = measureTime(request.getClass().getSimpleName())) {
-      gateKeeper.letIn();
+      if (gateKeeper != null && !gateKeeper.letIn()) {
+        throw new LedgerException("the service is temporarily unavailable", StatusCode.UNAVAILABLE);
+      }
       isGatePassed = true;
 
       f.accept(request);
@@ -49,7 +50,7 @@ public class CommonService {
       incrementCounter(request.getClass().getSimpleName(), false);
       responseObserver.onError(getExceptionWithTrailers(StatusCode.RUNTIME_ERROR, e.getMessage()));
     } finally {
-      if (isGatePassed) {
+      if (gateKeeper != null && isGatePassed) {
         gateKeeper.letOut();
       }
     }
@@ -60,7 +61,9 @@ public class CommonService {
     boolean isGatePassed = false;
 
     try (TimerContext unused = measureTime(request.getClass().getSimpleName())) {
-      gateKeeper.letIn();
+      if (gateKeeper != null && !gateKeeper.letIn()) {
+        throw new LedgerException("the service is temporarily unavailable", StatusCode.UNAVAILABLE);
+      }
       isGatePassed = true;
 
       R response = f.apply(request);
@@ -77,7 +80,7 @@ public class CommonService {
       incrementCounter(request.getClass().getSimpleName(), false);
       responseObserver.onError(getExceptionWithTrailers(StatusCode.RUNTIME_ERROR, e.getMessage()));
     } finally {
-      if (isGatePassed) {
+      if (gateKeeper != null && isGatePassed) {
         gateKeeper.letOut();
       }
     }

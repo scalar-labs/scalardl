@@ -14,13 +14,9 @@ public interface ServerConfig {
 
   int getPrometheusExporterPort();
 
-  int getDecommissioningDurationSecs();
-
   boolean isServerTlsEnabled();
 
   String getServerTlsCertChainPath();
 
   String getServerTlsPrivateKeyPath();
-
-  GrpcServerConfig getGrpcServerConfig();
 }

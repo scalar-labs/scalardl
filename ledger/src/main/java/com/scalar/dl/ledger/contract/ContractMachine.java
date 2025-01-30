@@ -22,13 +22,6 @@ public class ContractMachine {
     }
   }
 
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
-
   public void initialize(ContractManager manager, ClientIdentityKey clientIdentityKey) {
     contractBase.initialize(manager, clientIdentityKey);
   }

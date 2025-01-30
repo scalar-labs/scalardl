@@ -17,7 +17,7 @@ public class LedgerServer implements Callable<Integer> {
       required = true,
       paramLabel = "PROPERTIES_FILE",
       description = "A configuration file in properties format.")
-  protected String properties;
+  private String properties;
 
   @Override
   public Integer call() throws Exception {

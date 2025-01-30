@@ -45,7 +45,6 @@ public class LedgerClient extends AbstractLedgerClient {
   private final ManagedChannel privilegedChannel;
   private final LedgerGrpc.LedgerBlockingStub ledgerStub;
   private final LedgerPrivilegedGrpc.LedgerPrivilegedBlockingStub ledgerPrivilegedStub;
-  private final long deadlineDurationMillis;
 
   @Inject
   public LedgerClient(TargetConfig config) {
@@ -53,40 +52,26 @@ public class LedgerClient extends AbstractLedgerClient {
         NettyChannelBuilder.forAddress(config.getTargetHost(), config.getTargetPort());
     RpcUtil.configureTls(builder, config);
     RpcUtil.configureHeader(builder, config);
-    RpcUtil.configureDataSize(builder, config);
+
     channel = builder.build();
     ledgerStub = LedgerGrpc.newBlockingStub(channel);
 
     NettyChannelBuilder privilegedBuilder =
         NettyChannelBuilder.forAddress(config.getTargetHost(), config.getTargetPrivilegedPort());
     RpcUtil.configureTls(privilegedBuilder, config);
-    RpcUtil.configureHeader(privilegedBuilder, config);
-    RpcUtil.configureDataSize(privilegedBuilder, config);
     privilegedChannel = privilegedBuilder.build();
     ledgerPrivilegedStub = LedgerPrivilegedGrpc.newBlockingStub(privilegedChannel);
-
-    deadlineDurationMillis = config.getGrpcClientConfig().getDeadlineDurationMillis();
   }
 
   @VisibleForTesting
   LedgerClient(
-      TargetConfig config,
       LedgerGrpc.LedgerBlockingStub ledgerStub,
       LedgerPrivilegedGrpc.LedgerPrivilegedBlockingStub ledgerPrivilegedStub) {
     this.channel = null;
     this.privilegedChannel = null;
     this.ledgerStub = ledgerStub;
     this.ledgerPrivilegedStub = ledgerPrivilegedStub;
-    assert config.getGrpcClientConfig() != null;
-    deadlineDurationMillis = config.getGrpcClientConfig().getDeadlineDurationMillis();
   }
-
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
 
   @Override
   public void shutdown() {
@@ -100,8 +85,7 @@ public class LedgerClient extends AbstractLedgerClient {
 
   @Override
   public void register(CertificateRegistrationRequest request) {
-    ThrowableConsumer<CertificateRegistrationRequest> f =
-        r -> getLedgerPrivilegedStub().registerCert(r);
+    ThrowableConsumer<CertificateRegistrationRequest> f = r -> ledgerPrivilegedStub.registerCert(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -111,8 +95,7 @@ public class LedgerClient extends AbstractLedgerClient {
 
   @Override
   public void register(SecretRegistrationRequest request) {
-    ThrowableConsumer<SecretRegistrationRequest> f =
-        r -> getLedgerPrivilegedStub().registerSecret(r);
+    ThrowableConsumer<SecretRegistrationRequest> f = r -> ledgerPrivilegedStub.registerSecret(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -123,7 +106,7 @@ public class LedgerClient extends AbstractLedgerClient {
   @Override
   public void register(FunctionRegistrationRequest request) {
     ThrowableConsumer<FunctionRegistrationRequest> f =
-        r -> getLedgerPrivilegedStub().registerFunction(r);
+        r -> ledgerPrivilegedStub.registerFunction(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -133,7 +116,7 @@ public class LedgerClient extends AbstractLedgerClient {
 
   @Override
   public void register(ContractRegistrationRequest request) {
-    ThrowableConsumer<ContractRegistrationRequest> f = r -> getLedgerStub().registerContract(r);
+    ThrowableConsumer<ContractRegistrationRequest> f = r -> ledgerStub.registerContract(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -144,7 +127,7 @@ public class LedgerClient extends AbstractLedgerClient {
   @Override
   public JsonObject list(ContractsListingRequest request) {
     try {
-      String jsonString = getLedgerStub().listContracts(request).getJson();
+      String jsonString = ledgerStub.listContracts(request).getJson();
       return jsonString.isEmpty()
           ? Json.createObjectBuilder().build()
           : new JsonpSerDe().deserialize(jsonString);
@@ -165,7 +148,7 @@ public class LedgerClient extends AbstractLedgerClient {
       ContractExecutionRequest request,
       ThrowableFunction<ContractExecutionResponse, ContractExecutionResponse> auditingHook) {
     try {
-      ContractExecutionResponse response = getLedgerStub().executeContract(request);
+      ContractExecutionResponse response = ledgerStub.executeContract(request);
       ContractExecutionResponse auditorResponse = auditingHook.apply(response);
 
       String contractResult =
@@ -194,7 +177,7 @@ public class LedgerClient extends AbstractLedgerClient {
   @Override
   public LedgerValidationResult validate(LedgerValidationRequest request) {
     try {
-      LedgerValidationResponse response = getLedgerStub().validateLedger(request);
+      LedgerValidationResponse response = ledgerStub.validateLedger(request);
       AssetProof proof = response.hasProof() ? new AssetProof(response.getProof()) : null;
       return new LedgerValidationResult(StatusCode.get(response.getStatusCode()), proof, null);
     } catch (Exception e) {
@@ -207,7 +190,7 @@ public class LedgerClient extends AbstractLedgerClient {
   @Override
   public Optional<AssetProof> retrieve(AssetProofRetrievalRequest request) {
     try {
-      AssetProofRetrievalResponse response = getLedgerStub().retrieveAssetProof(request);
+      AssetProofRetrievalResponse response = ledgerStub.retrieveAssetProof(request);
       AssetProof proof = response.hasProof() ? new AssetProof(response.getProof()) : null;
       return Optional.ofNullable(proof);
     } catch (Exception e) {
@@ -220,20 +203,12 @@ public class LedgerClient extends AbstractLedgerClient {
   @Override
   public TransactionState abort(ExecutionAbortRequest request) {
     try {
-      ExecutionAbortResponse response = getLedgerStub().abortExecution(request);
+      ExecutionAbortResponse response = ledgerStub.abortExecution(request);
       return TransactionState.getInstance(response.getState().getNumber());
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
     // Java compiler requires this line even though it won't come here
     return TransactionState.UNKNOWN;
-  }
-
-  private LedgerGrpc.LedgerBlockingStub getLedgerStub() {
-    return ledgerStub.withDeadlineAfter(deadlineDurationMillis, TimeUnit.MILLISECONDS);
-  }
-
-  private LedgerPrivilegedGrpc.LedgerPrivilegedBlockingStub getLedgerPrivilegedStub() {
-    return ledgerPrivilegedStub.withDeadlineAfter(deadlineDurationMillis, TimeUnit.MILLISECONDS);
   }
 }

@@ -1,6 +1,6 @@
 package com.scalar.dl.ledger.crypto;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -13,14 +13,14 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CipherTest {
   private static final String NONCE = "nonce";
   private Cipher cipher;
 
-  @BeforeEach
+  @Before
   public void setUp() throws InvalidKeySpecException, NoSuchAlgorithmException {
     SecretKey secretKey = getSecretKey();
     cipher = new Cipher(secretKey);
@@ -47,8 +47,7 @@ public class CipherTest {
 
     // Act
     List<byte[]> encrypted =
-        plainTexts
-            .parallelStream()
+        plainTexts.parallelStream()
             .map(t -> cipher.encrypt(t.getBytes(StandardCharsets.UTF_8), NONCE))
             .collect(Collectors.toList());
     List<byte[]> decrypted =

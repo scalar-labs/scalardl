@@ -13,8 +13,8 @@ import com.google.common.cache.CacheBuilder;
 import com.scalar.dl.ledger.database.CertificateRegistry;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -44,7 +44,7 @@ public class CertificateManagerTest {
   private Cache<CertificateEntry.Key, DigitalSignatureValidator> cache;
   private CertificateManager manager;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 

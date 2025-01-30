@@ -3,7 +3,7 @@ package com.scalar.dl.client.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class DigitalSignatureIdentityConfigTest {
   private static final String SOME_CERT_HOLDER_ID = "some_cert_holder_id";

@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class ContractExecutionRequestTest {
   private static final String NONCE = "nonce";

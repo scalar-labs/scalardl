@@ -1,5 +1,5 @@
 plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'com.palantir.docker' version '0.25.0'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
@@ -20,8 +20,6 @@ sourceSets {
 
 configurations {
     integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-    integrationTestCompileOnly.extendsFrom testCompileOnly
 }
 
 dependencies {
@@ -48,13 +46,6 @@ dependencies {
 task CertificateRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.CertificateRegistration'
     applicationName = 'register-cert'
-    outputDir = new File(project.buildDir, 'tmp')
-    classpath = jar.outputs.files + project.configurations.runtimeClasspath
-}
-
-task ScalarDl(type: CreateStartScripts) {
-    mainClass = 'com.scalar.dl.client.tool.ScalarDlCommandLine'
-    applicationName = 'scalardl'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
@@ -161,7 +152,6 @@ applicationDistribution.into('bin') {
     from(ContractExecution)
     from(LedgerValidation)
     from(MultiLedgersValidation)
-    from(ScalarDl)
     from(StateUpdaterSimpleBench)
     from(StateUpdaterLoader)
     from(SmallbankBench)
@@ -274,22 +264,12 @@ task testJar(type: Jar) {
 }
 
 task integrationTest(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
     shouldRunAfter test
-}
-
-spotless {
-    java {
-        target 'src/*/java/**/*.java'
-        importOrder()
-        removeUnusedImports()
-        googleJavaFormat(googleJavaFormatVersion)
-    }
 }
 
 spotbugs {
@@ -314,6 +294,7 @@ spotbugsTest.reports {
 spotbugsIntegrationTest.reports {
     html.enabled = true
 }
+
 
 check.dependsOn -= integrationTest  // build should not depend on the integration tests
 

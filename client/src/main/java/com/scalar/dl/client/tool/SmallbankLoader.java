@@ -3,7 +3,6 @@ package com.scalar.dl.client.tool;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -19,7 +18,14 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "smallbank-loader", description = "Create accounts for smallbank workload.")
-public class SmallbankLoader extends CommonOptions implements Callable<Integer> {
+public class SmallbankLoader implements Callable<Integer> {
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
 
   @CommandLine.Option(
       names = {"--num-accounts"},
@@ -35,6 +41,12 @@ public class SmallbankLoader extends CommonOptions implements Callable<Integer> 
       description = "The number of threads to run.")
   private int numThreads = 1;
 
+  @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
+
   private static final AtomicInteger counter = new AtomicInteger(0);
   private static final AtomicBoolean hasUnacceptableClientException = new AtomicBoolean();
   private static final String contractId = "create_account";
@@ -49,10 +61,7 @@ public class SmallbankLoader extends CommonOptions implements Callable<Integer> 
   @Override
   public Integer call() throws Exception {
     ClientServiceFactory factory = new ClientServiceFactory();
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
 
     ObjectMapper mapper = new ObjectMapper();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);

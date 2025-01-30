@@ -16,16 +16,9 @@ public class FunctionMachine {
     } else if (function instanceof FunctionBase) {
       this.functionBase = (FunctionBase<?, ?, ?, ?, ?, ?>) function;
     } else {
-      throw new IllegalArgumentException("unsupported function type");
+      throw new IllegalArgumentException("unsupported contract type");
     }
   }
-
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
 
   void initialize(FunctionManager manager) {
     functionBase.initialize(manager);

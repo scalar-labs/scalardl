@@ -2,9 +2,7 @@ package com.scalar.dl.client.tool;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -16,7 +14,14 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "execute-contract", description = "Execute a specified contract.")
-public class ContractExecution extends CommonOptions implements Callable<Integer> {
+public class ContractExecution implements Callable<Integer> {
+
+  @CommandLine.Option(
+      names = {"--properties", "--config"},
+      required = true,
+      paramLabel = "PROPERTIES_FILE",
+      description = "A configuration file in properties format.")
+  private String properties;
 
   @CommandLine.Option(
       names = {"--contract-id"},
@@ -55,6 +60,12 @@ public class ContractExecution extends CommonOptions implements Callable<Integer
               + "Valid values: ${COMPLETION-CANDIDATES} (default: ${DEFAULT-VALUE})")
   private DeserializationFormat deserializationFormat = DeserializationFormat.JSON;
 
+  @CommandLine.Option(
+      names = {"-h", "--help"},
+      usageHelp = true,
+      description = "display the help message.")
+  boolean helpRequested;
+
   public static void main(String[] args) {
     int exitCode = new CommandLine(new ContractExecution()).execute(args);
     System.exit(exitCode);
@@ -62,20 +73,8 @@ public class ContractExecution extends CommonOptions implements Callable<Integer
 
   @Override
   public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory) throws Exception {
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
-    return call(factory, service);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service) throws Exception {
+    ClientServiceFactory factory = new ClientServiceFactory();
+    ClientService service = factory.create(new ClientConfig(new File(properties)));
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
 
     try {
@@ -108,13 +107,12 @@ public class ContractExecution extends CommonOptions implements Callable<Integer
             service.executeContract(contractId, contractArgument, functionId, functionArgument);
 
         result.getContractResult().ifPresent(r -> System.out.println("Contract result: " + r));
-        result.getFunctionResult().ifPresent(r -> System.out.println("Function result: " + r));
+        result.getFunctionResult().ifPresent(r -> System.out.println("Function result:" + r));
       }
 
       return 0;
     } catch (ClientException e) {
       Common.printError(e);
-      printStackTrace(e);
       return 1;
     } finally {
       factory.close();

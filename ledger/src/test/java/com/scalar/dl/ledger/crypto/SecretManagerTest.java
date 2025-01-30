@@ -13,8 +13,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.scalar.dl.ledger.database.SecretRegistry;
 import com.scalar.dl.ledger.exception.DatabaseException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -30,7 +30,7 @@ public class SecretManagerTest {
   private Cache<String, HmacValidator> cacheForSecret;
   private SecretManager manager;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 

@@ -3,8 +3,8 @@ package com.scalar.dl.ledger.crypto;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class HmacValidatorTest {
   private static final String SECRET_KEY_A = "secret_key_a";
@@ -12,7 +12,7 @@ public class HmacValidatorTest {
   private HmacSigner signer;
   private HmacValidator validator;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     signer = new HmacSigner(SECRET_KEY_A);
     validator = new HmacValidator(SECRET_KEY_A);

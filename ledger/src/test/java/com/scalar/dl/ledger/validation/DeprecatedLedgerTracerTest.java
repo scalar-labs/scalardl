@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Optional;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -32,7 +32,7 @@ public class DeprecatedLedgerTracerTest {
   private DeprecatedLedgerTracer ledger;
   @Mock private LedgerTracer tracer;
 
-  @BeforeEach
+  @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     ledger = new DeprecatedLedgerTracer(tracer);

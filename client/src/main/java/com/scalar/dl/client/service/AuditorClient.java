@@ -28,9 +28,8 @@ import javax.json.JsonObject;
 public class AuditorClient extends AbstractAuditorClient {
   private final ManagedChannel channel;
   private final ManagedChannel privilegedChannel;
-  private final AuditorGrpc.AuditorBlockingStub auditorStub;
+  private final AuditorGrpc.AuditorFutureStub auditorStub;
   private final AuditorPrivilegedGrpc.AuditorPrivilegedBlockingStub auditorPrivilegedStub;
-  private final long deadlineDurationMillis;
 
   @Inject
   public AuditorClient(TargetConfig config) {
@@ -38,27 +37,16 @@ public class AuditorClient extends AbstractAuditorClient {
         NettyChannelBuilder.forAddress(config.getTargetHost(), config.getTargetPort());
     RpcUtil.configureTls(builder, config);
     RpcUtil.configureHeader(builder, config);
-    RpcUtil.configureDataSize(builder, config);
+
     channel = builder.build();
-    auditorStub = AuditorGrpc.newBlockingStub(channel);
+    auditorStub = AuditorGrpc.newFutureStub(channel);
 
     NettyChannelBuilder privilegedBuilder =
         NettyChannelBuilder.forAddress(config.getTargetHost(), config.getTargetPrivilegedPort());
     RpcUtil.configureTls(privilegedBuilder, config);
-    RpcUtil.configureHeader(privilegedBuilder, config);
-    RpcUtil.configureDataSize(privilegedBuilder, config);
     privilegedChannel = privilegedBuilder.build();
     auditorPrivilegedStub = AuditorPrivilegedGrpc.newBlockingStub(privilegedChannel);
-
-    deadlineDurationMillis = config.getGrpcClientConfig().getDeadlineDurationMillis();
   }
-
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
 
   @Override
   public void shutdown() {
@@ -73,7 +61,7 @@ public class AuditorClient extends AbstractAuditorClient {
   @Override
   public void register(CertificateRegistrationRequest request) {
     ThrowableConsumer<CertificateRegistrationRequest> f =
-        r -> getAuditorPrivilegedStub().registerCert(r);
+        r -> auditorPrivilegedStub.registerCert(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -83,8 +71,7 @@ public class AuditorClient extends AbstractAuditorClient {
 
   @Override
   public void register(SecretRegistrationRequest request) {
-    ThrowableConsumer<SecretRegistrationRequest> f =
-        r -> getAuditorPrivilegedStub().registerSecret(r);
+    ThrowableConsumer<SecretRegistrationRequest> f = r -> auditorPrivilegedStub.registerSecret(r);
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -94,7 +81,7 @@ public class AuditorClient extends AbstractAuditorClient {
 
   @Override
   public void register(ContractRegistrationRequest request) {
-    ThrowableConsumer<ContractRegistrationRequest> f = r -> getAuditorStub().registerContract(r);
+    ThrowableConsumer<ContractRegistrationRequest> f = r -> auditorStub.registerContract(r).get();
     try {
       accept(f, request);
     } catch (Exception e) {
@@ -105,7 +92,7 @@ public class AuditorClient extends AbstractAuditorClient {
   @Override
   public JsonObject list(ContractsListingRequest request) {
     try {
-      return toJsonObject(getAuditorStub().listContracts(request).getJson());
+      return toJsonObject(auditorStub.listContracts(request).get().getJson());
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
@@ -116,7 +103,7 @@ public class AuditorClient extends AbstractAuditorClient {
   @Override
   public ExecutionOrderingResponse order(ContractExecutionRequest request) {
     ThrowableFunction<ContractExecutionRequest, ExecutionOrderingResponse> f =
-        r -> getAuditorStub().orderExecution(r);
+        r -> auditorStub.orderExecution(r).get();
     try {
       return apply(f, request);
     } catch (Exception e) {
@@ -129,19 +116,11 @@ public class AuditorClient extends AbstractAuditorClient {
   @Override
   public ContractExecutionResponse validate(ExecutionValidationRequest request) {
     try {
-      return getAuditorStub().validateExecution(request);
+      return auditorStub.validateExecution(request).get();
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
     // Java compiler requires this line even though it won't come here
     return ContractExecutionResponse.getDefaultInstance();
-  }
-
-  private AuditorGrpc.AuditorBlockingStub getAuditorStub() {
-    return auditorStub.withDeadlineAfter(deadlineDurationMillis, TimeUnit.MILLISECONDS);
-  }
-
-  private AuditorPrivilegedGrpc.AuditorPrivilegedBlockingStub getAuditorPrivilegedStub() {
-    return auditorPrivilegedStub.withDeadlineAfter(deadlineDurationMillis, TimeUnit.MILLISECONDS);
   }
 }
