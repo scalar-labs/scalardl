@@ -5,5 +5,5 @@ plugins {
 docker {
     name "ghcr.io/scalar-labs/scalardl-schema-loader:$dockerVersion"
     buildArgs([SCALARDB_VERSION: "$scalarDbVersion"])
-    files 'auditor-schema.json', 'ledger-schema.json', 'entrypoint.sh', 'database.properties'
+    files 'auditor-schema.json', 'ledger-schema.json', 'entrypoint.sh', 'database.properties.tmpl'
 }

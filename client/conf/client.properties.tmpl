@@ -1,125 +1,125 @@
 # Optional. A hostname or an IP address of the server. Use localhost by default if not specified.
 # It assuems that there is a single endpoint that is given by DNS or a load balancer.
-scalar.dl.client.server.host=${env:SCALAR_DL_CLIENT_SERVER_HOST:-}
+scalar.dl.client.server.host={{ default .Env.SCALAR_DL_CLIENT_SERVER_HOST "" }}
 
 # Optional. A port number of the server. Use 50051 by default if not specified.
-scalar.dl.client.server.port=${env:SCALAR_DL_CLIENT_SERVER_PORT:-}
+scalar.dl.client.server.port={{ default .Env.SCALAR_DL_CLIENT_SERVER_PORT "" }}
 
 # Optional. A port number of the server for privileged services. Use 50052 by default if not specified.
-scalar.dl.client.server.privileged_port=${env:SCALAR_DL_CLIENT_SERVER_PRIVILEGED_PORT:-}
+scalar.dl.client.server.privileged_port={{ default .Env.SCALAR_DL_CLIENT_SERVER_PRIVILEGED_PORT "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity_id instead.
-scalar.dl.client.cert_holder_id=${env:SCALAR_DL_CLIENT_CERT_HOLDER_ID:-}
+scalar.dl.client.cert_holder_id={{ default .Env.SCALAR_DL_CLIENT_CERT_HOLDER_ID "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.cert_version instead.
-scalar.dl.client.cert_version=${env:SCALAR_DL_CLIENT_CERT_VERSION:-}
+scalar.dl.client.cert_version={{ default .Env.SCALAR_DL_CLIENT_CERT_VERSION "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.cert_path instead.
-scalar.dl.client.cert_path=${env:SCALAR_DL_CLIENT_CERT_PATH:-}
+scalar.dl.client.cert_path={{ default .Env.SCALAR_DL_CLIENT_CERT_PATH "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.cert_pem instead.
-scalar.dl.client.cert_pem=${env:SCALAR_DL_CLIENT_CERT_PEM:-}
+scalar.dl.client.cert_pem={{ default .Env.SCALAR_DL_CLIENT_CERT_PEM "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.private_key_path instead.
-scalar.dl.client.private_key_path=${env:SCALAR_DL_CLIENT_PRIVATE_KEY_PATH:-}
+scalar.dl.client.private_key_path={{ default .Env.SCALAR_DL_CLIENT_PRIVATE_KEY_PATH "" }}
 
 # This  will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.private_key_pem instead.
-scalar.dl.client.private_key_pem=${env:SCALAR_DL_CLIENT_PRIVATE_KEY_PEM:-}
+scalar.dl.client.private_key_pem={{ default .Env.SCALAR_DL_CLIENT_PRIVATE_KEY_PEM "" }}
 
 # A unique ID of a requester (e.g., a user or a device).
-scalar.dl.client.entity_id=${env:SCALAR_DL_CLIENT_ENTITY_ID:-}
+scalar.dl.client.entity_id={{ default .Env.SCALAR_DL_CLIENT_ENTITY_ID "" }}
 
 # A secret key for HMAC, which is required if HMAC is used for authentication.
-scalar.dl.client.entity.identity.hmac.secret_key=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_HMAC_SECRET_KEY:-}
+scalar.dl.client.entity.identity.hmac.secret_key={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_HMAC_SECRET_KEY "" }}
 
 # Optional. The version of the HMAC key. 1 by default.
-scalar.dl.client.entity.identity.hmac.secret_key_version=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_HMAC_SECRET_KEY_VERSION:-}
+scalar.dl.client.entity.identity.hmac.secret_key_version={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_HMAC_SECRET_KEY_VERSION "" }}
 
 # PEM-encoded certificate data, which is required if scalar.dl.client.entity.identity.digital_signature.cert_pem is empty.
-scalar.dl.client.entity.identity.digital_signature.cert_path=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_PATH:-}
+scalar.dl.client.entity.identity.digital_signature.cert_path={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_PATH "" }}
 
 # The path of a certificate file in PEM format, which is required if scalar.dl.client.entity.identity.digital_signature.cert_path is empty.
-scalar.dl.client.entity.identity.digital_signature.cert_pem=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_PEM:-}
+scalar.dl.client.entity.identity.digital_signature.cert_pem={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_PEM "" }}
 
 # Optional. The version of the certificate. 1 by default.
-scalar.dl.client.entity.identity.digital_signature.cert_version=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_VERSION:-}
+scalar.dl.client.entity.identity.digital_signature.cert_version={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_CERT_VERSION "" }}
 
 # The path of a private key file in PEM format, which corresponds to the specified certificate.
 # Required if scalar.dl.client.entity.identity.digital_signature.private_key_pem is empty.
-scalar.dl.client.entity.identity.digital_signature.private_key_path=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_PRIVATE_KEY_PATH:-}
+scalar.dl.client.entity.identity.digital_signature.private_key_path={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_PRIVATE_KEY_PATH "" }}
 
 # PEM-encoded private key data. Required if scalar.dl.client.entity.identity.digital_signature.private_key_path is empty.
-scalar.dl.client.entity.identity.digital_signature.private_key_pem=${env:SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_PRIVATE_KEY_PEM:-}
+scalar.dl.client.entity.identity.digital_signature.private_key_pem={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_DIGITAL_SIGNATURE_PRIVATE_KEY_PEM "" }}
 
 # The authentication method for a client and servers. Use "digital-signature" (default) or "hmac" for the client or "pass-through" for the intermediary.
-scalar.dl.client.authentication_method=${env:SCALAR_DL_CLIENT_AUTHENTICATION_METHOD:-}
+scalar.dl.client.authentication_method={{ default .Env.SCALAR_DL_CLIENT_AUTHENTICATION_METHOD "" }}
 
 # Optional. A flag to enable TLS communication for Ledger. False by default.
-scalar.dl.client.tls.enabled=${env:SCALAR_DL_CLIENT_TLS_ENABLED:-}
+scalar.dl.client.tls.enabled={{ default .Env.SCALAR_DL_CLIENT_TLS_ENABLED "" }}
 
 # Optional. A custom CA root certificate for TLS communication for Ledger.
 # If the issuing certificate authority is known to the client, it can be empty.
-scalar.dl.client.tls.ca_root_cert_path=${env:SCALAR_DL_CLIENT_TLS_CA_ROOT_CERT_PATH:-}
-scalar.dl.client.tls.ca_root_cert_pem=${env:SCALAR_DL_CLIENT_TLS_CA_ROOT_CERT_PEM:-}
+scalar.dl.client.tls.ca_root_cert_path={{ default .Env.SCALAR_DL_CLIENT_TLS_CA_ROOT_CERT_PATH "" }}
+scalar.dl.client.tls.ca_root_cert_pem={{ default .Env.SCALAR_DL_CLIENT_TLS_CA_ROOT_CERT_PEM "" }}
 
 # Optional. A custom authority for TLS communication for Ledger. This doesn't change what the host is actually connected to.
 # This is intended for testing, but may safely be used outside of tests as an alternative to DNS overrides.
 # For example, you can specify the hostname presented in the certificate chain file that you set for `scalar.dl.ledger.server.tls.cert_chain_path`.
-scalar.dl.client.tls.override_authority=${env:SCALAR_DL_CLIENT_TLS_OVERRIDE_AUTHORITY:-}
+scalar.dl.client.tls.override_authority={{ default .Env.SCALAR_DL_CLIENT_TLS_OVERRIDE_AUTHORITY "" }}
 
 # Optional. An authorization credential for Ledger. (e.g. authorization: Bearer token)
 # If this is given, clients will add "authorization: <credential>" http/2 header.
-scalar.dl.client.authorization.credential=${env:SCALAR_DL_CLIENT_AUTHORIZATION_CREDENTIAL:-}
+scalar.dl.client.authorization.credential={{ default .Env.SCALAR_DL_CLIENT_AUTHORIZATION_CREDENTIAL "" }}
 
 # A deadline that is after the given duration from now for each request.
-scalar.dl.client.grpc.deadline_duration_millis=${env:SCALAR_DL_CLIENT_GRPC_DEADLINE_DURATION_MILLIS:-}
+scalar.dl.client.grpc.deadline_duration_millis={{ default .Env.SCALAR_DL_CLIENT_GRPC_DEADLINE_DURATION_MILLIS "" }}
 
 # The maximum message size allowed for a single gRPC frame.
 # If an inbound message larger than this limit is received, it will not be processed, and the RPC will fail with RESOURCE_EXHAUSTED.
-scalar.dl.client.grpc.max_inbound_message_size=${env:SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_MESSAGE_SIZE:-}
+scalar.dl.client.grpc.max_inbound_message_size={{ default .Env.SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_MESSAGE_SIZE "" }}
 
 # The maximum size of metadata allowed to be received.
 # This is cumulative size of the entries with some overhead, as defined for HTTP/2's SETTINGS_MAX_HEADER_LIST_SIZE. The default is 8 KiB.
-scalar.dl.client.grpc.max_inbound_metadata_size=${env:SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_METADATA_SIZE:-}
+scalar.dl.client.grpc.max_inbound_metadata_size={{ default .Env.SCALAR_DL_CLIENT_GRPC_MAX_INBOUND_METADATA_SIZE "" }}
 
 # Optional. A client mode. CLIENT OR INTERMEDIARY. CLIENT by default.
 # In INTERMEDIARY mode, this client recieves a signed serialized request from another client, 
 # and sends it to a server.
-scalar.dl.client.mode=${env:SCALAR_DL_CLIENT_MODE:-}
+scalar.dl.client.mode={{ default .Env.SCALAR_DL_CLIENT_MODE "" }}
 
 #
 # For auditor
 #
 
 # Optional. A flag to enable auditor. False by default.
-scalar.dl.client.auditor.enabled=${env:SCALAR_DL_CLIENT_AUDITOR_ENABLED:-}
+scalar.dl.client.auditor.enabled={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_ENABLED "" }}
 
 # Optional. A hostname or an IP address of the auditor. Use localhost by default if not specified.
 # It assuems that there is a single endpoint that is given by DNS or a load balancer.
-scalar.dl.client.auditor.host=${env:SCALAR_DL_CLIENT_AUDITOR_HOST:-}
+scalar.dl.client.auditor.host={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_HOST "" }}
 
 # Optional. A port number of the auditor. Use 40051 by default if not specified.
-scalar.dl.client.auditor.port=${env:SCALAR_DL_CLIENT_AUDITOR_PORT:-}
+scalar.dl.client.auditor.port={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_PORT "" }}
 
 # Optional. A port number of the auditor for privileged services. Use 40052 by default if not specified.
-scalar.dl.client.auditor.privileged_port=${env:SCALAR_DL_CLIENT_AUDITOR_PRIVILEGED_PORT:-}
+scalar.dl.client.auditor.privileged_port={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_PRIVILEGED_PORT "" }}
 
 # Optional. A flag to enable TLS communication for Auditor. False by default.
-scalar.dl.client.auditor.tls.enabled=${env:SCALAR_DL_CLIENT_AUDITOR_TLS_ENABLED:-}
+scalar.dl.client.auditor.tls.enabled={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_TLS_ENABLED "" }}
 
 # Optional. A custom CA root certificate for TLS communication for Auditor.
 # If the issuing certificate authority is known to the client, it can be empty.
-scalar.dl.client.auditor.tls.ca_root_cert_path=${env:SCALAR_DL_CLIENT_AUDITOR_TLS_CA_ROOT_CERT_PATH:-}
-scalar.dl.client.auditor.tls.ca_root_cert_pem=${env:SCALAR_DL_CLIENT_AUDITOR_TLS_CA_ROOT_CERT_PEM:-}
+scalar.dl.client.auditor.tls.ca_root_cert_path={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_TLS_CA_ROOT_CERT_PATH "" }}
+scalar.dl.client.auditor.tls.ca_root_cert_pem={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_TLS_CA_ROOT_CERT_PEM "" }}
 
 # Optional. A custom authority for TLS communication for Auditor. This doesn't change what the host is actually connected to.
 # This is intended for testing, but may safely be used outside of tests as an alternative to DNS overrides.
 # For example, you can specify the hostname presented in the certificate chain file that you set for `scalar.dl.auditor.server.tls.cert_chain_path`.
-scalar.dl.client.auditor.tls.override_authority=${env:SCALAR_DL_CLIENT_AUDITOR_TLS_OVERRIDE_AUTHORITY:-}
+scalar.dl.client.auditor.tls.override_authority={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_TLS_OVERRIDE_AUTHORITY "" }}
 
 # Optional. An authorization credential for Auditor. (e.g. authorization: Bearer token)
 # If this is given, clients will add "authorization: <credential>" http/2 header.
-scalar.dl.client.auditor.authorization.credential=${env:SCALAR_DL_CLIENT_AUDITOR_AUTHORIZATION_CREDENTIAL:-}
+scalar.dl.client.auditor.authorization.credential={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_AUTHORIZATION_CREDENTIAL "" }}
 
 # Optional. The ID of ValidateLedger contract. It is used for the linearizable validation. Use "validate-ledger" by deafult if not specified.
-scalar.dl.client.auditor.linearizable_validation.contract_id=${env:SCALAR_DL_CLIENT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID:-}
+scalar.dl.client.auditor.linearizable_validation.contract_id={{ default .Env.SCALAR_DL_CLIENT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID "" }}
