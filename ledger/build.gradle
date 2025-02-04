@@ -86,7 +86,7 @@ applicationDistribution.into('bin') {
 }
 
 docker {
-    name "ghcr.io/scalar-labs/scalar-ledger:$dockerVersion"
+    name "ghcr.io/scalar-labs/scalardl-ledger:$dockerVersion"
     files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
 }
 
