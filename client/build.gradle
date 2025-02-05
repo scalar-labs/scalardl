@@ -319,7 +319,7 @@ check.dependsOn -= integrationTest  // build should not depend on the integratio
 
 // For testing only
 docker {
-    name "ghcr.io/scalar-labs/scalar-client:$dockerVersion"
+    name "ghcr.io/scalar-labs/scalardl-client:$dockerVersion"
     files tasks.distTar.outputs, 'conf/client.properties.for.docker', 'conf/log4j2.properties'
 }
 
