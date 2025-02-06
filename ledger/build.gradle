@@ -84,7 +84,7 @@ applicationDistribution.into('bin') {
 }
 
 docker {
-    name "ghcr.io/scalar-labs/scalar-ledger:$dockerVersion"
+    name "ghcr.io/scalar-labs/scalardl-ledger:$dockerVersion"
     files tasks.distTar.outputs, 'conf/ledger.properties.tmpl', 'conf/log4j2.properties.tmpl', 'docker-entrypoint.sh'
 }
 
@@ -172,3 +172,12 @@ task copyTestJarsToTestLib(type: Copy) {
 test.dependsOn += copyTestJarsToTestLib
 test.dependsOn += compileIntegrationTestJava
 test.dependsOn += compilePermissionTestJava
+
+archivesBaseName = "scalardl-ledger"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+   (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+    project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
+}

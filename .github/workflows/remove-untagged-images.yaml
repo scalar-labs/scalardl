@@ -15,17 +15,17 @@ jobs:
 
     steps:
 
-      - name: scalar-ledger
+      - name: scalardl-ledger
         uses: camargo/delete-untagged-action@v1
         with:
           github-token: ${{ secrets.CR_PAT }}
-          package-name: scalar-ledger
+          package-name: scalardl-ledger
 
-      - name: scalar-client
+      - name: scalardl-client
         uses: camargo/delete-untagged-action@v1
         with:
           github-token: ${{ secrets.CR_PAT }}
-          package-name: scalar-client
+          package-name: scalardl-client
 
       - name: scalardl-schema-loader
         uses: camargo/delete-untagged-action@v1
