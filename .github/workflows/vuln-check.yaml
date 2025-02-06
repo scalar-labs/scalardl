@@ -25,7 +25,7 @@ jobs:
     with:
       target-ref: ${{ inputs.target-ref }}
       find-latest-release: ${{ inputs.find-latest-release }}
-      images: '[["ScalarDL Ledger", "scalar-ledger"], ["ScalarDL Client", "scalar-client"]]'
+      images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
