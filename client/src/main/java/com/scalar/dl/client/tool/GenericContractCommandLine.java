@@ -3,7 +3,6 @@ package com.scalar.dl.client.tool;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIST;
 import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIST_HEADING;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,9 +12,9 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(
-    name = "scalardl",
+    name = Common.SCALARDL_GC_SUBCOMMAND_NAME,
+    aliases = Common.SCALARDL_GC_ALIAS,
     subcommands = {
-      GenericContractCommandLine.class,
       CertificateRegistration.class,
       ContractExecution.class,
       ContractRegistration.class,
@@ -23,40 +22,23 @@ import picocli.CommandLine.HelpCommand;
       ContractsRegistration.class,
       FunctionRegistration.class,
       FunctionsRegistration.class,
+      GenericContractLedgerValidation.class,
       HelpCommand.class,
-      LedgerValidation.class,
       SecretRegistration.class,
     },
-    description = {"These are ScalarDL commands used in various situations:"})
-public class ScalarDlCommandLine {
+    description = {"Run commands for generic-contracts-based setup."})
+public class GenericContractCommandLine {
 
   public static void main(String[] args) {
-    CommandLine commandLine = new CommandLine(new ScalarDlCommandLine());
+    CommandLine commandLine = new CommandLine(new GenericContractCommandLine());
+    commandLine.setCommandName(Common.SCALARDL_GC_COMMAND_NAME);
     setupSections(commandLine);
-    GenericContractCommandLine.setupSections(
-        commandLine.getSubcommands().get(Common.SCALARDL_GC_SUBCOMMAND_NAME));
 
     int exitCode = commandLine.execute(args);
     System.exit(exitCode);
   }
 
-  /**
-   * Changes the usage message (a.k.a help information) of the {@link CommandLine} into the grouped
-   * sections.
-   *
-   * <p>[Note]
-   *
-   * <p>Please set up all the sections in this method.
-   *
-   * <p>Please refer to the [Usage] comment described in {@link CommandGroupRenderer}.
-   *
-   * @param cmd command line of {@link ScalarDlCommandLine}
-   */
-  @VisibleForTesting
   static void setupSections(CommandLine cmd) {
-    // ref. Code to group subcommands from the official documentation.
-    //      https://github.com/remkop/picocli/issues/978#issuecomment-604174211
-
     ImmutableMap.Builder<String, List<Class<?>>> sections = ImmutableMap.builder();
     // Section: register identity information.
     sections.put(
@@ -76,10 +58,6 @@ public class ScalarDlCommandLine {
         Arrays.asList(ContractExecution.class, ContractsListing.class));
     // Section: validate ledger.
     sections.put("%nvalidate ledger%n", Collections.singletonList(LedgerValidation.class));
-    // Section: generic contracts.
-    sections.put(
-        "%nrun commands for generic-contracts-based setup%n",
-        Collections.singletonList(GenericContractCommandLine.class));
     CommandGroupRenderer renderer = new CommandGroupRenderer(sections.build());
 
     cmd.getHelpSectionMap().remove(SECTION_KEY_COMMAND_LIST_HEADING);
