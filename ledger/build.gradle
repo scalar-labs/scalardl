@@ -65,6 +65,16 @@ dependencies {
     testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
 }
 
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+javadoc {
+    title = "ScalarDL Ledger ${version}"
+}
+
 task testJar(type: Jar) {
     classifier 'tests'
     from sourceSets.test.output
