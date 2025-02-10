@@ -17,8 +17,8 @@ jobs:
   call-vuln-check-for-v3_8:
     uses: ./.github/workflows/vuln-check.yaml
     with:
-      target-ref: v3.8
-      find-latest-release: true
+      target-ref: 3.8
+      find-latest-release: false
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
@@ -26,8 +26,17 @@ jobs:
   call-vuln-check-for-v3_9:
     uses: ./.github/workflows/vuln-check.yaml
     with:
-      target-ref: v3.9
-      find-latest-release: true
+      target-ref: 3.9
+      find-latest-release: false
+    secrets:
+      CR_PAT: ${{ secrets.CR_PAT }}
+      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+
+  call-vuln-check-for-v3_10:
+    uses: ./.github/workflows/vuln-check.yaml
+    with:
+      target-ref: 3.10
+      find-latest-release: false
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
