@@ -1,5 +1,5 @@
 plugins {
-    id("com.diffplug.spotless") version "6.13.0"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 subprojects {
@@ -33,15 +33,15 @@ subprojects {
         junitVersion = '5.11.4'
         junitPlatformVersion = '1.11.4'
         mockitoVersion = '4.11.0'
-        errorproneVersion = '2.10.0'
-        errorproneJavacVersion = '9+181-r4173-1'
+        errorproneVersion = '2.36.0'
+        errorproneJavacVersion = '1+'
         errorpronePluginVersion = '2.0.2'
-        spotbugsVersion = '4.8.6'
+        spotbugsVersion = '4.9.1'
         spotbugsPluginVersion = '5.2.5'
         commonsTextVersion = '1.13.0'
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.7'
-        dockerPluginVersion = '0.34.0'
+        dockerPluginVersion = '0.36.0'
         bouncyCastleCryptoVersion = '1.70'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
