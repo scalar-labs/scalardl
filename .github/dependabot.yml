@@ -1,30 +1,76 @@
 version: 2
-registries:
-  ghcr:
-    type: docker-registry
-    url: https://ghcr.io
-    username: ${{secrets.CR_USER}}
-    password: ${{secrets.CR_PAT}}
-    replaces-base: true
 updates:
   # For Gradle, update dependencies and plugins to the latest non-major version
   - package-ecosystem: "gradle"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
     directory: "/"
     schedule:
       interval: "weekly"
     reviewers:
       - "scalar-labs/scalardl"
-    labels:
-      - "improvement"
     ignore:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
-  # For GitHub Actions workflows, update all actions
+
+  # For GitHub Actions, update all actions on the default, support and release branches
   - package-ecosystem: "github-actions"
+    groups:
+      actions on branch master:
+        patterns:
+          - "*"
     directory: "/"
     schedule:
       interval: "weekly"
     reviewers:
       - "scalar-labs/scalardl"
-    labels:
-      - "improvement"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "3"
+    groups:
+      actions on branch 3:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "scalar-labs/scalardl"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "3.10"
+    groups:
+      actions on branch 3.10:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "scalar-labs/scalardl"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "3.9"
+    groups:
+      actions on branch 3.9:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "scalar-labs/scalardl"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "3.8"
+    groups:
+      actions on branch 3.8:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "scalar-labs/scalardl"
