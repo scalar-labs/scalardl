@@ -45,16 +45,23 @@ dependencies {
     testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
 }
 
-task CertificateRegistration(type: CreateStartScripts) {
-    mainClass = 'com.scalar.dl.client.tool.CertificateRegistration'
-    applicationName = 'register-cert'
+task ScalarDl(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.ScalarDlCommandLine'
+    applicationName = 'scalardl'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-task ScalarDl(type: CreateStartScripts) {
-    mainClass = 'com.scalar.dl.client.tool.ScalarDlCommandLine'
-    applicationName = 'scalardl'
+task ScalarDlGc(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.GenericContractCommandLine'
+    applicationName = 'scalardl-gc'
+    outputDir = new File(project.buildDir, 'tmp')
+    classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+task CertificateRegistration(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.CertificateRegistration'
+    applicationName = 'register-cert'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
@@ -162,6 +169,7 @@ applicationDistribution.into('bin') {
     from(LedgerValidation)
     from(MultiLedgersValidation)
     from(ScalarDl)
+    from(ScalarDlGc)
     from(StateUpdaterSimpleBench)
     from(StateUpdaterLoader)
     from(SmallbankBench)
