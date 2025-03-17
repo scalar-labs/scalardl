@@ -94,6 +94,14 @@ public enum ClientError implements ScalarDlError {
       StatusCode.INVALID_ARGUMENT, "021", "The asset ID cannot be null.", "", ""),
   SERVICE_INVALID_ASSET_AGES(
       StatusCode.INVALID_ARGUMENT, "022", "The specified asset ages are invalid.", "", ""),
+  SERVICE_WRONG_ASSET_TYPE_SPECIFIED(
+      StatusCode.INVALID_ARGUMENT, "023", "The specified asset type is incorrect.", "", ""),
+  SERVICE_WRONG_KEYS_SPECIFIED(
+      StatusCode.INVALID_ARGUMENT,
+      "024",
+      "The specified keys are incorrect for the asset type.",
+      "",
+      ""),
 
   //
   // Errors for RUNTIME_ERROR(502)
