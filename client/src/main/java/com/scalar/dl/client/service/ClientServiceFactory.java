@@ -92,6 +92,26 @@ public class ClientServiceFactory {
   }
 
   /**
+   * Returns a {@link GenericContractClientService} instance.
+   *
+   * @param config a client config
+   * @return a {@link GenericContractClientService} instance
+   */
+  public GenericContractClientService createForGenericContract(ClientConfig config) {
+    return new GenericContractClientService(create(config));
+  }
+
+  /**
+   * Returns a {@link GenericContractClientService} instance.
+   *
+   * @param config a gateway client config
+   * @return a {@link GenericContractClientService} instance
+   */
+  public GenericContractClientService createForGenericContract(GatewayClientConfig config) {
+    return new GenericContractClientService(create(config));
+  }
+
+  /**
    * Cleans up all the resources managed by the factory. This must be called after finishing up all
    * the interactions with the {@link ClientService}s that it creates.
    */
