@@ -31,6 +31,7 @@ import static com.scalar.dl.genericcontracts.object.Constants.INVALID_VERSIONS_F
 import static com.scalar.dl.genericcontracts.object.Constants.METADATA;
 import static com.scalar.dl.genericcontracts.object.Constants.NAMESPACE;
 import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID;
+import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID_PREFIX;
 import static com.scalar.dl.genericcontracts.object.Constants.OPTIONS;
 import static com.scalar.dl.genericcontracts.object.Constants.OPTION_ALL;
 import static com.scalar.dl.genericcontracts.object.Constants.PARTITION_KEY;
@@ -48,6 +49,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Guice;
@@ -72,11 +74,12 @@ import com.scalar.db.storage.dynamo.DynamoAdmin;
 import com.scalar.db.storage.dynamo.DynamoConfig;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
+import com.scalar.dl.client.service.GenericContractClientService;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.server.AdminService;
 import com.scalar.dl.ledger.server.BaseServer;
 import com.scalar.dl.ledger.server.LedgerPrivilegedService;
@@ -257,8 +260,8 @@ public class GenericContractEndToEndTest {
   private static Map<String, String> creationOptions = new HashMap<>();
 
   private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
-  private static ClientService clientService;
-  private static ClientService anotehrClientService;
+  private static GenericContractClientService clientService;
+  private static GenericContractClientService anotehrClientService;
 
   @BeforeAll
   public static void setUpBeforeClass() throws Exception {
@@ -325,6 +328,8 @@ public class GenericContractEndToEndTest {
     if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
       props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
     }
+    props.put(LedgerConfig.PROOF_ENABLED, "true");
+    props.put(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
 
     if (storage.equals(DynamoConfig.STORAGE_NAME)) {
       props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
@@ -351,17 +356,18 @@ public class GenericContractEndToEndTest {
     ledgerServer.startAdmin(AdminService.class);
   }
 
-  private static ClientService createClientService(String entity) throws IOException {
+  private static GenericContractClientService createClientService(String entity)
+      throws IOException {
     Properties props = new Properties();
     props.put(ClientConfig.ENTITY_ID, entity);
     props.put(ClientConfig.DS_CERT_VERSION, String.valueOf(SOME_KEY_VERSION));
     props.put(ClientConfig.DS_CERT_PEM, SOME_CERTIFICATE);
     props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
-    return clientServiceFactory.create(new ClientConfig(props));
+    return clientServiceFactory.createForGenericContract(new ClientConfig(props));
   }
 
   private static void registerContracts(
-      ClientService clientService,
+      GenericContractClientService clientService,
       Map<String, String> contractMap,
       @Nullable Map<String, JsonNode> propertiesMap)
       throws IOException {
@@ -376,7 +382,8 @@ public class GenericContractEndToEndTest {
     }
   }
 
-  private static void registerFunction(ClientService clientService, Map<String, String> functionMap)
+  private static void registerFunction(
+      GenericContractClientService clientService, Map<String, String> functionMap)
       throws IOException {
     for (Map.Entry<String, String> entry : functionMap.entrySet()) {
       String functionName = entry.getKey();
@@ -412,7 +419,7 @@ public class GenericContractEndToEndTest {
     clientService.executeContract(ID_OBJECT_PUT, objectV2);
   }
 
-  private void prepareCollection(ClientService clientService) {
+  private void prepareCollection(GenericContractClientService clientService) {
     JsonNode arguments =
         mapper
             .createObjectNode()
@@ -472,7 +479,7 @@ public class GenericContractEndToEndTest {
   }
 
   private void addObjectsToCollection(
-      ClientService clientService, String collectionId, ArrayNode objectIds) {
+      GenericContractClientService clientService, String collectionId, ArrayNode objectIds) {
     JsonNode arguments =
         mapper.createObjectNode().put(COLLECTION_ID, collectionId).set(OBJECT_IDS, objectIds);
     clientService.executeContract(ID_COLLECTION_ADD_OBJECTS, arguments);
@@ -489,7 +496,7 @@ public class GenericContractEndToEndTest {
   }
 
   private void removeObjectsFromCollection(
-      ClientService clientService, String collectionId, ArrayNode objectIds) {
+      GenericContractClientService clientService, String collectionId, ArrayNode objectIds) {
     JsonNode arguments =
         mapper.createObjectNode().put(COLLECTION_ID, collectionId).set(OBJECT_IDS, objectIds);
     clientService.executeContract(ID_COLLECTION_DEL_OBJECTS, arguments);
@@ -1209,5 +1216,40 @@ public class GenericContractEndToEndTest {
     assertThat(objectJson.get(OBJECT_ID).textValue()).isEqualTo(SOME_OBJECT_ID);
     assertThat(objectJson.get(HASH_VALUE).textValue()).isEqualTo(SOME_HASH_VALUE_2);
     assertThat(objectJson.get(METADATA)).isEqualTo(SOME_METADATA_2);
+  }
+
+  @Test
+  public void validateLedger_ObjectGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    prepareObject();
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateLedger(AssetType.OBJECT, ImmutableList.of(SOME_OBJECT_ID));
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(OBJECT_ID_PREFIX + SOME_OBJECT_ID);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(2);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateLedger_CollectionGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    prepareCollection();
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateLedger(AssetType.COLLECTION, ImmutableList.of(SOME_COLLECTION_ID));
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId())
+        .isEqualTo(COLLECTION_ID_PREFIX + SOME_COLLECTION_ID);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
   }
 }

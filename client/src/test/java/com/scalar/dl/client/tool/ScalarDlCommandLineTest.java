@@ -40,21 +40,24 @@ public class ScalarDlCommandLineTest {
               "These are ScalarDL commands used in various situations:",
               "",
               "register identity information",
-              "  register-cert       Register a specified certificate.",
-              "  register-secret     Register a specified secret.",
+              "  register-cert          Register a specified certificate.",
+              "  register-secret        Register a specified secret.",
               "",
               "register business logic",
-              "  register-contract   Register a specified contract.",
-              "  register-contracts  Register specified contracts.",
-              "  register-function   Register a specified function.",
-              "  register-functions  Register specified functions.",
+              "  register-contract      Register a specified contract.",
+              "  register-contracts     Register specified contracts.",
+              "  register-function      Register a specified function.",
+              "  register-functions     Register specified functions.",
               "",
               "execute and list the registered business logic",
-              "  execute-contract    Execute a specified contract.",
-              "  list-contracts      List registered contracts.",
+              "  execute-contract       Execute a specified contract.",
+              "  list-contracts         List registered contracts.",
               "",
               "validate ledger",
-              "  validate-ledger     Validate a specified asset in a ledger.",
+              "  validate-ledger        Validate a specified asset in a ledger.",
+              "",
+              "run commands for generic-contracts-based setup",
+              "  generic-contracts, gc  Run commands for generic-contracts-based setup.",
               "");
       assertThat(actual).isEqualTo(expected);
     }
@@ -78,6 +81,7 @@ public class ScalarDlCommandLineTest {
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
+                GenericContractCommandLine.class,
                 CertificateRegistration.class,
                 ContractExecution.class,
                 ContractRegistration.class,
