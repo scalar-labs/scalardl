@@ -1,0 +1,9 @@
+[[contracts]]
+contract-id = "table.v1_0_0.Create"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Create"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Create.class"
+
+[[contracts]]
+contract-id = "table.v1_0_0.Insert"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Insert"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Insert.class"
