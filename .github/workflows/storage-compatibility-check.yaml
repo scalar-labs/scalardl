@@ -52,7 +52,7 @@ jobs:
 
   integration-test-with-cosmos:
     name: Integration testing with the Consensus Commit transaction manager on Cosmos DB
-    runs-on: ubuntu-latest-l
+    runs-on: windows-latest
 
     steps:
       - name: Checkout the target repository
@@ -60,40 +60,52 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Prepare own schema.json
-        id: schema
-        run: |
-          SUFFIX=$(echo "_${{ inputs.target-ref }}" | tr '.' '_')
-          sed -i s/scalar/scalar${SUFFIX}/ ledger/scripts/create_schema.json
-          sed -i s/test/test${SUFFIX}/ ledger/scripts/create_schema_function.json
-          echo "namespace_suffix=${SUFFIX}" >> $GITHUB_OUTPUT
-
       - name: Set up JDK 1.8
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '8'
 
+      - name: Start Azure Cosmos DB emulator
+        run: |
+          Write-Host "Launching Cosmos DB Emulator"
+          Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+          # Set startup timeout to 10min (600s), the default is 4min
+          Start-CosmosDbEmulator -Consistency Strong -Timeout 600
+
+      - name: Install TLS/SSL certificate
+        run: |
+          $cert = Get-ChildItem Cert:\LocalMachine\My | where{$_.FriendlyName -eq 'DocumentDbEmulatorCertificate'}
+          $params = @{
+            Cert = $cert
+            Type = "CERT"
+            FilePath = "$home/tmp-cert.cer"
+            NoClobber = $true
+          }
+          Export-Certificate @params
+          certutil -encode $home/tmp-cert.cer $home/cosmosdbcert.cer
+          Remove-Item $home/tmp-cert.cer
+          $keystore = "-keystore", "${env:JAVA_HOME}/jre/lib/security/cacerts"
+          & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -importcert -noprompt -alias cosmos_emulator -file $home/cosmosdbcert.cer
+          & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -list -alias cosmos_emulator
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build
         run: |
-          ./gradlew assemble
-          ./gradlew testJar
+          ./gradlew.bat assemble
+          ./gradlew.bat testJar
 
       # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
         working-directory: ledger
         run: |
-          java -Xmx6g -XX:MaxDirectMemorySize=4g \
-          -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          -Dscalardl.namespace_suffix="${{ steps.schema.outputs.namespace_suffix }}" \
-          -Dscalardb.storage=cosmos \
-          -Dscalardb.contact_points="${{ secrets.COSMOS_URI }}" \
-          -Dscalardb.password="${{ secrets.COSMOS_KEY }}" \
-          -Dscalardb.cosmos.ru=800 \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*;build/libs/*;build/classes/java/integrationTest" `
+          "-Dscalardb.storage=cosmos" `
+          "-Dscalardb.contact_points=https://localhost:8081/" `
+          "-Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" `
+          org.junit.platform.console.ConsoleLauncher execute "-c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest"
 
   integration-test-with-dynamo:
     name: Integration testing with the Consensus Commit transaction manager on DynamoDB
