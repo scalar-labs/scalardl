@@ -137,8 +137,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.condition.EnabledIf;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LedgerServiceEndToEndTest {
+  private static final Logger logger = LoggerFactory.getLogger(LedgerServiceEndToEndTest.class);
   private static final String NAMESPACE = "scalar";
   private static final String ASSET_TABLE = "asset";
   private static final String ASSET_METADATA_TABLE = "asset_metadata";
@@ -324,10 +327,14 @@ public class LedgerServiceEndToEndTest {
   }
 
   @AfterAll
-  public static void tearDownAfterClass() throws SchemaLoaderException {
+  public static void tearDownAfterClass() {
     storageAdmin.close();
-    SchemaLoader.unload(props, ledgerSchemaPath, true);
-    SchemaLoader.unload(props, databaseSchemaPath, true);
+    try {
+      SchemaLoader.unload(props, ledgerSchemaPath, true);
+      SchemaLoader.unload(props, databaseSchemaPath, true);
+    } catch (Exception e) {
+      logger.warn("Failed to unload table", e);
+    }
   }
 
   @BeforeEach
