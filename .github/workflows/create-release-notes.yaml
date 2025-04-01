@@ -77,16 +77,3 @@ jobs:
           asset_path: client/build/distributions/scalardl-java-client-sdk-${{ steps.version.outputs.version }}.zip
           asset_name: scalardl-java-client-sdk-${{ steps.version.outputs.version }}.zip
           asset_content_type: application/zip
-
-      - name: Build zip for generic contracts and functions
-        run: ./gradlew :generic-contracts:distZip
-
-      - name: Upload zip for generic contracts and functions
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PROJECT_ACCESS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: generic-contracts/build/distributions/scalardl-generic-contracts-${{ steps.version.outputs.version }}.zip
-          asset_name: scalardl-generic-contracts-${{ steps.version.outputs.version }}.zip
-          asset_content_type: application/zip
