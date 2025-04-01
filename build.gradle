@@ -5,7 +5,7 @@ subprojects {
     apply plugin: 'jacoco'
     apply plugin: 'java-library-distribution'
 
-    project.version = '3.8.5'
+    project.version = '3.8.6-SNAPSHOT'
 
     ext {
         grpcVersion = '1.68.1'
