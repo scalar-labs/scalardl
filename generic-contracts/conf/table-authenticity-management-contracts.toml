@@ -7,3 +7,13 @@ contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/g
 contract-id = "table.v1_0_0.Insert"
 contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Insert"
 contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Insert.class"
+
+[[contracts]]
+contract-id = "table.v1_0_0.Select"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Select"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Select.class"
+
+[[contracts]]
+contract-id = "table.v1_0_0.Scan"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Scan"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Scan.class"
