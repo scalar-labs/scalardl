@@ -46,8 +46,8 @@ public class Constants {
   public static final String INVALID_QUERY_FORMAT = "The specified format of the query is invalid.";
   public static final String INVALID_CONDITION_FORMAT =
       "The specified format of the condition is invalid. Condition: ";
-  public static final String INVALID_PROJECTIONS_FORMAT =
-      "The specified format of the projections.";
+  public static final String INVALID_PROJECTION_FORMAT =
+      "The specified format of the projection is invalid. Projection: ";
   public static final String INVALID_KEY_TYPE = "The specified key type is invalid.";
   public static final String INVALID_INDEX_KEY_TYPE = "The specified index key type is invalid.";
   public static final String INVALID_OPERATOR = "The specified operator is invalid. Condition: ";

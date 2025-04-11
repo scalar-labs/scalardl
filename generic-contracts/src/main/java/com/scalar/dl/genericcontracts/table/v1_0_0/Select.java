@@ -2,6 +2,7 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
@@ -88,7 +89,8 @@ public class Select extends JacksonBasedContract {
         // For other operators
         if (condition.size() != 3
             || !condition.has(Constants.CONDITION_VALUE)
-            || condition.get(Constants.CONDITION_VALUE).isNull()) {
+            || !isSupportedDataTypeForComparisonOperators(
+                condition.get(Constants.CONDITION_VALUE).getNodeType().name())) {
           throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
         }
         if (condition.get(Constants.CONDITION_VALUE).isBoolean()
@@ -100,25 +102,31 @@ public class Select extends JacksonBasedContract {
     }
   }
 
-  private boolean isSupportedOperator(String type) {
-    return type.equalsIgnoreCase(Constants.OPERATOR_EQ)
-        || type.equalsIgnoreCase(Constants.OPERATOR_NE)
-        || type.equalsIgnoreCase(Constants.OPERATOR_LT)
-        || type.equalsIgnoreCase(Constants.OPERATOR_LTE)
-        || type.equalsIgnoreCase(Constants.OPERATOR_GT)
-        || type.equalsIgnoreCase(Constants.OPERATOR_GTE)
-        || type.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
-        || type.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL);
+  private boolean isSupportedDataTypeForComparisonOperators(String type) {
+    return type.toUpperCase().equals(JsonNodeType.BOOLEAN.name())
+        || type.toUpperCase().equals(JsonNodeType.NUMBER.name())
+        || type.toUpperCase().equals(JsonNodeType.STRING.name());
+  }
+
+  private boolean isSupportedOperator(String operator) {
+    return operator.equalsIgnoreCase(Constants.OPERATOR_EQ)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_NE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_LT)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_LTE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_GT)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_GTE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL);
   }
 
   private void validateProjections(JsonNode projections) {
     if (!projections.isArray()) {
-      throw new ContractContextException(Constants.INVALID_PROJECTIONS_FORMAT);
+      throw new ContractContextException(Constants.INVALID_QUERY_FORMAT);
     }
 
     for (JsonNode projection : projections) {
       if (!projection.isTextual()) {
-        throw new ContractContextException(Constants.INVALID_PROJECTIONS_FORMAT);
+        throw new ContractContextException(Constants.INVALID_PROJECTION_FORMAT + projection);
       }
     }
   }

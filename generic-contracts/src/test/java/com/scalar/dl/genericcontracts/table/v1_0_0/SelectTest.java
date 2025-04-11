@@ -119,7 +119,22 @@ public class SelectTest {
         mapper
             .createObjectNode()
             .put(Constants.QUERY_TABLE, SOME_TABLE_NAME)
-            .put(Constants.QUERY_CONDITIONS, SOME_TABLE_NAME);
+            .put(Constants.QUERY_CONDITIONS, SOME_INVALID_VALUE);
+    JsonNode argument6 =
+        mapper
+            .createObjectNode()
+            .put(Constants.QUERY_TABLE, SOME_TABLE_NAME)
+            .put(Constants.QUERY_PROJECTIONS, SOME_INVALID_VALUE)
+            .set(
+                Constants.QUERY_CONDITIONS,
+                mapper
+                    .createArrayNode()
+                    .add(
+                        mapper
+                            .createObjectNode()
+                            .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                            .put(Constants.CONDITION_VALUE, "aaa")
+                            .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ)));
 
     // Act Assert
     assertThatThrownBy(() -> select.invoke(ledger, argument1, null))
@@ -135,6 +150,9 @@ public class SelectTest {
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_QUERY_FORMAT);
     assertThatThrownBy(() -> select.invoke(ledger, argument5, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_QUERY_FORMAT);
+    assertThatThrownBy(() -> select.invoke(ledger, argument6, null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_QUERY_FORMAT);
     verify(ledger, never()).get(anyString());
@@ -218,6 +236,24 @@ public class SelectTest {
                     .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
                     .put(Constants.CONDITION_VALUE, true)
                     .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_GTE));
+    ArrayNode conditions12 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
+                    .set(Constants.CONDITION_VALUE, mapper.createObjectNode()));
+    ArrayNode conditions13 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
+                    .set(Constants.CONDITION_VALUE, mapper.createArrayNode()));
 
     // Act Assert
     assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions1), null))
@@ -253,6 +289,33 @@ public class SelectTest {
     assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions11), null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_OPERATOR + conditions11.get(0));
+    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions12), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions12.get(0));
+    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions13), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions13.get(0));
     verify(ledger, never()).get(anyString());
+  }
+
+  @Test
+  public void invoke_InvalidProjectionsGiven_ShouldThrowException() {
+    ObjectNode argument = mapper.createObjectNode().put(Constants.QUERY_TABLE, SOME_TABLE_NAME);
+    argument.set(
+        Constants.QUERY_CONDITIONS,
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_VALUE, "aaa")
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ)));
+    argument.set(Constants.QUERY_PROJECTIONS, mapper.createArrayNode().add(0));
+
+    // Act Assert
+    assertThatThrownBy(() -> select.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_PROJECTION_FORMAT + "0");
   }
 }
