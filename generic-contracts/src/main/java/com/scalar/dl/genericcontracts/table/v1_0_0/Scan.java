@@ -12,7 +12,6 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -46,6 +45,14 @@ public class Scan extends JacksonBasedContract {
     }
   }
 
+  /**
+   * Returns true if the get operation is available. The get operation gets a single record based on
+   * the primary key. It must include an equality (EQ) condition for the primary key.
+   *
+   * @param table a table metadata object
+   * @param conditionsMap a map of condition objects
+   * @return boolean
+   */
   private boolean isGetAvailable(JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
     String key = table.get(Constants.TABLE_KEY).textValue();
     String keyType = table.get(Constants.TABLE_KEY_TYPE).textValue();
@@ -54,6 +61,15 @@ public class Scan extends JacksonBasedContract {
             .anyMatch(condition -> isPrimaryKeyCondition(condition, keyType));
   }
 
+  /**
+   * Returns true if the index scan operation is available. The index scan operation gets multiple
+   * records that the specified index key matches. It must include an equality condition or IS_NULL
+   * condition for an index key.
+   *
+   * @param table a table metadata object
+   * @param conditionsMap a map of condition objects
+   * @return boolean
+   */
   private boolean isIndexScanAvailable(
       JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
     for (JsonNode index : table.get(Constants.TABLE_INDEXES)) {
@@ -167,11 +183,11 @@ public class Scan extends JacksonBasedContract {
 
     for (String recordAssetId :
         getRecordAssetIdsFromIndex(ledger, tableName, indexAssetId, keyColumnName)) {
-      Optional<Asset<JsonNode>> asset = ledger.get(recordAssetId);
-      if (!asset.isPresent()) {
-        throw new ContractContextException(Constants.ILLEGAL_INDEX_STATE);
-      }
-      results.add(asset.get().data());
+      Asset<JsonNode> asset =
+          ledger
+              .get(recordAssetId)
+              .orElseThrow(() -> new ContractContextException(Constants.ILLEGAL_INDEX_STATE));
+      results.add(asset.data());
     }
 
     return filter(
