@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -77,6 +78,29 @@ public class CreateTest {
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger).put(SOME_TABLE_ASSET_ID, argument);
     verify(ledger).put(Constants.ASSET_ID_METADATA_TABLES, argument);
+  }
+
+  @Test
+  public void invoke_CorrectArgumentsWithoutIndexesGiven_ShouldCreateTableWithEmptyIndexes() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.TABLE_NAME, SOME_TABLE_NAME)
+            .put(Constants.TABLE_KEY, SOME_TABLE_KEY)
+            .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING);
+    ObjectNode expected = argument.deepCopy();
+    expected.set(Constants.TABLE_INDEXES, mapper.createArrayNode());
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.empty());
+
+    // Act
+    JsonNode actual = create.invoke(ledger, argument, null);
+
+    // Assert
+    assertThat(actual).isNull();
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+    verify(ledger).put(SOME_TABLE_ASSET_ID, expected);
+    verify(ledger).put(Constants.ASSET_ID_METADATA_TABLES, expected);
   }
 
   @Test

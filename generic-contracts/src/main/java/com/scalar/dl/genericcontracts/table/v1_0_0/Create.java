@@ -2,6 +2,7 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
@@ -44,8 +45,9 @@ public class Create extends JacksonBasedContract {
     }
 
     // Put the asset records
-    ledger.put(Constants.ASSET_ID_METADATA_TABLES, arguments);
-    ledger.put(assetId, arguments);
+    JsonNode tableMetadata = prepareTableMetadata(arguments);
+    ledger.put(Constants.ASSET_ID_METADATA_TABLES, tableMetadata);
+    ledger.put(assetId, tableMetadata);
 
     return null;
   }
@@ -73,6 +75,16 @@ public class Create extends JacksonBasedContract {
       if (!isSupportedKeyType(index.get(Constants.INDEX_KEY_TYPE).asText())) {
         throw new ContractContextException(Constants.INVALID_KEY_TYPE);
       }
+    }
+  }
+
+  private JsonNode prepareTableMetadata(JsonNode arguments) {
+    if (arguments.has(Constants.TABLE_INDEXES)) {
+      return arguments;
+    } else {
+      ObjectNode tableMetadata = arguments.deepCopy();
+      tableMetadata.set(Constants.TABLE_INDEXES, getObjectMapper().createArrayNode());
+      return tableMetadata;
     }
   }
 
