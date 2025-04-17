@@ -36,9 +36,9 @@ public class Scan extends JacksonBasedContract {
         Multimaps.index(
             arguments.get(Constants.QUERY_CONDITIONS),
             condition -> condition.get(Constants.CONDITION_COLUMN).textValue());
-    if (isGetAvailable(table, conditionsMap)) {
+    if (hasPrimaryKeyCondition(table, conditionsMap)) {
       return get(ledger, table, conditionsMap);
-    } else if (isIndexScanAvailable(table, conditionsMap)) {
+    } else if (hasIndexKeyCondition(table, conditionsMap)) {
       return scan(ledger, table, conditionsMap);
     } else {
       throw new ContractContextException(Constants.INVALID_KEY_SPECIFICATION);
@@ -46,14 +46,16 @@ public class Scan extends JacksonBasedContract {
   }
 
   /**
-   * Returns true if the get operation is available. The get operation gets a single record based on
-   * the primary key. It must include an equality (EQ) condition for the primary key.
+   * Returns true if the conditions map has a primary key condition, which means the get operation
+   * can be executed. The get operation gets a single record based on the primary key. It must
+   * include an equality (EQ) condition for the primary key.
    *
    * @param table a table metadata object
    * @param conditionsMap a map of condition objects
    * @return boolean
    */
-  private boolean isGetAvailable(JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
+  private boolean hasPrimaryKeyCondition(
+      JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
     String key = table.get(Constants.TABLE_KEY).textValue();
     String keyType = table.get(Constants.TABLE_KEY_TYPE).textValue();
     return conditionsMap.containsKey(key)
@@ -62,15 +64,15 @@ public class Scan extends JacksonBasedContract {
   }
 
   /**
-   * Returns true if the index scan operation is available. The index scan operation gets multiple
-   * records that the specified index key matches. It must include an equality condition or IS_NULL
-   * condition for an index key.
+   * Returns true if the conditions map has an index key condition, which means the index scan
+   * operation can be executed. The index scan operation gets multiple records that the specified
+   * index key matches. It must include an equality condition or IS_NULL condition for an index key.
    *
    * @param table a table metadata object
    * @param conditionsMap a map of condition objects
    * @return boolean
    */
-  private boolean isIndexScanAvailable(
+  private boolean hasIndexKeyCondition(
       JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
     for (JsonNode index : table.get(Constants.TABLE_INDEXES)) {
       String indexKey = index.get(Constants.INDEX_KEY).asText();
