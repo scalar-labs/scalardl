@@ -30,8 +30,8 @@ public class Select extends JacksonBasedContract {
     validateQuery(arguments);
 
     // Prepare conditions for each table
-    JsonNode firstTable = arguments.get(Constants.QUERY_TABLE);
-    String firstTableReference = getTableReference(firstTable);
+    JsonNode leftmostTable = arguments.get(Constants.QUERY_TABLE);
+    String leftmostTableReference = getTableReference(firstTable);
     ListMultimap<String, JsonNode> conditionsMap =
         prepareConditionsMap(arguments.get(Constants.QUERY_CONDITIONS), firstTableReference);
 
