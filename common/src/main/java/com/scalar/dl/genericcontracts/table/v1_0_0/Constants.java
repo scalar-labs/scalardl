@@ -1,5 +1,7 @@
 package com.scalar.dl.genericcontracts.table.v1_0_0;
 
+import java.util.regex.Pattern;
+
 public class Constants {
 
   // Metadata
@@ -43,6 +45,12 @@ public class Constants {
   public static final String OPERATOR_IS_NULL = "IS_NULL";
   public static final String OPERATOR_IS_NOT_NULL = "IS_NOT_NULL";
   public static final String ASSET_AGE = "age";
+
+  // Patterns
+  public static final String OBJECT_NAME_PATTERN = "[a-zA-Z][A-Za-z0-9_]*";
+  public static final Pattern COLUMN_NAME = Pattern.compile(OBJECT_NAME_PATTERN);
+  public static final Pattern COLUMN_REFERENCE =
+      Pattern.compile(OBJECT_NAME_PATTERN + "\\." + OBJECT_NAME_PATTERN);
 
   // Error messages
   public static final String INVALID_TABLE_FORMAT = "The specified format of the table is invalid.";

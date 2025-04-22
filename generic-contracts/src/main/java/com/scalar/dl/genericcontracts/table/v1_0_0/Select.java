@@ -31,9 +31,9 @@ public class Select extends JacksonBasedContract {
 
     // Prepare conditions for each table
     JsonNode leftmostTable = arguments.get(Constants.QUERY_TABLE);
-    String leftmostTableReference = getTableReference(firstTable);
+    String leftmostTableReference = getTableReference(leftmostTable);
     ListMultimap<String, JsonNode> conditionsMap =
-        prepareConditionsMap(arguments.get(Constants.QUERY_CONDITIONS), firstTableReference);
+        prepareConditionsMap(arguments.get(Constants.QUERY_CONDITIONS), leftmostTableReference);
 
     // Prepare joins
     List<JsonNode> joins = new ArrayList<>();
@@ -58,21 +58,22 @@ public class Select extends JacksonBasedContract {
               });
     }
 
-    // Scan the first table
+    // Scan the leftmost table
     JsonNode records =
         invokeSubContract(
             Constants.CONTRACT_SCAN,
             ledger,
-            prepareScanArguments(getTableName(firstTable), firstTableReference, conditionsMap));
+            prepareScanArguments(
+                getTableName(leftmostTable), leftmostTableReference, conditionsMap));
 
     // Join tables
-    boolean isFirstJoin = true;
+    boolean isLeftmostTableJoin = true;
     for (JsonNode join : joins) {
       ArrayNode joinedRecords = getObjectMapper().createArrayNode();
 
       for (JsonNode leftRecord : records) {
-        if (isFirstJoin) {
-          leftRecord = addTableReferenceForColumns(leftRecord, firstTableReference);
+        if (isLeftmostTableJoin) {
+          leftRecord = addTableReferenceForColumns(leftRecord, leftmostTableReference);
         }
 
         // Get right records whose join key matches that of the left record
@@ -85,8 +86,8 @@ public class Select extends JacksonBasedContract {
         }
       }
 
-      if (isFirstJoin) {
-        isFirstJoin = false;
+      if (isLeftmostTableJoin) {
+        isLeftmostTableJoin = false;
       }
 
       records = joinedRecords;
@@ -176,7 +177,7 @@ public class Select extends JacksonBasedContract {
     conditions.forEach(
         condition -> {
           String column = condition.get(Constants.CONDITION_COLUMN).asText();
-          if (isColumnNameWithTableReference(column)) {
+          if (isColumnReference(column)) {
             String tableReference = getTableReference(column);
             String columnName = getColumnName(column);
             ObjectNode newCondition = getObjectMapper().createObjectNode();
@@ -248,12 +249,12 @@ public class Select extends JacksonBasedContract {
     return tables;
   }
 
-  private boolean isColumnName(String columnName) {
-    return columnName.matches("[a-zA-Z][A-Za-z0-9_]*");
+  private boolean isColumnName(String column) {
+    return Constants.COLUMN_NAME.matcher(column).matches();
   }
 
-  private boolean isColumnNameWithTableReference(String column) {
-    return column.matches("[a-zA-Z][A-Za-z0-9_]*\\.[a-zA-Z][A-Za-z0-9_]*");
+  private boolean isColumnReference(String column) {
+    return Constants.COLUMN_REFERENCE.matcher(column).matches();
   }
 
   private String getTableName(JsonNode table) {
@@ -269,7 +270,7 @@ public class Select extends JacksonBasedContract {
   }
 
   private String getColumnName(String column) {
-    return isColumnNameWithTableReference(column)
+    return isColumnReference(column)
         ? column.substring(column.indexOf(Constants.COLUMN_SEPARATOR) + 1)
         : column;
   }
@@ -300,15 +301,15 @@ public class Select extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_QUERY_FORMAT);
     }
 
-    // Check the first table
+    // Check the leftmost table
     validateTable(arguments.get(Constants.QUERY_TABLE));
     Set<String> tablesReferences = new HashSet<>();
-    String firstTableReference = getTableReference(arguments.get(Constants.QUERY_TABLE));
-    tablesReferences.add(firstTableReference);
+    String leftmostTableReference = getTableReference(arguments.get(Constants.QUERY_TABLE));
+    tablesReferences.add(leftmostTableReference);
 
     // Check joins
     if (arguments.has(Constants.QUERY_JOINS)) {
-      validateJoins(firstTableReference, arguments.get(Constants.QUERY_JOINS));
+      validateJoins(leftmostTableReference, arguments.get(Constants.QUERY_JOINS));
       tablesReferences.addAll(getJoinTableReferences(arguments.get(Constants.QUERY_JOINS)));
     }
 
@@ -322,7 +323,7 @@ public class Select extends JacksonBasedContract {
   }
 
   private void validateColumn(String column, Set<String> tableReferences) {
-    boolean hasTableReference = isColumnNameWithTableReference(column);
+    boolean hasTableReference = isColumnReference(column);
 
     if (!hasTableReference) {
       // Join queries must have a table reference
@@ -351,9 +352,9 @@ public class Select extends JacksonBasedContract {
     }
   }
 
-  private void validateJoins(String firstTableReference, JsonNode joins) {
+  private void validateJoins(String leftmostTableReference, JsonNode joins) {
     Set<String> seenTables = new HashSet<>();
-    seenTables.add(firstTableReference);
+    seenTables.add(leftmostTableReference);
 
     if (!joins.isArray()) {
       throw new ContractContextException(Constants.INVALID_QUERY_FORMAT);
@@ -382,8 +383,8 @@ public class Select extends JacksonBasedContract {
       JsonNode rightKey = join.get(Constants.JOIN_RIGHT_KEY);
       if (!leftKey.isTextual()
           || !rightKey.isTextual()
-          || !isColumnNameWithTableReference(leftKey.asText())
-          || !isColumnNameWithTableReference(rightKey.asText())) {
+          || !isColumnReference(leftKey.asText())
+          || !isColumnReference(rightKey.asText())) {
         throw new ContractContextException(Constants.INVALID_JOIN_FORMAT + join);
       }
 
