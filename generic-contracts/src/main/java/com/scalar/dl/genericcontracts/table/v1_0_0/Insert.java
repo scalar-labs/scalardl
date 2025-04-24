@@ -79,11 +79,11 @@ public class Insert extends JacksonBasedContract {
         assetId = getAssetIdForNullIndex(tableName, indexKey);
       }
 
-      ObjectNode node = getObjectMapper().createObjectNode();
-      node.set(key, values.get(key));
-      node.put(Constants.ASSET_AGE, 0);
+      ObjectNode indexEntry = getObjectMapper().createObjectNode();
+      indexEntry.set(key, values.get(key));
+      indexEntry.put(Constants.INDEX_ASSET_ADDED_AGE, 0);
 
-      ledger.put(assetId, node);
+      ledger.put(assetId, getObjectMapper().createArrayNode().add(indexEntry));
     }
   }
 
