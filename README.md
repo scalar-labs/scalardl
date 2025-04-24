@@ -2,6 +2,8 @@
 
 ScalarDL is a scalable and practical Byzantine fault detection middleware for transactional database systems that achieves correctness, scalability, and database agnosticism.
 
+To learn more, see [ScalarDL Overview](https://scalardl.scalar-labs.com/docs/latest/overview).
+
 ## Quickstart
 
 1. Start running contracts.
