@@ -10,24 +10,18 @@ jobs:
     uses: ./.github/workflows/vuln-check.yaml
     with:
       target-ref: master
-    secrets:
-      CR_PAT: ${{ secrets.CR_PAT }}
-      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+    secrets: inherit
 
   call-vuln-check-for-v3_9:
     uses: ./.github/workflows/vuln-check.yaml
     with:
       target-ref: v3.9
       find-latest-release: true
-    secrets:
-      CR_PAT: ${{ secrets.CR_PAT }}
-      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+    secrets: inherit
 
   call-vuln-check-for-v3_10:
     uses: ./.github/workflows/vuln-check.yaml
     with:
       target-ref: v3.10
       find-latest-release: true
-    secrets:
-      CR_PAT: ${{ secrets.CR_PAT }}
-      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+    secrets: inherit
