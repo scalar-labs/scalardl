@@ -21,6 +21,8 @@ public class Constants {
   public static final String TABLE_INDEXES = "indexes";
   public static final String INDEX_KEY = "key";
   public static final String INDEX_KEY_TYPE = "type";
+  public static final String INDEX_ASSET_ADDED_AGE = "age";
+  public static final String INDEX_ASSET_DELETE_MARKER = "deleted";
   public static final String RECORD_TABLE = "table";
   public static final String RECORD_VALUES = "values";
   public static final String QUERY_TABLE = "table";
@@ -44,7 +46,9 @@ public class Constants {
   public static final String OPERATOR_GTE = "GTE";
   public static final String OPERATOR_IS_NULL = "IS_NULL";
   public static final String OPERATOR_IS_NOT_NULL = "IS_NOT_NULL";
-  public static final String ASSET_AGE = "age";
+  public static final String SCAN_OPTIONS = "options";
+  public static final String SCAN_OPTIONS_INCLUDE_METADATA = "include_metadata";
+  public static final String SCAN_METADATA_AGE = "age$";
 
   // Patterns
   public static final String OBJECT_NAME_PATTERN = "[a-zA-Z][A-Za-z0-9_]*";
