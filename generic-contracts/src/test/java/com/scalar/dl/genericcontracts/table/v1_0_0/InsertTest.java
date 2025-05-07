@@ -12,7 +12,10 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -71,13 +74,10 @@ public class InsertTest {
           + SOME_INDEX_KEY_3
           + Constants.ASSET_ID_SEPARATOR
           + "false";
-  private static final ObjectNode SOME_INDEX_ASSET =
-      mapper.createObjectNode().put(SOME_TABLE_KEY, SOME_RECORD_KEY).put(Constants.ASSET_AGE, 0);
-  private static final ObjectNode SOME_INDEX_ASSET_WITH_NUMBER_KEY =
-      mapper
-          .createObjectNode()
-          .put(SOME_TABLE_KEY, SOME_RECORD_NUMBER_KEY)
-          .put(Constants.ASSET_AGE, 0);
+  private static final ArrayNode SOME_INDEX_ASSET =
+      createIndexAsset(SOME_TABLE_KEY, TextNode.valueOf(SOME_RECORD_KEY));
+  private static final ArrayNode SOME_INDEX_ASSET_WITH_NUMBER_KEY =
+      createIndexAsset(SOME_TABLE_KEY, DoubleNode.valueOf(SOME_RECORD_NUMBER_KEY));
   private static final ObjectNode SOME_TABLE =
       mapper
           .createObjectNode()
@@ -123,6 +123,16 @@ public class InsertTest {
         .createObjectNode()
         .put(Constants.INDEX_KEY, key)
         .put(Constants.INDEX_KEY_TYPE, type);
+  }
+
+  private static ArrayNode createIndexAsset(String primaryKey, JsonNode value) {
+    return mapper
+        .createArrayNode()
+        .add(
+            mapper
+                .createObjectNode()
+                .put(Constants.INDEX_ASSET_ADDED_AGE, 0)
+                .set(primaryKey, value));
   }
 
   @Test
