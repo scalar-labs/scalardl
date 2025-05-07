@@ -1,5 +1,7 @@
 package com.scalar.dl.genericcontracts.table.v1_0_0;
 
+import java.util.regex.Pattern;
+
 public class Constants {
 
   // Metadata
@@ -22,11 +24,18 @@ public class Constants {
   public static final String RECORD_TABLE = "table";
   public static final String RECORD_VALUES = "values";
   public static final String QUERY_TABLE = "table";
+  public static final String QUERY_JOINS = "joins";
   public static final String QUERY_CONDITIONS = "conditions";
   public static final String QUERY_PROJECTIONS = "projections";
+  public static final String JOIN_TABLE = "table";
+  public static final String JOIN_LEFT_KEY = "left";
+  public static final String JOIN_RIGHT_KEY = "right";
+  public static final String ALIAS_NAME = "name";
+  public static final String ALIAS_AS = "alias";
   public static final String CONDITION_COLUMN = "column";
   public static final String CONDITION_VALUE = "value";
   public static final String CONDITION_OPERATOR = "operator";
+  public static final String COLUMN_SEPARATOR = ".";
   public static final String OPERATOR_EQ = "EQ";
   public static final String OPERATOR_NE = "NE";
   public static final String OPERATOR_LT = "LT";
@@ -37,6 +46,12 @@ public class Constants {
   public static final String OPERATOR_IS_NOT_NULL = "IS_NOT_NULL";
   public static final String ASSET_AGE = "age";
 
+  // Patterns
+  public static final String OBJECT_NAME_PATTERN = "[a-zA-Z][A-Za-z0-9_]*";
+  public static final Pattern COLUMN_NAME = Pattern.compile(OBJECT_NAME_PATTERN);
+  public static final Pattern COLUMN_REFERENCE =
+      Pattern.compile(OBJECT_NAME_PATTERN + "\\." + OBJECT_NAME_PATTERN);
+
   // Error messages
   public static final String INVALID_TABLE_FORMAT = "The specified format of the table is invalid.";
   public static final String INVALID_INDEX_FORMAT =
@@ -44,19 +59,30 @@ public class Constants {
   public static final String INVALID_RECORD_FORMAT =
       "The specified format of the record is invalid.";
   public static final String INVALID_QUERY_FORMAT = "The specified format of the query is invalid.";
+  public static final String INVALID_QUERY_TABLE_FORMAT =
+      "The specified format of the query table is invalid. Table: ";
+  public static final String INVALID_COLUMN_FORMAT =
+      "The specified format of the column is invalid. Column: ";
   public static final String INVALID_CONDITION_FORMAT =
       "The specified format of the condition is invalid. Condition: ";
   public static final String INVALID_PROJECTION_FORMAT =
       "The specified format of the projection is invalid. Projection: ";
+  public static final String INVALID_JOIN_FORMAT =
+      "The specified format of the join is invalid. Join: ";
   public static final String INVALID_KEY_TYPE = "The specified key type is invalid.";
   public static final String INVALID_INDEX_KEY_TYPE = "The specified index key type is invalid.";
   public static final String INVALID_OPERATOR = "The specified operator is invalid. Condition: ";
   public static final String INVALID_KEY_SPECIFICATION =
       "At least a condition for the primary key or index key must be properly specified.";
+  public static final String INVALID_JOIN_COLUMN =
+      "The join column in the right table must be the primary key or index key. Column: ";
   public static final String TABLE_ALREADY_EXISTS = "The specified table already exists.";
   public static final String TABLE_NOT_EXIST = "The specified table does not exist.";
+  public static final String TABLE_AMBIGUOUS =
+      "The specified table name or alias must be unique. Table: ";
   public static final String RECORD_KEY_NOT_EXIST = "The record values must have the key.";
   public static final String RECORD_ALREADY_EXISTS = "The specified record already exists.";
+  public static final String UNKNOWN_TABLE = "The specified table is unknown. Table: ";
 
   // Internal error messages due to a bug or tampering
   public static final String ILLEGAL_INDEX_STATE = "The state of the index is illegal.";
