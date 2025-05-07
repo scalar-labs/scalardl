@@ -3,15 +3,18 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.database.AssetFilter;
+import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -31,15 +34,23 @@ public class Scan extends JacksonBasedContract {
             .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST))
             .data();
 
-    // Scan records
     ListMultimap<String, JsonNode> conditionsMap =
         Multimaps.index(
             arguments.get(Constants.QUERY_CONDITIONS),
             condition -> condition.get(Constants.CONDITION_COLUMN).textValue());
+
+    JsonNode options =
+        arguments.has(Constants.SCAN_OPTIONS) ? arguments.get(Constants.SCAN_OPTIONS) : null;
+    boolean includeMetadata =
+        options != null
+            && options.has(Constants.SCAN_OPTIONS_INCLUDE_METADATA)
+            && options.get(Constants.SCAN_OPTIONS_INCLUDE_METADATA).asBoolean();
+
+    // Scan records
     if (hasPrimaryKeyCondition(table, conditionsMap)) {
-      return get(ledger, table, conditionsMap);
+      return get(ledger, table, conditionsMap, includeMetadata);
     } else if (hasIndexKeyCondition(table, conditionsMap)) {
-      return scan(ledger, table, conditionsMap);
+      return scan(ledger, table, conditionsMap, includeMetadata);
     } else {
       throw new ContractContextException(Constants.INVALID_KEY_SPECIFICATION);
     }
@@ -138,25 +149,41 @@ public class Scan extends JacksonBasedContract {
     throw new ContractContextException(Constants.INVALID_KEY_SPECIFICATION);
   }
 
-  private List<String> getRecordAssetIdsFromIndex(
+  private Set<String> getRecordAssetIdsFromIndex(
       Ledger<JsonNode> ledger, String tableName, String indexAssetId, String keyColumnName) {
-    List<Asset<JsonNode>> indexEntries = ledger.scan(new AssetFilter(indexAssetId));
-    List<String> assetIds = new ArrayList<>();
+    AssetFilter filter = new AssetFilter(indexAssetId);
+    List<Asset<JsonNode>> indexAssets = ledger.scan(filter.withAgeOrder(AgeOrder.ASC));
+    Set<String> assetIds = new HashSet<>();
 
-    for (Asset<JsonNode> indexEntry : indexEntries) {
-      if (!indexEntry.data().has(keyColumnName)) {
+    for (Asset<JsonNode> indexAsset : indexAssets) {
+      if (!indexAsset.data().isArray()) {
         throw new ContractContextException(Constants.ILLEGAL_INDEX_STATE);
       }
-      assetIds.add(
-          getAssetIdForRecord(
-              tableName, keyColumnName, indexEntry.data().get(keyColumnName).asText()));
+
+      for (JsonNode indexEntry : indexAsset.data()) {
+        if (!indexEntry.has(keyColumnName)) {
+          throw new ContractContextException(Constants.ILLEGAL_INDEX_STATE);
+        }
+
+        String assetId =
+            getAssetIdForRecord(tableName, keyColumnName, indexEntry.get(keyColumnName).asText());
+        if (indexEntry.has(Constants.INDEX_ASSET_DELETE_MARKER)
+            && indexEntry.get(Constants.INDEX_ASSET_DELETE_MARKER).asBoolean()) {
+          assetIds.remove(assetId);
+        } else {
+          assetIds.add(assetId);
+        }
+      }
     }
 
     return assetIds;
   }
 
   private ArrayNode get(
-      Ledger<JsonNode> ledger, JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
+      Ledger<JsonNode> ledger,
+      JsonNode table,
+      ListMultimap<String, JsonNode> conditionsMap,
+      boolean includeMetadata) {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
     JsonNode condition = getKeyColumnCondition(table, conditionsMap);
     String assetId =
@@ -166,7 +193,7 @@ public class Scan extends JacksonBasedContract {
             condition.get(Constants.CONDITION_VALUE).asText());
     ArrayNode results = getObjectMapper().createArrayNode();
 
-    ledger.get(assetId).ifPresent(asset -> results.add(asset.data()));
+    ledger.get(assetId).ifPresent(asset -> results.add(prepareRecord(asset, includeMetadata)));
 
     return filter(
         results,
@@ -176,7 +203,10 @@ public class Scan extends JacksonBasedContract {
   }
 
   private ArrayNode scan(
-      Ledger<JsonNode> ledger, JsonNode table, ListMultimap<String, JsonNode> conditionsMap) {
+      Ledger<JsonNode> ledger,
+      JsonNode table,
+      ListMultimap<String, JsonNode> conditionsMap,
+      boolean includeMetadata) {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
     String keyColumnName = table.get(Constants.TABLE_KEY).textValue();
     JsonNode condition = getIndexColumnCondition(table, conditionsMap);
@@ -189,7 +219,7 @@ public class Scan extends JacksonBasedContract {
           ledger
               .get(recordAssetId)
               .orElseThrow(() -> new ContractContextException(Constants.ILLEGAL_INDEX_STATE));
-      results.add(asset.data());
+      results.add(prepareRecord(asset, includeMetadata));
     }
 
     return filter(
@@ -197,6 +227,16 @@ public class Scan extends JacksonBasedContract {
         conditionsMap.values().stream()
             .filter(c -> !c.equals(condition))
             .collect(Collectors.toList()));
+  }
+
+  private JsonNode prepareRecord(Asset<JsonNode> asset, boolean includeMetadata) {
+    if (includeMetadata) {
+      ObjectNode record = asset.data().deepCopy();
+      record.put(Constants.SCAN_METADATA_AGE, asset.age());
+      return record;
+    } else {
+      return asset.data();
+    }
   }
 
   private ArrayNode filter(ArrayNode records, List<JsonNode> conditions) {

@@ -1,7 +1,7 @@
 package com.scalar.dl.genericcontracts.table.v1_0_0;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -13,10 +13,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.scalar.dl.ledger.database.AssetFilter;
+import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -67,6 +71,7 @@ public class ScanTest {
                   .add(createIndexNode(SOME_INDEX_KEY_COLUMN_1, SOME_KEY_TYPE_STRING))
                   .add(createIndexNode(SOME_INDEX_KEY_COLUMN_2, SOME_KEY_TYPE_NUMBER))
                   .add(createIndexNode(SOME_INDEX_KEY_COLUMN_3, SOME_KEY_TYPE_BOOLEAN)));
+  private static final int SOME_ASSET_AGE = 1;
 
   private final Scan scan = new Scan();
 
@@ -129,10 +134,38 @@ public class ScanTest {
         .set(SOME_COLUMN_NULLABLE, null);
   }
 
+  private Asset<JsonNode> createIndexAsset(
+      String primaryKey, List<String> values, boolean deleted) {
+    ArrayNode indexEntries = mapper.createArrayNode();
+    values.forEach(
+        value -> {
+          ObjectNode indexEntry =
+              mapper
+                  .createObjectNode()
+                  .put(primaryKey, value)
+                  .put(Constants.INDEX_ASSET_ADDED_AGE, 0);
+          if (deleted) {
+            indexEntry.put(Constants.INDEX_ASSET_DELETE_MARKER, true);
+          }
+          indexEntries.add(indexEntry);
+        });
+    return createAsset(indexEntries);
+  }
+
+  private Asset<JsonNode> createIndexAsset(String primaryKey, String value) {
+    return createIndexAsset(primaryKey, ImmutableList.of(value), false);
+  }
+
   private Asset<JsonNode> createAsset(JsonNode data) {
     Asset<JsonNode> asset = (Asset<JsonNode>) mock(Asset.class);
     when(asset.data()).thenReturn(data);
+    when(asset.age()).thenReturn(SOME_ASSET_AGE);
     return asset;
+  }
+
+  private AssetFilter createAssetFilter(String assetId) {
+    AssetFilter filter = new AssetFilter(assetId);
+    return filter.withAgeOrder(AgeOrder.ASC);
   }
 
   private static JsonNode createCondition(String column, String value, String operator) {
@@ -210,7 +243,7 @@ public class ScanTest {
         .add(createCondition(column, value, operator));
   }
 
-  private JsonNode createQueryArguments(ArrayNode conditions) {
+  private ObjectNode createQueryArguments(ArrayNode conditions) {
     return mapper
         .createObjectNode()
         .put(Constants.QUERY_TABLE, SOME_TABLE_NAME)
@@ -344,18 +377,14 @@ public class ScanTest {
         createRecord(
             SOME_PRIMARY_KEY_VALUE_2, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_2);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index1 =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
-    Asset<JsonNode> index2 =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_2));
+    Asset<JsonNode> index1 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
+    Asset<JsonNode> index2 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_2);
     Asset<JsonNode> record1 = createAsset(expected1);
     Asset<JsonNode> record2 = createAsset(expected2);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record1));
     when(ledger.get(SOME_RECORD_ASSET_ID_2)).thenReturn(Optional.of(record2));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1)))
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1)))
         .thenReturn(ImmutableList.of(index1, index2));
 
     // Act
@@ -364,9 +393,8 @@ public class ScanTest {
     // Assert
     assertThat(actual).isNotNull();
     assertThat(actual.isArray()).isTrue();
-    assertThat(actual.size()).isEqualTo(2);
-    assertThat(actual.get(0)).isEqualTo(expected1);
-    assertThat(actual.get(1)).isEqualTo(expected2);
+    assertThat(StreamSupport.stream(actual.spliterator(), false).collect(Collectors.toList()))
+        .containsExactlyInAnyOrderElementsOf(ImmutableList.of(expected1, expected2));
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger).get(SOME_RECORD_ASSET_ID_1);
   }
@@ -391,13 +419,11 @@ public class ScanTest {
                 SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1)
             .put(SOME_INDEX_KEY_COLUMN_2, SOME_INDEX_KEY_COLUMN_VALUE_2);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     Asset<JsonNode> record = createAsset(expected);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record));
-    when(ledger.scan(new AssetFilter(indexAssetId))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(indexAssetId))).thenReturn(ImmutableList.of(index));
 
     // Act
     JsonNode actual = scan.invoke(ledger, argument, null);
@@ -426,13 +452,11 @@ public class ScanTest {
                 SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1)
             .put(SOME_INDEX_KEY_COLUMN_3, SOME_INDEX_KEY_COLUMN_VALUE_3);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     Asset<JsonNode> record = createAsset(expected);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_3))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_3))).thenReturn(ImmutableList.of(index));
 
     // Act
     JsonNode actual = scan.invoke(ledger, argument, null);
@@ -460,7 +484,7 @@ public class ScanTest {
     JsonNode argument = createQueryArguments(conditions);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of());
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of());
 
     // Act
     JsonNode actual = scan.invoke(ledger, argument, null);
@@ -489,12 +513,8 @@ public class ScanTest {
         createRecord(
             SOME_PRIMARY_KEY_VALUE_2, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_2);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index1 =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
-    Asset<JsonNode> index2 =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_2));
+    Asset<JsonNode> index1 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
+    Asset<JsonNode> index2 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_2);
     Asset<JsonNode> record1 =
         createAsset(
             createRecord(
@@ -505,7 +525,7 @@ public class ScanTest {
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record1));
     when(ledger.get(SOME_RECORD_ASSET_ID_2)).thenReturn(Optional.of(record2));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1)))
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1)))
         .thenReturn(ImmutableList.of(index1, index2));
 
     // Act
@@ -518,6 +538,146 @@ public class ScanTest {
     assertThat(actual.get(0)).isEqualTo(expected);
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger).get(SOME_RECORD_ASSET_ID_1);
+  }
+
+  @Test
+  public void
+      invoke_CorrectArgumentsWithIncludeMetadataOptionGiven_ShouldReturnRecordsWithMetadata() {
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(
+                createCondition(
+                    SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1, Constants.OPERATOR_EQ));
+    JsonNode argument =
+        createQueryArguments(conditions)
+            .set(
+                Constants.SCAN_OPTIONS,
+                mapper.createObjectNode().put(Constants.SCAN_OPTIONS_INCLUDE_METADATA, true));
+    JsonNode recordJson =
+        mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
+    ObjectNode expected = recordJson.deepCopy();
+    expected.put(Constants.SCAN_METADATA_AGE, SOME_ASSET_AGE);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    Asset<JsonNode> record = createAsset(recordJson);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record));
+
+    // Act
+    JsonNode actual = scan.invoke(ledger, argument, null);
+
+    // Assert
+    assertThat(actual).isNotNull();
+    assertThat(actual.isArray()).isTrue();
+    assertThat(actual.size()).isEqualTo(1);
+    assertThat(actual.get(0)).isEqualTo(expected);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+    verify(ledger).get(SOME_RECORD_ASSET_ID_1);
+  }
+
+  @Test
+  public void
+      invoke_CorrectArgumentsWithIndexKeyConditionAndIncludeMetadataOptionGiven_ShouldReturnCorrectRecords() {
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(
+                createCondition(
+                    SOME_INDEX_KEY_COLUMN_1, SOME_INDEX_KEY_COLUMN_VALUE_1, Constants.OPERATOR_EQ));
+    JsonNode argument =
+        createQueryArguments(conditions)
+            .set(
+                Constants.SCAN_OPTIONS,
+                mapper.createObjectNode().put(Constants.SCAN_OPTIONS_INCLUDE_METADATA, true));
+    JsonNode recordJson =
+        createRecord(
+            SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1);
+    ObjectNode expected = recordJson.deepCopy();
+    expected.put(Constants.SCAN_METADATA_AGE, SOME_ASSET_AGE);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
+    Asset<JsonNode> record = createAsset(recordJson);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+
+    // Act
+    JsonNode actual = scan.invoke(ledger, argument, null);
+
+    // Assert
+    assertThat(actual).isNotNull();
+    assertThat(actual.isArray()).isTrue();
+    assertThat(actual.size()).isEqualTo(1);
+    assertThat(actual.get(0)).isEqualTo(expected);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+    verify(ledger).get(SOME_RECORD_ASSET_ID_1);
+  }
+
+  @Test
+  public void invoke_CorrectArgumentsGivenAndDeletedIndexAssetsReturned_ShouldNotReturnRecords() {
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(
+                createCondition(
+                    SOME_INDEX_KEY_COLUMN_1, SOME_INDEX_KEY_COLUMN_VALUE_1, Constants.OPERATOR_EQ));
+    JsonNode argument = createQueryArguments(conditions);
+    JsonNode recordJson =
+        createRecord(
+            SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1);
+    ObjectNode expected = recordJson.deepCopy();
+    expected.put(Constants.SCAN_METADATA_AGE, SOME_ASSET_AGE);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    Asset<JsonNode> index1 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
+    Asset<JsonNode> index2 = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_2);
+    Asset<JsonNode> index3 =
+        createIndexAsset(
+            SOME_PRIMARY_KEY_COLUMN,
+            ImmutableList.of(SOME_PRIMARY_KEY_VALUE_1, SOME_PRIMARY_KEY_VALUE_2),
+            true);
+    Asset<JsonNode> record = createAsset(recordJson);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(record));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1)))
+        .thenReturn(ImmutableList.of(index1, index2, index3));
+
+    // Act
+    JsonNode actual = scan.invoke(ledger, argument, null);
+
+    // Assert
+    assertThat(actual).isNotNull();
+    assertThat(actual.isArray()).isTrue();
+    assertThat(actual.size()).isEqualTo(0);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).get(SOME_RECORD_ASSET_ID_1);
+  }
+
+  @Test
+  public void invoke_CorrectArgumentsGivenButNonArrayIndexAssetFound_ShouldThrowException() {
+    // Arrange
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(
+                createCondition(
+                    SOME_INDEX_KEY_COLUMN_1, SOME_INDEX_KEY_COLUMN_VALUE_1, Constants.OPERATOR_EQ));
+    JsonNode argument = createQueryArguments(conditions);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    Asset<JsonNode> index = createAsset(mapper.createArrayNode().add(mapper.createObjectNode()));
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+
+    // Act Assert
+    assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.ILLEGAL_INDEX_STATE);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+    verify(ledger).scan(createAssetFilter(SOME_INDEX_ASSET_ID_1));
+    verify(ledger, never()).get(SOME_RECORD_ASSET_ID_1);
   }
 
   @Test
@@ -534,14 +694,14 @@ public class ScanTest {
     Asset<JsonNode> table = createAsset(SOME_TABLE);
     Asset<JsonNode> index = createAsset(mapper.createObjectNode());
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
 
     // Act Assert
     assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.ILLEGAL_INDEX_STATE);
     verify(ledger).get(SOME_TABLE_ASSET_ID);
-    verify(ledger).scan(new AssetFilter(SOME_INDEX_ASSET_ID_1));
+    verify(ledger).scan(createAssetFilter(SOME_INDEX_ASSET_ID_1));
     verify(ledger, never()).get(SOME_RECORD_ASSET_ID_1);
   }
 
@@ -557,19 +717,17 @@ public class ScanTest {
                     SOME_INDEX_KEY_COLUMN_1, SOME_INDEX_KEY_COLUMN_VALUE_1, Constants.OPERATOR_EQ));
     JsonNode argument = createQueryArguments(conditions);
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.empty());
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
 
     // Act Assert
     assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.ILLEGAL_INDEX_STATE);
     verify(ledger).get(SOME_TABLE_ASSET_ID);
-    verify(ledger).scan(new AssetFilter(SOME_INDEX_ASSET_ID_1));
+    verify(ledger).scan(createAssetFilter(SOME_INDEX_ASSET_ID_1));
     verify(ledger).get(SOME_RECORD_ASSET_ID_1);
   }
 
@@ -651,15 +809,13 @@ public class ScanTest {
   public void match_CorrectArgumentsWithConditionForStringColumnGiven_ShouldReturnCorrectResults() {
     // Arrange
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     JsonNode record =
         createRecord(
             SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1);
     Asset<JsonNode> asset = createAsset(record);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(asset));
     ArrayNode conditions1 = createConditions(SOME_COLUMN_STRING, "John", Constants.OPERATOR_EQ);
     ArrayNode conditions2 = createConditions(SOME_COLUMN_STRING, "", Constants.OPERATOR_NE);
@@ -681,15 +837,13 @@ public class ScanTest {
   public void match_CorrectArgumentsWithConditionForNumberColumnGiven_ShouldReturnCorrectResults() {
     // Arrange
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     JsonNode record =
         createRecord(
             SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_NUMBER_VALUE);
     Asset<JsonNode> asset = createAsset(record);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(asset));
     ArrayNode conditions1 = createConditions(SOME_COLUMN_NUMBER, 10, Constants.OPERATOR_EQ);
     ArrayNode conditions2 = createConditions(SOME_COLUMN_NUMBER, 20, Constants.OPERATOR_NE);
@@ -720,15 +874,13 @@ public class ScanTest {
       match_CorrectArgumentsWithConditionForBooleanColumnGiven_ShouldReturnCorrectResults() {
     // Arrange
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     JsonNode record =
         createRecord(
             SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_BOOLEAN_VALUE);
     Asset<JsonNode> asset = createAsset(record);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(asset));
     ArrayNode conditions1 = createConditions(SOME_COLUMN_BOOLEAN, false, Constants.OPERATOR_EQ);
     ArrayNode conditions2 = createConditions(SOME_COLUMN_BOOLEAN, false, Constants.OPERATOR_NE);
@@ -742,15 +894,13 @@ public class ScanTest {
   public void match_CorrectArgumentsWithConditionForNullColumnGiven_ShouldReturnCorrectResults() {
     // Arrange
     Asset<JsonNode> table = createAsset(SOME_TABLE);
-    Asset<JsonNode> index =
-        createAsset(
-            mapper.createObjectNode().put(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1));
+    Asset<JsonNode> index = createIndexAsset(SOME_PRIMARY_KEY_COLUMN, SOME_PRIMARY_KEY_VALUE_1);
     JsonNode record =
         createRecord(
             SOME_PRIMARY_KEY_VALUE_1, SOME_INDEX_KEY_COLUMN_VALUE_1, SOME_COLUMN_STRING_VALUE_1);
     Asset<JsonNode> asset = createAsset(record);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
-    when(ledger.scan(new AssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
+    when(ledger.scan(createAssetFilter(SOME_INDEX_ASSET_ID_1))).thenReturn(ImmutableList.of(index));
     when(ledger.get(SOME_RECORD_ASSET_ID_1)).thenReturn(Optional.of(asset));
     ArrayNode conditions1 = createConditions(SOME_COLUMN_NULLABLE, Constants.OPERATOR_IS_NULL);
     ArrayNode conditions2 = createConditions(SOME_COLUMN_BOOLEAN, Constants.OPERATOR_IS_NULL);
