@@ -9,13 +9,13 @@ To learn more, see [ScalarDL Overview](https://scalardl.scalar-labs.com/docs/lat
 1. Start running contracts.
    - **Get started with ScalarDL Ledger:** To set up a basic application and run contracts by using ScalarDL Ledger, see [Get Started with ScalarDL Ledger](https://scalardl.scalar-labs.com/docs/latest/getting-started).
    - **Get started with ScalarDL Auditor (for enterprise customers):** To set up a basic application and run contracts by using ScalarDL Ledger and then use ScalarDL Auditor to detect whether those contracts have been tampered with, see [Getting Started with ScalarDL Auditor](https://scalardl.scalar-labs.com/docs/latest/getting-started-auditor).
-2. See how to set up [a simple bank account application that uses ScalarDL](https://scalardl.scalar-labs.com/docs/latest/applications/simple-bank-account).
+2. See how to set up a [simple bank account application that uses ScalarDL](https://scalardl.scalar-labs.com/docs/latest/applications/simple-bank-account).
 3. Learn about the [configurations for ScalarDL](https://scalardl.scalar-labs.com/docs/latest/configurations)
 4. Learn about features, such as:
    - [Authentication](https://scalardl.scalar-labs.com/docs/latest/authentication)
    - [Generic contracts](https://scalardl.scalar-labs.com/docs/latest/use-generic-contracts)
 
-For additional documentation, visit [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/latest/).
+For additional documentation, visit [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/latest).
 
 ## Contributing 
 ScalarDL is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.
