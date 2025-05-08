@@ -14,18 +14,39 @@ on:
         type: boolean
         default: false
     secrets:
-      CR_PAT:
-        required: true
       SLACK_SECURITY_WEBHOOK_URL:
         required: false
 
 jobs:
-  call-vuln-check:
-    uses: scalar-labs/actions/.github/workflows/vuln-check-reusable.yaml@main
-    with:
-      target-ref: ${{ inputs.target-ref }}
-      find-latest-release: ${{ inputs.find-latest-release }}
-      images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
-    secrets:
-      CR_PAT: ${{ secrets.CR_PAT }}
-      SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+  vuln-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build docker images
+        id: build-docker-images
+        uses: scalar-labs/actions/.github/actions/build-docker-images@vuln-check-composite-actions
+        with:
+          target-ref: ${{ inputs.target-ref }}
+          find-latest-release: ${{ inputs.find-latest-release }}
+
+      - name: Find Docker image refs
+        id: find-docker-image-refs
+        shell: bash
+        run: |
+          list='${{ steps.build-docker-images.outputs.docker-images }}'
+          echo ref-scalardl-ledger=$(grep scalardl-ledger <<< "$list") >> $GITHUB_OUTPUT
+          echo ref-scalardl-client=$(grep scalardl-client <<< "$list") >> $GITHUB_OUTPUT
+
+      - name: Run ScalarDL Ledger vulnerability check
+        continue-on-error: true
+        uses: scalar-labs/actions/.github/actions/vuln-check@vuln-check-composite-actions
+        with:
+          image-ref: ${{ steps.find-docker-image-refs.outputs.ref-scalardl-ledger }}
+          slack-webhook-url: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+
+      - name: Run ScalarDL Client vulnerability check
+        continue-on-error: true
+        uses: scalar-labs/actions/.github/actions/vuln-check@vuln-check-composite-actions
+        with:
+          image-ref: ${{ steps.find-docker-image-refs.outputs.ref-scalardl-client }}
+          slack-webhook-url: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
