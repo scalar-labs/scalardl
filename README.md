@@ -11,7 +11,9 @@ To learn more, see [ScalarDL Overview](https://scalardl.scalar-labs.com/docs/lat
    - **Get started with ScalarDL Auditor (for enterprise customers):** To set up a basic application and run contracts by using ScalarDL Ledger and then use ScalarDL Auditor to detect whether those contracts have been tampered with, see [Getting Started with ScalarDL Auditor](https://scalardl.scalar-labs.com/docs/latest/getting-started-auditor).
 2. See how to set up a [simple bank account application that uses ScalarDL](https://scalardl.scalar-labs.com/docs/latest/applications/simple-bank-account).
 3. Learn about the [configurations for ScalarDL](https://scalardl.scalar-labs.com/docs/latest/configurations)
-4. Learn about features, such as:
+4. Learn about ScalarDL and its features:
+   - [ScalarDL design](https://scalardl.scalar-labs.com/docs/latest/design)
+   - [ScalarDL implementation](https://scalardl.scalar-labs.com/docs/latest/implementation)
    - [Authentication](https://scalardl.scalar-labs.com/docs/latest/authentication)
    - [Generic contracts](https://scalardl.scalar-labs.com/docs/latest/use-generic-contracts)
 
