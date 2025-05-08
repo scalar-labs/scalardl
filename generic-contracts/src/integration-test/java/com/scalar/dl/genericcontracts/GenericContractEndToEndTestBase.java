@@ -42,7 +42,7 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class GenericContractEndToEndTestBase {
-  private static final int THREAD_NUM = 1;
+  private static final int THREAD_NUM = 10;
   private static final String SCALAR_NAMESPACE = "scalar";
   private static final String ASSET_TABLE = "asset";
   private static final String ASSET_METADATA_TABLE = "asset_metadata";
@@ -93,6 +93,7 @@ public abstract class GenericContractEndToEndTestBase {
           + "-----END CERTIFICATE-----";
   private static final int SOME_KEY_VERSION = 1;
 
+  private BaseServer ledgerServer;
   private ExecutorService executorService;
   private Properties props;
   private Map<String, String> creationOptions = new HashMap<>();
@@ -133,7 +134,8 @@ public abstract class GenericContractEndToEndTestBase {
   }
 
   @AfterAll
-  public void tearDownAfterClass() throws SchemaLoaderException {
+  public void tearDownAfterClass() throws SchemaLoaderException, InterruptedException {
+    ledgerServer.stop();
     storage.close();
     storageAdmin.close();
     SchemaLoader.unload(props, ledgerSchemaPath, true);
@@ -254,7 +256,7 @@ public abstract class GenericContractEndToEndTestBase {
 
   private void createServer(LedgerConfig config) throws IOException, InterruptedException {
     Injector injector = Guice.createInjector(new LedgerServerModule(config));
-    BaseServer ledgerServer = new BaseServer(injector, config);
+    ledgerServer = new BaseServer(injector, config);
 
     ledgerServer.start(com.scalar.dl.ledger.server.LedgerService.class);
     ledgerServer.startPrivileged(LedgerPrivilegedService.class);
