@@ -1,11 +1,16 @@
 package com.scalar.dl.genericcontracts.table.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import java.util.Arrays;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -27,7 +32,7 @@ public class Insert extends JacksonBasedContract {
 
     // Get the table information
     String tableName = arguments.get(Constants.RECORD_TABLE).asText();
-    String tableAssetId = getAssetIdForTable(tableName);
+    String tableAssetId = getAssetId(ledger, Constants.PREFIX_TABLE, TextNode.valueOf(tableName));
     Optional<Asset<JsonNode>> tableAsset = ledger.get(tableAssetId);
     if (!tableAsset.isPresent()) {
       throw new ContractContextException(Constants.TABLE_NOT_EXIST);
@@ -45,7 +50,13 @@ public class Insert extends JacksonBasedContract {
     }
 
     // Check the record existence
-    String recordAssetId = getAssetIdForRecord(tableName, key, values.get(key).asText());
+    String recordAssetId =
+        getAssetId(
+            ledger,
+            Constants.PREFIX_RECORD,
+            TextNode.valueOf(tableName),
+            TextNode.valueOf(key),
+            values.get(key));
     Optional<Asset<JsonNode>> recordAsset = ledger.get(recordAssetId);
     if (recordAsset.isPresent()) {
       throw new ContractContextException(Constants.RECORD_ALREADY_EXISTS);
@@ -74,9 +85,21 @@ public class Insert extends JacksonBasedContract {
         if (!indexKeyType.toUpperCase().equals(values.get(indexKey).getNodeType().name())) {
           throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE);
         }
-        assetId = getAssetIdForIndex(tableName, indexKey, values.get(indexKey).asText());
+        assetId =
+            getAssetId(
+                ledger,
+                Constants.PREFIX_INDEX,
+                TextNode.valueOf(tableName),
+                TextNode.valueOf(indexKey),
+                values.get(indexKey));
       } else {
-        assetId = getAssetIdForNullIndex(tableName, indexKey);
+        assetId =
+            getAssetId(
+                ledger,
+                Constants.PREFIX_INDEX,
+                TextNode.valueOf(tableName),
+                TextNode.valueOf(indexKey),
+                NullNode.getInstance());
       }
 
       ObjectNode indexEntry = getObjectMapper().createObjectNode();
@@ -87,29 +110,15 @@ public class Insert extends JacksonBasedContract {
     }
   }
 
-  private String getAssetIdForTable(String tableName) {
-    return Constants.PREFIX_TABLE + tableName;
-  }
-
-  private String getAssetIdForRecord(String tableName, String keyColumnName, String key) {
-    return Constants.PREFIX_RECORD
-        + tableName
-        + Constants.ASSET_ID_SEPARATOR
-        + keyColumnName
-        + Constants.ASSET_ID_SEPARATOR
-        + key;
-  }
-
-  private String getAssetIdForIndex(String tableName, String indexKey, String value) {
-    return Constants.PREFIX_INDEX
-        + tableName
-        + Constants.ASSET_ID_SEPARATOR
-        + indexKey
-        + Constants.ASSET_ID_SEPARATOR
-        + value;
-  }
-
-  private String getAssetIdForNullIndex(String tableName, String indexKey) {
-    return Constants.PREFIX_INDEX + tableName + Constants.ASSET_ID_SEPARATOR + indexKey;
+  @VisibleForTesting
+  String getAssetId(Ledger<JsonNode> ledger, String prefix, JsonNode... jsonNodes) {
+    ArrayNode values = getObjectMapper().createArrayNode();
+    Arrays.stream(jsonNodes).forEach(values::add);
+    JsonNode arguments =
+        getObjectMapper()
+            .createObjectNode()
+            .put(Constants.ASSET_ID_PREFIX, prefix)
+            .set(Constants.ASSET_ID_VALUES, values);
+    return invoke(Constants.CONTRACT_GET_ASSET_ID, ledger, arguments).asText();
   }
 }
