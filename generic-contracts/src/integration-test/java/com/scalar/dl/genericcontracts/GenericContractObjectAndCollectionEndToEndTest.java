@@ -52,10 +52,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.scalar.db.api.DistributedStorage;
-import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
@@ -64,100 +60,34 @@ import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scanner;
 import com.scalar.db.api.TransactionState;
 import com.scalar.db.common.error.CoreError;
-import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
-import com.scalar.db.schemaloader.SchemaLoader;
-import com.scalar.db.schemaloader.SchemaLoaderException;
-import com.scalar.db.service.StorageFactory;
-import com.scalar.db.storage.dynamo.DynamoAdmin;
-import com.scalar.db.storage.dynamo.DynamoConfig;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.ledger.server.AdminService;
-import com.scalar.dl.ledger.server.BaseServer;
-import com.scalar.dl.ledger.server.LedgerPrivilegedService;
-import com.scalar.dl.ledger.server.LedgerServerModule;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
-import javax.annotation.Nullable;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class GenericContractEndToEndTest {
-  private static final String SCALAR_NAMESPACE = "scalar";
-  private static final String ASSET_TABLE = "asset";
-  private static final String ASSET_METADATA_TABLE = "asset_metadata";
+public class GenericContractObjectAndCollectionEndToEndTest
+    extends GenericContractEndToEndTestBase {
   private static final String ASSET_ID = "id";
   private static final String ASSET_AGE = "age";
   private static final String ASSET_OUTPUT = "output";
   private static final String DATA_TYPE_INT = "INT";
   private static final String DATA_TYPE_BIGINT = "BIGINT";
   private static final String DATA_TYPE_TEXT = "TEXT";
-
-  private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
-  private static final String PROP_STORAGE = "scalardb.storage";
-  private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
-  private static final String PROP_USERNAME = "scalardb.username";
-  private static final String PROP_PASSWORD = "scalardb.password";
-  private static final String PROP_TRANSACTION_MANAGER = "scalardb.transaction_manager";
-  private static final String PROP_DYNAMO_ENDPOINT_OVERRIDE = "scalardb.dynamo.endpoint_override";
-  private static final String DEFAULT_STORAGE = "jdbc";
-  private static final String DEFAULT_CONTACT_POINTS = "jdbc:mysql://localhost/";
-  private static final String DEFAULT_USERNAME = "root";
-  private static final String DEFAULT_PASSWORD = "mysql";
-  private static final String DEFAULT_TRANSACTION_MANAGER = "consensus-commit";
-  private static final String DEFAULT_DYNAMO_ENDPOINT_OVERRIDE = "http://localhost:8000";
-
-  private static final String SOME_ENTITY_1 = "entity1";
-  private static final String SOME_ENTITY_2 = "entity2";
-  private static final String SOME_PRIVATE_KEY =
-      "-----BEGIN EC PRIVATE KEY-----\n"
-          + "MHcCAQEEIF4SjQxTArRcZaROSFjlBP2rR8fAKtL8y+kmGiSlM5hEoAoGCCqGSM49\n"
-          + "AwEHoUQDQgAEY0i/iAFxIBS3etbjoSC1/aUKQV66+wiawL4bZqklu86ObIc7wrif\n"
-          + "HExPmVhKFSklOyZqGoOiVZA0zf0LZeFaPA==\n"
-          + "-----END EC PRIVATE KEY-----";
-  public static final String SOME_CERTIFICATE =
-      "-----BEGIN CERTIFICATE-----\n"
-          + "MIICQTCCAeagAwIBAgIUEKARigcZQ3sLEXdlEtjYissVx0cwCgYIKoZIzj0EAwIw\n"
-          + "QTELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMQ4wDAYDVQQHEwVUb2t5bzES\n"
-          + "MBAGA1UEChMJU2FtcGxlIENBMB4XDTE4MDYyMTAyMTUwMFoXDTE5MDYyMTAyMTUw\n"
-          + "MFowRTELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMQ4wDAYDVQQHEwVUb2t5\n"
-          + "bzEWMBQGA1UEChMNU2FtcGxlIENsaWVudDBZMBMGByqGSM49AgEGCCqGSM49AwEH\n"
-          + "A0IABGNIv4gBcSAUt3rW46Egtf2lCkFeuvsImsC+G2apJbvOjmyHO8K4nxxMT5lY\n"
-          + "ShUpJTsmahqDolWQNM39C2XhWjyjgbcwgbQwDgYDVR0PAQH/BAQDAgWgMB0GA1Ud\n"
-          + "JQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQW\n"
-          + "BBTpBQl/JxB7yr77uMVT9mMicPeVJTAfBgNVHSMEGDAWgBQrJo3N3/0j3oPS6F6m\n"
-          + "wunHe8xLpzA1BgNVHREELjAsghJjbGllbnQuZXhhbXBsZS5jb22CFnd3dy5jbGll\n"
-          + "bnQuZXhhbXBsZS5jb20wCgYIKoZIzj0EAwIDSQAwRgIhAJPtXSzuncDJXnM+7us8\n"
-          + "46MEVjGHJy70bRY1My23RkxbAiEA5oFgTKMvls8e4UpnmUgFNP+FH8a5bF4tUPaV\n"
-          + "BQiBbgk=\n"
-          + "-----END CERTIFICATE-----";
-  private static final int SOME_KEY_VERSION = 1;
 
   private static final String PACKAGE_OBJECT = "object";
   private static final String PACKAGE_COLLECTION = "collection";
@@ -171,59 +101,22 @@ public class GenericContractEndToEndTest {
   private static final String NAME_COLLECTION_GET = "Get";
   private static final String NAME_COLLECTION_GET_HISTORY = "GetHistory";
   private static final String NAME_COLLECTION_GET_CHECKPOINT_INTERVAL = "GetCheckpointInterval";
-  private static final String ID_OBJECT_GET = PACKAGE_OBJECT + "." + NAME_OBJECT_GET;
-  private static final String ID_OBJECT_PUT = PACKAGE_OBJECT + "." + NAME_OBJECT_PUT;
-  private static final String ID_OBJECT_VALIDATE = PACKAGE_OBJECT + "." + NAME_OBJECT_VALIDATE;
+  private static final String ID_OBJECT_GET = getObjectContractId(NAME_OBJECT_GET);
+  private static final String ID_OBJECT_PUT = getObjectContractId(NAME_OBJECT_PUT);
+  private static final String ID_OBJECT_VALIDATE = getObjectContractId(NAME_OBJECT_VALIDATE);
   private static final String ID_OBJECT_PUT_MUTABLE =
-      PACKAGE_OBJECT + "." + NAME_OBJECT_PUT_TO_MUTABLE;
+      getFunctionId(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE);
   private static final String ID_COLLECTION_CREATE =
-      PACKAGE_COLLECTION + "." + NAME_COLLECTION_CREATE;
+      getCollectionContractId(NAME_COLLECTION_CREATE);
   private static final String ID_COLLECTION_ADD_OBJECTS =
-      PACKAGE_COLLECTION + "." + NAME_COLLECTION_ADD;
+      getCollectionContractId(NAME_COLLECTION_ADD);
   private static final String ID_COLLECTION_DEL_OBJECTS =
-      PACKAGE_COLLECTION + "." + NAME_COLLECTION_REMOVE;
-  private static final String ID_COLLECTION_GET = PACKAGE_COLLECTION + "." + NAME_COLLECTION_GET;
+      getCollectionContractId(NAME_COLLECTION_REMOVE);
+  private static final String ID_COLLECTION_GET = getCollectionContractId(NAME_COLLECTION_GET);
   private static final String ID_COLLECTION_GET_HISTORY =
-      PACKAGE_COLLECTION + "." + NAME_COLLECTION_GET_HISTORY;
+      getCollectionContractId(NAME_COLLECTION_GET_HISTORY);
   private static final String ID_COLLECTION_GET_CHECKPOINT_INTERVAL =
-      PACKAGE_COLLECTION + "." + NAME_COLLECTION_GET_CHECKPOINT_INTERVAL;
-  private static final String PACKAGE_PREFIX = "com.scalar.dl.genericcontracts.";
-  private static final String CLASS_DIR_OBJECT =
-      "build/classes/java/main/com/scalar/dl/genericcontracts/object/";
-  private static final String CLASS_DIR_COLLECTION =
-      "build/classes/java/main/com/scalar/dl/genericcontracts/collection/";
-  private static Map<String, String> contractMap =
-      ImmutableMap.<String, String>builder()
-          .put(PACKAGE_PREFIX + ID_OBJECT_GET, CLASS_DIR_OBJECT + NAME_OBJECT_GET + ".class")
-          .put(PACKAGE_PREFIX + ID_OBJECT_PUT, CLASS_DIR_OBJECT + NAME_OBJECT_PUT + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_OBJECT_VALIDATE,
-              CLASS_DIR_OBJECT + NAME_OBJECT_VALIDATE + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_CREATE,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_CREATE + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_ADD_OBJECTS,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_ADD + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_DEL_OBJECTS,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_REMOVE + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_GET,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_GET + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_GET_HISTORY,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_GET_HISTORY + ".class")
-          .put(
-              PACKAGE_PREFIX + ID_COLLECTION_GET_CHECKPOINT_INTERVAL,
-              CLASS_DIR_COLLECTION + NAME_COLLECTION_GET_CHECKPOINT_INTERVAL + ".class")
-          .build();
-  private static final Map<String, String> functionMap =
-      ImmutableMap.of(
-          PACKAGE_PREFIX + ID_OBJECT_PUT_MUTABLE,
-          CLASS_DIR_OBJECT + NAME_OBJECT_PUT_TO_MUTABLE + ".class");
-  private static final String SOME_FUNCTION_NAMESPACE = "test";
-  private static final String SOME_FUNCTION_TABLE = "objects";
+      getCollectionContractId(NAME_COLLECTION_GET_CHECKPOINT_INTERVAL);
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
@@ -251,148 +144,52 @@ public class GenericContractEndToEndTest {
   private static final JsonNode SOME_LIMIT_OPTION = mapper.createObjectNode().put(OPTION_LIMIT, 1);
   private static final int SOME_CHECKPOINT_INTERVAL = 2;
 
-  private static BaseServer ledgerServer;
-  private static DistributedStorage storage;
-  private static DistributedStorageAdmin storageAdmin;
-  private static Properties props;
-  private static Path ledgerSchemaPath;
-  private static Path databaseSchemaPath;
-  private static Map<String, String> creationOptions = new HashMap<>();
-
-  private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
-  private static GenericContractClientService clientService;
-  private static GenericContractClientService anotehrClientService;
-
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    props = createLedgerProperties();
-    StorageFactory factory = StorageFactory.create(props);
-    storage = factory.getStorage();
-    storageAdmin = factory.getStorageAdmin();
-    ledgerSchemaPath = Paths.get(System.getProperty("user.dir") + "/scripts/ledger-schema.json");
-    databaseSchemaPath =
-        Paths.get(System.getProperty("user.dir") + "/scripts/objects-table-schema.json");
-    createSchema();
-
-    createServer(new LedgerConfig(props));
-
-    clientService = createClientService(SOME_ENTITY_1);
-    clientService.registerCertificate();
-    registerContracts(clientService, contractMap, null);
-    registerFunction(clientService, functionMap);
-
-    anotehrClientService = createClientService(SOME_ENTITY_2);
-    anotehrClientService.registerCertificate();
-    JsonNode contractProperties =
-        mapper.createObjectNode().put(COLLECTION_CHECKPOINT_INTERVAL, SOME_CHECKPOINT_INTERVAL);
-    registerContracts(
-        anotehrClientService,
-        contractMap,
-        ImmutableMap.of(ID_COLLECTION_GET_CHECKPOINT_INTERVAL, contractProperties));
+  private static String getObjectContractId(String contractName) {
+    return getContractId(PACKAGE_OBJECT, contractName);
   }
 
-  @AfterAll
-  public static void tearDownAfterClass() throws SchemaLoaderException {
-    storage.close();
-    storageAdmin.close();
-    SchemaLoader.unload(props, ledgerSchemaPath, true);
-    SchemaLoader.unload(props, databaseSchemaPath, true);
+  private static String getCollectionContractId(String contractName) {
+    return getContractId(PACKAGE_COLLECTION, contractName);
   }
 
-  @BeforeEach
-  public void setUp() {}
-
-  @AfterEach
-  public void tearDown() throws ExecutionException {
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_TABLE);
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_METADATA_TABLE);
-    storageAdmin.truncateTable(SOME_FUNCTION_NAMESPACE, SOME_FUNCTION_TABLE);
+  private static String getObjectContractBinaryName(String contractName) {
+    return getContractBinaryName(PACKAGE_OBJECT, contractName);
   }
 
-  private static Properties createLedgerProperties() {
-    String storage = System.getProperty(PROP_STORAGE, DEFAULT_STORAGE);
-    String contactPoints = System.getProperty(PROP_CONTACT_POINTS, DEFAULT_CONTACT_POINTS);
-    String username = System.getProperty(PROP_USERNAME, DEFAULT_USERNAME);
-    String password = System.getProperty(PROP_PASSWORD, DEFAULT_PASSWORD);
-    String transactionManager =
-        System.getProperty(PROP_TRANSACTION_MANAGER, DEFAULT_TRANSACTION_MANAGER);
-    String endpointOverride =
-        System.getProperty(PROP_DYNAMO_ENDPOINT_OVERRIDE, DEFAULT_DYNAMO_ENDPOINT_OVERRIDE);
-
-    Properties props = new Properties();
-    props.put(DatabaseConfig.STORAGE, storage);
-    props.put(DatabaseConfig.CONTACT_POINTS, contactPoints);
-    props.put(DatabaseConfig.USERNAME, username);
-    props.put(DatabaseConfig.PASSWORD, password);
-    props.put(DatabaseConfig.TRANSACTION_MANAGER, transactionManager);
-    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
-      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
-    }
-    props.put(LedgerConfig.PROOF_ENABLED, "true");
-    props.put(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
-
-    if (storage.equals(DynamoConfig.STORAGE_NAME)) {
-      props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
-      props.put(
-          DynamoConfig.TABLE_METADATA_NAMESPACE, DatabaseConfig.DEFAULT_SYSTEM_NAMESPACE_NAME);
-      creationOptions =
-          ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
-    }
-
-    return props;
+  private static String getCollectionContractBinaryName(String contractName) {
+    return getContractBinaryName(PACKAGE_COLLECTION, contractName);
   }
 
-  private static void createSchema() throws SchemaLoaderException {
-    SchemaLoader.load(props, ledgerSchemaPath, creationOptions, true);
-    SchemaLoader.load(props, databaseSchemaPath, creationOptions, true);
+  @Override
+  Map<String, String> getContractsMap() {
+    return ImmutableMap.<String, String>builder()
+        .put(ID_OBJECT_GET, getObjectContractBinaryName(NAME_OBJECT_GET))
+        .put(ID_OBJECT_PUT, getObjectContractBinaryName(NAME_OBJECT_PUT))
+        .put(ID_OBJECT_VALIDATE, getObjectContractBinaryName(NAME_OBJECT_VALIDATE))
+        .put(ID_COLLECTION_CREATE, getCollectionContractBinaryName(NAME_COLLECTION_CREATE))
+        .put(ID_COLLECTION_ADD_OBJECTS, getCollectionContractBinaryName(NAME_COLLECTION_ADD))
+        .put(ID_COLLECTION_DEL_OBJECTS, getCollectionContractBinaryName(NAME_COLLECTION_REMOVE))
+        .put(ID_COLLECTION_GET, getCollectionContractBinaryName(NAME_COLLECTION_GET))
+        .put(
+            ID_COLLECTION_GET_HISTORY, getCollectionContractBinaryName(NAME_COLLECTION_GET_HISTORY))
+        .put(
+            ID_COLLECTION_GET_CHECKPOINT_INTERVAL,
+            getCollectionContractBinaryName(NAME_COLLECTION_GET_CHECKPOINT_INTERVAL))
+        .build();
   }
 
-  private static void createServer(LedgerConfig config) throws IOException, InterruptedException {
-    Injector injector = Guice.createInjector(new LedgerServerModule(config));
-    ledgerServer = new BaseServer(injector, config);
-
-    ledgerServer.start(com.scalar.dl.ledger.server.LedgerService.class);
-    ledgerServer.startPrivileged(LedgerPrivilegedService.class);
-    ledgerServer.startAdmin(AdminService.class);
+  @Override
+  Map<String, String> getFunctionsMap() {
+    return ImmutableMap.of(
+        getFunctionId(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE),
+        getFunctionBinaryName(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE));
   }
 
-  private static GenericContractClientService createClientService(String entity)
-      throws IOException {
-    Properties props = new Properties();
-    props.put(ClientConfig.ENTITY_ID, entity);
-    props.put(ClientConfig.DS_CERT_VERSION, String.valueOf(SOME_KEY_VERSION));
-    props.put(ClientConfig.DS_CERT_PEM, SOME_CERTIFICATE);
-    props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
-    return clientServiceFactory.createForGenericContract(new ClientConfig(props));
-  }
-
-  private static void registerContracts(
-      GenericContractClientService clientService,
-      Map<String, String> contractMap,
-      @Nullable Map<String, JsonNode> propertiesMap)
-      throws IOException {
-    for (Map.Entry<String, String> entry : contractMap.entrySet()) {
-      String contractName = entry.getKey();
-      String contractId =
-          contractName.substring(
-              contractName.lastIndexOf('.', contractName.lastIndexOf('.') - 1) + 1);
-      byte[] bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
-      JsonNode properties = propertiesMap == null ? null : propertiesMap.get(contractId);
-      clientService.registerContract(contractId, contractName, bytes, properties);
-    }
-  }
-
-  private static void registerFunction(
-      GenericContractClientService clientService, Map<String, String> functionMap)
-      throws IOException {
-    for (Map.Entry<String, String> entry : functionMap.entrySet()) {
-      String functionName = entry.getKey();
-      String functionId =
-          functionName.substring(
-              functionName.lastIndexOf('.', functionName.lastIndexOf('.') - 1) + 1);
-      byte[] bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
-      clientService.registerFunction(functionId, functionName, bytes);
-    }
+  @Override
+  protected Map<String, JsonNode> getAnotherContractPropertiesMap() {
+    return ImmutableMap.of(
+        ID_COLLECTION_GET_CHECKPOINT_INTERVAL,
+        mapper.createObjectNode().put(COLLECTION_CHECKPOINT_INTERVAL, SOME_CHECKPOINT_INTERVAL));
   }
 
   private void prepareObject() {
@@ -469,8 +266,8 @@ public class GenericContractEndToEndTest {
             .add(createColumn(SOME_COLUMN_NAME_4, registeredAt));
 
     ObjectNode arguments = mapper.createObjectNode();
-    arguments.put(NAMESPACE, SOME_FUNCTION_NAMESPACE);
-    arguments.put(TABLE, SOME_FUNCTION_TABLE);
+    arguments.put(NAMESPACE, getFunctionNamespace());
+    arguments.put(TABLE, getFunctionTable());
     arguments.set(PARTITION_KEY, partitionKey);
     arguments.set(CLUSTERING_KEY, clusteringKey);
     arguments.set(COLUMNS, columns);
@@ -754,8 +551,8 @@ public class GenericContractEndToEndTest {
         createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_1, 1, 1234567890123L);
     Scan scan =
         Scan.newBuilder()
-            .namespace(SOME_FUNCTION_NAMESPACE)
-            .table(SOME_FUNCTION_TABLE)
+            .namespace(getFunctionNamespace())
+            .table(getFunctionTable())
             .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))
             .ordering(Ordering.asc(SOME_COLUMN_NAME_2))
             .build();
@@ -796,7 +593,7 @@ public class GenericContractEndToEndTest {
     JsonNode functionArguments =
         mapper
             .createObjectNode()
-            .put(NAMESPACE, SOME_FUNCTION_NAMESPACE)
+            .put(NAMESPACE, getFunctionNamespace())
             .put(TABLE, "foo")
             .set(
                 PARTITION_KEY,
@@ -810,7 +607,7 @@ public class GenericContractEndToEndTest {
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(
             LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.buildMessage(
-                CoreError.TABLE_NOT_FOUND.buildMessage(SOME_FUNCTION_NAMESPACE + ".foo")))
+                CoreError.TABLE_NOT_FOUND.buildMessage(getFunctionNamespace() + ".foo")))
         .extracting("code")
         .isEqualTo(StatusCode.INVALID_FUNCTION);
   }
@@ -836,8 +633,8 @@ public class GenericContractEndToEndTest {
     JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 1, 1L);
     Put put =
         Put.newBuilder()
-            .namespace(SOME_FUNCTION_NAMESPACE)
-            .table(SOME_FUNCTION_TABLE)
+            .namespace(getFunctionNamespace())
+            .table(getFunctionTable())
             .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))
             .clusteringKey(Key.ofText(SOME_COLUMN_NAME_2, SOME_VERSION_ID_0))
             .intValue("tx_state", TransactionState.ABORTED.get())
@@ -1096,8 +893,8 @@ public class GenericContractEndToEndTest {
     // Arrange
     Get get =
         Get.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
-            .table(ASSET_TABLE)
+            .namespace(getScalarNamespace())
+            .table(getAssetTable())
             .partitionKey(Key.ofText(ASSET_ID, COLLECTION_ID_PREFIX + SOME_COLLECTION_ID))
             .clusteringKey(Key.ofInt(ASSET_AGE, 2))
             .build();
@@ -1106,10 +903,10 @@ public class GenericContractEndToEndTest {
     SOME_ADD_OBJECT_IDS_ARRAY.forEach(id -> expectedSnapshot.add(id.textValue()));
 
     // Act
-    prepareCollection(anotehrClientService);
-    addObjectsToCollection(anotehrClientService, SOME_COLLECTION_ID, SOME_ADD_OBJECT_IDS_ARRAY);
+    prepareCollection(anotherClientService);
+    addObjectsToCollection(anotherClientService, SOME_COLLECTION_ID, SOME_ADD_OBJECT_IDS_ARRAY);
     removeObjectsFromCollection(
-        anotehrClientService, SOME_COLLECTION_ID, SOME_REMOVE_OBJECT_IDS_ARRAY);
+        anotherClientService, SOME_COLLECTION_ID, SOME_REMOVE_OBJECT_IDS_ARRAY);
 
     // Assert
     Optional<Result> latestAsset = storage.get(get);
@@ -1130,7 +927,7 @@ public class GenericContractEndToEndTest {
     JsonNode getArguments = mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID);
 
     // Act Assert
-    assertThatThrownBy(() -> anotehrClientService.executeContract(ID_COLLECTION_GET, getArguments))
+    assertThatThrownBy(() -> anotherClientService.executeContract(ID_COLLECTION_GET, getArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1143,7 +940,7 @@ public class GenericContractEndToEndTest {
     JsonNode getArguments = mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID);
 
     // Act Assert
-    assertThatThrownBy(() -> anotehrClientService.executeContract(ID_COLLECTION_GET, getArguments))
+    assertThatThrownBy(() -> anotherClientService.executeContract(ID_COLLECTION_GET, getArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1161,7 +958,7 @@ public class GenericContractEndToEndTest {
 
     // Act Assert
     assertThatThrownBy(
-            () -> anotehrClientService.executeContract(ID_COLLECTION_ADD_OBJECTS, addArguments))
+            () -> anotherClientService.executeContract(ID_COLLECTION_ADD_OBJECTS, addArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1180,7 +977,7 @@ public class GenericContractEndToEndTest {
 
     // Act Assert
     assertThatThrownBy(
-            () -> anotehrClientService.executeContract(ID_COLLECTION_DEL_OBJECTS, removeArguments))
+            () -> anotherClientService.executeContract(ID_COLLECTION_DEL_OBJECTS, removeArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }

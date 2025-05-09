@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 public class CreateTest {
 
@@ -42,8 +44,7 @@ public class CreateTest {
           .add(createIndexNode(SOME_INDEX_KEY_1, SOME_KEY_TYPE_BOOLEAN))
           .add(createIndexNode(SOME_INDEX_KEY_2, SOME_KEY_TYPE_NUMBER));
 
-  private final Create create = new Create();
-
+  @Spy private final Create create = new Create();
   @Mock private Ledger<JsonNode> ledger;
 
   @BeforeEach
@@ -68,6 +69,9 @@ public class CreateTest {
             .put(Constants.TABLE_KEY, SOME_TABLE_KEY)
             .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING)
             .set(Constants.TABLE_INDEXES, SOME_INDEXES);
+    doReturn(GetAssetId.getAssetIdForTable(SOME_TABLE_NAME))
+        .when(create)
+        .getAssetIdForTable(ledger, SOME_TABLE_NAME);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.empty());
 
     // Act
@@ -91,6 +95,9 @@ public class CreateTest {
             .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING);
     ObjectNode expected = argument.deepCopy();
     expected.set(Constants.TABLE_INDEXES, mapper.createArrayNode());
+    doReturn(GetAssetId.getAssetIdForTable(SOME_TABLE_NAME))
+        .when(create)
+        .getAssetIdForTable(ledger, SOME_TABLE_NAME);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.empty());
 
     // Act
@@ -351,6 +358,9 @@ public class CreateTest {
             .put(Constants.TABLE_KEY, SOME_TABLE_KEY)
             .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING);
     Asset<JsonNode> asset = (Asset<JsonNode>) mock(Asset.class);
+    doReturn(GetAssetId.getAssetIdForTable(SOME_TABLE_NAME))
+        .when(create)
+        .getAssetIdForTable(ledger, SOME_TABLE_NAME);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(asset));
 
     // Act Assert
