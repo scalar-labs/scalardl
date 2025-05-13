@@ -21,7 +21,7 @@ on:
 
 jobs:
   call-vuln-check:
-    uses: scalar-labs/actions/.github/workflows/vuln-check-reusable.yaml@main
+    uses: scalar-labs/actions/.github/workflows/vuln-check-reusable.yaml@vuln-check-artifacts
     with:
       target-ref: ${{ inputs.target-ref }}
       find-latest-release: ${{ inputs.find-latest-release }}
