@@ -3,6 +3,7 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
@@ -38,7 +39,7 @@ public class Create extends JacksonBasedContract {
     }
 
     // Get the table existence
-    String assetId = getAssetIdForTable(arguments.get(Constants.TABLE_NAME).asText());
+    String assetId = getAssetIdForTable(ledger, arguments.get(Constants.TABLE_NAME).asText());
     Optional<Asset<JsonNode>> asset = ledger.get(assetId);
     if (asset.isPresent()) {
       throw new ContractContextException(Constants.TABLE_ALREADY_EXISTS);
@@ -88,7 +89,13 @@ public class Create extends JacksonBasedContract {
     }
   }
 
-  private String getAssetIdForTable(String tableName) {
-    return Constants.PREFIX_TABLE + tableName;
+  @VisibleForTesting
+  String getAssetIdForTable(Ledger<JsonNode> ledger, String tableName) {
+    JsonNode arguments =
+        getObjectMapper()
+            .createObjectNode()
+            .put(Constants.ASSET_ID_PREFIX, Constants.PREFIX_TABLE)
+            .set(Constants.ASSET_ID_VALUES, getObjectMapper().createArrayNode().add(tableName));
+    return invoke(Constants.CONTRACT_GET_ASSET_ID, ledger, arguments).asText();
   }
 }

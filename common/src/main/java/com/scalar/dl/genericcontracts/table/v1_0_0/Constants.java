@@ -7,6 +7,7 @@ public class Constants {
   // Metadata
   public static final String PACKAGE = "table";
   public static final String VERSION = "v1_0_0";
+  public static final String CONTRACT_GET_ASSET_ID = PACKAGE + "." + VERSION + ".GetAssetId";
   public static final String CONTRACT_SCAN = PACKAGE + "." + VERSION + ".Scan";
 
   // Constants
@@ -14,6 +15,8 @@ public class Constants {
   public static final String PREFIX_INDEX = "idx_";
   public static final String PREFIX_RECORD = "rec_";
   public static final String ASSET_ID_METADATA_TABLES = "metadata_tables";
+  public static final String ASSET_ID_PREFIX = "prefix";
+  public static final String ASSET_ID_VALUES = "values";
   public static final String ASSET_ID_SEPARATOR = "_";
   public static final String TABLE_NAME = "name";
   public static final String TABLE_KEY = "key";

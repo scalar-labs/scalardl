@@ -1,5 +1,6 @@
 package com.scalar.dl.ledger.server;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.Injector;
 import com.scalar.dl.ledger.config.ServerConfig;
@@ -124,7 +125,8 @@ public class BaseServer {
         config.getDecommissioningDurationSecs(), TimeUnit.SECONDS);
   }
 
-  private void stop() throws InterruptedException {
+  @VisibleForTesting
+  public void stop() throws InterruptedException {
     if (server != null) {
       server.shutdown();
     }
