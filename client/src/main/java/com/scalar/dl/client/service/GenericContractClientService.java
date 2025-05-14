@@ -3,8 +3,13 @@ package com.scalar.dl.client.service;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_ID_PREFIX;
 import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID_PREFIX;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.ASSET_ID_SEPARATOR;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_INDEX;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_RECORD;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_TABLE;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableList;
 import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.genericcontracts.AssetType;
@@ -435,6 +440,153 @@ public class GenericContractClientService {
   }
 
   /**
+   * Validates the specified object in the ledger.
+   *
+   * @param objectId an object ID
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateObject(String objectId) {
+    return clientService.validateLedger(buildAssetId(AssetType.OBJECT, ImmutableList.of(objectId)));
+  }
+
+  /**
+   * Validates the specified object in the ledger.
+   *
+   * @param objectId an object ID
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateObject(String objectId, int startAge, int endAge) {
+    return clientService.validateLedger(
+        buildAssetId(AssetType.OBJECT, ImmutableList.of(objectId)), startAge, endAge);
+  }
+
+  /**
+   * Validates the specified collection in the ledger.
+   *
+   * @param collectionId a collection ID
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateCollection(String collectionId) {
+    return clientService.validateLedger(
+        buildAssetId(AssetType.COLLECTION, ImmutableList.of(collectionId)));
+  }
+
+  /**
+   * Validates the specified collection in the ledger.
+   *
+   * @param collectionId a collection ID
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateCollection(String collectionId, int startAge, int endAge) {
+    return clientService.validateLedger(
+        buildAssetId(AssetType.COLLECTION, ImmutableList.of(collectionId)), startAge, endAge);
+  }
+
+  /**
+   * Validates the schema of the specified table in the ledger.
+   *
+   * @param tableName a table name
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateTableSchema(String tableName) {
+    return clientService.validateLedger(buildAssetId(AssetType.TABLE, ImmutableList.of(tableName)));
+  }
+
+  /**
+   * Validates the schema of the specified table in the ledger.
+   *
+   * @param tableName a table name
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateTableSchema(String tableName, int startAge, int endAge) {
+    return clientService.validateLedger(
+        buildAssetId(AssetType.TABLE, ImmutableList.of(tableName)), startAge, endAge);
+  }
+
+  /**
+   * Validates the specified record in the ledger.
+   *
+   * @param tableName a table name
+   * @param columnName a primary key column name
+   * @param value a primary key column value
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateRecord(
+      String tableName, String columnName, JsonNode value) {
+    return clientService.validateLedger(
+        buildAssetId(
+            AssetType.RECORD, ImmutableList.of(tableName, columnName, toStringFrom(value))));
+  }
+
+  /**
+   * Validates the specified record in the ledger.
+   *
+   * @param tableName a table name
+   * @param columnName a primary key column name
+   * @param value a primary key column value
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateRecord(
+      String tableName, String columnName, JsonNode value, int startAge, int endAge) {
+    return clientService.validateLedger(
+        buildAssetId(
+            AssetType.RECORD, ImmutableList.of(tableName, columnName, toStringFrom(value))),
+        startAge,
+        endAge);
+  }
+
+  /**
+   * Validates the specified index entry in the ledger.
+   *
+   * @param tableName a table name
+   * @param columnName an index key column name
+   * @param value an index key column value
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateIndexEntry(
+      String tableName, String columnName, JsonNode value) {
+    return clientService.validateLedger(
+        buildAssetId(
+            AssetType.INDEX, ImmutableList.of(tableName, columnName, toStringFrom(value))));
+  }
+
+  /**
+   * Validates the specified index entry in the ledger.
+   *
+   * @param tableName a table name
+   * @param columnName an index key column name
+   * @param value an index key column value
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateIndexEntry(
+      String tableName, String columnName, JsonNode value, int startAge, int endAge) {
+    return clientService.validateLedger(
+        buildAssetId(AssetType.INDEX, ImmutableList.of(tableName, columnName, toStringFrom(value))),
+        startAge,
+        endAge);
+  }
+
+  /**
    * Validates the specified asset in the ledger with the specified serialized byte array of a
    * {@code LedgerValidationRequest}.
    *
@@ -454,9 +606,28 @@ public class GenericContractClientService {
       case COLLECTION:
         checkArgument(keys.size() == 1, ClientError.SERVICE_WRONG_KEYS_SPECIFIED.buildMessage());
         return COLLECTION_ID_PREFIX + keys.get(0);
+      case TABLE:
+        checkArgument(keys.size() == 1, ClientError.SERVICE_WRONG_KEYS_SPECIFIED.buildMessage());
+        return PREFIX_TABLE + keys.get(0);
+      case RECORD:
+        checkArgument(keys.size() == 3, ClientError.SERVICE_WRONG_KEYS_SPECIFIED.buildMessage());
+        return PREFIX_RECORD + String.join(ASSET_ID_SEPARATOR, keys);
+      case INDEX:
+        checkArgument(keys.size() == 3, ClientError.SERVICE_WRONG_KEYS_SPECIFIED.buildMessage());
+        return PREFIX_INDEX + String.join(ASSET_ID_SEPARATOR, keys);
       default:
         throw new IllegalArgumentException(
             ClientError.SERVICE_WRONG_ASSET_TYPE_SPECIFIED.buildMessage());
+    }
+  }
+
+  private String toStringFrom(JsonNode value) {
+    if (value.canConvertToExactIntegral()) {
+      return value.bigIntegerValue().toString();
+    } else if (value.isNumber()) {
+      return String.valueOf(value.doubleValue());
+    } else {
+      return value.asText();
     }
   }
 }

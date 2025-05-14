@@ -2,14 +2,23 @@ package com.scalar.dl.client.service;
 
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_ID_PREFIX;
 import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID_PREFIX;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.ASSET_ID_SEPARATOR;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_INDEX;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_RECORD;
+import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_TABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.DecimalNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableList;
 import com.scalar.dl.genericcontracts.AssetType;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +30,8 @@ public class GenericContractClientServiceTest {
   private static final String ANY_ID = "id";
   private static final String ANY_NAME = "name";
   private static final String ANY_FILE_PATH = "path/to/file";
+  private static final String ANY_TABLE = "tbl";
+  private static final String ANY_COLUMN = "col";
   private static final int ANY_START_AGE = 0;
   private static final int ANY_END_AGE = 5;
   private static final JsonObject ANY_JSON_OBJECT = mock(JsonObject.class);
@@ -184,5 +195,142 @@ public class GenericContractClientServiceTest {
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void validateObjectAsset_ShouldCallClientServiceValidateLedgerWithObjectPrefix() {
+    // Arrange Act
+    service.validateObject(ANY_ID);
+    service.validateObject(ANY_ID, ANY_START_AGE, ANY_END_AGE);
+
+    // Assert
+    verify(clientService).validateLedger(OBJECT_ID_PREFIX + ANY_ID);
+    verify(clientService).validateLedger(OBJECT_ID_PREFIX + ANY_ID, ANY_START_AGE, ANY_END_AGE);
+  }
+
+  @Test
+  public void validateCollectionAsset_ShouldCallClientServiceValidateLedgerWithCollectionPrefix() {
+    // Arrange Act
+    service.validateCollection(ANY_ID);
+    service.validateCollection(ANY_ID, ANY_START_AGE, ANY_END_AGE);
+
+    // Assert
+    verify(clientService).validateLedger(COLLECTION_ID_PREFIX + ANY_ID);
+    verify(clientService).validateLedger(COLLECTION_ID_PREFIX + ANY_ID, ANY_START_AGE, ANY_END_AGE);
+  }
+
+  @Test
+  public void validateTableAsset_ShouldCallClientServiceValidateLedgerWithTablePrefix() {
+    // Arrange Act
+    service.validateTableSchema(ANY_TABLE);
+    service.validateTableSchema(ANY_TABLE, ANY_START_AGE, ANY_END_AGE);
+
+    // Assert
+    verify(clientService).validateLedger(PREFIX_TABLE + ANY_TABLE);
+    verify(clientService).validateLedger(PREFIX_TABLE + ANY_TABLE, ANY_START_AGE, ANY_END_AGE);
+  }
+
+  @Test
+  public void validateRecordAsset_ShouldCallClientServiceValidateLedgerWithRecordPrefix() {
+    // Arrange
+    String stringValue = "val";
+    String expectedForStringValue =
+        PREFIX_RECORD
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + stringValue;
+    int intValue = 1;
+    String expectedForIntValue =
+        PREFIX_RECORD + ANY_TABLE + ASSET_ID_SEPARATOR + ANY_COLUMN + ASSET_ID_SEPARATOR + intValue;
+    double doubleValue = 1.23;
+    String expectedForDoubleValue =
+        PREFIX_RECORD
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + doubleValue;
+    double doubleIntegerValue = 2.0;
+    String expectedForDoubleIntegerValue =
+        PREFIX_RECORD + ANY_TABLE + ASSET_ID_SEPARATOR + ANY_COLUMN + ASSET_ID_SEPARATOR + "2";
+    BigDecimal bigDecimalValue = new BigDecimal("1.2345678901234567890123456789");
+    String expectedForBigDecimalValue =
+        PREFIX_RECORD
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + bigDecimalValue.doubleValue();
+
+    // Act
+    service.validateRecord(ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue));
+    service.validateRecord(
+        ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue), ANY_START_AGE, ANY_END_AGE);
+    service.validateRecord(ANY_TABLE, ANY_COLUMN, IntNode.valueOf(intValue));
+    service.validateRecord(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleValue));
+    service.validateRecord(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleIntegerValue));
+    service.validateRecord(ANY_TABLE, ANY_COLUMN, DecimalNode.valueOf(bigDecimalValue));
+
+    // Assert
+    verify(clientService).validateLedger(expectedForStringValue);
+    verify(clientService).validateLedger(expectedForStringValue, ANY_START_AGE, ANY_END_AGE);
+    verify(clientService).validateLedger(expectedForIntValue);
+    verify(clientService).validateLedger(expectedForDoubleValue);
+    verify(clientService).validateLedger(expectedForDoubleIntegerValue);
+    verify(clientService).validateLedger(expectedForBigDecimalValue);
+  }
+
+  @Test
+  public void validateIndexAsset_ShouldCallClientServiceValidateLedgerWithIndexPrefix() {
+    // Arrange
+    String stringValue = "val";
+    String expectedForStringValue =
+        PREFIX_INDEX
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + stringValue;
+    int intValue = 1;
+    String expectedForIntValue =
+        PREFIX_INDEX + ANY_TABLE + ASSET_ID_SEPARATOR + ANY_COLUMN + ASSET_ID_SEPARATOR + intValue;
+    double doubleValue = 1.23;
+    String expectedForDoubleValue =
+        PREFIX_INDEX
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + doubleValue;
+    double doubleIntegerValue = 2.0;
+    String expectedForDoubleIntegerValue =
+        PREFIX_INDEX + ANY_TABLE + ASSET_ID_SEPARATOR + ANY_COLUMN + ASSET_ID_SEPARATOR + "2";
+    BigDecimal bigDecimalValue = new BigDecimal("1.2345678901234567890123456789");
+    String expectedForBigDecimalValue =
+        PREFIX_INDEX
+            + ANY_TABLE
+            + ASSET_ID_SEPARATOR
+            + ANY_COLUMN
+            + ASSET_ID_SEPARATOR
+            + bigDecimalValue.doubleValue();
+
+    // Act
+    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue));
+    service.validateIndexEntry(
+        ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue), ANY_START_AGE, ANY_END_AGE);
+    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, IntNode.valueOf(intValue));
+    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleValue));
+    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleIntegerValue));
+    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DecimalNode.valueOf(bigDecimalValue));
+
+    // Assert
+    verify(clientService).validateLedger(expectedForStringValue);
+    verify(clientService).validateLedger(expectedForStringValue, ANY_START_AGE, ANY_END_AGE);
+    verify(clientService).validateLedger(expectedForIntValue);
+    verify(clientService).validateLedger(expectedForDoubleValue);
+    verify(clientService).validateLedger(expectedForDoubleIntegerValue);
+    verify(clientService).validateLedger(expectedForBigDecimalValue);
   }
 }

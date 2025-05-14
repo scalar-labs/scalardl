@@ -1049,4 +1049,37 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
     assertThat(actual.getAuditorProof().isPresent()).isFalse();
   }
+
+  @Test
+  public void validateObject_ObjectGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    prepareObject();
+
+    // Act
+    LedgerValidationResult actual = clientService.validateObject(SOME_OBJECT_ID);
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(OBJECT_ID_PREFIX + SOME_OBJECT_ID);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(2);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateCollection_CollectionGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    prepareCollection();
+
+    // Act
+    LedgerValidationResult actual = clientService.validateCollection(SOME_COLLECTION_ID);
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId())
+        .isEqualTo(COLLECTION_ID_PREFIX + SOME_COLLECTION_ID);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
 }

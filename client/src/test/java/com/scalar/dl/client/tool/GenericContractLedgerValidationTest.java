@@ -1,20 +1,22 @@
 package com.scalar.dl.client.tool;
 
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.google.common.collect.ImmutableList;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.genericcontracts.AssetType;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.File;
 import java.nio.file.Path;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import picocli.CommandLine;
+import picocli.CommandLine.MissingParameterException;
 
 public class GenericContractLedgerValidationTest {
   @Mock private ClientServiceFactory factory;
@@ -49,10 +52,9 @@ public class GenericContractLedgerValidationTest {
             new String[] {
               "--properties=PROPERTIES_FILE", "--object-id=OBJECT_ID",
             };
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.OBJECT, keys, 0, Integer.MAX_VALUE))
+        when(clientService.validateObject("OBJECT_ID", 0, Integer.MAX_VALUE))
             .thenReturn(result);
 
         // Act
@@ -60,7 +62,7 @@ public class GenericContractLedgerValidationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService).validateLedger(AssetType.OBJECT, keys, 0, Integer.MAX_VALUE);
+        verify(clientService).validateObject("OBJECT_ID", 0, Integer.MAX_VALUE);
       }
 
       @Test
@@ -74,17 +76,16 @@ public class GenericContractLedgerValidationTest {
               "--start-age=10",
               "--end-age=20",
             };
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.OBJECT, keys, 10, 20)).thenReturn(result);
+        when(clientService.validateObject("OBJECT_ID", 10, 20)).thenReturn(result);
 
         // Act
         int exitCode = command.call(factory, clientService);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService).validateLedger(AssetType.OBJECT, keys, 10, 20);
+        verify(clientService).validateObject("OBJECT_ID", 10, 20);
       }
     }
 
@@ -99,10 +100,9 @@ public class GenericContractLedgerValidationTest {
             new String[] {
               "--properties=PROPERTIES_FILE", "--collection-id=COLLECTION_ID",
             };
-        ImmutableList<String> keys = ImmutableList.of("COLLECTION_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.COLLECTION, keys, 0, Integer.MAX_VALUE))
+        when(clientService.validateCollection("COLLECTION_ID", 0, Integer.MAX_VALUE))
             .thenReturn(result);
 
         // Act
@@ -110,7 +110,7 @@ public class GenericContractLedgerValidationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService).validateLedger(AssetType.COLLECTION, keys, 0, Integer.MAX_VALUE);
+        verify(clientService).validateCollection("COLLECTION_ID", 0, Integer.MAX_VALUE);
       }
 
       @Test
@@ -124,17 +124,203 @@ public class GenericContractLedgerValidationTest {
               "--start-age=10",
               "--end-age=20",
             };
-        ImmutableList<String> keys = ImmutableList.of("COLLECTION_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.COLLECTION, keys, 10, 20)).thenReturn(result);
+        when(clientService.validateCollection("COLLECTION_ID", 10, 20)).thenReturn(result);
 
         // Act
         int exitCode = command.call(factory, clientService);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService).validateLedger(AssetType.COLLECTION, keys, 10, 20);
+        verify(clientService).validateCollection("COLLECTION_ID", 10, 20);
+      }
+    }
+
+    @Nested
+    @DisplayName("with --table-name only")
+    class withTableOnly {
+      @Test
+      @DisplayName("with ages")
+      void withAges() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--start-age=10",
+              "--end-age=20",
+            };
+        GenericContractLedgerValidation command = parseArgs(args);
+        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
+        when(clientService.validateTableSchema("TABLE_NAME", 10, 20)).thenReturn(result);
+
+        // Act
+        int exitCode = command.call(factory, clientService);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(clientService).validateTableSchema("TABLE_NAME", 10, 20);
+      }
+    }
+
+    @Nested
+    @DisplayName("with --primary-key-column-name")
+    class withPrimaryKeyColumnName {
+      @Test
+      @DisplayName("with text value")
+      void withTextValue() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--primary-key-column-name=COLUMN_NAME",
+              "--column-value=\"VALUE\"",
+              "--start-age=10",
+              "--end-age=20",
+            };
+        GenericContractLedgerValidation command = parseArgs(args);
+        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
+        when(clientService.validateRecord(
+                "TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20))
+            .thenReturn(result);
+
+        // Act
+        int exitCode = command.call(factory, clientService);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(clientService)
+            .validateRecord("TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20);
+      }
+
+      @Test
+      @DisplayName("with numeric value")
+      void withNumericValue() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--primary-key-column-name=COLUMN_NAME",
+              "--column-value=1.23",
+              "--start-age=10",
+              "--end-age=20",
+            };
+        GenericContractLedgerValidation command = parseArgs(args);
+        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
+        when(clientService.validateRecord(
+                "TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20))
+            .thenReturn(result);
+
+        // Act
+        int exitCode = command.call(factory, clientService);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(clientService)
+            .validateRecord("TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20);
+      }
+
+      @Test
+      @DisplayName("without value")
+      void throwsMissingParameterException() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--primary-key-column-name=COLUMN_NAME",
+              "--start-age=10",
+              "--end-age=20",
+            };
+
+        // Act
+        Throwable thrown = catchThrowable(() -> parseArgs(args));
+
+        // Assert
+        Assertions.assertThat(thrown).isExactlyInstanceOf(MissingParameterException.class);
+      }
+    }
+
+    @Nested
+    @DisplayName("with --index-key-column-name")
+    class withIndexKeyColumnName {
+      @Test
+      @DisplayName("with text value")
+      void withTextValue() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--index-key-column-name=COLUMN_NAME",
+              "--column-value=\"VALUE\"",
+              "--start-age=10",
+              "--end-age=20",
+            };
+        GenericContractLedgerValidation command = parseArgs(args);
+        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
+        when(clientService.validateIndexEntry(
+                "TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20))
+            .thenReturn(result);
+
+        // Act
+        int exitCode = command.call(factory, clientService);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(clientService)
+            .validateIndexEntry("TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20);
+      }
+
+      @Test
+      @DisplayName("with numeric value")
+      void withNumericValue() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--index-key-column-name=COLUMN_NAME",
+              "--column-value=1.23",
+              "--start-age=10",
+              "--end-age=20",
+            };
+        GenericContractLedgerValidation command = parseArgs(args);
+        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
+        when(clientService.validateIndexEntry(
+                "TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20))
+            .thenReturn(result);
+
+        // Act
+        int exitCode = command.call(factory, clientService);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(clientService)
+            .validateIndexEntry("TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20);
+      }
+
+      @Test
+      @DisplayName("without value")
+      void throwsMissingParameterException() {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE",
+              "--table-name=TABLE_NAME",
+              "--index-key-column-name=COLUMN_NAME",
+              "--start-age=10",
+              "--end-age=20",
+            };
+
+        // Act
+        Throwable thrown = catchThrowable(() -> parseArgs(args));
+
+        // Assert
+        Assertions.assertThat(thrown).isExactlyInstanceOf(MissingParameterException.class);
       }
     }
 
@@ -157,10 +343,9 @@ public class GenericContractLedgerValidationTest {
               "--end-age=10",
             };
 
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.OBJECT, keys, 0, 10)).thenReturn(result);
+        when(clientService.validateObject("OBJECT_ID", 0, 10)).thenReturn(result);
         when(factory.createForGenericContract(any(GatewayClientConfig.class)))
             .thenReturn(clientService);
 
@@ -187,10 +372,9 @@ public class GenericContractLedgerValidationTest {
               propertiesOption, "--object-id=OBJECT_ID", "--start-age=0", "--end-age=10",
             };
 
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateLedger(AssetType.OBJECT, keys, 0, 10)).thenReturn(result);
+        when(clientService.validateObject("OBJECT_ID", 0, 10)).thenReturn(result);
         when(factory.createForGenericContract(any(ClientConfig.class))).thenReturn(clientService);
 
         // Act
@@ -217,18 +401,17 @@ public class GenericContractLedgerValidationTest {
               "--end-age=0",
             };
 
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
         doThrow(IllegalArgumentException.class)
             .when(clientService)
-            .validateLedger(AssetType.OBJECT, keys, 10, 0);
+            .validateObject("OBJECT_ID", 10, 0);
 
         // Act
         int exitCode = command.call(factory, clientService);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
-        verify(clientService).validateLedger(AssetType.OBJECT, keys, 10, 0);
+        verify(clientService).validateObject("OBJECT_ID", 10, 0);
       }
 
       @Test
@@ -243,19 +426,18 @@ public class GenericContractLedgerValidationTest {
               "--end-age=10",
             };
 
-        ImmutableList<String> keys = ImmutableList.of("OBJECT_ID");
         GenericContractLedgerValidation command = parseArgs(args);
 
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(clientService)
-            .validateLedger(AssetType.OBJECT, keys, 0, 10);
+            .validateObject("OBJECT_ID", 0, 10);
 
         // Act
         int exitCode = command.call(factory, clientService);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
-        verify(clientService).validateLedger(AssetType.OBJECT, keys, 0, 10);
+        verify(clientService).validateObject("OBJECT_ID", 0, 10);
       }
     }
   }
