@@ -2,10 +2,22 @@
 
 ScalarDL is a scalable and practical Byzantine fault detection middleware for transactional database systems that achieves correctness, scalability, and database agnosticism.
 
-## Docs
-* [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/latest/)
-* [ScalarDL Technical Overview](https://speakerdeck.com/scalar/scalar-dl-technical-overview)
-* [ScalarDL Research Paper](https://dl.acm.org/doi/abs/10.14778/3523210.3523212) [VLDB'22]
+To learn more, see [ScalarDL Overview](https://scalardl.scalar-labs.com/docs/latest/overview).
+
+## Quickstart
+
+1. Start running contracts.
+   - **Get started with ScalarDL Ledger:** To set up a basic application and run contracts by using ScalarDL Ledger, see [Get Started with ScalarDL Ledger](https://scalardl.scalar-labs.com/docs/latest/getting-started).
+   - **Get started with ScalarDL Auditor (for enterprise customers):** To set up a basic application and run contracts by using ScalarDL Ledger and then use ScalarDL Auditor to detect whether those contracts have been tampered with, see [Getting Started with ScalarDL Auditor](https://scalardl.scalar-labs.com/docs/latest/getting-started-auditor).
+2. See how to set up a [simple bank account application that uses ScalarDL](https://scalardl.scalar-labs.com/docs/latest/applications/simple-bank-account).
+3. Learn about the [configurations for ScalarDL](https://scalardl.scalar-labs.com/docs/latest/configurations)
+4. Learn about ScalarDL and its features:
+   - [ScalarDL design](https://scalardl.scalar-labs.com/docs/latest/design)
+   - [ScalarDL implementation](https://scalardl.scalar-labs.com/docs/latest/implementation)
+   - [Authentication](https://scalardl.scalar-labs.com/docs/latest/authentication)
+   - [Generic contracts](https://scalardl.scalar-labs.com/docs/latest/use-generic-contracts)
+
+For additional documentation, visit [ScalarDL Documentation](https://scalardl.scalar-labs.com/docs/latest).
 
 ## Contributing 
 ScalarDL is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.
