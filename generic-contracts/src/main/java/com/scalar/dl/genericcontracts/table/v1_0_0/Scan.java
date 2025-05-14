@@ -3,7 +3,10 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
@@ -12,6 +15,7 @@ import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +31,7 @@ public class Scan extends JacksonBasedContract {
 
     // Get the table information
     String tableName = arguments.get(Constants.QUERY_TABLE).asText();
-    String tableAssetId = getAssetIdForTable(tableName);
+    String tableAssetId = getAssetId(ledger, Constants.PREFIX_TABLE, TextNode.valueOf(tableName));
     JsonNode table =
         ledger
             .get(tableAssetId)
@@ -166,7 +170,12 @@ public class Scan extends JacksonBasedContract {
         }
 
         String assetId =
-            getAssetIdForRecord(tableName, keyColumnName, indexEntry.get(keyColumnName).asText());
+            getAssetId(
+                ledger,
+                Constants.PREFIX_RECORD,
+                TextNode.valueOf(tableName),
+                TextNode.valueOf(keyColumnName),
+                indexEntry.get(keyColumnName));
         if (indexEntry.has(Constants.INDEX_ASSET_DELETE_MARKER)
             && indexEntry.get(Constants.INDEX_ASSET_DELETE_MARKER).asBoolean()) {
           assetIds.remove(assetId);
@@ -187,10 +196,12 @@ public class Scan extends JacksonBasedContract {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
     JsonNode condition = getKeyColumnCondition(table, conditionsMap);
     String assetId =
-        getAssetIdForRecord(
-            tableName,
-            condition.get(Constants.CONDITION_COLUMN).textValue(),
-            condition.get(Constants.CONDITION_VALUE).asText());
+        getAssetId(
+            ledger,
+            Constants.PREFIX_RECORD,
+            TextNode.valueOf(tableName),
+            condition.get(Constants.CONDITION_COLUMN),
+            condition.get(Constants.CONDITION_VALUE));
     ArrayNode results = getObjectMapper().createArrayNode();
 
     ledger.get(assetId).ifPresent(asset -> results.add(prepareRecord(asset, includeMetadata)));
@@ -210,7 +221,7 @@ public class Scan extends JacksonBasedContract {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
     String keyColumnName = table.get(Constants.TABLE_KEY).textValue();
     JsonNode condition = getIndexColumnCondition(table, conditionsMap);
-    String indexAssetId = getAssetIdForIndex(tableName, condition);
+    String indexAssetId = getAssetIdForIndex(ledger, tableName, condition);
     ArrayNode results = getObjectMapper().createArrayNode();
 
     for (String recordAssetId :
@@ -328,41 +339,27 @@ public class Scan extends JacksonBasedContract {
     return !record.has(column) || record.get(column).isNull();
   }
 
-  private String getAssetIdForTable(String tableName) {
-    return Constants.PREFIX_TABLE + tableName;
-  }
-
-  private String getAssetIdForRecord(String tableName, String keyColumnName, String key) {
-    return Constants.PREFIX_RECORD
-        + tableName
-        + Constants.ASSET_ID_SEPARATOR
-        + keyColumnName
-        + Constants.ASSET_ID_SEPARATOR
-        + key;
-  }
-
-  private String getAssetIdForIndex(String tableName, JsonNode condition) {
+  private String getAssetIdForIndex(Ledger<JsonNode> ledger, String tableName, JsonNode condition) {
     String indexKey = condition.get(Constants.CONDITION_COLUMN).textValue();
     JsonNode indexValue = condition.get(Constants.CONDITION_VALUE);
     String operator = condition.get(Constants.CONDITION_OPERATOR).textValue().toUpperCase();
-
-    if (operator.equals(Constants.OPERATOR_IS_NULL)) {
-      return getAssetIdForNullIndex(tableName, indexKey);
-    } else {
-      return getAssetIdForIndex(tableName, indexKey, indexValue.asText());
-    }
+    return getAssetId(
+        ledger,
+        Constants.PREFIX_INDEX,
+        TextNode.valueOf(tableName),
+        TextNode.valueOf(indexKey),
+        (operator.equals(Constants.OPERATOR_IS_NULL) ? NullNode.getInstance() : indexValue));
   }
 
-  private String getAssetIdForIndex(String tableName, String indexKey, String value) {
-    return Constants.PREFIX_INDEX
-        + tableName
-        + Constants.ASSET_ID_SEPARATOR
-        + indexKey
-        + Constants.ASSET_ID_SEPARATOR
-        + value;
-  }
-
-  private String getAssetIdForNullIndex(String tableName, String indexKey) {
-    return Constants.PREFIX_INDEX + tableName + Constants.ASSET_ID_SEPARATOR + indexKey;
+  @VisibleForTesting
+  String getAssetId(Ledger<JsonNode> ledger, String prefix, JsonNode... jsonNodes) {
+    ArrayNode values = getObjectMapper().createArrayNode();
+    Arrays.stream(jsonNodes).forEach(values::add);
+    JsonNode arguments =
+        getObjectMapper()
+            .createObjectNode()
+            .put(Constants.ASSET_ID_PREFIX, prefix)
+            .set(Constants.ASSET_ID_VALUES, values);
+    return invoke(Constants.CONTRACT_GET_ASSET_ID, ledger, arguments).asText();
   }
 }

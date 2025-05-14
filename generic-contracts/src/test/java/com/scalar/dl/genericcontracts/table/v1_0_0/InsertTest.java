@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -13,7 +14,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.ledger.exception.ContractContextException;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 public class InsertTest {
   private static final ObjectMapper mapper = new ObjectMapper();
@@ -109,8 +113,7 @@ public class InsertTest {
           .put(SOME_INDEX_KEY_1, SOME_INDEX_COLUMN_VALUE)
           .put(SOME_RECORD_COLUMN, SOME_RECORD_COLUMN_VALUE);
 
-  private final Insert insert = new Insert();
-
+  @Spy private final Insert insert = new Insert();
   @Mock private Ledger<JsonNode> ledger;
 
   @BeforeEach
@@ -135,6 +138,38 @@ public class InsertTest {
                 .set(primaryKey, value));
   }
 
+  private void prepareTableAssetId(String tableName) {
+    doReturn(GetAssetId.getAssetIdForTable(tableName))
+        .when(insert)
+        .getAssetId(ledger, Constants.PREFIX_TABLE, TextNode.valueOf(tableName));
+  }
+
+  private void prepareRecordAssetId(String tableName, String key, JsonNode value) {
+    doReturn(GetAssetId.getAssetIdForRecord(tableName, key, value))
+        .when(insert)
+        .getAssetId(
+            ledger,
+            Constants.PREFIX_RECORD,
+            TextNode.valueOf(tableName),
+            TextNode.valueOf(key),
+            value);
+  }
+
+  private void prepareIndexAssetId(String tableName, String key, JsonNode value) {
+    String expected =
+        value.isNull()
+            ? GetAssetId.getAssetIdForNullIndex(tableName, key)
+            : GetAssetId.getAssetIdForIndex(tableName, key, value);
+    doReturn(expected)
+        .when(insert)
+        .getAssetId(
+            ledger,
+            Constants.PREFIX_INDEX,
+            TextNode.valueOf(tableName),
+            TextNode.valueOf(key),
+            value);
+  }
+
   @Test
   public void invoke_CorrectArgumentsGiven_ShouldInsertRecord() {
     // Arrange
@@ -147,6 +182,11 @@ public class InsertTest {
     when(tableAsset.data()).thenReturn(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
     when(ledger.get(SOME_RECORD_ASSET_ID)).thenReturn(Optional.empty());
+    prepareTableAssetId(SOME_TABLE_NAME);
+    prepareRecordAssetId(SOME_TABLE_NAME, SOME_TABLE_KEY, TextNode.valueOf(SOME_RECORD_KEY));
+    prepareIndexAssetId(
+        SOME_TABLE_NAME, SOME_INDEX_KEY_1, TextNode.valueOf(SOME_INDEX_COLUMN_VALUE));
+    prepareIndexAssetId(SOME_TABLE_NAME, SOME_INDEX_KEY_2, NullNode.getInstance());
 
     // Act
     JsonNode actual = insert.invoke(ledger, argument, null);
@@ -179,6 +219,12 @@ public class InsertTest {
     when(tableAsset.data()).thenReturn(SOME_TABLE_WITH_NUMBER_KEY);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
     when(ledger.get(SOME_RECORD_ASSET_ID_WITH_NUMBER_KEY)).thenReturn(Optional.empty());
+    prepareTableAssetId(SOME_TABLE_NAME);
+    prepareRecordAssetId(
+        SOME_TABLE_NAME, SOME_TABLE_KEY, DoubleNode.valueOf(SOME_RECORD_NUMBER_KEY));
+    prepareIndexAssetId(SOME_TABLE_NAME, SOME_INDEX_KEY_2, NullNode.getInstance());
+    prepareIndexAssetId(
+        SOME_TABLE_NAME, SOME_INDEX_KEY_3, BooleanNode.valueOf(SOME_RECORD_COLUMN_VALUE_BOOLEAN));
 
     // Act
     JsonNode actual = insert.invoke(ledger, argument, null);
@@ -247,6 +293,7 @@ public class InsertTest {
             .put(Constants.RECORD_TABLE, SOME_TABLE_NAME)
             .set(Constants.RECORD_VALUES, SOME_RECORD_VALUES);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.empty());
+    prepareTableAssetId(SOME_TABLE_NAME);
 
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
@@ -273,6 +320,7 @@ public class InsertTest {
     Asset<JsonNode> tableAsset = (Asset<JsonNode>) mock(Asset.class);
     when(tableAsset.data()).thenReturn(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
+    prepareTableAssetId(SOME_TABLE_NAME);
 
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
@@ -300,6 +348,7 @@ public class InsertTest {
     Asset<JsonNode> tableAsset = (Asset<JsonNode>) mock(Asset.class);
     when(tableAsset.data()).thenReturn(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
+    prepareTableAssetId(SOME_TABLE_NAME);
 
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
@@ -329,6 +378,10 @@ public class InsertTest {
     when(tableAsset.data()).thenReturn(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
     when(ledger.get(SOME_RECORD_ASSET_ID)).thenReturn(Optional.empty());
+    prepareTableAssetId(SOME_TABLE_NAME);
+    prepareRecordAssetId(SOME_TABLE_NAME, SOME_TABLE_KEY, TextNode.valueOf(SOME_RECORD_KEY));
+    prepareIndexAssetId(
+        SOME_TABLE_NAME, SOME_INDEX_KEY_1, TextNode.valueOf(SOME_INDEX_COLUMN_VALUE));
 
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
@@ -353,6 +406,8 @@ public class InsertTest {
     when(tableAsset.data()).thenReturn(SOME_TABLE);
     when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(tableAsset));
     when(ledger.get(SOME_RECORD_ASSET_ID)).thenReturn(Optional.of(recordAsset));
+    prepareTableAssetId(SOME_TABLE_NAME);
+    prepareRecordAssetId(SOME_TABLE_NAME, SOME_TABLE_KEY, TextNode.valueOf(SOME_RECORD_KEY));
 
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
