@@ -54,8 +54,7 @@ public class GenericContractLedgerValidationTest {
             };
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateObject("OBJECT_ID", 0, Integer.MAX_VALUE))
-            .thenReturn(result);
+        when(clientService.validateObject("OBJECT_ID", 0, Integer.MAX_VALUE)).thenReturn(result);
 
         // Act
         int exitCode = command.call(factory, clientService);
