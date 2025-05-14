@@ -1,16 +1,16 @@
 package com.scalar.dl.client.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.genericcontracts.AssetType;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
@@ -43,6 +43,49 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
         paramLabel = "COLLECTION_ID",
         description = "The ID of a collection created by the collection.Create contract.")
     String collectionId;
+
+    @ArgGroup(exclusive = false, multiplicity = "1")
+    TableArguments table;
+  }
+
+  static class TableArguments {
+    @CommandLine.Option(
+        names = {"--table-name"},
+        required = true,
+        paramLabel = "TABLE_NAME",
+        description = "The name of a table created by table-oriented generic contracts.")
+    String tableName;
+
+    @ArgGroup(exclusive = false, multiplicity = "0..1")
+    private PrimaryOrIndexKey key;
+  }
+
+  static class PrimaryOrIndexKey {
+    @ArgGroup(exclusive = true, multiplicity = "1")
+    private ColumnName name;
+
+    @CommandLine.Option(
+        names = {"--column-value"},
+        required = true,
+        paramLabel = "COLUMN_VALUE",
+        description = "The column value of primary key or index key as JSON string.")
+    String value;
+  }
+
+  static class ColumnName {
+    @CommandLine.Option(
+        names = {"--primary-key-column-name"},
+        paramLabel = "PRIMARY_KEY_COLUMN_NAME",
+        description =
+            "The primary key column name of a record created by table-oriented generic contracts.")
+    String primary;
+
+    @CommandLine.Option(
+        names = {"--index-key-column-name"},
+        paramLabel = "INDEX_KEY_COLUMN_NAME",
+        description =
+            "The index key column name of a record created by table-oriented generic contracts.")
+    String index;
   }
 
   @ArgGroup(exclusive = true, multiplicity = "1")
@@ -64,17 +107,31 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
 
   @VisibleForTesting
   Integer call(ClientServiceFactory factory, GenericContractClientService service) {
+    JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
+
     try {
-      AssetType type;
-      List<String> keys = new ArrayList<>();
+      LedgerValidationResult result;
       if (arguments.objectId != null) {
-        type = AssetType.OBJECT;
-        keys.add(arguments.objectId);
+        result = service.validateObject(arguments.objectId, startAge, endAge);
+      } else if (arguments.collectionId != null) {
+        result = service.validateCollection(arguments.collectionId, startAge, endAge);
       } else {
-        type = AssetType.COLLECTION;
-        keys.add(arguments.collectionId);
+        if (arguments.table.key == null) {
+          result = service.validateTableSchema(arguments.table.tableName, startAge, endAge);
+        } else {
+          String tableName = arguments.table.tableName;
+          JsonNode value = serde.deserialize(arguments.table.key.value);
+          if (arguments.table.key.name.primary != null) {
+            result =
+                service.validateRecord(
+                    tableName, arguments.table.key.name.primary, value, startAge, endAge);
+          } else {
+            result =
+                service.validateIndexEntry(
+                    tableName, arguments.table.key.name.index, value, startAge, endAge);
+          }
+        }
       }
-      LedgerValidationResult result = service.validateLedger(type, keys, startAge, endAge);
       Common.printJson(Common.getValidationResult(result));
       return 0;
     } catch (IllegalArgumentException e) {
