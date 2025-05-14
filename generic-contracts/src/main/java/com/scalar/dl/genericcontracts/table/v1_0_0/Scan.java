@@ -17,7 +17,10 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -43,18 +46,24 @@ public class Scan extends JacksonBasedContract {
             arguments.get(Constants.QUERY_CONDITIONS),
             condition -> condition.get(Constants.CONDITION_COLUMN).textValue());
 
-    JsonNode options =
-        arguments.has(Constants.SCAN_OPTIONS) ? arguments.get(Constants.SCAN_OPTIONS) : null;
-    boolean includeMetadata =
-        options != null
-            && options.has(Constants.SCAN_OPTIONS_INCLUDE_METADATA)
-            && options.get(Constants.SCAN_OPTIONS_INCLUDE_METADATA).asBoolean();
+    String tableReference = null;
+    boolean includeMetadata = false;
+    if (arguments.has(Constants.SCAN_OPTIONS)) {
+      JsonNode options = arguments.get(Constants.SCAN_OPTIONS);
+      tableReference =
+          options.has(Constants.SCAN_OPTIONS_TABLE_REFERENCE)
+              ? options.get(Constants.SCAN_OPTIONS_TABLE_REFERENCE).asText()
+              : null;
+      includeMetadata =
+          options.has(Constants.SCAN_OPTIONS_INCLUDE_METADATA)
+              && options.get(Constants.SCAN_OPTIONS_INCLUDE_METADATA).asBoolean();
+    }
 
     // Scan records
     if (hasPrimaryKeyCondition(table, conditionsMap)) {
-      return get(ledger, table, conditionsMap, includeMetadata);
+      return get(ledger, table, tableReference, conditionsMap, includeMetadata);
     } else if (hasIndexKeyCondition(table, conditionsMap)) {
-      return scan(ledger, table, conditionsMap, includeMetadata);
+      return scan(ledger, table, tableReference, conditionsMap, includeMetadata);
     } else {
       throw new ContractContextException(Constants.INVALID_KEY_SPECIFICATION);
     }
@@ -191,6 +200,7 @@ public class Scan extends JacksonBasedContract {
   private ArrayNode get(
       Ledger<JsonNode> ledger,
       JsonNode table,
+      @Nullable String tableReference,
       ListMultimap<String, JsonNode> conditionsMap,
       boolean includeMetadata) {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
@@ -210,12 +220,14 @@ public class Scan extends JacksonBasedContract {
         results,
         conditionsMap.values().stream()
             .filter(c -> !c.equals(condition))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()),
+        tableReference);
   }
 
   private ArrayNode scan(
       Ledger<JsonNode> ledger,
       JsonNode table,
+      @Nullable String tableReference,
       ListMultimap<String, JsonNode> conditionsMap,
       boolean includeMetadata) {
     String tableName = table.get(Constants.TABLE_NAME).textValue();
@@ -237,7 +249,24 @@ public class Scan extends JacksonBasedContract {
         results,
         conditionsMap.values().stream()
             .filter(c -> !c.equals(condition))
-            .collect(Collectors.toList()));
+            .collect(Collectors.toList()),
+        tableReference);
+  }
+
+  private String addTableReference(String tableReference, String columnName) {
+    return tableReference + Constants.COLUMN_SEPARATOR + columnName;
+  }
+
+  private JsonNode addTableReferenceForColumns(JsonNode record, String tableReference) {
+    ObjectNode renamed = getObjectMapper().createObjectNode();
+    Iterator<Entry<String, JsonNode>> columns = record.fields();
+
+    while (columns.hasNext()) {
+      Map.Entry<String, JsonNode> column = columns.next();
+      renamed.set(addTableReference(tableReference, column.getKey()), column.getValue());
+    }
+
+    return renamed;
   }
 
   private JsonNode prepareRecord(Asset<JsonNode> asset, boolean includeMetadata) {
@@ -250,7 +279,8 @@ public class Scan extends JacksonBasedContract {
     }
   }
 
-  private ArrayNode filter(ArrayNode records, List<JsonNode> conditions) {
+  private ArrayNode filter(
+      ArrayNode records, List<JsonNode> conditions, @Nullable String tableReference) {
     ArrayNode results = getObjectMapper().createArrayNode();
 
     for (JsonNode record : records) {
@@ -262,7 +292,8 @@ public class Scan extends JacksonBasedContract {
         }
       }
       if (allMatched) {
-        results.add(record);
+        results.add(
+            tableReference == null ? record : addTableReferenceForColumns(record, tableReference));
       }
     }
 
