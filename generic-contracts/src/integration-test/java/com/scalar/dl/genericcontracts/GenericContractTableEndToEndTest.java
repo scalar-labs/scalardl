@@ -37,12 +37,14 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   private static final String CONTRACT_NAME_CREATE = "Create";
   private static final String CONTRACT_NAME_INSERT = "Insert";
   private static final String CONTRACT_NAME_SELECT = "Select";
+  private static final String CONTRACT_NAME_UPDATE = "Update";
   private static final String CONTRACT_NAME_GET_ASSET_ID = "GetAssetId";
   private static final String CONTRACT_NAME_SCAN = "Scan";
   private static final String CONTRACT_ID_PREFIX = Constants.PACKAGE + "." + Constants.VERSION;
   private static final String CONTRACT_ID_CREATE = getContractId(CONTRACT_NAME_CREATE);
   private static final String CONTRACT_ID_INSERT = getContractId(CONTRACT_NAME_INSERT);
   private static final String CONTRACT_ID_SELECT = getContractId(CONTRACT_NAME_SELECT);
+  private static final String CONTRACT_ID_UPDATE = getContractId(CONTRACT_NAME_UPDATE);
   private static final String CONTRACT_ID_SCAN = getContractId(CONTRACT_NAME_SCAN);
   private static final String CONTRACT_ID_GET_ASSET_ID = getContractId(CONTRACT_NAME_GET_ASSET_ID);
 
@@ -94,6 +96,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         .put(CONTRACT_ID_CREATE, getContractBinaryName(CONTRACT_NAME_CREATE))
         .put(CONTRACT_ID_INSERT, getContractBinaryName(CONTRACT_NAME_INSERT))
         .put(CONTRACT_ID_SELECT, getContractBinaryName(CONTRACT_NAME_SELECT))
+        .put(CONTRACT_ID_UPDATE, getContractBinaryName(CONTRACT_NAME_UPDATE))
         .put(CONTRACT_ID_GET_ASSET_ID, getContractBinaryName(CONTRACT_NAME_GET_ASSET_ID))
         .put(CONTRACT_ID_SCAN, getContractBinaryName(CONTRACT_NAME_SCAN))
         .build();
@@ -274,6 +277,36 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             Constants.QUERY_CONDITIONS,
             prepareArrayNode(
                 ImmutableList.of(prepareCondition(keyColumnName, Constants.OPERATOR_IS_NULL))));
+  }
+
+  private ObjectNode prepareUpdate(
+      String tableName,
+      JsonNode updateValues,
+      String keyColumnName,
+      JsonNode keyColumnValue,
+      JsonNode... conditions) {
+    return prepareUpdate(
+        tableName, updateValues, keyColumnName, keyColumnValue, Constants.OPERATOR_EQ, conditions);
+  }
+
+  private ObjectNode prepareUpdate(
+      String tableName,
+      JsonNode updateValues,
+      String keyColumnName,
+      JsonNode keyColumnValue,
+      String operator,
+      JsonNode... conditions) {
+    List<JsonNode> conditionList = new ArrayList<>();
+    if (operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)) {
+      conditionList.add(prepareCondition(keyColumnName, operator));
+    } else {
+      conditionList.add(prepareCondition(keyColumnName, keyColumnValue, operator));
+    }
+    conditionList.addAll(Arrays.asList(conditions));
+    ObjectNode update = mapper.createObjectNode().put(Constants.UPDATE_TABLE, tableName);
+    update.set(Constants.UPDATE_VALUES, updateValues);
+    update.set(Constants.UPDATE_CONDITIONS, prepareArrayNode(conditionList));
+    return update;
   }
 
   private ArrayNode prepareArrayNode(List<JsonNode> jsonNodes) {
@@ -1565,5 +1598,262 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_JOIN_COLUMN + COLUMN_NAME_2);
+  }
+
+  @Test
+  public void update_RegularColumnValueWithPrimaryKeyConditionGiven_ShouldUpdateRecord() {
+    // Arrange
+    JsonNode key = TextNode.valueOf("key");
+    JsonNode value = IntNode.valueOf(1);
+    JsonNode newValue = IntNode.valueOf(2);
+    JsonNode record = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value));
+    JsonNode updateValues = mapper.createObjectNode().set(COLUMN_NAME_2, newValue);
+    JsonNode update = prepareUpdate(COMMON_TEST_TABLE, updateValues, COLUMN_NAME_1, key);
+    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_1, key);
+    JsonNode expected =
+        createArrayNode(
+            prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, newValue)));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
+
+    // Act
+    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+
+    // Assert
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    assertThat(actual.getContractResult()).isPresent();
+    assertThat(actual.getContractResult().get()).isEqualTo(jacksonSerDe.serialize(expected));
+  }
+
+  @Test
+  public void update_RegularColumnValueWithIndexKeyConditionGiven_ShouldUpdateRecords() {
+    // Arrange
+    List<JsonNode> records = insertAndGetRecords();
+    String newString = "abc";
+    JsonNode values = mapper.createObjectNode().put(COLUMN_NAME_3, newString);
+    JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
+    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, IntNode.valueOf(1));
+    ImmutableList<JsonNode> expected =
+        records.stream()
+            .map(
+                record -> {
+                  ObjectNode newRecord = record.deepCopy();
+                  newRecord.set(COLUMN_NAME_3, TextNode.valueOf(newString));
+                  return newRecord;
+                })
+            .collect(ImmutableList.toImmutableList());
+
+    // Act
+    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+
+    // Assert
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    assertThat(actual.getContractResult()).isPresent();
+    assertSelectResult(jacksonSerDe.deserialize(actual.getContractResult().get()), expected);
+  }
+
+  @Test
+  public void update_IndexColumnValueWithIndexKeyConditionGiven_ShouldUpdateRecords() {
+    // Arrange
+    List<JsonNode> records = insertAndGetRecords();
+    int oldIndexValue = 1;
+    int newIndexValue = 10;
+    String newString = "abc";
+    JsonNode values =
+        mapper.createObjectNode().put(COLUMN_NAME_2, newIndexValue).put(COLUMN_NAME_3, newString);
+    JsonNode update =
+        prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(oldIndexValue));
+    JsonNode selectOld =
+        prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, IntNode.valueOf(oldIndexValue));
+    JsonNode selectNew =
+        prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, IntNode.valueOf(newIndexValue));
+    ImmutableList<JsonNode> expected =
+        records.stream()
+            .map(
+                record -> {
+                  ObjectNode newRecord = record.deepCopy();
+                  newRecord.set(COLUMN_NAME_2, IntNode.valueOf(newIndexValue));
+                  newRecord.set(COLUMN_NAME_3, TextNode.valueOf(newString));
+                  return newRecord;
+                })
+            .collect(ImmutableList.toImmutableList());
+
+    // Act
+    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+
+    // Assert
+    ContractExecutionResult before = clientService.executeContract(CONTRACT_ID_SELECT, selectOld);
+    assertThat(before.getContractResult()).isPresent();
+    assertSelectResult(
+        jacksonSerDe.deserialize(before.getContractResult().get()), ImmutableList.of());
+    ContractExecutionResult after = clientService.executeContract(CONTRACT_ID_SELECT, selectNew);
+    assertThat(after.getContractResult()).isPresent();
+    assertSelectResult(jacksonSerDe.deserialize(after.getContractResult().get()), expected);
+  }
+
+  @Test
+  public void
+      update_NullIndexColumnValuesWithIndexKeyConditionAndAdditionalConditionGiven_ShouldUpdateRecords() {
+    // Arrange
+    createTable(
+        TABLE_NAME_1,
+        COLUMN_NAME_1,
+        KEY_TYPE_NUMBER,
+        ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_STRING, COLUMN_NAME_3, KEY_TYPE_STRING));
+    JsonNode record1 =
+        prepareRecord(
+            ImmutableMap.of(
+                COLUMN_NAME_1,
+                IntNode.valueOf(1),
+                COLUMN_NAME_2,
+                TextNode.valueOf("aaa"),
+                COLUMN_NAME_3,
+                NullNode.getInstance(),
+                COLUMN_NAME_4,
+                IntNode.valueOf(10)));
+    JsonNode record2 =
+        prepareRecord(
+            ImmutableMap.of(
+                COLUMN_NAME_1,
+                IntNode.valueOf(2),
+                COLUMN_NAME_2,
+                TextNode.valueOf("bbb"),
+                COLUMN_NAME_3,
+                NullNode.getInstance(),
+                COLUMN_NAME_4,
+                IntNode.valueOf(20)));
+    JsonNode record3 =
+        prepareRecord(
+            ImmutableMap.of(
+                COLUMN_NAME_1,
+                IntNode.valueOf(3),
+                COLUMN_NAME_2,
+                TextNode.valueOf("ccc"),
+                COLUMN_NAME_3,
+                NullNode.getInstance(),
+                COLUMN_NAME_4,
+                IntNode.valueOf(10)));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record1));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record2));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record3));
+    String newString = "abc";
+    int newValue = 0;
+    JsonNode values =
+        mapper
+            .createObjectNode()
+            .put(COLUMN_NAME_3, newString)
+            .put(COLUMN_NAME_4, newValue)
+            .set(COLUMN_NAME_2, NullNode.getInstance());
+    JsonNode update =
+        prepareUpdate(
+            TABLE_NAME_1,
+            values,
+            COLUMN_NAME_3,
+            NullNode.getInstance(),
+            Constants.OPERATOR_IS_NULL,
+            prepareCondition(COLUMN_NAME_4, IntNode.valueOf(20), Constants.OPERATOR_LT));
+    JsonNode select = prepareSelect(TABLE_NAME_1, COLUMN_NAME_3, TextNode.valueOf(newString));
+    ImmutableList<JsonNode> expected =
+        ImmutableList.of(record1, record3).stream()
+            .map(
+                record -> {
+                  ObjectNode newRecord = record.deepCopy();
+                  newRecord.set(COLUMN_NAME_2, NullNode.getInstance());
+                  newRecord.set(COLUMN_NAME_3, TextNode.valueOf(newString));
+                  newRecord.set(COLUMN_NAME_4, IntNode.valueOf(newValue));
+                  return newRecord;
+                })
+            .collect(ImmutableList.toImmutableList());
+
+    // Act
+    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+
+    // Assert
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    assertThat(actual.getContractResult()).isPresent();
+    assertSelectResult(jacksonSerDe.deserialize(actual.getContractResult().get()), expected);
+  }
+
+  @Test
+  public void update_SameValuesGiven_ShouldNotAddNewAssetRecord() {
+    // Arrange
+    JsonNode key = TextNode.valueOf("key");
+    JsonNode value = IntNode.valueOf(1);
+    JsonNode record = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value));
+    JsonNode updateValues = mapper.createObjectNode().set(COLUMN_NAME_2, value);
+    JsonNode update = prepareUpdate(COMMON_TEST_TABLE, updateValues, COLUMN_NAME_1, key);
+    ObjectNode scan = mapper.createObjectNode();
+    scan.put(Constants.QUERY_TABLE, COMMON_TEST_TABLE);
+    scan.set(
+        Constants.QUERY_CONDITIONS,
+        createArrayNode(prepareCondition(COLUMN_NAME_1, key, Constants.OPERATOR_EQ)));
+    scan.set(
+        Constants.SCAN_OPTIONS,
+        mapper.createObjectNode().put(Constants.SCAN_OPTIONS_INCLUDE_METADATA, true));
+    ObjectNode expected = record.deepCopy();
+    expected.put(Constants.SCAN_METADATA_AGE, 0);
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
+
+    // Act
+    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+
+    // Assert
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SCAN, scan);
+    assertThat(actual.getContractResult()).isPresent();
+    assertThat(actual.getContractResult().get())
+        .isEqualTo(jacksonSerDe.serialize(createArrayNode(expected)));
+  }
+
+  @Test
+  public void update_NonExistingTableGiven_ShouldThrowContractContextException() {
+    // Arrange
+    insertAndGetRecords();
+    JsonNode values = mapper.createObjectNode().put(COLUMN_NAME_2, 10);
+    JsonNode update = prepareUpdate(TABLE_NAME_1, values, COLUMN_NAME_2, IntNode.valueOf(1));
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.TABLE_NOT_EXIST);
+  }
+
+  @Test
+  public void update_KeyConditionsNotGiven_ShouldThrowContractContextException() {
+    // Arrange
+    insertAndGetRecords();
+    JsonNode values = mapper.createObjectNode().put(COLUMN_NAME_2, 10);
+    JsonNode update =
+        prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_3, TextNode.valueOf("aaa"));
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.INVALID_KEY_SPECIFICATION);
+  }
+
+  @Test
+  public void update_DifferentTypeIndexValueGiven_ShouldThrowContractContextException() {
+    // Arrange
+    insertAndGetRecords();
+    JsonNode values = mapper.createObjectNode().put(COLUMN_NAME_2, "updated");
+    JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+  }
+
+  @Test
+  public void update_PrimaryKeyValueGiven_ShouldThrowContractContextException() {
+    // Arrange
+    insertAndGetRecords();
+    JsonNode values =
+        mapper.createObjectNode().put(COLUMN_NAME_1, "updated").put(COLUMN_NAME_2, 10);
+    JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.CANNOT_UPDATE_KEY);
   }
 }
