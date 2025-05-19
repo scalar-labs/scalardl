@@ -101,7 +101,8 @@ jobs:
       - name: Run integration tests
         working-directory: ledger
         run: |
-          java -cp "build/test-libs/*;build/libs/*;build/classes/java/integrationTest" `
+          java -Xmx6g -XX:MaxDirectMemorySize=4g `
+          -cp "build/test-libs/*;build/libs/*;build/classes/java/integrationTest" `
           "-Dscalardb.storage=cosmos" `
           "-Dscalardb.contact_points=https://localhost:8081/" `
           "-Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" `
