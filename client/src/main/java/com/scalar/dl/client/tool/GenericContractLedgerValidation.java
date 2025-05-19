@@ -1,7 +1,5 @@
 package com.scalar.dl.client.tool;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
@@ -9,7 +7,6 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.service.GenericContractClientService;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.File;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
@@ -107,8 +104,6 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
 
   @VisibleForTesting
   Integer call(ClientServiceFactory factory, GenericContractClientService service) {
-    JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
-
     try {
       LedgerValidationResult result;
       if (arguments.objectId != null) {
@@ -120,7 +115,7 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
           result = service.validateTableSchema(arguments.table.tableName, startAge, endAge);
         } else {
           String tableName = arguments.table.tableName;
-          JsonNode value = serde.deserialize(arguments.table.key.value);
+          String value = arguments.table.key.value;
           if (arguments.table.key.name.primary != null) {
             result =
                 service.validateRecord(

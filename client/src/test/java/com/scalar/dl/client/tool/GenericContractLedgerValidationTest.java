@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.node.DoubleNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
@@ -167,7 +165,7 @@ public class GenericContractLedgerValidationTest {
     @DisplayName("with --primary-key-column-name")
     class withPrimaryKeyColumnName {
       @Test
-      @DisplayName("with text value")
+      @DisplayName("with value")
       void withTextValue() {
         // Arrange
         String[] args =
@@ -175,14 +173,13 @@ public class GenericContractLedgerValidationTest {
               "--properties=PROPERTIES_FILE",
               "--table-name=TABLE_NAME",
               "--primary-key-column-name=COLUMN_NAME",
-              "--column-value=\"VALUE\"",
+              "--column-value=VALUE",
               "--start-age=10",
               "--end-age=20",
             };
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateRecord(
-                "TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20))
+        when(clientService.validateRecord("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20))
             .thenReturn(result);
 
         // Act
@@ -190,36 +187,7 @@ public class GenericContractLedgerValidationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService)
-            .validateRecord("TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20);
-      }
-
-      @Test
-      @DisplayName("with numeric value")
-      void withNumericValue() {
-        // Arrange
-        String[] args =
-            new String[] {
-              "--properties=PROPERTIES_FILE",
-              "--table-name=TABLE_NAME",
-              "--primary-key-column-name=COLUMN_NAME",
-              "--column-value=1.23",
-              "--start-age=10",
-              "--end-age=20",
-            };
-        GenericContractLedgerValidation command = parseArgs(args);
-        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateRecord(
-                "TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20))
-            .thenReturn(result);
-
-        // Act
-        int exitCode = command.call(factory, clientService);
-
-        // Assert
-        assertThat(exitCode).isEqualTo(0);
-        verify(clientService)
-            .validateRecord("TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20);
+        verify(clientService).validateRecord("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20);
       }
 
       @Test
@@ -247,7 +215,7 @@ public class GenericContractLedgerValidationTest {
     @DisplayName("with --index-key-column-name")
     class withIndexKeyColumnName {
       @Test
-      @DisplayName("with text value")
+      @DisplayName("with value")
       void withTextValue() {
         // Arrange
         String[] args =
@@ -255,14 +223,13 @@ public class GenericContractLedgerValidationTest {
               "--properties=PROPERTIES_FILE",
               "--table-name=TABLE_NAME",
               "--index-key-column-name=COLUMN_NAME",
-              "--column-value=\"VALUE\"",
+              "--column-value=VALUE",
               "--start-age=10",
               "--end-age=20",
             };
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateIndexEntry(
-                "TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20))
+        when(clientService.validateIndexEntry("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20))
             .thenReturn(result);
 
         // Act
@@ -270,36 +237,7 @@ public class GenericContractLedgerValidationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService)
-            .validateIndexEntry("TABLE_NAME", "COLUMN_NAME", TextNode.valueOf("VALUE"), 10, 20);
-      }
-
-      @Test
-      @DisplayName("with numeric value")
-      void withNumericValue() {
-        // Arrange
-        String[] args =
-            new String[] {
-              "--properties=PROPERTIES_FILE",
-              "--table-name=TABLE_NAME",
-              "--index-key-column-name=COLUMN_NAME",
-              "--column-value=1.23",
-              "--start-age=10",
-              "--end-age=20",
-            };
-        GenericContractLedgerValidation command = parseArgs(args);
-        LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateIndexEntry(
-                "TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20))
-            .thenReturn(result);
-
-        // Act
-        int exitCode = command.call(factory, clientService);
-
-        // Assert
-        assertThat(exitCode).isEqualTo(0);
-        verify(clientService)
-            .validateIndexEntry("TABLE_NAME", "COLUMN_NAME", DoubleNode.valueOf(1.23), 10, 20);
+        verify(clientService).validateIndexEntry("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20);
       }
 
       @Test

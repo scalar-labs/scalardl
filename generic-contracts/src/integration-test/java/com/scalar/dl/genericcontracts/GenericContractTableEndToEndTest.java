@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import javax.json.Json;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -1590,7 +1591,33 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
-  public void validateRecord_IntValueGiven_ShouldReturnCorrectResult() {
+  public void validateRecord_JsonValueGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    double value = 1.0;
+    createTable(
+        TABLE_NAME_1,
+        COLUMN_NAME_1,
+        KEY_TYPE_NUMBER,
+        ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
+    insertRecord(TABLE_NAME_1, 1, 1);
+    String expected =
+        PREFIX_RECORD
+            + String.join(ASSET_ID_SEPARATOR, ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_1, "1"));
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateRecord(TABLE_NAME_1, COLUMN_NAME_1, Json.createValue(value));
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(expected);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateRecord_ValueNodeGiven_ShouldReturnCorrectResult() {
     // Arrange
     createTable(
         TABLE_NAME_1,
@@ -1615,7 +1642,62 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
-  public void validateIndexEntry_DoubleValueGiven_ShouldReturnCorrectResult() {
+  public void validateRecord_StringGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    String value = "val";
+    createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_STRING, ImmutableMap.of());
+    JsonNode record = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, TextNode.valueOf(value)));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    String expected =
+        PREFIX_RECORD
+            + String.join(ASSET_ID_SEPARATOR, ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_1, value));
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateRecord(TABLE_NAME_1, COLUMN_NAME_1, "\"" + value + "\"");
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(expected);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateIndexEntry_JsonValueGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    int value = 1;
+    createTable(
+        TABLE_NAME_1,
+        COLUMN_NAME_1,
+        KEY_TYPE_NUMBER,
+        ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
+    JsonNode record =
+        prepareRecord(
+            ImmutableMap.of(
+                COLUMN_NAME_1, IntNode.valueOf(1), COLUMN_NAME_2, IntNode.valueOf(value)));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    String expected =
+        PREFIX_INDEX
+            + String.join(
+                ASSET_ID_SEPARATOR,
+                ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_2, String.valueOf(value)));
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, Json.createValue(value));
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(expected);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateIndexEntry_ValueNodeGiven_ShouldReturnCorrectResult() {
     // Arrange
     createTable(
         TABLE_NAME_1,
@@ -1637,6 +1719,36 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Act
     LedgerValidationResult actual =
         clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, DoubleNode.valueOf(1.23));
+
+    // Assert
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof().isPresent()).isTrue();
+    assertThat(actual.getLedgerProof().get().getId()).isEqualTo(expected);
+    assertThat(actual.getLedgerProof().get().getAge()).isEqualTo(0);
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateIndexEntry_StringGiven_ShouldReturnCorrectResult() {
+    // Arrange
+    String value = "val";
+    createTable(
+        TABLE_NAME_1,
+        COLUMN_NAME_1,
+        KEY_TYPE_NUMBER,
+        ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_STRING));
+    JsonNode record =
+        prepareRecord(
+            ImmutableMap.of(
+                COLUMN_NAME_1, IntNode.valueOf(1), COLUMN_NAME_2, TextNode.valueOf(value)));
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    String expected =
+        PREFIX_INDEX
+            + String.join(ASSET_ID_SEPARATOR, ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_2, value));
+
+    // Act
+    LedgerValidationResult actual =
+        clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, "\"" + value + "\"");
 
     // Assert
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
