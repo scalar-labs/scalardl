@@ -29,7 +29,7 @@ public class ShowTablesTest {
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final String SOME_TABLE_NAME_1 = "tbl1";
-  private static final String SOME_TABLE_NAME_2 = "tbl1";
+  private static final String SOME_TABLE_NAME_2 = "tbl2";
   private static final String SOME_TABLE_KEY = "key";
   private static final String SOME_KEY_TYPE_STRING = "string";
   private static final String SOME_INDEX_KEY_1 = "key1";
