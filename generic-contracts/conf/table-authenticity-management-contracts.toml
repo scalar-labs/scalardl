@@ -19,6 +19,16 @@ contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.Update"
 contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/Update.class"
 
 [[contracts]]
+contract-id = "table.v1_0_0.ShowTables"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.ShowTables"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/ShowTables.class"
+
+[[contracts]]
+contract-id = "table.v1_0_0.GetHistory"
+contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.GetHistory"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/GetHistory.class"
+
+[[contracts]]
 contract-id = "table.v1_0_0.GetAssetId"
 contract-binary-name = "com.scalar.dl.genericcontracts.table.v1_0_0.GetAssetId"
 contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/table/v1_0_0/GetAssetId.class"
