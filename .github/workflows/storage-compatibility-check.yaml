@@ -100,6 +100,9 @@ jobs:
       # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
         working-directory: ledger
+        # The heap size (-Xmx6g) and direct memory size (-XX:MaxDirectMemorySize=4g) were chosen
+        # to handle high memory demands of the Cosmos DB emulator during integration tests,
+        # ensuring stability and avoiding out-of-memory errors.
         run: |
           java -Xmx6g -XX:MaxDirectMemorySize=4g `
           -cp "build/test-libs/*;build/libs/*;build/classes/java/integrationTest" `
