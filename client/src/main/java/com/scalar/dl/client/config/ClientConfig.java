@@ -434,15 +434,7 @@ public class ClientConfig {
       secretKeyVersion =
           ConfigUtils.getInt(props, HMAC_SECRET_KEY_VERSION, DEFAULT_SECRET_KEY_VERSION);
       secretKey = ConfigUtils.getString(props, HMAC_SECRET_KEY, null);
-      String deprecatedAuthenticationMethod =
-          ConfigUtils.getString(
-              props, DEPRECATED_AUTHENTICATION_METHOD, DEFAULT_AUTHENTICATION_METHOD.getMethod());
-      authenticationMethod =
-          AuthenticationMethod.get(
-              Objects.requireNonNull(
-                      ConfigUtils.getString(
-                          props, AUTHENTICATION_METHOD, deprecatedAuthenticationMethod))
-                  .toLowerCase());
+      authenticationMethod = getAuthenticationMethod(DEFAULT_AUTHENTICATION_METHOD);
 
       // validate and create identity config
       validateAuthentication();
@@ -456,17 +448,7 @@ public class ClientConfig {
       }
     } else {
       // for intermediary mode
-      String deprecatedAuthenticationMethod =
-          ConfigUtils.getString(
-              props,
-              DEPRECATED_AUTHENTICATION_METHOD,
-              AuthenticationMethod.PASS_THROUGH.getMethod());
-      authenticationMethod =
-          AuthenticationMethod.get(
-              Objects.requireNonNull(
-                      ConfigUtils.getString(
-                          props, AUTHENTICATION_METHOD, deprecatedAuthenticationMethod))
-                  .toLowerCase());
+      authenticationMethod = getAuthenticationMethod(AuthenticationMethod.PASS_THROUGH);
       if (authenticationMethod != AuthenticationMethod.PASS_THROUGH) {
         throw new IllegalArgumentException(
             ClientError.CONFIG_INVALID_AUTHENTICATION_METHOD_FOR_INTERMEDIARY_MODE.buildMessage());
@@ -513,6 +495,15 @@ public class ClientConfig {
 
     ledgerTargetConfig = createLedgerTargetConfig();
     auditorTargetConfig = createAuditorTargetConfig();
+  }
+
+  private AuthenticationMethod getAuthenticationMethod(AuthenticationMethod defaultMethod) {
+    String authenticationMethod =
+        ConfigUtils.getString(props, DEPRECATED_AUTHENTICATION_METHOD, defaultMethod.getMethod());
+    return AuthenticationMethod.get(
+        Objects.requireNonNull(
+                ConfigUtils.getString(props, AUTHENTICATION_METHOD, authenticationMethod))
+            .toLowerCase());
   }
 
   private void validateAuthentication() {
