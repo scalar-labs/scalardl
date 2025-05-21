@@ -157,8 +157,17 @@ public class ClientConfig {
    * <code>scalar.dl.client.authentication_method</code> (Optional)<br>
    * The authentication method for a client and servers. Use {@code "digital-signature"} (default)
    * or {@code "hmac"}.
+   *
+   * @deprecated This variable will be deleted in release 5.0.0. Use {@code
+   *     scalar.dl.client.authentication.method} instead.
    */
-  public static final String AUTHENTICATION_METHOD = PREFIX + "authentication_method";
+  public static final String DEPRECATED_AUTHENTICATION_METHOD = PREFIX + "authentication_method";
+  /**
+   * <code>scalar.dl.client.authentication.method</code> (Optional)<br>
+   * The authentication method for a client and servers. Use {@code "digital-signature"} (default)
+   * or {@code "hmac"}.
+   */
+  public static final String AUTHENTICATION_METHOD = PREFIX + "authentication.method";
   /**
    * <code>scalar.dl.client.tls.enabled</code> (Optional)<br>
    * A flag to enable TLS communication for Ledger (false by default).
@@ -425,11 +434,14 @@ public class ClientConfig {
       secretKeyVersion =
           ConfigUtils.getInt(props, HMAC_SECRET_KEY_VERSION, DEFAULT_SECRET_KEY_VERSION);
       secretKey = ConfigUtils.getString(props, HMAC_SECRET_KEY, null);
+      String deprecatedAuthenticationMethod =
+          ConfigUtils.getString(
+              props, DEPRECATED_AUTHENTICATION_METHOD, DEFAULT_AUTHENTICATION_METHOD.getMethod());
       authenticationMethod =
           AuthenticationMethod.get(
               Objects.requireNonNull(
                       ConfigUtils.getString(
-                          props, AUTHENTICATION_METHOD, DEFAULT_AUTHENTICATION_METHOD.getMethod()))
+                          props, AUTHENTICATION_METHOD, deprecatedAuthenticationMethod))
                   .toLowerCase());
 
       // validate and create identity config
@@ -444,13 +456,16 @@ public class ClientConfig {
       }
     } else {
       // for intermediary mode
+      String deprecatedAuthenticationMethod =
+          ConfigUtils.getString(
+              props,
+              DEPRECATED_AUTHENTICATION_METHOD,
+              AuthenticationMethod.PASS_THROUGH.getMethod());
       authenticationMethod =
           AuthenticationMethod.get(
               Objects.requireNonNull(
                       ConfigUtils.getString(
-                          props,
-                          AUTHENTICATION_METHOD,
-                          AuthenticationMethod.PASS_THROUGH.getMethod()))
+                          props, AUTHENTICATION_METHOD, deprecatedAuthenticationMethod))
                   .toLowerCase());
       if (authenticationMethod != AuthenticationMethod.PASS_THROUGH) {
         throw new IllegalArgumentException(
