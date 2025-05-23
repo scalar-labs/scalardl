@@ -69,6 +69,16 @@ public class SelectTest {
         .set(Constants.QUERY_CONDITIONS, conditions);
   }
 
+  private ObjectNode createScanArguments(String tableName, JsonNode conditions) {
+    ObjectNode scan = mapper.createObjectNode();
+    scan.put(Constants.QUERY_TABLE, tableName);
+    scan.set(Constants.QUERY_CONDITIONS, conditions);
+    scan.set(
+        Constants.SCAN_OPTIONS,
+        mapper.createObjectNode().put(Constants.SCAN_OPTIONS_TABLE_REFERENCE, tableName));
+    return scan;
+  }
+
   private ArrayNode createArrayNode(JsonNode... jsonNodes) {
     ArrayNode result = mapper.createArrayNode();
     Arrays.stream(jsonNodes).forEach(result::add);
@@ -107,12 +117,13 @@ public class SelectTest {
                 .add(createIndexNode(SOME_INDEX_KEY_COLUMN, SOME_KEY_TYPE_STRING)));
   }
 
-  private static ObjectNode createRecord(String primaryKey, String indexKey, String stringValue) {
+  private static ObjectNode createRecord(
+      String prefix, String primaryKey, String indexKey, String stringValue) {
     return mapper
         .createObjectNode()
-        .put(SOME_PRIMARY_KEY_COLUMN, primaryKey)
-        .put(SOME_INDEX_KEY_COLUMN, indexKey)
-        .put(SOME_COLUMN_STRING, stringValue);
+        .put(prefix + SOME_PRIMARY_KEY_COLUMN, primaryKey)
+        .put(prefix + SOME_INDEX_KEY_COLUMN, indexKey)
+        .put(prefix + SOME_COLUMN_STRING, stringValue);
   }
 
   private Asset<JsonNode> createAsset(JsonNode data) {
@@ -695,12 +706,20 @@ public class SelectTest {
     Asset<JsonNode> table2 = createAsset(createTable(SOME_TABLE_NAME_2));
     Asset<JsonNode> table3 = createAsset(createTable(SOME_TABLE_NAME_3));
     JsonNode records1 =
-        mapper.createArrayNode().add(createRecord("1", "0", "3")).add(createRecord("2", "0", "4"));
-    JsonNode records2 = mapper.createArrayNode().add(createRecord("3", "1", "1"));
-    JsonNode records3 = mapper.createArrayNode().add(createRecord("4", "1", "2"));
+        mapper
+            .createArrayNode()
+            .add(createRecord(SOME_TABLE_PREFIX_1, "1", "0", "3"))
+            .add(createRecord(SOME_TABLE_PREFIX_1, "2", "0", "4"));
+    JsonNode records2 =
+        mapper.createArrayNode().add(createRecord(SOME_TABLE_PREFIX_2, "3", "1", "1"));
+    JsonNode records3 =
+        mapper.createArrayNode().add(createRecord(SOME_TABLE_PREFIX_2, "4", "1", "2"));
     JsonNode records4 = mapper.createArrayNode();
     JsonNode records5 =
-        mapper.createArrayNode().add(createRecord("5", "2", "3")).add(createRecord("6", "2", "3"));
+        mapper
+            .createArrayNode()
+            .add(createRecord(SOME_TABLE_PREFIX_3, "5", "2", "3"))
+            .add(createRecord(SOME_TABLE_PREFIX_3, "6", "2", "3"));
     JsonNode expected =
         mapper
             .createArrayNode()
@@ -715,15 +734,15 @@ public class SelectTest {
                     .put(SOME_TABLE_PREFIX_1 + SOME_PRIMARY_KEY_COLUMN, "2")
                     .put(SOME_TABLE_PREFIX_3 + SOME_COLUMN_STRING, "3"));
     JsonNode expectedScan1 =
-        createQueryArguments(SOME_TABLE_NAME_1, createConditions(SOME_INDEX_KEY_COLUMN, "0"));
+        createScanArguments(SOME_TABLE_NAME_1, createConditions(SOME_INDEX_KEY_COLUMN, "0"));
     JsonNode expectedScan2 =
-        createQueryArguments(SOME_TABLE_NAME_2, createConditions(SOME_PRIMARY_KEY_COLUMN, "3"));
+        createScanArguments(SOME_TABLE_NAME_2, createConditions(SOME_PRIMARY_KEY_COLUMN, "3"));
     JsonNode expectedScan3 =
-        createQueryArguments(SOME_TABLE_NAME_2, createConditions(SOME_PRIMARY_KEY_COLUMN, "4"));
+        createScanArguments(SOME_TABLE_NAME_2, createConditions(SOME_PRIMARY_KEY_COLUMN, "4"));
     JsonNode expectedScan4 =
-        createQueryArguments(SOME_TABLE_NAME_3, createConditions(SOME_INDEX_KEY_COLUMN, "1"));
+        createScanArguments(SOME_TABLE_NAME_3, createConditions(SOME_INDEX_KEY_COLUMN, "1"));
     JsonNode expectedScan5 =
-        createQueryArguments(SOME_TABLE_NAME_3, createConditions(SOME_INDEX_KEY_COLUMN, "2"));
+        createScanArguments(SOME_TABLE_NAME_3, createConditions(SOME_INDEX_KEY_COLUMN, "2"));
     when(ledger.get(Constants.PREFIX_TABLE + SOME_TABLE_NAME_1)).thenReturn(Optional.of(table1));
     when(ledger.get(Constants.PREFIX_TABLE + SOME_TABLE_NAME_2)).thenReturn(Optional.of(table2));
     when(ledger.get(Constants.PREFIX_TABLE + SOME_TABLE_NAME_3)).thenReturn(Optional.of(table3));

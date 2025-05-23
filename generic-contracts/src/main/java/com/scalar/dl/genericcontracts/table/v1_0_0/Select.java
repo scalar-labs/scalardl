@@ -64,30 +64,22 @@ public class Select extends JacksonBasedContract {
             Constants.CONTRACT_SCAN,
             ledger,
             prepareScanArguments(
-                getTableName(leftmostTable), leftmostTableReference, conditionsMap));
+                getTableName(leftmostTable),
+                leftmostTableReference,
+                conditionsMap,
+                !joins.isEmpty()));
 
     // Join tables
-    boolean isLeftmostTableJoin = true;
     for (JsonNode join : joins) {
       ArrayNode joinedRecords = getObjectMapper().createArrayNode();
 
       for (JsonNode leftRecord : records) {
-        if (isLeftmostTableJoin) {
-          leftRecord = addTableReferenceForColumns(leftRecord, leftmostTableReference);
-        }
-
         // Get right records whose join key matches that of the left record
         JsonNode rightTable = join.get(Constants.JOIN_TABLE);
         JsonNode rightRecords = scanRightTable(ledger, join, leftRecord, rightTable, conditionsMap);
-        String rightTableReference = getTableReference(rightTable);
         for (JsonNode rightRecord : rightRecords) {
-          rightRecord = addTableReferenceForColumns(rightRecord, rightTableReference);
           joinedRecords.add(join(leftRecord, rightRecord));
         }
-      }
-
-      if (isLeftmostTableJoin) {
-        isLeftmostTableJoin = false;
       }
 
       records = joinedRecords;
@@ -128,7 +120,8 @@ public class Select extends JacksonBasedContract {
     return invokeSubContract(
         Constants.CONTRACT_SCAN,
         ledger,
-        prepareScanArguments(rightTableName, rightTableReference, conditionsMap, joinCondition));
+        prepareScanArguments(
+            rightTableName, rightTableReference, conditionsMap, true, joinCondition));
   }
 
   private JsonNode join(JsonNode leftRecord, JsonNode rightRecord) {
@@ -194,24 +187,38 @@ public class Select extends JacksonBasedContract {
   }
 
   private JsonNode prepareScanArguments(
-      String tableName, String tableReference, ListMultimap<String, JsonNode> conditionsMap) {
-    return prepareScanArguments(tableName, tableReference, conditionsMap, null);
+      String tableName,
+      String tableReference,
+      ListMultimap<String, JsonNode> conditionsMap,
+      boolean forJoin) {
+    return prepareScanArguments(tableName, tableReference, conditionsMap, forJoin, null);
   }
 
   private JsonNode prepareScanArguments(
       String tableName,
       String tableReference,
       ListMultimap<String, JsonNode> conditionsMap,
-      JsonNode joinCondition) {
+      boolean forJoin,
+      @Nullable JsonNode joinCondition) {
+    ObjectNode scan = getObjectMapper().createObjectNode().put(Constants.QUERY_TABLE, tableName);
+
     ArrayNode conditionArray = getObjectMapper().createArrayNode();
     if (joinCondition != null) {
       conditionArray.add(joinCondition);
     }
     conditionsMap.get(tableReference).forEach(conditionArray::add);
-    return getObjectMapper()
-        .createObjectNode()
-        .put(Constants.QUERY_TABLE, tableName)
-        .set(Constants.QUERY_CONDITIONS, conditionArray);
+    scan.set(Constants.QUERY_CONDITIONS, conditionArray);
+
+    if (forJoin) {
+      // Add table reference for each column of the result records if the scan is for a join
+      scan.set(
+          Constants.SCAN_OPTIONS,
+          getObjectMapper()
+              .createObjectNode()
+              .put(Constants.SCAN_OPTIONS_TABLE_REFERENCE, tableReference));
+    }
+
+    return scan;
   }
 
   private JsonNode getTableMetadata(Ledger<JsonNode> ledger, String tableName) {
@@ -220,22 +227,6 @@ public class Select extends JacksonBasedContract {
         .get(tableAssetId)
         .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST))
         .data();
-  }
-
-  private String addTableReference(String tableReference, String columnName) {
-    return tableReference + Constants.COLUMN_SEPARATOR + columnName;
-  }
-
-  private JsonNode addTableReferenceForColumns(JsonNode record, String tableReference) {
-    ObjectNode renamed = getObjectMapper().createObjectNode();
-    Iterator<Entry<String, JsonNode>> columns = record.fields();
-
-    while (columns.hasNext()) {
-      Map.Entry<String, JsonNode> column = columns.next();
-      renamed.set(addTableReference(tableReference, column.getKey()), column.getValue());
-    }
-
-    return renamed;
   }
 
   private Set<String> getJoinTableReferences(JsonNode joins) {
