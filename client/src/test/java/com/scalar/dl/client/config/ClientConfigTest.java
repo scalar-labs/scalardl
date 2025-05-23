@@ -608,6 +608,54 @@ public class ClientConfigTest {
   }
 
   @Test
+  public void constructor_HmacAuthAsDeprecatedAuthenticationMethodGiven_ShouldCreateConfigProperly()
+      throws IOException {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.ENTITY_ID, SOME_ENTITY_ID);
+    props.put(ClientConfig.DEPRECATED_AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props.put(ClientConfig.HMAC_SECRET_KEY_VERSION, SOME_SECRET_KEY_VERSION);
+    props.put(ClientConfig.HMAC_SECRET_KEY, SOME_SECRET_KEY);
+
+    // Act
+    ClientConfig config = new ClientConfig(props);
+
+    // Assert
+    assertThat(config.getHmacIdentityConfig().getEntityId()).isEqualTo(SOME_ENTITY_ID);
+    assertThat(config.getHmacIdentityConfig().getSecretKeyVersion())
+        .isEqualTo(Integer.parseInt(SOME_SECRET_KEY_VERSION));
+    assertThat(config.getHmacIdentityConfig().getSecretKey()).isEqualTo(SOME_SECRET_KEY);
+    assertThat(config.getDigitalSignatureIdentityConfig()).isNull();
+  }
+
+  @Test
+  public void
+      constructor_BothDeprecatedAndNonDeprecatedAuthenticationMethodsGiven_ShouldCreateConfigWithNonDeprecatedOne()
+          throws IOException {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.ENTITY_ID, SOME_ENTITY_ID);
+    props.put(
+        ClientConfig.AUTHENTICATION_METHOD, AuthenticationMethod.DIGITAL_SIGNATURE.getMethod());
+    props.put(ClientConfig.DEPRECATED_AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props.put(ClientConfig.DS_CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.DS_CERT_VERSION, SOME_CERT_VERSION);
+    props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+
+    // Act
+    ClientConfig config = new ClientConfig(props);
+
+    // Assert
+    assertThat(config.getDigitalSignatureIdentityConfig().getEntityId()).isEqualTo(SOME_ENTITY_ID);
+    assertThat(config.getDigitalSignatureIdentityConfig().getCert()).isEqualTo(SOME_CERT_PEM);
+    assertThat(config.getDigitalSignatureIdentityConfig().getCertVersion())
+        .isEqualTo(Integer.parseInt(SOME_CERT_VERSION));
+    assertThat(config.getDigitalSignatureIdentityConfig().getPrivateKey())
+        .isEqualTo(SOME_PRIVATE_KEY_PEM);
+    assertThat(config.getHmacIdentityConfig()).isNull();
+  }
+
+  @Test
   public void constructor_SameClientConfigGiven_ShouldReturnEqualConfigs() throws IOException {
     // Arrange
     Properties props = new Properties();
