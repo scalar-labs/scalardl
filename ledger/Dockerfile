@@ -1,7 +1,7 @@
 FROM docker.io/busybox:1.36 AS tools
 
 ENV DOCKERIZE_VERSION v0.6.1
-ENV GRPC_HEALTH_PROBE_VERSION v0.4.37
+ENV GRPC_HEALTH_PROBE_VERSION v0.4.38
 
 # Install dockerize
 RUN set -x && \
