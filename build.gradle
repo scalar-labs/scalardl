@@ -26,7 +26,7 @@ subprojects {
         scalarDbVersion = '3.15.3'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
-        dropwizardMetricsVersion = '4.2.30'
+        dropwizardMetricsVersion = '4.2.32'
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.57.v20241219'
         assertjVersion = '3.27.3'
