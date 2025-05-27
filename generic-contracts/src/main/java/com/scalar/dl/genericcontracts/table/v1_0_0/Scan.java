@@ -257,7 +257,7 @@ public class Scan extends JacksonBasedContract {
     return tableReference + Constants.COLUMN_SEPARATOR + columnName;
   }
 
-  private JsonNode addTableReferenceForColumns(JsonNode record, String tableReference) {
+  private JsonNode addTableReferenceToColumns(JsonNode record, String tableReference) {
     ObjectNode renamed = getObjectMapper().createObjectNode();
     Iterator<Entry<String, JsonNode>> columns = record.fields();
 
@@ -293,7 +293,7 @@ public class Scan extends JacksonBasedContract {
       }
       if (allMatched) {
         results.add(
-            tableReference == null ? record : addTableReferenceForColumns(record, tableReference));
+            tableReference == null ? record : addTableReferenceToColumns(record, tableReference));
       }
     }
 
