@@ -57,6 +57,7 @@ public class Constants {
   public static final String OPERATOR_IS_NOT_NULL = "IS_NOT_NULL";
   public static final String SCAN_OPTIONS = "options";
   public static final String SCAN_OPTIONS_INCLUDE_METADATA = "include_metadata";
+  public static final String SCAN_OPTIONS_TABLE_REFERENCE = "table_reference";
   public static final String SCAN_METADATA_AGE = "age$";
 
   // Patterns
