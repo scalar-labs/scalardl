@@ -412,6 +412,26 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
+  public void create_DuplicateIndexColumnsGiven_ShouldThrowContractContextException() {
+    // Arrange
+    ArrayNode indexNodes = mapper.createArrayNode();
+    indexNodes.add(createIndexNode(COLUMN_NAME_2, KEY_TYPE_STRING));
+    indexNodes.add(createIndexNode(COLUMN_NAME_2, KEY_TYPE_NUMBER));
+    JsonNode table =
+        mapper
+            .createObjectNode()
+            .put(Constants.TABLE_NAME, TABLE_NAME_1)
+            .put(Constants.TABLE_KEY, COLUMN_NAME_1)
+            .put(Constants.TABLE_KEY_TYPE, KEY_TYPE_STRING)
+            .set(Constants.TABLE_INDEXES, indexNodes);
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_CREATE, table))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.COLUMN_AMBIGUOUS + COLUMN_NAME_2);
+  }
+
+  @Test
   public void insert_NonExistingRecordGiven_ShouldInsertRecordProperly() {
     // Arrange
     JsonNode key = TextNode.valueOf("key");
@@ -459,7 +479,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_INSERT, insert))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
 
   @Test
@@ -1548,29 +1568,31 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
 
   @Test
   public void select_DifferentTypeKeyConditionGiven_ShouldThrowContractContextException() {
     // Arrange
-    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_1, IntNode.valueOf(1));
+    IntNode value = IntNode.valueOf(1);
+    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_1, value);
 
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + value.getNodeType());
   }
 
   @Test
   public void select_DifferentTypeIndexConditionGiven_ShouldThrowContractContextException() {
     // Arrange
-    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, TextNode.valueOf("a"));
+    TextNode value = TextNode.valueOf("a");
+    JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value);
 
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + value.getNodeType().name());
   }
 
   @Test
@@ -1823,7 +1845,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
 
   @Test
@@ -1844,13 +1866,14 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   public void update_DifferentTypeIndexValueGiven_ShouldThrowContractContextException() {
     // Arrange
     insertAndGetRecords();
-    JsonNode values = mapper.createObjectNode().put(COLUMN_NAME_2, "updated");
+    TextNode updateValue = TextNode.valueOf("update");
+    JsonNode values = mapper.createObjectNode().set(COLUMN_NAME_2, updateValue);
     JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
 
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + updateValue.getNodeType().name());
   }
 
   @Test
@@ -1909,7 +1932,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
 
   @Test
@@ -1992,15 +2015,16 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   @Test
   public void getHistory_InvalidKeyTypeGiven_ShouldReturnEmpty() {
     // Arrange
+    IntNode value = IntNode.valueOf(0);
     JsonNode arguments =
         mapper
             .createObjectNode()
             .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
-            .put(Constants.RECORD_KEY, 0);
+            .set(Constants.RECORD_KEY, value);
 
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + value.getNodeType().name());
   }
 }

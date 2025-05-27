@@ -40,6 +40,7 @@ public class UpdateTest {
   private static final String SOME_VALUE = "value";
   private static final String SOME_KEY_TYPE_STRING = "string";
   private static final String SOME_KEY_TYPE_NUMBER = "number";
+  private static final String SOME_INVALID_OBJECT_NAME = "invalid-object-name";
   private static final String SOME_INVALID_FIELD = "field";
   private static final String SOME_INVALID_VALUE = "value";
   private static final ObjectNode SOME_RECORD_VALUES =
@@ -455,6 +456,40 @@ public class UpdateTest {
   }
 
   @Test
+  public void invoke_UnsupportedTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    ObjectNode argument = mapper.createObjectNode();
+    argument.put(Constants.UPDATE_TABLE, SOME_INVALID_OBJECT_NAME);
+    argument.set(Constants.UPDATE_VALUES, SOME_RECORD_VALUES);
+    argument.set(Constants.UPDATE_CONDITIONS, createConditions());
+
+    // Act Assert
+    assertThatThrownBy(() -> update.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(any());
+    verify(ledger, never()).put(any(), any());
+  }
+
+  @Test
+  public void invoke_UnsupportedFieldNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    ObjectNode argument = mapper.createObjectNode();
+    argument.put(Constants.UPDATE_TABLE, SOME_INVALID_OBJECT_NAME);
+    argument.set(
+        Constants.UPDATE_VALUES,
+        mapper.createObjectNode().put(SOME_INVALID_OBJECT_NAME, SOME_VALUE));
+    argument.set(Constants.UPDATE_CONDITIONS, createConditions());
+
+    // Act Assert
+    assertThatThrownBy(() -> update.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(any());
+    verify(ledger, never()).put(any(), any());
+  }
+
+  @Test
   public void invoke_NonExistingTableGiven_ShouldThrowContractContextException() {
     // Arrange
     ObjectNode argument = mapper.createObjectNode();
@@ -466,7 +501,7 @@ public class UpdateTest {
     // Act Assert
     assertThatThrownBy(() -> update.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + SOME_TABLE_NAME);
     verify(ledger).get(tableAssetId);
     verify(ledger, times(1)).get(any());
     verify(ledger, never()).put(any(), any());
@@ -507,7 +542,8 @@ public class UpdateTest {
     // Act Assert
     assertThatThrownBy(() -> update.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+        .hasMessage(
+            Constants.INVALID_INDEX_KEY_TYPE + TextNode.valueOf(SOME_VALUE).getNodeType().name());
     verify(ledger).get(tableAssetId);
     verify(ledger, times(1)).get(any());
     verify(ledger, never()).put(any(), any());

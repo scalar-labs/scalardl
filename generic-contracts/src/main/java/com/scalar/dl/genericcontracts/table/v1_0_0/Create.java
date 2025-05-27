@@ -8,7 +8,9 @@ import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 public class Create extends JacksonBasedContract {
@@ -30,8 +32,19 @@ public class Create extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_TABLE_FORMAT);
     }
 
-    if (!isSupportedKeyType(arguments.get(Constants.TABLE_KEY_TYPE).asText())) {
-      throw new ContractContextException(Constants.INVALID_KEY_TYPE);
+    String tableName = arguments.get(Constants.TABLE_NAME).asText();
+    if (!isSupportedObjectName(tableName)) {
+      throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName);
+    }
+
+    String key = arguments.get(Constants.TABLE_KEY).asText();
+    if (!isSupportedObjectName(key)) {
+      throw new ContractContextException(Constants.INVALID_OBJECT_NAME + key);
+    }
+
+    String keyType = arguments.get(Constants.TABLE_KEY_TYPE).asText();
+    if (!isSupportedKeyType(keyType)) {
+      throw new ContractContextException(Constants.INVALID_KEY_TYPE + keyType);
     }
 
     if (arguments.has(Constants.TABLE_INDEXES)) {
@@ -39,7 +52,7 @@ public class Create extends JacksonBasedContract {
     }
 
     // Get the table existence
-    String assetId = getAssetIdForTable(ledger, arguments.get(Constants.TABLE_NAME).asText());
+    String assetId = getAssetIdForTable(ledger, tableName);
     Optional<Asset<JsonNode>> asset = ledger.get(assetId);
     if (asset.isPresent()) {
       throw new ContractContextException(Constants.TABLE_ALREADY_EXISTS);
@@ -64,6 +77,7 @@ public class Create extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_INDEX_FORMAT);
     }
 
+    Set<String> seenColumns = new HashSet<>();
     for (JsonNode index : indexes) {
       if (!index.isObject()
           || index.size() != 2
@@ -73,10 +87,26 @@ public class Create extends JacksonBasedContract {
           || !index.get(Constants.INDEX_KEY_TYPE).isTextual()) {
         throw new ContractContextException(Constants.INVALID_INDEX_FORMAT);
       }
-      if (!isSupportedKeyType(index.get(Constants.INDEX_KEY_TYPE).asText())) {
-        throw new ContractContextException(Constants.INVALID_KEY_TYPE);
+
+      String indexKey = index.get(Constants.INDEX_KEY).asText();
+      if (!isSupportedObjectName(indexKey)) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + indexKey);
       }
+
+      String indexKeyType = index.get(Constants.INDEX_KEY_TYPE).asText();
+      if (!isSupportedKeyType(indexKeyType)) {
+        throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE + indexKeyType);
+      }
+
+      if (seenColumns.contains(indexKey)) {
+        throw new ContractContextException(Constants.COLUMN_AMBIGUOUS + indexKey);
+      }
+      seenColumns.add(indexKey);
     }
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   private JsonNode prepareTableMetadata(JsonNode arguments) {

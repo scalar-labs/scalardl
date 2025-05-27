@@ -11,6 +11,7 @@ import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Arrays;
+import java.util.Map.Entry;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -30,12 +31,22 @@ public class Insert extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_RECORD_FORMAT);
     }
 
-    // Get the table information
     String tableName = arguments.get(Constants.RECORD_TABLE).asText();
+    if (!isSupportedObjectName(tableName)) {
+      throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName);
+    }
+
+    for (Entry<String, JsonNode> column : arguments.get(Constants.RECORD_VALUES).properties()) {
+      if (!isSupportedObjectName(column.getKey())) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + column.getKey());
+      }
+    }
+
+    // Get the table information
     String tableAssetId = getAssetId(ledger, Constants.PREFIX_TABLE, TextNode.valueOf(tableName));
     Optional<Asset<JsonNode>> tableAsset = ledger.get(tableAssetId);
     if (!tableAsset.isPresent()) {
-      throw new ContractContextException(Constants.TABLE_NOT_EXIST);
+      throw new ContractContextException(Constants.TABLE_NOT_EXIST + tableName);
     }
 
     // Check the key existence and type in the argument
@@ -45,8 +56,8 @@ public class Insert extends JacksonBasedContract {
     if (!values.has(key)) {
       throw new ContractContextException(Constants.RECORD_KEY_NOT_EXIST);
     }
-    if (!keyType.toUpperCase().equals(values.get(key).getNodeType().name())) {
-      throw new ContractContextException(Constants.INVALID_KEY_TYPE);
+    if (!keyType.equalsIgnoreCase(values.get(key).getNodeType().name())) {
+      throw new ContractContextException(Constants.INVALID_KEY_TYPE + keyType);
     }
 
     // Check the record existence
@@ -82,8 +93,9 @@ public class Insert extends JacksonBasedContract {
       String assetId;
 
       if (values.has(indexKey) && !values.get(indexKey).isNull()) {
-        if (!indexKeyType.toUpperCase().equals(values.get(indexKey).getNodeType().name())) {
-          throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE);
+        String givenType = values.get(indexKey).getNodeType().name();
+        if (!givenType.equalsIgnoreCase(indexKeyType)) {
+          throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE + givenType);
         }
         assetId =
             getAssetId(
@@ -108,6 +120,10 @@ public class Insert extends JacksonBasedContract {
 
       ledger.put(assetId, getObjectMapper().createArrayNode().add(indexEntry));
     }
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   @VisibleForTesting

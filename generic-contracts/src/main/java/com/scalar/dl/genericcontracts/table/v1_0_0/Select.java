@@ -2,7 +2,6 @@ package com.scalar.dl.genericcontracts.table.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -12,9 +11,7 @@ import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -126,17 +123,13 @@ public class Select extends JacksonBasedContract {
 
   private JsonNode join(JsonNode leftRecord, JsonNode rightRecord) {
     ObjectNode joinedRecord = getObjectMapper().createObjectNode();
-    Iterator<Entry<String, JsonNode>> leftColumns = leftRecord.fields();
-    Iterator<Entry<String, JsonNode>> rightColumns = rightRecord.fields();
 
-    while (leftColumns.hasNext()) {
-      Map.Entry<String, JsonNode> column = leftColumns.next();
-      joinedRecord.set(column.getKey(), column.getValue());
+    for (Entry<String, JsonNode> leftColumn : leftRecord.properties()) {
+      joinedRecord.set(leftColumn.getKey(), leftColumn.getValue());
     }
 
-    while (rightColumns.hasNext()) {
-      Map.Entry<String, JsonNode> column = rightColumns.next();
-      joinedRecord.set(column.getKey(), column.getValue());
+    for (Entry<String, JsonNode> rightColumn : rightRecord.properties()) {
+      joinedRecord.set(rightColumn.getKey(), rightColumn.getValue());
     }
 
     return joinedRecord;
@@ -225,7 +218,7 @@ public class Select extends JacksonBasedContract {
     String tableAssetId = getAssetIdForTable(tableName);
     return ledger
         .get(tableAssetId)
-        .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST))
+        .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST + tableName))
         .data();
   }
 
@@ -240,8 +233,8 @@ public class Select extends JacksonBasedContract {
     return tables;
   }
 
-  private boolean isColumnName(String column) {
-    return Constants.COLUMN_NAME.matcher(column).matches();
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   private boolean isColumnReference(String column) {
@@ -317,8 +310,11 @@ public class Select extends JacksonBasedContract {
     boolean hasTableReference = isColumnReference(column);
 
     if (!hasTableReference) {
-      // Join queries must have a table reference
-      if ((tableReferences.size() == 1 && !isColumnName(column)) || tableReferences.size() > 1) {
+      if (tableReferences.size() == 1 && !isSupportedObjectName(column)) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + column);
+      }
+      if (tableReferences.size() > 1) {
+        // Join queries must have a table reference
         throw new ContractContextException(Constants.INVALID_COLUMN_FORMAT + column);
       }
       return;
@@ -332,13 +328,29 @@ public class Select extends JacksonBasedContract {
   }
 
   private void validateTable(JsonNode table) {
-    if ((!table.isTextual() && !table.isObject())
-        || (table.isObject()
-            && (table.size() != 2
-                || !table.has(Constants.ALIAS_NAME)
-                || !table.get(Constants.ALIAS_NAME).isTextual()
-                || !table.has(Constants.ALIAS_AS)
-                || !table.get(Constants.ALIAS_AS).isTextual()))) {
+    if (table.isTextual()) {
+      if (!isSupportedObjectName(table.asText())) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + table.asText());
+      }
+    } else if (table.isObject()) {
+      if (table.size() != 2
+          || !table.has(Constants.ALIAS_NAME)
+          || !table.get(Constants.ALIAS_NAME).isTextual()
+          || !table.has(Constants.ALIAS_AS)
+          || !table.get(Constants.ALIAS_AS).isTextual()) {
+        throw new ContractContextException(Constants.INVALID_QUERY_TABLE_FORMAT + table);
+      }
+
+      String tableName = table.get(Constants.ALIAS_NAME).asText();
+      if (!isSupportedObjectName(tableName)) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName);
+      }
+
+      String alias = table.get(Constants.ALIAS_AS).asText();
+      if (!isSupportedObjectName(alias)) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + alias);
+      }
+    } else {
       throw new ContractContextException(Constants.INVALID_QUERY_TABLE_FORMAT + table);
     }
   }
@@ -396,61 +408,17 @@ public class Select extends JacksonBasedContract {
     }
 
     for (JsonNode condition : conditions) {
+      // Although we do not check the operators here so that we can do it in a common function in
+      // the Scan contract, we still need to validate the column for a select-specific matter.
       if (!condition.isObject()
           || !condition.has(Constants.CONDITION_COLUMN)
-          || !condition.get(Constants.CONDITION_COLUMN).isTextual()
-          || !condition.has(Constants.CONDITION_OPERATOR)
-          || !condition.get(Constants.CONDITION_OPERATOR).isTextual()) {
+          || !condition.get(Constants.CONDITION_COLUMN).isTextual()) {
         throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
       }
 
       // Check the column
       validateColumn(condition.get(Constants.CONDITION_COLUMN).asText(), tableReferences);
-
-      // Check the operator
-      String operator = condition.get(Constants.CONDITION_OPERATOR).asText();
-      if (!isSupportedOperator(operator)) {
-        throw new ContractContextException(Constants.INVALID_OPERATOR + condition);
-      }
-
-      if (operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
-          || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL)) {
-        // For IS_NULL or IS_NOT_NULL
-        if (condition.size() != 2) {
-          throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
-        }
-      } else {
-        // For other operators
-        if (condition.size() != 3
-            || !condition.has(Constants.CONDITION_VALUE)
-            || !isSupportedDataTypeForComparisonOperators(
-                condition.get(Constants.CONDITION_VALUE).getNodeType().name())) {
-          throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
-        }
-        if (condition.get(Constants.CONDITION_VALUE).isBoolean()
-            && (!operator.equalsIgnoreCase(Constants.OPERATOR_EQ)
-                && !operator.equalsIgnoreCase(Constants.OPERATOR_NE))) {
-          throw new ContractContextException(Constants.INVALID_OPERATOR + condition);
-        }
-      }
     }
-  }
-
-  private boolean isSupportedDataTypeForComparisonOperators(String type) {
-    return type.toUpperCase().equals(JsonNodeType.BOOLEAN.name())
-        || type.toUpperCase().equals(JsonNodeType.NUMBER.name())
-        || type.toUpperCase().equals(JsonNodeType.STRING.name());
-  }
-
-  private boolean isSupportedOperator(String operator) {
-    return operator.equalsIgnoreCase(Constants.OPERATOR_EQ)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_NE)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_LT)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_LTE)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_GT)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_GTE)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
-        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL);
   }
 
   private void validateProjections(JsonNode projections, Set<String> tableReferences) {
