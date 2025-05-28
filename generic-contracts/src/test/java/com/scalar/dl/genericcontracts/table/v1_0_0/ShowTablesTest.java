@@ -34,6 +34,7 @@ public class ShowTablesTest {
   private static final String SOME_KEY_TYPE_STRING = "string";
   private static final String SOME_INDEX_KEY_1 = "key1";
   private static final String SOME_INDEX_KEY_2 = "key2";
+  private static final String SOME_INVALID_TABLE_NAME = "invalid-table-name";
   private static final JsonNode SOME_TABLE_1 = createTable(SOME_TABLE_NAME_1);
   private static final JsonNode SOME_TABLE_2 = createTable(SOME_TABLE_NAME_2);
 
@@ -150,7 +151,19 @@ public class ShowTablesTest {
     // Act Assert
     assertThatThrownBy(() -> showTables.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + SOME_TABLE_NAME_1);
     verify(ledger).get(tableAssetId);
+  }
+
+  @Test
+  public void invoke_UnsupportedTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper.createObjectNode().put(Constants.TABLE_NAME, SOME_INVALID_TABLE_NAME);
+
+    // Act Assert
+    assertThatThrownBy(() -> showTables.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_TABLE_NAME);
   }
 }

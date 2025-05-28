@@ -33,12 +33,18 @@ public class ShowTables extends JacksonBasedContract {
         throw new ContractContextException(Constants.INVALID_CONTRACT_ARGUMENTS);
       }
 
-      String assetId =
-          getAssetId(ledger, Constants.PREFIX_TABLE, arguments.get(Constants.TABLE_NAME));
+      JsonNode tableName = arguments.get(Constants.TABLE_NAME);
+      if (!isSupportedObjectName(tableName.asText())) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName.asText());
+      }
+
+      String assetId = getAssetId(ledger, Constants.PREFIX_TABLE, tableName);
       Asset<JsonNode> table =
           ledger
               .get(assetId)
-              .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST));
+              .orElseThrow(
+                  () ->
+                      new ContractContextException(Constants.TABLE_NOT_EXIST + tableName.asText()));
       tables.add(table.data());
     } else {
       AssetFilter filter = new AssetFilter(Constants.ASSET_ID_METADATA_TABLES);
@@ -48,6 +54,10 @@ public class ShowTables extends JacksonBasedContract {
     }
 
     return tables;
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   @VisibleForTesting

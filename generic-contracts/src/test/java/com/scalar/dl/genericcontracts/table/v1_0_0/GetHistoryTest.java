@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableList;
 import com.scalar.dl.ledger.database.AssetFilter;
@@ -35,6 +36,7 @@ public class GetHistoryTest {
   private static final String SOME_COLUMN = "column";
   private static final String SOME_COLUMN_VALUE_1 = "value1";
   private static final String SOME_COLUMN_VALUE_2 = "value2";
+  private static final String SOME_INVALID_TABLE_NAME = "invalid-table-name";
   private static final String SOME_INVALID_FIELD = "filed";
   private static final String SOME_INVALID_VALUE = "value";
   private static final String SOME_KEY_TYPE_STRING = "string";
@@ -187,11 +189,12 @@ public class GetHistoryTest {
   @Test
   public void invoke_InvalidKeyTypeGiven_ShouldThrowContractContextException() {
     // Arrange
+    IntNode key = IntNode.valueOf(1);
     JsonNode argument =
         mapper
             .createObjectNode()
             .put(Constants.RECORD_TABLE, SOME_TABLE_NAME)
-            .put(Constants.RECORD_KEY, 1);
+            .set(Constants.RECORD_KEY, key);
     String tableAssetId = prepareTableAssetId(SOME_TABLE_NAME);
     Asset<JsonNode> tableAsset = (Asset<JsonNode>) mock(Asset.class);
     when(tableAsset.data()).thenReturn(SOME_TABLE);
@@ -200,7 +203,7 @@ public class GetHistoryTest {
     // Act Assert
     assertThatThrownBy(() -> getHistory.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + key.getNodeType().name());
     verify(ledger).get(tableAssetId);
     verify(ledger, never()).scan(any());
   }
@@ -251,7 +254,22 @@ public class GetHistoryTest {
     // Act Assert
     assertThatThrownBy(() -> getHistory.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + SOME_TABLE_NAME);
     verify(ledger).get(tableAssetId);
+  }
+
+  @Test
+  public void invoke_UnsupportedTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, SOME_INVALID_TABLE_NAME)
+            .put(Constants.RECORD_KEY, SOME_RECORD_KEY_VALUE);
+
+    // Act Assert
+    assertThatThrownBy(() -> getHistory.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_TABLE_NAME);
   }
 }

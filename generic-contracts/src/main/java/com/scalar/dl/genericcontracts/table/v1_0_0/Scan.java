@@ -17,14 +17,17 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
+/**
+ * `Scan` is a generic contract for internal use and is invoked by `Select` and `Update` contracts.
+ * It takes a table name, a list of conditions, and options as arguments. In `Scan`, we do not check
+ * the arguments aggressively except for the conditions. Make sure to validate them in the caller.
+ */
 public class Scan extends JacksonBasedContract {
 
   @Nullable
@@ -38,9 +41,10 @@ public class Scan extends JacksonBasedContract {
     JsonNode table =
         ledger
             .get(tableAssetId)
-            .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST))
+            .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST + tableName))
             .data();
 
+    validateConditions(arguments.get(Constants.QUERY_CONDITIONS));
     ListMultimap<String, JsonNode> conditionsMap =
         Multimaps.index(
             arguments.get(Constants.QUERY_CONDITIONS),
@@ -67,6 +71,70 @@ public class Scan extends JacksonBasedContract {
     } else {
       throw new ContractContextException(Constants.INVALID_KEY_SPECIFICATION);
     }
+  }
+
+  private void validateConditions(JsonNode conditions) {
+    for (JsonNode condition : conditions) {
+      if (!condition.isObject()
+          || !condition.has(Constants.CONDITION_COLUMN)
+          || !condition.get(Constants.CONDITION_COLUMN).isTextual()
+          || !condition.has(Constants.CONDITION_OPERATOR)
+          || !condition.get(Constants.CONDITION_OPERATOR).isTextual()) {
+        throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
+      }
+
+      String column = condition.get(Constants.CONDITION_COLUMN).asText();
+      if (!isSupportedObjectName(column)) {
+        throw new ContractContextException(Constants.INVALID_OBJECT_NAME + column);
+      }
+
+      String operator = condition.get(Constants.CONDITION_OPERATOR).asText();
+      if (!isSupportedOperator(operator)) {
+        throw new ContractContextException(Constants.INVALID_OPERATOR + condition);
+      }
+
+      if (operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
+          || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL)) {
+        // For IS_NULL or IS_NOT_NULL
+        if (condition.size() != 2) {
+          throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
+        }
+      } else {
+        // For other operators
+        if (condition.size() != 3
+            || !condition.has(Constants.CONDITION_VALUE)
+            || !isSupportedDataTypeForComparisonOperators(
+                condition.get(Constants.CONDITION_VALUE).getNodeType().name())) {
+          throw new ContractContextException(Constants.INVALID_CONDITION_FORMAT + condition);
+        }
+        if (condition.get(Constants.CONDITION_VALUE).isBoolean()
+            && (!operator.equalsIgnoreCase(Constants.OPERATOR_EQ)
+                && !operator.equalsIgnoreCase(Constants.OPERATOR_NE))) {
+          throw new ContractContextException(Constants.INVALID_OPERATOR + condition);
+        }
+      }
+    }
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
+  }
+
+  private boolean isSupportedDataTypeForComparisonOperators(String type) {
+    return type.toUpperCase().equals(JsonNodeType.BOOLEAN.name())
+        || type.toUpperCase().equals(JsonNodeType.NUMBER.name())
+        || type.toUpperCase().equals(JsonNodeType.STRING.name());
+  }
+
+  private boolean isSupportedOperator(String operator) {
+    return operator.equalsIgnoreCase(Constants.OPERATOR_EQ)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_NE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_LT)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_LTE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_GT)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_GTE)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NULL)
+        || operator.equalsIgnoreCase(Constants.OPERATOR_IS_NOT_NULL);
   }
 
   /**
@@ -111,8 +179,9 @@ public class Scan extends JacksonBasedContract {
   }
 
   private boolean isPrimaryKeyCondition(JsonNode condition, String keyType) {
-    if (!condition.get(Constants.CONDITION_VALUE).getNodeType().name().equalsIgnoreCase(keyType)) {
-      throw new ContractContextException(Constants.INVALID_KEY_TYPE);
+    String givenType = condition.get(Constants.CONDITION_VALUE).getNodeType().name();
+    if (!givenType.equalsIgnoreCase(keyType)) {
+      throw new ContractContextException(Constants.INVALID_KEY_TYPE + givenType);
     }
 
     return condition
@@ -127,8 +196,9 @@ public class Scan extends JacksonBasedContract {
       return true;
     }
 
-    if (!condition.get(Constants.CONDITION_VALUE).getNodeType().name().equalsIgnoreCase(keyType)) {
-      throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE);
+    String givenType = condition.get(Constants.CONDITION_VALUE).getNodeType().name();
+    if (!givenType.equalsIgnoreCase(keyType)) {
+      throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE + givenType);
     }
 
     return operator.equals(Constants.OPERATOR_EQ);
@@ -259,10 +329,9 @@ public class Scan extends JacksonBasedContract {
 
   private JsonNode addTableReferenceToColumns(JsonNode record, String tableReference) {
     ObjectNode renamed = getObjectMapper().createObjectNode();
-    Iterator<Entry<String, JsonNode>> columns = record.fields();
+    Set<Entry<String, JsonNode>> columns = record.properties();
 
-    while (columns.hasNext()) {
-      Map.Entry<String, JsonNode> column = columns.next();
+    for (Entry<String, JsonNode> column : columns) {
       renamed.set(addTableReference(tableReference, column.getKey()), column.getValue());
     }
 

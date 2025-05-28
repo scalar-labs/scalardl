@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -57,6 +58,9 @@ public class ScanTest {
   private static final int SOME_COLUMN_NUMBER_VALUE = 10;
   private static final String SOME_COLUMN_BOOLEAN = "flag";
   private static final boolean SOME_COLUMN_BOOLEAN_VALUE = false;
+  private static final String SOME_INVALID_FIELD = "field";
+  private static final String SOME_INVALID_VALUE = "value";
+  private static final String SOME_INVALID_OPERATOR = "op";
   private static final String SOME_INDEX_ASSET_ID_1 =
       GetAssetId.getAssetIdForIndex(
           SOME_TABLE_NAME,
@@ -889,7 +893,7 @@ public class ScanTest {
     // Act Assert
     assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + IntNode.valueOf(0).getNodeType().name());
     verify(ledger).get(SOME_TABLE_ASSET_ID);
   }
 
@@ -912,8 +916,150 @@ public class ScanTest {
     // Act Assert
     assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + IntNode.valueOf(0).getNodeType().name());
     verify(ledger).get(SOME_TABLE_ASSET_ID);
+  }
+
+  @Test
+  public void invoke_InvalidConditionsGiven_ShouldThrowException() {
+    // Arrange
+    ArrayNode conditions1 = mapper.createArrayNode().add(0);
+    ArrayNode conditions2 = mapper.createArrayNode().add(mapper.createObjectNode());
+    ArrayNode conditions3 =
+        mapper.createArrayNode().add(mapper.createObjectNode().put(Constants.CONDITION_COLUMN, 0));
+    ArrayNode conditions4 =
+        mapper
+            .createArrayNode()
+            .add(mapper.createObjectNode().put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING));
+    ArrayNode conditions5 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, 0));
+    ArrayNode conditions6 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, SOME_INVALID_OPERATOR));
+    ArrayNode conditions7 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_IS_NULL))
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_VALUE, SOME_COLUMN_STRING_VALUE_1)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_IS_NOT_NULL));
+    ArrayNode conditions8 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_VALUE, SOME_COLUMN_STRING_VALUE_1)
+                    .put(SOME_INVALID_FIELD, SOME_INVALID_VALUE)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ));
+    ArrayNode conditions9 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(SOME_INVALID_FIELD, SOME_INVALID_VALUE)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ));
+    ArrayNode conditions10 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ)
+                    .set(Constants.CONDITION_VALUE, null));
+    ArrayNode conditions11 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_VALUE, true)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_GTE));
+    ArrayNode conditions12 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
+                    .set(Constants.CONDITION_VALUE, mapper.createObjectNode()));
+    ArrayNode conditions13 =
+        mapper
+            .createArrayNode()
+            .add(
+                mapper
+                    .createObjectNode()
+                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
+                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
+                    .set(Constants.CONDITION_VALUE, mapper.createArrayNode()));
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    prepareTableAssetId(SOME_TABLE_NAME);
+
+    // Act Assert
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions1), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions1.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions2), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions2.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions3), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions3.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions4), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions4.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions5), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions5.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions6), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OPERATOR + conditions6.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions7), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions7.get(1));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions8), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions8.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions9), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions9.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions10), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions10.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions11), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OPERATOR + conditions11.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions12), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions12.get(0));
+    assertThatThrownBy(() -> scan.invoke(ledger, createQueryArguments(conditions13), null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions13.get(0));
   }
 
   @Test
