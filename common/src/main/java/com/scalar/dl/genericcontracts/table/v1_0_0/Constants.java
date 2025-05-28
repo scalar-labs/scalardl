@@ -27,6 +27,7 @@ public class Constants {
   public static final String INDEX_ASSET_ADDED_AGE = "age";
   public static final String INDEX_ASSET_DELETE_MARKER = "deleted";
   public static final String RECORD_TABLE = "table";
+  public static final String RECORD_KEY = "key";
   public static final String RECORD_VALUES = "values";
   public static final String QUERY_TABLE = "table";
   public static final String QUERY_JOINS = "joins";
@@ -35,6 +36,11 @@ public class Constants {
   public static final String JOIN_TABLE = "table";
   public static final String JOIN_LEFT_KEY = "left";
   public static final String JOIN_RIGHT_KEY = "right";
+  public static final String UPDATE_TABLE = "table";
+  public static final String UPDATE_VALUES = "values";
+  public static final String UPDATE_CONDITIONS = "conditions";
+  public static final String HISTORY_LIMIT = "limit";
+  public static final String HISTORY_ASSET_AGE = "age";
   public static final String ALIAS_NAME = "name";
   public static final String ALIAS_AS = "alias";
   public static final String CONDITION_COLUMN = "column";
@@ -51,6 +57,7 @@ public class Constants {
   public static final String OPERATOR_IS_NOT_NULL = "IS_NOT_NULL";
   public static final String SCAN_OPTIONS = "options";
   public static final String SCAN_OPTIONS_INCLUDE_METADATA = "include_metadata";
+  public static final String SCAN_OPTIONS_TABLE_REFERENCE = "table_reference";
   public static final String SCAN_METADATA_AGE = "age$";
 
   // Patterns
@@ -60,6 +67,8 @@ public class Constants {
       Pattern.compile(OBJECT_NAME_PATTERN + "\\." + OBJECT_NAME_PATTERN);
 
   // Error messages
+  public static final String INVALID_CONTRACT_ARGUMENTS =
+      "The specified format of the contract arguments is invalid.";
   public static final String INVALID_TABLE_FORMAT = "The specified format of the table is invalid.";
   public static final String INVALID_INDEX_FORMAT =
       "The specified format of the indexes is invalid.";
@@ -76,6 +85,8 @@ public class Constants {
       "The specified format of the projection is invalid. Projection: ";
   public static final String INVALID_JOIN_FORMAT =
       "The specified format of the join is invalid. Join: ";
+  public static final String INVALID_UPDATE_FORMAT =
+      "The specified format of the update is invalid.";
   public static final String INVALID_KEY_TYPE = "The specified key type is invalid.";
   public static final String INVALID_INDEX_KEY_TYPE = "The specified index key type is invalid.";
   public static final String INVALID_OPERATOR = "The specified operator is invalid. Condition: ";
@@ -90,6 +101,7 @@ public class Constants {
   public static final String RECORD_KEY_NOT_EXIST = "The record values must have the key.";
   public static final String RECORD_ALREADY_EXISTS = "The specified record already exists.";
   public static final String UNKNOWN_TABLE = "The specified table is unknown. Table: ";
+  public static final String CANNOT_UPDATE_KEY = "The primary key cannot be updated.";
 
   // Internal error messages due to a bug or tampering
   public static final String ILLEGAL_INDEX_STATE = "The state of the index is illegal.";
