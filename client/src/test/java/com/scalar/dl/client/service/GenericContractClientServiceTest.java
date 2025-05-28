@@ -420,13 +420,13 @@ public class GenericContractClientServiceTest {
             + bigDecimalValue.doubleValue();
 
     // Act
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, Json.createValue(stringValue));
-    service.validateIndexEntry(
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, Json.createValue(stringValue));
+    service.validateIndexRecord(
         ANY_TABLE, ANY_COLUMN, Json.createValue(stringValue), ANY_START_AGE, ANY_END_AGE);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, Json.createValue(intValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, Json.createValue(doubleValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, Json.createValue(doubleIntegerValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, Json.createValue(bigDecimalValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, Json.createValue(intValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, Json.createValue(doubleValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, Json.createValue(doubleIntegerValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, Json.createValue(bigDecimalValue));
 
     // Assert
     verify(clientService).validateLedger(expectedForStringValue);
@@ -473,13 +473,13 @@ public class GenericContractClientServiceTest {
             + bigDecimalValue.doubleValue();
 
     // Act
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue));
-    service.validateIndexEntry(
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue));
+    service.validateIndexRecord(
         ANY_TABLE, ANY_COLUMN, TextNode.valueOf(stringValue), ANY_START_AGE, ANY_END_AGE);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, IntNode.valueOf(intValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleIntegerValue));
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, DecimalNode.valueOf(bigDecimalValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, IntNode.valueOf(intValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, DoubleNode.valueOf(doubleIntegerValue));
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, DecimalNode.valueOf(bigDecimalValue));
 
     // Assert
     verify(clientService).validateLedger(expectedForStringValue);
@@ -521,12 +521,12 @@ public class GenericContractClientServiceTest {
             + new BigDecimal(bigDecimalValue).doubleValue();
 
     // Act
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, stringValue);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, stringValue, ANY_START_AGE, ANY_END_AGE);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, intValue);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, doubleValue);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, doubleIntegerValue);
-    service.validateIndexEntry(ANY_TABLE, ANY_COLUMN, bigDecimalValue);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, stringValue);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, stringValue, ANY_START_AGE, ANY_END_AGE);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, intValue);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, doubleValue);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, doubleIntegerValue);
+    service.validateIndexRecord(ANY_TABLE, ANY_COLUMN, bigDecimalValue);
 
     // Assert
     verify(clientService).validateLedger(expectedForStringValue);

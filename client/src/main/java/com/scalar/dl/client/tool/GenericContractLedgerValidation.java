@@ -122,7 +122,7 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
                     tableName, arguments.table.key.name.primary, value, startAge, endAge);
           } else {
             result =
-                service.validateIndexEntry(
+                service.validateIndexRecord(
                     tableName, arguments.table.key.name.index, value, startAge, endAge);
           }
         }

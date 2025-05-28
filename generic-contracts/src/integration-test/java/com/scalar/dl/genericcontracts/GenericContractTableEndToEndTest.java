@@ -2102,7 +2102,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
-  public void validateIndexEntry_JsonValueGiven_ShouldReturnCorrectResult() {
+  public void validateIndexRecord_JsonValueGiven_ShouldReturnCorrectResult() {
     // Arrange
     int value = 1;
     createTable(
@@ -2123,7 +2123,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
 
     // Act
     LedgerValidationResult actual =
-        clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, Json.createValue(value));
+        clientService.validateIndexRecord(TABLE_NAME_1, COLUMN_NAME_2, Json.createValue(value));
 
     // Assert
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
@@ -2134,7 +2134,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
-  public void validateIndexEntry_ValueNodeGiven_ShouldReturnCorrectResult() {
+  public void validateIndexRecord_ValueNodeGiven_ShouldReturnCorrectResult() {
     // Arrange
     createTable(
         TABLE_NAME_1,
@@ -2155,7 +2155,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
 
     // Act
     LedgerValidationResult actual =
-        clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, DoubleNode.valueOf(1.23));
+        clientService.validateIndexRecord(TABLE_NAME_1, COLUMN_NAME_2, DoubleNode.valueOf(1.23));
 
     // Assert
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
@@ -2166,7 +2166,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
-  public void validateIndexEntry_StringGiven_ShouldReturnCorrectResult() {
+  public void validateIndexRecord_StringGiven_ShouldReturnCorrectResult() {
     // Arrange
     String value = "val";
     createTable(
@@ -2185,7 +2185,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
 
     // Act
     LedgerValidationResult actual =
-        clientService.validateIndexEntry(TABLE_NAME_1, COLUMN_NAME_2, "\"" + value + "\"");
+        clientService.validateIndexRecord(TABLE_NAME_1, COLUMN_NAME_2, "\"" + value + "\"");
 
     // Assert
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);

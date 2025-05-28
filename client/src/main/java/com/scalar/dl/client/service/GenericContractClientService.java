@@ -631,7 +631,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -639,7 +639,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, JsonValue value) {
     return clientService.validateLedger(
         buildAssetId(
@@ -647,7 +647,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -657,7 +657,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, JsonValue value, int startAge, int endAge) {
     return clientService.validateLedger(
         buildAssetId(AssetType.INDEX, ImmutableList.of(tableName, columnName, toStringFrom(value))),
@@ -666,7 +666,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -674,7 +674,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, ValueNode value) {
     return clientService.validateLedger(
         buildAssetId(
@@ -682,7 +682,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -692,7 +692,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, ValueNode value, int startAge, int endAge) {
     return clientService.validateLedger(
         buildAssetId(AssetType.INDEX, ImmutableList.of(tableName, columnName, toStringFrom(value))),
@@ -701,7 +701,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -709,7 +709,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, String value) {
     return clientService.validateLedger(
         buildAssetId(
@@ -719,7 +719,7 @@ public class GenericContractClientService {
   }
 
   /**
-   * Validates the specified index entry in the ledger.
+   * Validates the specified index record in the ledger.
    *
    * @param tableName a table name
    * @param columnName an index key column name
@@ -729,7 +729,7 @@ public class GenericContractClientService {
    * @return {@link LedgerValidationResult}
    * @throws ClientException if a request fails for some reason
    */
-  public LedgerValidationResult validateIndexEntry(
+  public LedgerValidationResult validateIndexRecord(
       String tableName, String columnName, String value, int startAge, int endAge) {
     return clientService.validateLedger(
         buildAssetId(

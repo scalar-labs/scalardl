@@ -229,7 +229,7 @@ public class GenericContractLedgerValidationTest {
             };
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
-        when(clientService.validateIndexEntry("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20))
+        when(clientService.validateIndexRecord("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20))
             .thenReturn(result);
 
         // Act
@@ -237,7 +237,7 @@ public class GenericContractLedgerValidationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(clientService).validateIndexEntry("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20);
+        verify(clientService).validateIndexRecord("TABLE_NAME", "COLUMN_NAME", "VALUE", 10, 20);
       }
 
       @Test
