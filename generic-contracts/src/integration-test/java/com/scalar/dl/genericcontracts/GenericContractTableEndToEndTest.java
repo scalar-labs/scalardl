@@ -38,6 +38,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   private static final String CONTRACT_NAME_INSERT = "Insert";
   private static final String CONTRACT_NAME_SELECT = "Select";
   private static final String CONTRACT_NAME_UPDATE = "Update";
+  private static final String CONTRACT_NAME_SHOW_TABLES = "ShowTables";
+  private static final String CONTRACT_NAME_GET_HISTORY = "GetHistory";
   private static final String CONTRACT_NAME_GET_ASSET_ID = "GetAssetId";
   private static final String CONTRACT_NAME_SCAN = "Scan";
   private static final String CONTRACT_ID_PREFIX = Constants.PACKAGE + "." + Constants.VERSION;
@@ -45,6 +47,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   private static final String CONTRACT_ID_INSERT = getContractId(CONTRACT_NAME_INSERT);
   private static final String CONTRACT_ID_SELECT = getContractId(CONTRACT_NAME_SELECT);
   private static final String CONTRACT_ID_UPDATE = getContractId(CONTRACT_NAME_UPDATE);
+  private static final String CONTRACT_ID_SHOW_TABLES = getContractId(CONTRACT_NAME_SHOW_TABLES);
+  private static final String CONTRACT_ID_GET_HISTORY = getContractId(CONTRACT_NAME_GET_HISTORY);
   private static final String CONTRACT_ID_SCAN = getContractId(CONTRACT_NAME_SCAN);
   private static final String CONTRACT_ID_GET_ASSET_ID = getContractId(CONTRACT_NAME_GET_ASSET_ID);
 
@@ -71,15 +75,18 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   private static final String KEY_TYPE_NUMBER = "number";
   private static final String KEY_TYPE_BOOLEAN = "boolean";
 
+  private JsonNode commonTestTable;
+
   @BeforeEach
   @Override
   public void setUp() {
     super.setUp();
-    createTable(
-        COMMON_TEST_TABLE,
-        COLUMN_NAME_1,
-        KEY_TYPE_STRING,
-        ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
+    commonTestTable =
+        createTable(
+            COMMON_TEST_TABLE,
+            COLUMN_NAME_1,
+            KEY_TYPE_STRING,
+            ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
   }
 
   private static String getContractId(String contractName) {
@@ -97,6 +104,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         .put(CONTRACT_ID_INSERT, getContractBinaryName(CONTRACT_NAME_INSERT))
         .put(CONTRACT_ID_SELECT, getContractBinaryName(CONTRACT_NAME_SELECT))
         .put(CONTRACT_ID_UPDATE, getContractBinaryName(CONTRACT_NAME_UPDATE))
+        .put(CONTRACT_ID_SHOW_TABLES, getContractBinaryName(CONTRACT_NAME_SHOW_TABLES))
+        .put(CONTRACT_ID_GET_HISTORY, getContractBinaryName(CONTRACT_NAME_GET_HISTORY))
         .put(CONTRACT_ID_GET_ASSET_ID, getContractBinaryName(CONTRACT_NAME_GET_ASSET_ID))
         .put(CONTRACT_ID_SCAN, getContractBinaryName(CONTRACT_NAME_SCAN))
         .build();
@@ -113,7 +122,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     return result;
   }
 
-  private void createTable(
+  private JsonNode createTable(
       String tableName, String keyColumnName, String keyColumnType, Map<String, String> indexes) {
     ArrayNode indexNodes = mapper.createArrayNode();
     indexes.forEach((column, type) -> indexNodes.add(createIndexNode(column, type)));
@@ -125,6 +134,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .put(Constants.TABLE_KEY_TYPE, keyColumnType)
             .set(Constants.TABLE_INDEXES, indexNodes);
     clientService.executeContract(CONTRACT_ID_CREATE, table);
+    return table;
   }
 
   private static ObjectNode createIndexNode(String key, String type) {
@@ -1855,5 +1865,142 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.CANNOT_UPDATE_KEY);
+  }
+
+  @Test
+  public void showTables_TableNameGiven_ShouldReturnSingleTable() {
+    // Arrange
+    createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_NUMBER, ImmutableMap.of());
+    createTable(TABLE_NAME_2, COLUMN_NAME_1, KEY_TYPE_STRING, ImmutableMap.of());
+    JsonNode arguments = mapper.createObjectNode().put(Constants.TABLE_NAME, COMMON_TEST_TABLE);
+    JsonNode expected = mapper.createArrayNode().add(commonTestTable);
+
+    // Act
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments);
+
+    // Assert
+    assertThat(actual.getContractResult()).isPresent();
+    assertThat(actual.getContractResult().get()).isEqualTo(jacksonSerDe.serialize(expected));
+  }
+
+  @Test
+  public void showTables_TableNameNotGiven_ShouldReturnSingleTable() {
+    // Arrange
+    JsonNode table1 = createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_NUMBER, ImmutableMap.of());
+    JsonNode table2 = createTable(TABLE_NAME_2, COLUMN_NAME_1, KEY_TYPE_STRING, ImmutableMap.of());
+    JsonNode arguments = mapper.createObjectNode();
+    JsonNode expected = mapper.createArrayNode().add(commonTestTable).add(table1).add(table2);
+
+    // Act
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments);
+
+    // Assert
+    assertThat(actual.getContractResult()).isPresent();
+    assertThat(actual.getContractResult().get()).isEqualTo(jacksonSerDe.serialize(expected));
+  }
+
+  @Test
+  public void showTables_NonExistingTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode arguments = mapper.createObjectNode().put(Constants.TABLE_NAME, TABLE_NAME_1);
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.TABLE_NOT_EXIST);
+  }
+
+  @Test
+  public void getHistory_WithoutLimitAndWithLimitGiven_ShouldReturnRecordAgesCorrectly() {
+    // Arrange
+    String keyString = "key1";
+    JsonNode argumentsWithoutLimit =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
+            .put(Constants.RECORD_KEY, keyString);
+    ObjectNode argumentsWithLimit = argumentsWithoutLimit.deepCopy();
+    argumentsWithLimit.put(Constants.HISTORY_LIMIT, 2);
+    JsonNode key = TextNode.valueOf(keyString);
+    JsonNode value0 = IntNode.valueOf(0);
+    JsonNode value1 = IntNode.valueOf(1);
+    JsonNode value2 = IntNode.valueOf(2);
+    JsonNode recordAge0 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value0));
+    JsonNode recordAge1 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value1));
+    JsonNode recordAge2 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value2));
+    JsonNode updateValues1 = mapper.createObjectNode().set(COLUMN_NAME_2, value1);
+    JsonNode updateValues2 = mapper.createObjectNode().set(COLUMN_NAME_2, value2);
+    JsonNode update1 = prepareUpdate(COMMON_TEST_TABLE, updateValues1, COLUMN_NAME_1, key);
+    JsonNode update2 = prepareUpdate(COMMON_TEST_TABLE, updateValues2, COLUMN_NAME_1, key);
+    JsonNode result0 =
+        mapper
+            .createObjectNode()
+            .put(Constants.HISTORY_ASSET_AGE, 0)
+            .set(Constants.RECORD_VALUES, recordAge0);
+    JsonNode result1 =
+        mapper
+            .createObjectNode()
+            .put(Constants.HISTORY_ASSET_AGE, 1)
+            .set(Constants.RECORD_VALUES, recordAge1);
+    JsonNode result2 =
+        mapper
+            .createObjectNode()
+            .put(Constants.HISTORY_ASSET_AGE, 2)
+            .set(Constants.RECORD_VALUES, recordAge2);
+    JsonNode expectedWithoutLimit = createArrayNode(result2, result1, result0);
+    JsonNode expectedWithLimit = createArrayNode(result2, result1);
+    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, recordAge0));
+    clientService.executeContract(CONTRACT_ID_UPDATE, update1);
+    clientService.executeContract(CONTRACT_ID_UPDATE, update2);
+
+    // Act
+    ContractExecutionResult actualWithoutLimit =
+        clientService.executeContract(CONTRACT_ID_GET_HISTORY, argumentsWithoutLimit);
+    ContractExecutionResult actualWithLimit =
+        clientService.executeContract(CONTRACT_ID_GET_HISTORY, argumentsWithLimit);
+
+    // Assert
+    assertThat(actualWithoutLimit.getContractResult()).isPresent();
+    assertThat(actualWithoutLimit.getContractResult().get())
+        .isEqualTo(jacksonSerDe.serialize(expectedWithoutLimit));
+    assertThat(actualWithLimit.getContractResult()).isPresent();
+    assertThat(actualWithLimit.getContractResult().get())
+        .isEqualTo(jacksonSerDe.serialize(expectedWithLimit));
+  }
+
+  @Test
+  public void getHistory_NonExistingRecordGiven_ShouldReturnEmpty() {
+    // Arrange
+    JsonNode arguments =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
+            .put(Constants.RECORD_KEY, "key");
+
+    // Act
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments);
+
+    // Assert
+    assertThat(actual.getContractResult()).isPresent();
+    assertThat(actual.getContractResult().get())
+        .isEqualTo(jacksonSerDe.serialize(mapper.createArrayNode()));
+  }
+
+  @Test
+  public void getHistory_InvalidKeyTypeGiven_ShouldReturnEmpty() {
+    // Arrange
+    JsonNode arguments =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
+            .put(Constants.RECORD_KEY, 0);
+
+    // Act Assert
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.INVALID_KEY_TYPE);
   }
 }
