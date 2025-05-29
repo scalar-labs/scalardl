@@ -27,6 +27,7 @@ public class Constants {
   public static final String INDEX_ASSET_ADDED_AGE = "age";
   public static final String INDEX_ASSET_DELETE_MARKER = "deleted";
   public static final String RECORD_TABLE = "table";
+  public static final String RECORD_KEY = "key";
   public static final String RECORD_VALUES = "values";
   public static final String QUERY_TABLE = "table";
   public static final String QUERY_JOINS = "joins";
@@ -38,6 +39,8 @@ public class Constants {
   public static final String UPDATE_TABLE = "table";
   public static final String UPDATE_VALUES = "values";
   public static final String UPDATE_CONDITIONS = "conditions";
+  public static final String HISTORY_LIMIT = "limit";
+  public static final String HISTORY_ASSET_AGE = "age";
   public static final String ALIAS_NAME = "name";
   public static final String ALIAS_AS = "alias";
   public static final String CONDITION_COLUMN = "column";
@@ -64,6 +67,8 @@ public class Constants {
       Pattern.compile(OBJECT_NAME_PATTERN + "\\." + OBJECT_NAME_PATTERN);
 
   // Error messages
+  public static final String INVALID_CONTRACT_ARGUMENTS =
+      "The specified format of the contract arguments is invalid.";
   public static final String INVALID_TABLE_FORMAT = "The specified format of the table is invalid.";
   public static final String INVALID_INDEX_FORMAT =
       "The specified format of the indexes is invalid.";
