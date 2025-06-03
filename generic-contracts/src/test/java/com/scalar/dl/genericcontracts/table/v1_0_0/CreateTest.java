@@ -30,6 +30,7 @@ public class CreateTest {
   private static final String SOME_TABLE_NAME = "table";
   private static final String SOME_TABLE_ASSET_ID = Constants.PREFIX_TABLE + SOME_TABLE_NAME;
   private static final String SOME_TABLE_KEY = "key";
+  private static final String SOME_INVALID_OBJECT_NAME = "invalid-object-name";
   private static final String SOME_INVALID_FIELD = "field";
   private static final String SOME_INVALID_VALUE = "value";
   private static final String SOME_KEY_TYPE_STRING = "string";
@@ -304,6 +305,69 @@ public class CreateTest {
   }
 
   @Test
+  public void invoke_UnsupportedTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.TABLE_NAME, SOME_INVALID_OBJECT_NAME)
+            .put(Constants.TABLE_KEY, SOME_TABLE_KEY)
+            .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING);
+
+    // Act Assert
+    assertThatThrownBy(() -> create.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).put(eq(SOME_TABLE_ASSET_ID), any(JsonNode.class));
+  }
+
+  @Test
+  public void invoke_UnsupportedPrimaryKeyNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.TABLE_NAME, SOME_TABLE_NAME)
+            .put(Constants.TABLE_KEY, SOME_INVALID_OBJECT_NAME)
+            .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING);
+
+    // Act Assert
+    assertThatThrownBy(() -> create.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).put(eq(SOME_TABLE_ASSET_ID), any(JsonNode.class));
+  }
+
+  @Test
+  public void invoke_UnsupportedIndexKeyNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.TABLE_NAME, SOME_TABLE_NAME)
+            .put(Constants.TABLE_KEY, SOME_TABLE_KEY)
+            .put(Constants.TABLE_KEY_TYPE, SOME_KEY_TYPE_STRING)
+            .set(
+                Constants.TABLE_INDEXES,
+                mapper
+                    .createArrayNode()
+                    .add(
+                        mapper
+                            .createObjectNode()
+                            .put(Constants.INDEX_KEY, SOME_INVALID_OBJECT_NAME)
+                            .put(Constants.INDEX_KEY_TYPE, SOME_KEY_TYPE_NUMBER)));
+
+    // Act Assert
+    assertThatThrownBy(() -> create.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).put(eq(SOME_TABLE_ASSET_ID), any(JsonNode.class));
+  }
+
+  @Test
   public void invoke_UnsupportedKeyTypeGiven_ShouldThrowContractContextException() {
     // Arrange
     JsonNode argument =
@@ -316,7 +380,7 @@ public class CreateTest {
     // Act Assert
     assertThatThrownBy(() -> create.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + SOME_KEY_TYPE_INVALID);
     verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
     verify(ledger, never()).put(eq(SOME_TABLE_ASSET_ID), any(JsonNode.class));
   }
@@ -343,7 +407,7 @@ public class CreateTest {
     // Act Assert
     assertThatThrownBy(() -> create.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + SOME_KEY_TYPE_INVALID);
     verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
     verify(ledger, never()).put(eq(SOME_TABLE_ASSET_ID), any(JsonNode.class));
   }

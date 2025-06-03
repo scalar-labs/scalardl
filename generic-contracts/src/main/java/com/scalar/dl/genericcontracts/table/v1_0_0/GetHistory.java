@@ -27,20 +27,26 @@ public class GetHistory extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_CONTRACT_ARGUMENTS);
     }
 
-    // Get the table metadata
     JsonNode tableName = arguments.get(Constants.RECORD_TABLE);
+    if (!isSupportedObjectName(tableName.asText())) {
+      throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName.asText());
+    }
+
+    // Get the table metadata
     JsonNode table =
         ledger
             .get(getAssetId(ledger, Constants.PREFIX_TABLE, tableName))
-            .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST))
+            .orElseThrow(
+                () -> new ContractContextException(Constants.TABLE_NOT_EXIST + tableName.asText()))
             .data();
 
     // Check the key type
     JsonNode keyColumn = table.get(Constants.TABLE_KEY);
     JsonNode keyValue = arguments.get(Constants.RECORD_KEY);
     String keyType = table.get(Constants.TABLE_KEY_TYPE).asText();
-    if (!keyType.toUpperCase().equals(keyValue.getNodeType().name())) {
-      throw new ContractContextException(Constants.INVALID_KEY_TYPE);
+    String givenType = keyValue.getNodeType().name();
+    if (!givenType.equalsIgnoreCase(keyType)) {
+      throw new ContractContextException(Constants.INVALID_KEY_TYPE + givenType);
     }
 
     // Prepare scan for the asset of the record
@@ -71,6 +77,10 @@ public class GetHistory extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_CONTRACT_ARGUMENTS);
     }
     return limit.asInt();
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   @VisibleForTesting

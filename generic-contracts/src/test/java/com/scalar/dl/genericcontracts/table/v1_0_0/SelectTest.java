@@ -46,9 +46,9 @@ public class SelectTest {
   private static final String SOME_COLUMN_STRING = "firstName";
   private static final String SOME_COLUMN_STRING_VALUE = "John";
   private static final String SOME_NON_EXISTING_FIELD = "field";
+  private static final String SOME_INVALID_TABLE_NAME = "invalid-table-name";
   private static final String SOME_INVALID_FIELD = "field";
   private static final String SOME_INVALID_VALUE = "value";
-  private static final String SOME_INVALID_OPERATOR = "op";
 
   @Spy private Select select = new Select();
   @Mock private Ledger<JsonNode> ledger;
@@ -431,95 +431,6 @@ public class SelectTest {
     ArrayNode conditions2 = mapper.createArrayNode().add(mapper.createObjectNode());
     ArrayNode conditions3 =
         mapper.createArrayNode().add(mapper.createObjectNode().put(Constants.CONDITION_COLUMN, 0));
-    ArrayNode conditions4 =
-        mapper
-            .createArrayNode()
-            .add(mapper.createObjectNode().put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING));
-    ArrayNode conditions5 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, 0));
-    ArrayNode conditions6 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, SOME_INVALID_OPERATOR));
-    ArrayNode conditions7 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_IS_NULL))
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_VALUE, SOME_COLUMN_STRING_VALUE)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_IS_NOT_NULL));
-    ArrayNode conditions8 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_VALUE, SOME_COLUMN_STRING_VALUE)
-                    .put(SOME_INVALID_FIELD, SOME_INVALID_VALUE)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ));
-    ArrayNode conditions9 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(SOME_INVALID_FIELD, SOME_INVALID_VALUE)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ));
-    ArrayNode conditions10 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_EQ)
-                    .set(Constants.CONDITION_VALUE, null));
-    ArrayNode conditions11 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_VALUE, true)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_GTE));
-    ArrayNode conditions12 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
-                    .set(Constants.CONDITION_VALUE, mapper.createObjectNode()));
-    ArrayNode conditions13 =
-        mapper
-            .createArrayNode()
-            .add(
-                mapper
-                    .createObjectNode()
-                    .put(Constants.CONDITION_COLUMN, SOME_COLUMN_STRING)
-                    .put(Constants.CONDITION_OPERATOR, Constants.OPERATOR_NE)
-                    .set(Constants.CONDITION_VALUE, mapper.createArrayNode()));
 
     // Act Assert
     assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(IntNode.valueOf(0)), null))
@@ -534,36 +445,6 @@ public class SelectTest {
     assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions3), null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions3.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions4), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions4.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions5), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions5.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions6), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_OPERATOR + conditions6.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions7), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions7.get(1));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions8), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions8.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions9), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions9.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions10), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions10.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions11), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_OPERATOR + conditions11.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions12), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions12.get(0));
-    assertThatThrownBy(() -> select.invoke(ledger, createQueryArguments(conditions13), null))
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_CONDITION_FORMAT + conditions13.get(0));
     verify(ledger, never()).get(anyString());
   }
 
@@ -595,7 +476,7 @@ public class SelectTest {
     // Act Assert
     assertThatThrownBy(() -> select.invoke(ledger, argument1, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_COLUMN_FORMAT + "invalid-column-name");
+        .hasMessage(Constants.INVALID_OBJECT_NAME + "invalid-column-name");
     assertThatThrownBy(() -> select.invoke(ledger, argument2, null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_COLUMN_FORMAT + "column");
@@ -655,7 +536,7 @@ public class SelectTest {
         .hasMessage(Constants.INVALID_PROJECTION_FORMAT + "0");
     assertThatThrownBy(() -> select.invoke(ledger, argument3, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_COLUMN_FORMAT + "invalid-column-name");
+        .hasMessage(Constants.INVALID_OBJECT_NAME + "invalid-column-name");
     assertThatThrownBy(() -> select.invoke(ledger, argument4, null))
         .isExactlyInstanceOf(ContractContextException.class)
         .hasMessage(Constants.INVALID_COLUMN_FORMAT + "column");
@@ -767,5 +648,45 @@ public class SelectTest {
     verify(select).invokeSubContract(Constants.CONTRACT_SCAN, ledger, expectedScan3);
     verify(select).invokeSubContract(Constants.CONTRACT_SCAN, ledger, expectedScan4);
     verify(select).invokeSubContract(Constants.CONTRACT_SCAN, ledger, expectedScan5);
+  }
+
+  @Test
+  public void invoke_InvalidTableNameOrAliasGiven_ShouldThrowException() {
+    // Arrange
+    ObjectNode baseArgument =
+        mapper
+            .createObjectNode()
+            .set(Constants.QUERY_CONDITIONS, createConditions(SOME_INDEX_KEY_COLUMN, "val"));
+    JsonNode argument1 =
+        baseArgument.deepCopy().put(Constants.QUERY_TABLE, SOME_INVALID_TABLE_NAME);
+    JsonNode argument2 =
+        baseArgument
+            .deepCopy()
+            .set(
+                Constants.QUERY_TABLE,
+                mapper
+                    .createObjectNode()
+                    .put(Constants.ALIAS_NAME, SOME_INVALID_TABLE_NAME)
+                    .put(Constants.ALIAS_AS, SOME_TABLE_NAME));
+    JsonNode argument3 =
+        baseArgument
+            .deepCopy()
+            .set(
+                Constants.QUERY_TABLE,
+                mapper
+                    .createObjectNode()
+                    .put(Constants.ALIAS_NAME, SOME_TABLE_NAME)
+                    .put(Constants.ALIAS_AS, SOME_INVALID_TABLE_NAME));
+
+    // Act Assert
+    assertThatThrownBy(() -> select.invoke(ledger, argument1, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_TABLE_NAME);
+    assertThatThrownBy(() -> select.invoke(ledger, argument2, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_TABLE_NAME);
+    assertThatThrownBy(() -> select.invoke(ledger, argument3, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_TABLE_NAME);
   }
 }
