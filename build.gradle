@@ -13,8 +13,8 @@ subprojects {
     project.version = '4.0.0-SNAPSHOT'
 
     ext {
-        grpcVersion = '1.72.0'
-        protocVersion = '3.25.7'
+        grpcVersion = '1.73.0'
+        protocVersion = '3.25.8'
         picoCliVersion = '4.7.7'
         guiceVersion = '5.1.0'
         guavaVersion = '32.1.3-jre'
@@ -30,8 +30,8 @@ subprojects {
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.57.v20241219'
         assertjVersion = '3.27.3'
-        junitVersion = '5.12.2'
-        junitPlatformVersion = '1.12.2'
+        junitVersion = '5.13.0'
+        junitPlatformVersion = '1.13.0'
         mockitoVersion = '4.11.0'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
