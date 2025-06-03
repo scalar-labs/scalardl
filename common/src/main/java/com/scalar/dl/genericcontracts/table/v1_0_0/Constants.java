@@ -62,7 +62,7 @@ public class Constants {
 
   // Patterns
   public static final String OBJECT_NAME_PATTERN = "[a-zA-Z][A-Za-z0-9_]*";
-  public static final Pattern COLUMN_NAME = Pattern.compile(OBJECT_NAME_PATTERN);
+  public static final Pattern OBJECT_NAME = Pattern.compile(OBJECT_NAME_PATTERN);
   public static final Pattern COLUMN_REFERENCE =
       Pattern.compile(OBJECT_NAME_PATTERN + "\\." + OBJECT_NAME_PATTERN);
 
@@ -87,17 +87,21 @@ public class Constants {
       "The specified format of the join is invalid. Join: ";
   public static final String INVALID_UPDATE_FORMAT =
       "The specified format of the update is invalid.";
-  public static final String INVALID_KEY_TYPE = "The specified key type is invalid.";
-  public static final String INVALID_INDEX_KEY_TYPE = "The specified index key type is invalid.";
+  public static final String INVALID_KEY_TYPE = "The specified key type is invalid. Type: ";
+  public static final String INVALID_INDEX_KEY_TYPE =
+      "The specified index key type is invalid. Type: ";
   public static final String INVALID_OPERATOR = "The specified operator is invalid. Condition: ";
   public static final String INVALID_KEY_SPECIFICATION =
       "At least a condition for the primary key or index key must be properly specified.";
   public static final String INVALID_JOIN_COLUMN =
       "The join column in the right table must be the primary key or index key. Column: ";
+  public static final String INVALID_OBJECT_NAME = "The specified name is invalid: ";
   public static final String TABLE_ALREADY_EXISTS = "The specified table already exists.";
-  public static final String TABLE_NOT_EXIST = "The specified table does not exist.";
+  public static final String TABLE_NOT_EXIST = "The specified table does not exist. Table: ";
   public static final String TABLE_AMBIGUOUS =
       "The specified table name or alias must be unique. Table: ";
+  public static final String COLUMN_AMBIGUOUS =
+      "The specified column name must be unique. Column: ";
   public static final String RECORD_KEY_NOT_EXIST = "The record values must have the key.";
   public static final String RECORD_ALREADY_EXISTS = "The specified record already exists.";
   public static final String UNKNOWN_TABLE = "The specified table is unknown. Table: ";

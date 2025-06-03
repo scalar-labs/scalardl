@@ -36,13 +36,17 @@ public class Update extends JacksonBasedContract {
     }
     JsonNode values = arguments.get(Constants.UPDATE_VALUES);
 
-    // Get the table information
     String tableName = arguments.get(Constants.UPDATE_TABLE).asText();
+    if (!isSupportedObjectName(tableName)) {
+      throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName);
+    }
+
+    // Get the table information
     String tableAssetId = getAssetId(ledger, Constants.PREFIX_TABLE, TextNode.valueOf(tableName));
     Asset<JsonNode> tableAsset =
         ledger
             .get(tableAssetId)
-            .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST));
+            .orElseThrow(() -> new ContractContextException(Constants.TABLE_NOT_EXIST + tableName));
     String key = tableAsset.data().get(Constants.TABLE_KEY).asText();
 
     // Prepare index map
@@ -75,8 +79,8 @@ public class Update extends JacksonBasedContract {
       ObjectNode newRecord = record.deepCopy();
       // Prepare new record while adding index entries to the map
       values
-          .fields()
-          .forEachRemaining(
+          .properties()
+          .forEach(
               entry -> {
                 String column = entry.getKey();
                 JsonNode newValue = entry.getValue();
@@ -116,11 +120,15 @@ public class Update extends JacksonBasedContract {
 
   private void validateValues(JsonNode values, String primaryKey, Map<String, String> indexes) {
     values
-        .fields()
-        .forEachRemaining(
+        .properties()
+        .forEach(
             entry -> {
               String column = entry.getKey();
               JsonNode value = entry.getValue();
+
+              if (!isSupportedObjectName(column)) {
+                throw new ContractContextException(Constants.INVALID_OBJECT_NAME + column);
+              }
 
               if (column.equals(primaryKey)) {
                 throw new ContractContextException(Constants.CANNOT_UPDATE_KEY);
@@ -129,7 +137,8 @@ public class Update extends JacksonBasedContract {
               if (indexes.containsKey(column)
                   && !value.isNull()
                   && !indexes.get(column).equalsIgnoreCase(value.getNodeType().name())) {
-                throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE);
+                throw new ContractContextException(
+                    Constants.INVALID_INDEX_KEY_TYPE + value.getNodeType().name());
               }
             });
   }
@@ -189,6 +198,10 @@ public class Update extends JacksonBasedContract {
             .put(Constants.ASSET_ID_PREFIX, prefix)
             .set(Constants.ASSET_ID_VALUES, values);
     return invokeSubContract(Constants.CONTRACT_GET_ASSET_ID, ledger, arguments).asText();
+  }
+
+  private boolean isSupportedObjectName(String name) {
+    return Constants.OBJECT_NAME.matcher(name).matches();
   }
 
   @VisibleForTesting

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -34,6 +35,7 @@ public class InsertTest {
   private static final String SOME_TABLE_NAME = "Person";
   private static final String SOME_TABLE_ASSET_ID = Constants.PREFIX_TABLE + SOME_TABLE_NAME;
   private static final String SOME_TABLE_KEY = "GovId";
+  private static final String SOME_INVALID_OBJECT_NAME = "invalid-object-name";
   private static final String SOME_INVALID_FIELD = "field";
   private static final String SOME_INVALID_VALUE = "value";
   private static final String SOME_KEY_TYPE_STRING = "string";
@@ -285,6 +287,42 @@ public class InsertTest {
   }
 
   @Test
+  public void invoke_UnsupportedTableNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, SOME_INVALID_OBJECT_NAME)
+            .set(Constants.RECORD_VALUES, SOME_RECORD_VALUES);
+
+    // Act Assert
+    assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).put(any(), any());
+  }
+
+  @Test
+  public void invoke_UnsupportedFieldNameGiven_ShouldThrowContractContextException() {
+    // Arrange
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.RECORD_TABLE, SOME_TABLE_NAME)
+            .set(
+                Constants.RECORD_VALUES,
+                mapper.createObjectNode().put(SOME_INVALID_OBJECT_NAME, SOME_RECORD_KEY));
+
+    // Act Assert
+    assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessage(Constants.INVALID_OBJECT_NAME + SOME_INVALID_OBJECT_NAME);
+    verify(ledger, never()).get(SOME_TABLE_ASSET_ID);
+    verify(ledger, never()).put(any(), any());
+  }
+
+  @Test
   public void invoke_NonExistingTableGiven_ShouldThrowContractContextException() {
     // Arrange
     JsonNode argument =
@@ -298,7 +336,7 @@ public class InsertTest {
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.TABLE_NOT_EXIST);
+        .hasMessage(Constants.TABLE_NOT_EXIST + SOME_TABLE_NAME);
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger, never()).get(SOME_RECORD_ASSET_ID);
     verify(ledger, never()).put(any(), any());
@@ -353,7 +391,7 @@ public class InsertTest {
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_KEY_TYPE);
+        .hasMessage(Constants.INVALID_KEY_TYPE + SOME_KEY_TYPE_STRING);
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger, never()).get(SOME_RECORD_ASSET_ID);
     verify(ledger, never()).put(any(), any());
@@ -386,7 +424,7 @@ public class InsertTest {
     // Act Assert
     assertThatThrownBy(() -> insert.invoke(ledger, argument, null))
         .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE);
+        .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + IntNode.valueOf(0).getNodeType().name());
     verify(ledger).get(SOME_TABLE_ASSET_ID);
     verify(ledger).get(SOME_RECORD_ASSET_ID);
     verify(ledger).put(SOME_INDEX_ASSET_ID_1, SOME_INDEX_ASSET);
