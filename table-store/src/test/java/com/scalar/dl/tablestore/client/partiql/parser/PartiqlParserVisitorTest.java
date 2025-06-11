@@ -14,8 +14,10 @@ import com.google.common.collect.ImmutableMap;
 import com.scalar.dl.tablestore.client.partiql.DataType;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.CreateTableStatement;
+import com.scalar.dl.tablestore.client.partiql.statement.GetHistoryStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.InsertStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.SelectStatement;
+import com.scalar.dl.tablestore.client.partiql.statement.ShowTablesStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.UpdateStatement;
 import com.scalar.dl.tablestore.client.util.JacksonUtils;
 import java.math.BigDecimal;
@@ -500,6 +502,90 @@ public class PartiqlParserVisitorTest {
             "SELECT * FROM tbl1 OUTER JOIN tbl2 ON tbl1.col1 = tbl2.col1",
             "SELECT * FROM tbl1 INNER JOIN tbl2 ON tbl1.col1 > tbl2.col1",
             "SELECT * FROM tbl1 INNER JOIN tbl2 ON col1 = col2");
+
+    // Act Assert
+    for (String sql : sqlStatements) {
+      assertThatThrownBy(() -> ScalarPartiqlParser.parse(sql), sql)
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+  }
+
+  @Test
+  public void parse_SelectSqlForGetHistoryGiven_ShouldParseCorrectly() {
+    // Arrange
+    JsonNode table = JacksonUtils.buildTable("tbl");
+
+    // Act
+    List<ContractStatement> statements =
+        ScalarPartiqlParser.parse(
+            "SELECT history() FROM tbl WHERE col1 = 'aaa';"
+                + "SELECT history() FROM tbl WHERE tbl.col1 = 'aaa';"
+                + "SELECT history() FROM tbl WHERE tbl.col1 = 'aaa' LIMIT 10;");
+
+    // Assert
+    assertThat(statements.size()).isEqualTo(3);
+    assertThat(statements.get(0))
+        .isEqualTo(
+            GetHistoryStatement.create(
+                table,
+                ImmutableList.of(JacksonUtils.buildCondition("col1", "=", TextNode.valueOf("aaa"))),
+                0));
+    assertThat(statements.get(1))
+        .isEqualTo(
+            GetHistoryStatement.create(
+                table,
+                ImmutableList.of(
+                    JacksonUtils.buildCondition("tbl.col1", "=", TextNode.valueOf("aaa"))),
+                0));
+    assertThat(statements.get(2))
+        .isEqualTo(
+            GetHistoryStatement.create(
+                table,
+                ImmutableList.of(
+                    JacksonUtils.buildCondition("tbl.col1", "=", TextNode.valueOf("aaa"))),
+                10));
+  }
+
+  @Test
+  public void parse_InvalidSelectSqlForGetHistoryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    List<String> sqlStatements =
+        ImmutableList.of(
+            "SELECT history() AS h FROM tbl WHERE col1 = 'aaa'",
+            "SELECT history() FROM tbl AS t WHERE t.col1 = 'aaa'",
+            "SELECT history(), col1 FROM tbl WHERE col1 = 'aaa'",
+            "SELECT history() FROM tbl WHERE col1 = 'aaa' ORDER BY age LIMIT 10");
+
+    // Act Assert
+    for (String sql : sqlStatements) {
+      assertThatThrownBy(() -> ScalarPartiqlParser.parse(sql), sql)
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+  }
+
+  @Test
+  public void parse_SelectSqlForShowTablesGiven_ShouldParseCorrectly() {
+    // Arrange Act
+    List<ContractStatement> statements =
+        ScalarPartiqlParser.parse(
+            "SELECT * FROM information_schema.tables;"
+                + "SELECT * FROM information_schema.tables WHERE table_name = 'aaa';");
+
+    // Assert
+    assertThat(statements.size()).isEqualTo(2);
+    assertThat(statements.get(0)).isEqualTo(ShowTablesStatement.create());
+    assertThat(statements.get(1)).isEqualTo(ShowTablesStatement.create("aaa"));
+  }
+
+  @Test
+  public void parse_InvalidSelectSqlForShowTablesGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    List<String> sqlStatements =
+        ImmutableList.of(
+            "SELECT * FROM information_schema.tables AS tbl WHERE tbl.name = 'aaa'",
+            "SELECT * FROM information_schema.tables WHERE table_name = 'aaa' and col1 = 0",
+            "SELECT * FROM information_schema.tables WHERE col1 = 'aaa'",
+            "SELECT col1 FROM information_schema.tables");
 
     // Act Assert
     for (String sql : sqlStatements) {
