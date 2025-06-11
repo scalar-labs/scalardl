@@ -10,7 +10,7 @@ RUN set -x && \
 
 FROM eclipse-temurin:8-jre-jammy
 
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=tools dockerize /usr/local/bin/
