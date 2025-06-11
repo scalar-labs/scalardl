@@ -56,6 +56,72 @@ public enum TableStoreClientError implements ScalarDlError {
       "Syntax error. The specified literal is invalid. Literal: %s",
       "",
       ""),
+  SYNTAX_ERROR_INVALID_UPDATE_TARGET(
+      StatusCode.INVALID_ARGUMENT,
+      "009",
+      "Syntax error. The specified format of the update target column is invalid.",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_TABLE(
+      StatusCode.INVALID_ARGUMENT,
+      "010",
+      "Syntax error. The specified table is invalid. Table: %s",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_COLUMN(
+      StatusCode.INVALID_ARGUMENT,
+      "011",
+      "Syntax error. The specified column is invalid. Column: %s",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_CONDITION(
+      StatusCode.INVALID_ARGUMENT,
+      "012",
+      "Syntax error. The specified condition is invalid. Condition: %s",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_JOIN_CONDITION(
+      StatusCode.INVALID_ARGUMENT,
+      "013",
+      "Syntax error. The specified join condition is invalid. Condition: %s",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_JOIN_TYPE(
+      StatusCode.INVALID_ARGUMENT,
+      "014",
+      "Syntax error. The specified join type is invalid.",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_PROJECTION(
+      StatusCode.INVALID_ARGUMENT,
+      "015",
+      "Syntax error. The specified projection is invalid. Projection: %s",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_LIMIT_CLAUSE(
+      StatusCode.INVALID_ARGUMENT,
+      "016",
+      "Syntax error. The specified limit clause is invalid.",
+      "",
+      ""),
+  SYNTAX_ERROR_INVALID_SELECT_STATEMENT(
+      StatusCode.INVALID_ARGUMENT,
+      "017",
+      "Syntax error. The specified select statement is invalid.",
+      "",
+      ""),
+  SYNTAX_ERROR_SET_QUANTIFIER_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "018",
+      "Syntax error. The specified set quantifier is not supported.",
+      "",
+      ""),
+  LIMIT_CLAUSE_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "019",
+      "The limit clause is not supported except in the history query.",
+      "",
+      ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-TABLE-STORE";
