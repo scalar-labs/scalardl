@@ -44,6 +44,18 @@ updates:
       - "scalar-labs/scalardl"
 
   - package-ecosystem: "github-actions"
+    target-branch: "3.11"
+    groups:
+      actions on branch 3.11:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "scalar-labs/scalardl"
+
+  - package-ecosystem: "github-actions"
     target-branch: "3.10"
     groups:
       actions on branch 3.10:
@@ -59,18 +71,6 @@ updates:
     target-branch: "3.9"
     groups:
       actions on branch 3.9:
-        patterns:
-          - "*"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
-
-  - package-ecosystem: "github-actions"
-    target-branch: "3.8"
-    groups:
-      actions on branch 3.8:
         patterns:
           - "*"
     directory: "/"
