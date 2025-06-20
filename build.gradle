@@ -10,7 +10,7 @@ subprojects {
     apply plugin: 'java-library-distribution'
     apply plugin: 'com.diffplug.spotless'
 
-    project.version = '3.10.2-SNAPSHOT'
+    project.version = '3.10.2'
 
     ext {
         grpcVersion = '1.68.1'
