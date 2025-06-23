@@ -54,6 +54,12 @@ subprojects {
 
     dependencies {
         implementation group: 'org.slf4j', name: 'slf4j-api', version: "${slf4jVersion}"
+        implementation(group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4jVersion}") {
+            exclude group: 'com.github.spotbugs', module: 'spotbugs-annotations'
+        }
+        implementation(group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4jVersion}") {
+            exclude group: 'com.github.spotbugs', module: 'spotbugs-annotations'
+        }
         implementation group: 'com.google.inject', name: 'guice', version: "${guiceVersion}"
         implementation group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
         implementation group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
