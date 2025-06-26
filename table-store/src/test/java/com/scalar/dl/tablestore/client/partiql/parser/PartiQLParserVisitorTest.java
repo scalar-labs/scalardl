@@ -11,6 +11,8 @@ import com.scalar.dl.tablestore.client.partiql.DataType;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.CreateTableStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.InsertStatement;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -94,8 +96,10 @@ public class PartiQLParserVisitorTest {
   @Test
   public void parse_InsertSqlGiven_ShouldParseCorrectly() {
     // Arrange
-    JsonNode array = mapper.createArrayNode().add(1).add(2);
-    JsonNode object = mapper.createObjectNode().put("x", 1).put("y", 1);
+    BigInteger one = BigInteger.ONE;
+    BigInteger two = BigInteger.valueOf(2);
+    JsonNode array = mapper.createArrayNode().add(one).add(two);
+    JsonNode object = mapper.createObjectNode().put("x", one).put("y", one);
 
     // Act
     List<ContractStatement> statements =
@@ -119,9 +123,9 @@ public class PartiQLParserVisitorTest {
                     .createObjectNode()
                     .put("col1", "aaa")
                     .put("col2", false)
-                    .put("col3", 123)
-                    .put("col4", 1.23)
-                    .put("col5", 1.23e4)
+                    .put("col3", new BigInteger("123"))
+                    .put("col4", new BigDecimal("1.23"))
+                    .put("col5", new BigDecimal("1.23e4"))
                     .set("col6", null)));
     assertThat(statements.get(2))
         .isEqualTo(
@@ -130,7 +134,7 @@ public class PartiQLParserVisitorTest {
                 mapper
                     .createObjectNode()
                     .put("col1", "aaa")
-                    .set("col2", mapper.createArrayNode().add(1).add(array).add(object))));
+                    .set("col2", mapper.createArrayNode().add(one).add(array).add(object))));
     assertThat(statements.get(3))
         .isEqualTo(
             InsertStatement.create(
@@ -149,6 +153,32 @@ public class PartiQLParserVisitorTest {
                     .set("col2", mapper.createObjectNode().set("col3", object))));
     assertThat(statements.get(5))
         .isEqualTo(InsertStatement.create("tbl", mapper.createObjectNode().put("col1", "aaa")));
+  }
+
+  @Test
+  public void parse_InsertSqlWithBigNumbersGiven_ShouldParseCorrectly() {
+    // Arrange
+    BigInteger bigInteger = BigInteger.valueOf(Integer.MAX_VALUE).add(BigInteger.ONE);
+    BigDecimal bigDecimal = new BigDecimal("1.234567890123456789");
+
+    // Act
+    List<ContractStatement> statements =
+        ScalarPartiQLParser.parse(
+            "INSERT INTO tbl VALUES { col1: "
+                + bigInteger
+                + " };"
+                + "INSERT INTO tbl VALUES { col1: "
+                + bigDecimal
+                + " };");
+
+    // Assert
+    assertThat(statements.size()).isEqualTo(2);
+    assertThat(statements.get(0))
+        .isEqualTo(
+            InsertStatement.create("tbl", mapper.createObjectNode().put("col1", bigInteger)));
+    assertThat(statements.get(1))
+        .isEqualTo(
+            InsertStatement.create("tbl", mapper.createObjectNode().put("col1", bigDecimal)));
   }
 
   @Test

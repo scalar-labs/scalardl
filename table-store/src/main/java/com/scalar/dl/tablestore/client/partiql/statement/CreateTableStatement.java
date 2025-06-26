@@ -9,7 +9,7 @@ import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
 import com.scalar.dl.tablestore.client.partiql.DataType;
 import java.util.Objects;
 
-public class CreateTableStatement implements ContractStatement {
+public class CreateTableStatement extends AbstractJacksonBasedContractStatement {
 
   private final String contractId;
   private final JsonNode arguments;

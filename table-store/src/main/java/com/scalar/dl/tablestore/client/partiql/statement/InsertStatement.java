@@ -6,7 +6,7 @@ import com.google.common.base.MoreObjects;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
 import java.util.Objects;
 
-public class InsertStatement implements ContractStatement {
+public class InsertStatement extends AbstractJacksonBasedContractStatement {
 
   private final String contractId;
   private final JsonNode arguments;

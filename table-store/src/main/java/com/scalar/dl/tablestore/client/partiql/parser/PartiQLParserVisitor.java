@@ -2,9 +2,9 @@ package com.scalar.dl.tablestore.client.partiql.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BigIntegerNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.DoubleNode;
-import com.fasterxml.jackson.databind.node.IntNode;
+import com.fasterxml.jackson.databind.node.DecimalNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -17,6 +17,8 @@ import com.scalar.dl.tablestore.client.partiql.DataType;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.CreateTableStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.InsertStatement;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import org.partiql.ast.AstNode;
 import org.partiql.ast.AstVisitor;
@@ -166,10 +168,10 @@ public class PartiQLParserVisitor extends AstVisitor<List<ContractStatement>, Vo
       case Literal.BOOL:
         return BooleanNode.valueOf(literal.booleanValue());
       case Literal.INT_NUM:
-        return IntNode.valueOf(Integer.parseInt(literal.numberValue()));
+        return BigIntegerNode.valueOf(new BigInteger(literal.numberValue()));
       case Literal.APPROX_NUM:
       case Literal.EXACT_NUM:
-        return DoubleNode.valueOf(Double.parseDouble(literal.numberValue()));
+        return DecimalNode.valueOf(new BigDecimal(literal.numberValue()));
       case Literal.STRING:
         return TextNode.valueOf(literal.stringValue());
       default:

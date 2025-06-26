@@ -42,8 +42,9 @@ public class ScalarPartiQLParser {
   private ScalarPartiQLParser() {}
 
   public static List<ContractStatement> parse(String sql) {
+    final PartiQLParserVisitor visitor = new PartiQLParserVisitor();
     return parser.parse(sql, Context.of(errorListener)).statements.stream()
-        .flatMap(statement -> statement.accept(new PartiQLParserVisitor(), null).stream())
+        .flatMap(statement -> statement.accept(visitor, null).stream())
         .collect(Collectors.toList());
   }
 }
