@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -743,12 +745,14 @@ public class ScalarTamperEvidentAssetLedgerTest {
     assertThat(proofs).containsOnly(proof);
   }
 
-  @Test
-  public void commit_TxStateManagementEnabled_ShouldPutWithStateManager()
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void commit_WriteTransactionGiven_ShouldPutWithStateManagerAccordingToConfig(
+      boolean txStateManagementEnabled)
       throws CrudException, CommitException,
           com.scalar.db.exception.transaction.UnknownTransactionStatusException {
     // Arrange
-    when(config.isTxStateManagementEnabled()).thenReturn(true);
+    when(config.isTxStateManagementEnabled()).thenReturn(txStateManagementEnabled);
     snapshot.put(ANY_ID, asset);
     snapshot.put(ANY_ID, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
@@ -760,41 +764,24 @@ public class ScalarTamperEvidentAssetLedgerTest {
     ledger.commit();
 
     // Assert
-    verify(stateManager).putCommit(transaction, ANY_NONCE);
+    if (txStateManagementEnabled) {
+      verify(stateManager).putCommit(transaction, ANY_NONCE);
+    } else {
+      verify(stateManager, never()).putCommit(any(DistributedTransaction.class), anyString());
+    }
     verify(transaction).put(any(List.class));
     verify(transaction).put(any(Put.class));
     verify(transaction).commit();
   }
 
-  @Test
-  public void commit_TxStateManagementDisabled_ShouldNotPutWithStateManager()
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  public void commit_ReadOnlyTransactionGiven_ShouldPutWithStateManagerAccordingToConfig(
+      boolean txStateManagementEnabled)
       throws CrudException, CommitException,
           com.scalar.db.exception.transaction.UnknownTransactionStatusException {
     // Arrange
-    when(config.isTxStateManagementEnabled()).thenReturn(false);
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
-    doNothing().when(transaction).put(any(List.class));
-    doNothing().when(transaction).put(any(Put.class));
-    when(transaction.getId()).thenReturn(ANY_NONCE);
-    doNothing().when(stateManager).putCommit(any(DistributedTransaction.class), anyString());
-
-    // Act
-    ledger.commit();
-
-    // Assert
-    verify(stateManager, never()).putCommit(transaction, ANY_NONCE);
-    verify(transaction).put(any(List.class));
-    verify(transaction).put(any(Put.class));
-    verify(transaction).commit();
-  }
-
-  @Test
-  public void commit_ReadOnlyTransactionGivenAndTxStateManagementEnabled_ShouldPutWithStateManager()
-      throws CrudException, CommitException,
-          com.scalar.db.exception.transaction.UnknownTransactionStatusException {
-    // Arrange
-    when(config.isTxStateManagementEnabled()).thenReturn(true);
+    when(config.isTxStateManagementEnabled()).thenReturn(txStateManagementEnabled);
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
     when(transaction.getId()).thenReturn(ANY_NONCE);
     doNothing().when(stateManager).putCommit(any(DistributedTransaction.class), anyString());
@@ -804,28 +791,11 @@ public class ScalarTamperEvidentAssetLedgerTest {
     ledger.commit();
 
     // Assert
-    verify(stateManager).putCommit(transaction, ANY_NONCE);
-    verify(transaction, never()).put(any(List.class));
-    verify(transaction, never()).put(any(Put.class));
-    verify(transaction).commit();
-  }
-
-  @Test
-  public void
-      commit_ReadOnlyTransactionGivenAndTxStateManagementDisabled_ShouldNotPutWithStateManager()
-          throws CrudException, CommitException,
-              com.scalar.db.exception.transaction.UnknownTransactionStatusException {
-    // Arrange
-    when(config.isTxStateManagementEnabled()).thenReturn(false);
-    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
-    when(transaction.getId()).thenReturn(ANY_NONCE);
-    snapshot.put(ANY_ID, asset);
-
-    // Act
-    ledger.commit();
-
-    // Assert
-    verify(stateManager, never()).putCommit(any(DistributedTransaction.class), anyString());
+    if (txStateManagementEnabled) {
+      verify(stateManager).putCommit(transaction, ANY_NONCE);
+    } else {
+      verify(stateManager, never()).putCommit(any(DistributedTransaction.class), anyString());
+    }
     verify(transaction, never()).put(any(List.class));
     verify(transaction, never()).put(any(Put.class));
     verify(transaction).commit();
