@@ -466,6 +466,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
           CrudException {
     // Arrange
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    when(config.isTxStateManagementEnabled()).thenReturn(false);
 
     // Act
     ledger.commit();
@@ -482,6 +483,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
           CrudException {
     // Arrange
     when(config.isDirectAssetAccessEnabled()).thenReturn(true);
+    when(config.isTxStateManagementEnabled()).thenReturn(false);
 
     // Act
     ledger.commit();
@@ -784,6 +786,48 @@ public class ScalarTamperEvidentAssetLedgerTest {
     verify(stateManager, never()).putCommit(transaction, ANY_NONCE);
     verify(transaction).put(any(List.class));
     verify(transaction).put(any(Put.class));
+    verify(transaction).commit();
+  }
+
+  @Test
+  public void commit_ReadOnlyTransactionGivenAndTxStateManagementEnabled_ShouldPutWithStateManager()
+      throws CrudException, CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException {
+    // Arrange
+    when(config.isTxStateManagementEnabled()).thenReturn(true);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    when(transaction.getId()).thenReturn(ANY_NONCE);
+    doNothing().when(stateManager).putCommit(any(DistributedTransaction.class), anyString());
+    snapshot.put(ANY_ID, asset);
+
+    // Act
+    ledger.commit();
+
+    // Assert
+    verify(stateManager).putCommit(transaction, ANY_NONCE);
+    verify(transaction, never()).put(any(List.class));
+    verify(transaction, never()).put(any(Put.class));
+    verify(transaction).commit();
+  }
+
+  @Test
+  public void
+      commit_ReadOnlyTransactionGivenAndTxStateManagementDisabled_ShouldNotPutWithStateManager()
+          throws CrudException, CommitException,
+              com.scalar.db.exception.transaction.UnknownTransactionStatusException {
+    // Arrange
+    when(config.isTxStateManagementEnabled()).thenReturn(false);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    when(transaction.getId()).thenReturn(ANY_NONCE);
+    snapshot.put(ANY_ID, asset);
+
+    // Act
+    ledger.commit();
+
+    // Assert
+    verify(stateManager, never()).putCommit(any(DistributedTransaction.class), anyString());
+    verify(transaction, never()).put(any(List.class));
+    verify(transaction, never()).put(any(Put.class));
     verify(transaction).commit();
   }
 
