@@ -28,8 +28,6 @@ dependencies {
     api project(':common')
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4jVersion}"
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4jVersion}"
     api group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
     api group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
     api group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
