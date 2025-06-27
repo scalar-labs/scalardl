@@ -59,7 +59,7 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scanner;
 import com.scalar.db.api.TransactionState;
-import com.scalar.db.common.error.CoreError;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
@@ -82,6 +82,10 @@ import org.junit.jupiter.api.Test;
 
 public class GenericContractObjectAndCollectionEndToEndTest
     extends GenericContractEndToEndTestBase {
+  private static final String COORDINATOR_NAMESPACE = "coordinator";
+  private static final String COORDINATOR_STATE_TABLE = "state";
+  private static final String METADATA_TX_STATE = "tx_state";
+
   private static final String ASSET_ID = "id";
   private static final String ASSET_AGE = "age";
   private static final String ASSET_OUTPUT = "output";
@@ -637,11 +641,13 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .table(getFunctionTable())
             .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))
             .clusteringKey(Key.ofText(SOME_COLUMN_NAME_2, SOME_VERSION_ID_0))
-            .intValue("tx_state", TransactionState.ABORTED.get())
+            .intValue(METADATA_TX_STATE, TransactionState.PREPARED.get())
             .build();
     clientService.executeContract(
         ID_OBJECT_PUT, contractArguments0, ID_OBJECT_PUT_MUTABLE, functionArguments0);
+    // Make the transaction prepared state and non-expired
     storage.put(put);
+    storageAdmin.truncateTable(COORDINATOR_NAMESPACE, COORDINATOR_STATE_TABLE);
 
     // Act Assert
     assertThatThrownBy(
