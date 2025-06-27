@@ -48,8 +48,6 @@ dependencies {
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
     implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: "${log4jVersion}"
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: "${log4jVersion}"
 
     // The following packages are provided for ScalarDL contracts in runtime
     implementation group: 'org.hashids', name: 'hashids', version: '1.0.3'
