@@ -54,6 +54,7 @@ dependencies {
     implementation group: 'com.github.everit-org.json-schema', name: 'org.everit.json.schema', version: '1.14.4'
 
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
