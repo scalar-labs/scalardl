@@ -17,7 +17,7 @@ public enum TableStoreClientError implements ScalarDlError {
   SYNTAX_ERROR_INVALID_PRIMARY_KEY_SPECIFICATION(
       StatusCode.INVALID_ARGUMENT,
       "002",
-      "Syntax error. Primary key column must be specified exactly once in a table.",
+      "Syntax error. The primary key column must be specified only once in a table.",
       "",
       ""),
   SYNTAX_ERROR_INVALID_COLUMN_CONSTRAINTS(
