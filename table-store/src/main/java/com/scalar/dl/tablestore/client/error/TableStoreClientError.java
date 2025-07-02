@@ -58,7 +58,7 @@ public enum TableStoreClientError implements ScalarDlError {
       ""),
   ;
 
-  private static final String COMPONENT_NAME = "DL-TSC";
+  private static final String COMPONENT_NAME = "DL-TABLE-STORE";
 
   private final StatusCode statusCode;
   private final String id;

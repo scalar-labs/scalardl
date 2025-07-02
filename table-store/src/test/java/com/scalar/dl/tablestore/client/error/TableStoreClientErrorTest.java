@@ -22,7 +22,7 @@ public class TableStoreClientErrorTest {
     String code = error.buildCode();
 
     // Assert
-    Assertions.assertThat(code).isEqualTo("DL-TSC-414001");
+    Assertions.assertThat(code).isEqualTo("DL-TABLE-STORE-414001");
   }
 
   @Test
@@ -35,6 +35,6 @@ public class TableStoreClientErrorTest {
 
     // Assert
     Assertions.assertThat(message)
-        .isEqualTo("DL-TSC-414001: Syntax error. Line=1, Offset=1, Length=1, Code=code");
+        .isEqualTo("DL-TABLE-STORE-414001: Syntax error. Line=1, Offset=1, Length=1, Code=code");
   }
 }
