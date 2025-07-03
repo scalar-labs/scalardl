@@ -41,7 +41,7 @@ import org.partiql.ast.sql.SqlBlock;
 import org.partiql.ast.sql.SqlDialect;
 import org.partiql.ast.sql.SqlLayout;
 
-public class PartiQLParserVisitor extends AstVisitor<List<ContractStatement>, Void> {
+public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Void> {
   private final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
 
   @Override

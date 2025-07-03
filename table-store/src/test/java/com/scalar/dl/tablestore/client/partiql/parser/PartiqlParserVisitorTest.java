@@ -16,14 +16,14 @@ import java.math.BigInteger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class PartiQLParserVisitorTest {
+public class PartiqlParserVisitorTest {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @Test
   public void parse_CreateTableSqlGiven_ShouldParseCorrectly() {
     // Arrange Act
     List<ContractStatement> statements =
-        ScalarPartiQLParser.parse(
+        ScalarPartiqlParser.parse(
             "CREATE TABLE tbl (col1 STRING PRIMARY KEY);"
                 + "CREATE TABLE tbl (col1 STRING PRIMARY KEY, col2 BOOL, col3 BOOLEAN);"
                 + "CREATE TABLE tbl (col1 INT PRIMARY KEY, col2 STRING);"
@@ -68,7 +68,7 @@ public class PartiQLParserVisitorTest {
     // Arrange Act Assert
     assertThatThrownBy(
             () ->
-                ScalarPartiQLParser.parse("CREATE TABLE tbl (col1 INT, col2 BOOLEAN, col3 STRING)"))
+                ScalarPartiqlParser.parse("CREATE TABLE tbl (col1 INT, col2 BOOLEAN, col3 STRING)"))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -78,7 +78,7 @@ public class PartiQLParserVisitorTest {
     // Arrange Act Assert
     assertThatThrownBy(
             () ->
-                ScalarPartiQLParser.parse(
+                ScalarPartiqlParser.parse(
                     "CREATE TABLE tbl (col1 INT PRIMARY KEY, col2 BOOLEAN PRIMARY KEY, col3 STRING)"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -88,7 +88,7 @@ public class PartiQLParserVisitorTest {
     // Arrange Act Assert
     assertThatThrownBy(
             () ->
-                ScalarPartiQLParser.parse(
+                ScalarPartiqlParser.parse(
                     "CREATE TABLE tbl (col1 INT PRIMARY KEY, col2 BOOLEAN NOT NULL, col3 STRING)"))
         .isInstanceOf(IllegalArgumentException.class);
   }
@@ -103,7 +103,7 @@ public class PartiQLParserVisitorTest {
 
     // Act
     List<ContractStatement> statements =
-        ScalarPartiQLParser.parse(
+        ScalarPartiqlParser.parse(
             "INSERT INTO tbl VALUES {};"
                 + "INSERT INTO tbl VALUES {col1: 'aaa', col2: false, col3: 123, col4: 1.23, col5: 1.23e4, col6: null};"
                 + "INSERT INTO tbl VALUES {col1: 'aaa', col2: [1, [1, 2], {x: 1, y: 1}]};"
@@ -163,7 +163,7 @@ public class PartiQLParserVisitorTest {
 
     // Act
     List<ContractStatement> statements =
-        ScalarPartiQLParser.parse(
+        ScalarPartiqlParser.parse(
             "INSERT INTO tbl VALUES { col1: "
                 + bigInteger
                 + " };"
@@ -197,7 +197,7 @@ public class PartiQLParserVisitorTest {
 
     // Act Assert
     for (String sql : sqlStatements) {
-      assertThatThrownBy(() -> ScalarPartiQLParser.parse(sql), sql)
+      assertThatThrownBy(() -> ScalarPartiqlParser.parse(sql), sql)
           .isInstanceOf(IllegalArgumentException.class);
     }
   }

@@ -13,7 +13,7 @@ import org.partiql.spi.errors.PRuntimeException;
 import org.partiql.spi.errors.Severity;
 
 @ThreadSafe
-public class ScalarPartiQLParser {
+public class ScalarPartiqlParser {
 
   private static final PartiQLParser parser = PartiQLParser.standard();
   private static final PErrorListener errorListener =
@@ -39,10 +39,10 @@ public class ScalarPartiQLParser {
         throw new PRuntimeException(error);
       };
 
-  private ScalarPartiQLParser() {}
+  private ScalarPartiqlParser() {}
 
   public static List<ContractStatement> parse(String sql) {
-    final PartiQLParserVisitor visitor = new PartiQLParserVisitor();
+    final PartiqlParserVisitor visitor = new PartiqlParserVisitor();
     return parser.parse(sql, Context.of(errorListener)).statements.stream()
         .flatMap(statement -> statement.accept(visitor, null).stream())
         .collect(Collectors.toList());
