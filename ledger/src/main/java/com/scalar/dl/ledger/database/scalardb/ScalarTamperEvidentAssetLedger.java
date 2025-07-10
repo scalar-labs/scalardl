@@ -132,15 +132,15 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       if (snapshot.hasWriteSet()) {
         puts = assetComposer.compose(snapshot, request);
 
-        if (config.isTxStateManagementEnabled()) {
-          stateManager.putCommit(transaction, transaction.getId());
-        }
-
         transaction.put(puts);
 
         if (!config.isDirectAssetAccessEnabled()) {
           metadata.put(snapshot.getWriteSet().values());
         }
+      }
+
+      if (config.isTxStateManagementEnabled()) {
+        stateManager.putCommit(transaction, transaction.getId());
       }
 
       transaction.commit();
