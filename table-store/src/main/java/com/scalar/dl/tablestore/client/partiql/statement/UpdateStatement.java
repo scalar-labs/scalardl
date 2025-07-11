@@ -10,11 +10,10 @@ import java.util.Objects;
 
 public class UpdateStatement extends AbstractJacksonBasedContractStatement {
 
-  private final String contractId;
+  private static final String contractId = Constants.CONTRACT_UPDATE;
   private final JsonNode arguments;
 
   private UpdateStatement(JsonNode arguments) {
-    this.contractId = Constants.CONTRACT_UPDATE;
     this.arguments = Objects.requireNonNull(arguments);
   }
 

@@ -1,7 +1,6 @@
 package com.scalar.dl.tablestore.client.partiql.parser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BigIntegerNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -12,7 +11,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.tablestore.client.error.TableStoreClientError;
 import com.scalar.dl.tablestore.client.partiql.DataType;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
@@ -21,11 +19,10 @@ import com.scalar.dl.tablestore.client.partiql.statement.InsertStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.SelectStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.UpdateStatement;
 import com.scalar.dl.tablestore.client.util.JacksonUtils;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.partiql.ast.AstNode;
 import org.partiql.ast.AstVisitor;
 import org.partiql.ast.From;
@@ -69,7 +66,6 @@ import org.partiql.ast.sql.SqlDialect;
 import org.partiql.ast.sql.SqlLayout;
 
 public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Void> {
-  private final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
 
   @Override
   public List<ContractStatement> visitCreateTable(CreateTable astNode, Void context) {
@@ -146,6 +142,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_INSERT_STATEMENT.buildMessage());
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private List<JsonNode> getConditions(Expr expr) {
     if (expr == null) {
       return ImmutableList.of();
@@ -164,9 +161,10 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
       return ImmutableList.of(JacksonUtils.buildNullCondition(column, predicate.isNot()));
     } else if (expr instanceof ExprAnd) {
       ExprAnd exprAnd = (ExprAnd) expr;
-      return Stream.concat(
-              getConditions(exprAnd.getLhs()).stream(), getConditions(exprAnd.getRhs()).stream())
-          .collect(Collectors.toList());
+      return ImmutableList.<JsonNode>builder()
+          .addAll(getConditions(exprAnd.getLhs()))
+          .addAll(getConditions(exprAnd.getRhs()))
+          .build();
     }
 
     throw new IllegalArgumentException(
@@ -187,7 +185,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     String table = astNode.getTableName().getIdentifier().getText();
     List<JsonNode> predicates = getConditions(astNode.getCondition());
 
-    ObjectNode values = jacksonSerDe.getObjectMapper().createObjectNode();
+    ObjectNode values = JacksonUtils.createObjectNode();
     for (SetClause setClause : astNode.getSetClauses()) {
       String column = getUpdateTarget(setClause.getTarget());
       JsonNode value = convertExprToJsonNode(setClause.getExpr());
@@ -197,6 +195,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     return ImmutableList.of(UpdateStatement.create(table, values, predicates));
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private JsonNode getTable(FromExpr table) {
     String tableName = extractNameFromExpr(table.getExpr());
 
@@ -247,6 +246,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_JOIN_CONDITION.buildMessage(toSql(expr)));
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private List<String> getJoinKeys(Expr expr) {
     if (expr instanceof ExprOperator) {
       ExprOperator operator = (ExprOperator) expr;
@@ -261,11 +261,13 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_JOIN_CONDITION.buildMessage(toSql(expr)));
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private JsonNode getJoin(FromJoin fromJoin, FromExpr rightTable) {
     List<String> joinKeys = getJoinKeys(fromJoin.getCondition());
     return JacksonUtils.buildJoin(getTable(rightTable), joinKeys.get(0), joinKeys.get(1));
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private List<JsonNode> getJoins(FromJoin fromJoin) {
     if (fromJoin.getJoinType() == null || fromJoin.getJoinType().equals(JoinType.INNER())) {
       FromTableRef lhs = fromJoin.getLhs();
@@ -275,10 +277,10 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         JsonNode join = getJoin(fromJoin, (FromExpr) rhs);
         return ImmutableList.of(leftMostTable, join);
       } else if (lhs instanceof FromJoin && rhs instanceof FromExpr) {
-        return Stream.concat(
-                getJoins((FromJoin) lhs).stream(),
-                ImmutableList.of(getJoin(fromJoin, (FromExpr) rhs)).stream())
-            .collect(Collectors.toList());
+        return ImmutableList.<JsonNode>builder()
+            .addAll(getJoins((FromJoin) lhs))
+            .add(getJoin(fromJoin, (FromExpr) rhs))
+            .build();
       }
     }
 
@@ -467,7 +469,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
   }
 
   private ArrayNode convertExprArrayToArrayNode(ExprArray exprArray) {
-    ArrayNode array = jacksonSerDe.getObjectMapper().createArrayNode();
+    ArrayNode array = JacksonUtils.createArrayNode();
     for (Expr expr : exprArray.getValues()) {
       if (expr instanceof ExprLit) {
         array.add(convertExprLitToValueNode((ExprLit) expr));
@@ -484,7 +486,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
   }
 
   private ObjectNode convertExprStructToObjectNode(ExprStruct exprStruct) {
-    ObjectNode object = jacksonSerDe.getObjectMapper().createObjectNode();
+    ObjectNode object = JacksonUtils.createObjectNode();
     for (Field field : exprStruct.getFields()) {
       // We accept both identifier and string for a field name; i.e., both {a: 1} and {"a": 1} are
       // accepted as the same. Note that, since any strings, e.g., {"a-b": 1}, are valid in the

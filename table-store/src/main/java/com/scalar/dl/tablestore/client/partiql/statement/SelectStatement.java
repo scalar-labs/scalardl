@@ -10,11 +10,10 @@ import java.util.Objects;
 
 public class SelectStatement extends AbstractJacksonBasedContractStatement {
 
-  private final String contractId;
+  private static final String contractId = Constants.CONTRACT_SELECT;
   private final JsonNode arguments;
 
   private SelectStatement(JsonNode arguments) {
-    this.contractId = Constants.CONTRACT_SELECT;
     this.arguments = Objects.requireNonNull(arguments);
   }
 

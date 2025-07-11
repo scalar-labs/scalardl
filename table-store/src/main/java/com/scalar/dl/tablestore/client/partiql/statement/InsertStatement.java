@@ -8,11 +8,10 @@ import java.util.Objects;
 
 public class InsertStatement extends AbstractJacksonBasedContractStatement {
 
-  private final String contractId;
+  private static final String contractId = Constants.CONTRACT_INSERT;
   private final JsonNode arguments;
 
   private InsertStatement(JsonNode arguments) {
-    this.contractId = Constants.CONTRACT_INSERT;
     this.arguments = Objects.requireNonNull(arguments);
   }
 
