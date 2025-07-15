@@ -19,6 +19,7 @@ subprojects {
     apply plugin: 'java-library-distribution'
     apply plugin: 'com.diffplug.spotless'
 
+    group = projectGroup
     project.version = projectVersion
 
     ext {
@@ -94,8 +95,6 @@ subprojects {
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    group = "com.scalar-labs"
-
     distZip {
         archiveFileName = "${project.name}.zip"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -134,8 +133,8 @@ jreleaser {
     deploy {
         maven {
             mavenCentral {
-                sonatype {
-                    active = 'ALWAYS'
+                'release-deploy' {
+                    active = 'RELEASE'
                     url = 'https://central.sonatype.com/api/v1/publisher'
                     stagingRepository('client/build/staging-deploy')
                     stagingRepository('common/build/staging-deploy')

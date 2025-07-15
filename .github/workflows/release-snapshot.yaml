@@ -31,6 +31,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Prepare artifacts in staging-deploy directories
+        if: contains(steps.version.outputs.version, '-SNAPSHOT')
         run: ./gradlew publish
 
       - name: Upload the SNAPSHOT versions of scalardl-ledger, scalardl-java-client-sdk, scalardl-common, and scalardl-rpc to Maven Central Repository
