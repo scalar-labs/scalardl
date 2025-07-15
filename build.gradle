@@ -132,14 +132,15 @@ jreleaser {
 
     deploy {
         maven {
+            def stagingRepositories = ['client/build/staging-deploy',
+                                       'common/build/staging-deploy',
+                                       'ledger/build/staging-deploy',
+                                       'rpc/build/staging-deploy']
             mavenCentral {
                 'release-deploy' {
                     active = 'RELEASE'
                     url = 'https://central.sonatype.com/api/v1/publisher'
-                    stagingRepository('client/build/staging-deploy')
-                    stagingRepository('common/build/staging-deploy')
-                    stagingRepository('ledger/build/staging-deploy')
-                    stagingRepository('rpc/build/staging-deploy')
+                    stagingRepositories.each { stagingRepository(it) }
                 }
             }
             nexus2 {
@@ -150,10 +151,7 @@ jreleaser {
                     snapshotSupported = true
                     closeRepository = true
                     releaseRepository = true
-                    stagingRepository('client/build/staging-deploy')
-                    stagingRepository('common/build/staging-deploy')
-                    stagingRepository('ledger/build/staging-deploy')
-                    stagingRepository('rpc/build/staging-deploy')
+                    stagingRepositories.each { stagingRepository(it) }
                 }
             }
         }
