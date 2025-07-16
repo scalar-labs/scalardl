@@ -9,6 +9,8 @@ public class Constants {
   public static final String VERSION = "v1_0_0";
   public static final String CONTRACT_CREATE = PACKAGE + "." + VERSION + ".Create";
   public static final String CONTRACT_INSERT = PACKAGE + "." + VERSION + ".Insert";
+  public static final String CONTRACT_SELECT = PACKAGE + "." + VERSION + ".Select";
+  public static final String CONTRACT_UPDATE = PACKAGE + "." + VERSION + ".Update";
   public static final String CONTRACT_GET_ASSET_ID = PACKAGE + "." + VERSION + ".GetAssetId";
   public static final String CONTRACT_SCAN = PACKAGE + "." + VERSION + ".Scan";
 
