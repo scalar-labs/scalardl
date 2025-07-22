@@ -64,12 +64,14 @@ import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.GenericContractClientService;
+import com.scalar.dl.genericcontracts.object.Constants;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +92,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String ASSET_AGE = "age";
   private static final String ASSET_OUTPUT = "output";
   private static final String DATA_TYPE_INT = "INT";
-  private static final String DATA_TYPE_BIGINT = "BIGINT";
+  private static final String DATA_TYPE_TIMESTAMP = "TIMESTAMP";
   private static final String DATA_TYPE_TEXT = "TEXT";
 
   private static final String PACKAGE_OBJECT = "object";
@@ -138,6 +140,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
+  private static final String SOME_TIMESTAMP_TEXT = "2021-02-03 05:45:00";
+  private static final LocalDateTime SOME_TIMESTAMP_VALUE = LocalDateTime.of(2021, 2, 3, 5, 45);
   private static final String SOME_COLLECTION_ID = "set";
   private static final ArrayNode SOME_DEFAULT_OBJECT_IDS =
       mapper.createArrayNode().add("object1").add("object2").add("object3").add("object4");
@@ -241,20 +245,20 @@ public class GenericContractObjectAndCollectionEndToEndTest
         .put(DATA_TYPE, DATA_TYPE_INT);
   }
 
-  private JsonNode createColumn(String name, long value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_BIGINT);
-  }
-
   private JsonNode createColumn(String name, String value) {
     return mapper
         .createObjectNode()
         .put(COLUMN_NAME, name)
         .put(VALUE, value)
         .put(DATA_TYPE, DATA_TYPE_TEXT);
+  }
+
+  private JsonNode createTimestampColumn(String name, String value) {
+    return mapper
+        .createObjectNode()
+        .put(COLUMN_NAME, name)
+        .put(VALUE, value)
+        .put(DATA_TYPE, DATA_TYPE_TIMESTAMP);
   }
 
   private JsonNode createFunctionArguments(
@@ -267,7 +271,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
         mapper
             .createArrayNode()
             .add(createColumn(SOME_COLUMN_NAME_3, status))
-            .add(createColumn(SOME_COLUMN_NAME_4, registeredAt));
+            .add(createTimestampColumn(SOME_COLUMN_NAME_4, SOME_TIMESTAMP_TEXT));
 
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put(NAMESPACE, getFunctionNamespace());
@@ -574,11 +578,11 @@ public class GenericContractObjectAndCollectionEndToEndTest
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
-      assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(1L);
+      assertThat(results.get(0).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
-      assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(1234567890123L);
+      assertThat(results.get(1).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -660,6 +664,45 @@ public class GenericContractObjectAndCollectionEndToEndTest
                 CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildMessage()))
         .extracting("code")
         .isEqualTo(StatusCode.CONFLICT);
+  }
+
+  @Test
+  public void
+      putObject_FunctionArgumentsWithInvalidTimeRelatedTypeFormatGiven_ShouldThrowClientException() {
+    // Arrange
+    JsonNode contractArguments =
+        mapper
+            .createObjectNode()
+            .put(OBJECT_ID, SOME_OBJECT_ID)
+            .put(HASH_VALUE, SOME_HASH_VALUE_0)
+            .set(METADATA, SOME_METADATA_0);
+    ObjectNode functionArguments =
+        mapper
+            .createObjectNode()
+            .put(NAMESPACE, getFunctionNamespace())
+            .put(TABLE, getFunctionTable());
+    functionArguments.set(
+        PARTITION_KEY,
+        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, SOME_OBJECT_ID)));
+    functionArguments.set(
+        CLUSTERING_KEY,
+        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_2, SOME_VERSION_ID_0)));
+    functionArguments.set(
+        COLUMNS,
+        mapper
+            .createArrayNode()
+            .add(createColumn(SOME_COLUMN_NAME_3, 0))
+            .add(createTimestampColumn(SOME_COLUMN_NAME_4, "2024-05-19")));
+
+    // Act Assert
+    assertThatThrownBy(
+            () ->
+                clientService.executeContract(
+                    ID_OBJECT_PUT, contractArguments, ID_OBJECT_PUT_MUTABLE, functionArguments))
+        .isExactlyInstanceOf(ClientException.class)
+        .hasMessage(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT)
+        .extracting("code")
+        .isEqualTo(StatusCode.CONTRACT_CONTEXTUAL_ERROR);
   }
 
   @Test

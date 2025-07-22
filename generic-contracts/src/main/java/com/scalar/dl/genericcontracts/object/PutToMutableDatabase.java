@@ -13,15 +13,24 @@ import com.scalar.db.io.BlobColumn;
 import com.scalar.db.io.BooleanColumn;
 import com.scalar.db.io.Column;
 import com.scalar.db.io.DataType;
+import com.scalar.db.io.DateColumn;
 import com.scalar.db.io.DoubleColumn;
 import com.scalar.db.io.FloatColumn;
 import com.scalar.db.io.IntColumn;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
+import com.scalar.db.io.TimeColumn;
+import com.scalar.db.io.TimestampColumn;
+import com.scalar.db.io.TimestampTZColumn;
 import com.scalar.dl.ledger.database.Database;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.function.JacksonBasedFunction;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -193,6 +202,42 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
       }
     }
 
+    if (dataType.equals(DataType.DATE)
+        || dataType.equals(DataType.TIME)
+        || dataType.equals(DataType.TIMESTAMP)
+        || dataType.equals(DataType.TIMESTAMPTZ)) {
+      if (!value.isTextual()) {
+        throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
+      }
+      return getTimeRelatedColumn(columnName, value.textValue(), dataType);
+    }
+
+    throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
+  }
+
+  private Column<?> getTimeRelatedColumn(String columnName, String value, DataType dataType) {
+    try {
+      if (dataType.equals(DataType.DATE)) {
+        return DateColumn.of(columnName, LocalDate.parse(value, Constants.DATE_FORMATTER));
+      }
+
+      if (dataType.equals(DataType.TIME)) {
+        return TimeColumn.of(columnName, LocalTime.parse(value, Constants.TIME_FORMATTER));
+      }
+
+      if (dataType.equals(DataType.TIMESTAMP)) {
+        return TimestampColumn.of(
+            columnName, LocalDateTime.parse(value, Constants.TIMESTAMP_FORMATTER));
+      }
+
+      if (dataType.equals(DataType.TIMESTAMPTZ)) {
+        return TimestampTZColumn.of(
+            columnName, Constants.TIMESTAMPTZ_FORMATTER.parse(value, Instant::from));
+      }
+    } catch (DateTimeParseException e) {
+      throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
+    }
+
     throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
   }
 
@@ -227,6 +272,22 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
       return BlobColumn.ofNull(columnName);
     }
 
+    if (dataType.equals(DataType.DATE)) {
+      return DateColumn.ofNull(columnName);
+    }
+
+    if (dataType.equals(DataType.TIME)) {
+      return TimeColumn.ofNull(columnName);
+    }
+
+    if (dataType.equals(DataType.TIMESTAMP)) {
+      return TimestampColumn.ofNull(columnName);
+    }
+
+    if (dataType.equals(DataType.TIMESTAMPTZ)) {
+      return TimestampTZColumn.ofNull(columnName);
+    }
+
     throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
   }
 
@@ -246,6 +307,14 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
         return DataType.TEXT;
       case "BLOB":
         return DataType.BLOB;
+      case "DATE":
+        return DataType.DATE;
+      case "TIME":
+        return DataType.TIME;
+      case "TIMESTAMP":
+        return DataType.TIMESTAMP;
+      case "TIMESTAMPTZ":
+        return DataType.TIMESTAMPTZ;
       default:
         throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
     }
