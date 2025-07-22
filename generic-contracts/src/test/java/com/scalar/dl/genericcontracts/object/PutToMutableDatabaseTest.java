@@ -565,27 +565,8 @@ public class PutToMutableDatabaseTest {
         .parallelStream()
         .forEach(
             entry ->
-                invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException(
+                invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
                     entry.getKey(), entry.getValue()));
-  }
-
-  private void invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException(
-      JsonNode column, String description) {
-    // Arrange
-    ArrayNode partitionKey = mapper.createArrayNode().add(SOME_TEXT_COLUMN1);
-    ArrayNode columns = mapper.createArrayNode().add(column);
-    ObjectNode arguments = mapper.createObjectNode();
-    arguments.put(Constants.NAMESPACE, SOME_NAMESPACE);
-    arguments.put(Constants.TABLE, SOME_TABLE);
-    arguments.set(Constants.PARTITION_KEY, partitionKey);
-    arguments.set(Constants.COLUMNS, columns);
-
-    // Act Assert
-    assertThatThrownBy(
-            () -> putToMutableDatabase.invoke(database, arguments, null, null), description)
-        .isExactlyInstanceOf(ContractContextException.class)
-        .hasMessage(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
-    verify(database, never()).put(any());
   }
 
   @Test
@@ -630,11 +611,11 @@ public class PutToMutableDatabaseTest {
         .parallelStream()
         .forEach(
             entry ->
-                invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException(
+                invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
                     entry.getKey(), entry.getValue()));
   }
 
-  private void invoke_ColumnsWithInvalidTimeRelatedFormatGiven_ShouldThrowContractContextException(
+  private void invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
       JsonNode column, String description) {
     // Arrange
     ArrayNode partitionKey = mapper.createArrayNode().add(SOME_TEXT_COLUMN1);
