@@ -589,10 +589,12 @@ public class ClientConfigTest {
           throws IOException {
     // Arrange
     Properties props = new Properties();
-    props.put(ClientConfig.ENTITY_ID, SOME_ENTITY_ID);
+    props.put(ClientConfig.CERT_VERSION, "0");
     props.put(ClientConfig.CERT_HOLDER_ID, SOME_CERT_HOLDER_ID);
     props.put(ClientConfig.CERT_PEM, SOME_CERT_PEM);
     props.put(ClientConfig.PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+    props.put(ClientConfig.ENTITY_ID, SOME_ENTITY_ID);
+    props.put(ClientConfig.DS_CERT_VERSION, SOME_CERT_VERSION);
     props.put(ClientConfig.DS_CERT_PEM, SOME_CERT_PEM + "New");
     props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM + "New");
 
@@ -601,6 +603,8 @@ public class ClientConfigTest {
 
     // Assert
     assertThat(config.getDigitalSignatureIdentityConfig().getEntityId()).isEqualTo(SOME_ENTITY_ID);
+    assertThat(config.getDigitalSignatureIdentityConfig().getCertVersion())
+        .isEqualTo(Integer.parseInt(SOME_CERT_VERSION));
     assertThat(config.getDigitalSignatureIdentityConfig().getCert())
         .isEqualTo(SOME_CERT_PEM + "New");
     assertThat(config.getDigitalSignatureIdentityConfig().getPrivateKey())
@@ -739,5 +743,60 @@ public class ClientConfigTest {
         .isNotEqualTo(config2.getDigitalSignatureIdentityConfig());
     assertThat(config1.getLedgerTargetConfig()).isNotEqualTo(config2.getLedgerTargetConfig());
     assertThat(config1.getAuditorTargetConfig()).isNotEqualTo(config2.getAuditorTargetConfig());
+  }
+
+  @Test
+  public void constructor_CertVersionZeroGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.ENTITY_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.DS_CERT_VERSION, "0");
+    props.put(ClientConfig.DS_CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+
+    // Act Assert
+    assertThatThrownBy(() -> new ClientConfig(props)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void constructor_DeprecatedCertVersionZeroGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.CERT_HOLDER_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.CERT_VERSION, "0");
+    props.put(ClientConfig.CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+
+    // Act Assert
+    assertThatThrownBy(() -> new ClientConfig(props)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void
+      constructor_NewWrongCertVersionAndDeprecatedCorrectCertVersionGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.ENTITY_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.DS_CERT_VERSION, "0");
+    props.put(ClientConfig.DS_CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+    props.put(ClientConfig.CERT_HOLDER_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.CERT_VERSION, SOME_CERT_VERSION);
+
+    // Act Assert
+    assertThatThrownBy(() -> new ClientConfig(props)).isInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void constructor_SecretVersionZeroGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.ENTITY_ID, SOME_ENTITY_ID);
+    props.put(ClientConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props.put(ClientConfig.HMAC_SECRET_KEY, SOME_SECRET_KEY);
+    props.put(ClientConfig.HMAC_SECRET_KEY_VERSION, "0");
+
+    // Act Assert
+    assertThatThrownBy(() -> new ClientConfig(props)).isInstanceOf(IllegalArgumentException.class);
   }
 }

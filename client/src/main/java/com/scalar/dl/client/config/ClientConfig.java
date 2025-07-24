@@ -405,10 +405,8 @@ public class ClientConfig {
               ENTITY_ID, CERT_HOLDER_ID));
 
       // identity based on digital signature
-      certVersion = ConfigUtils.getInt(props, DS_CERT_VERSION, 0);
-      if (certVersion <= 0) {
-        certVersion = ConfigUtils.getInt(props, CERT_VERSION, DEFAULT_CERT_VERSION);
-      }
+      certVersion = ConfigUtils.getInt(props, CERT_VERSION, DEFAULT_CERT_VERSION);
+      certVersion = ConfigUtils.getInt(props, DS_CERT_VERSION, certVersion);
       cert = ConfigUtils.getString(props, DS_CERT_PEM, null);
       if (cert == null) {
         cert = ConfigUtils.getStringFromFilePath(props, DS_CERT_PATH, null);

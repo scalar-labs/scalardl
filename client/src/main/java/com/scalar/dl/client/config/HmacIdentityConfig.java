@@ -72,8 +72,8 @@ public class HmacIdentityConfig {
 
     public HmacIdentityConfig.Builder secretKeyVersion(int secretKeyVersion) {
       checkArgument(
-          secretKeyVersion >= 0,
-          CommonError.SECRET_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+          secretKeyVersion > 0,
+          CommonError.SECRET_VERSION_MUST_BE_GREATER_THAN_ZERO.buildMessage());
       this.secretKeyVersion = secretKeyVersion;
       return this;
     }
