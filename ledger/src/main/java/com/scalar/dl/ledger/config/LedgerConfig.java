@@ -519,6 +519,14 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
             LedgerError.CONFIG_GROUP_COMMIT_MUST_BE_DISABLED.buildMessage(
                 ConsensusCommitConfig.COORDINATOR_GROUP_COMMIT_ENABLED));
       }
+      if (consensusCommitConfig.isCoordinatorWriteOmissionOnReadOnlyEnabled()) {
+        LOGGER.warn(
+            ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED
+                + " is disabled because the Coordinator write is always necessary for ScalarDL");
+        props.setProperty(
+            ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED,
+            Boolean.toString(false));
+      }
     }
   }
 
