@@ -521,7 +521,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
       }
       if (consensusCommitConfig.isCoordinatorWriteOmissionOnReadOnlyEnabled()) {
         LOGGER.warn(
-            "Disabling the unsupported option '{}' because the Coordinator writes are always necessary for ScalarDL",
+            "Disabling the unsupported option '{}' because Coordinator writes are always necessary for ScalarDL",
             ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED);
         props.setProperty(
             ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED,
