@@ -338,30 +338,60 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_LIMIT_CLAUSE.buildMessage());
   }
 
+  private void validateExprQuerySet(ExprQuerySet exprQuerySet) {
+    if (exprQuerySet.getWith() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_WITH_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (exprQuerySet.getOrderBy() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_ORDER_BY_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (exprQuerySet.getOffset() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_OFFSET_NOT_SUPPORTED.buildMessage());
+    }
+  }
+
+  private void validateSfw(QueryBody.SFW sfw) {
+    if (sfw.getLet() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_LET_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (sfw.getExclude() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_EXCLUDE_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (sfw.getGroupBy() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_GROUP_BY_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (sfw.getHaving() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_HAVING_NOT_SUPPORTED.buildMessage());
+    }
+  }
+
   @Override
   public List<ContractStatement> visitExprQuerySet(ExprQuerySet astNode, Void context) {
-    if (astNode.getWith() != null || astNode.getOrderBy() != null || astNode.getOffset() != null) {
-      throw new IllegalArgumentException(
-          TableStoreClientError.SYNTAX_ERROR_INVALID_SELECT_STATEMENT.buildMessage());
-    }
+    validateExprQuerySet(astNode);
 
     QueryBody body = astNode.getBody();
     if (body instanceof QueryBody.SFW) {
       QueryBody.SFW sfw = (QueryBody.SFW) body;
-
-      if (sfw.getLet() != null
-          || sfw.getExclude() != null
-          || sfw.getGroupBy() != null
-          || sfw.getHaving() != null) {
-        throw new IllegalArgumentException(
-            TableStoreClientError.SYNTAX_ERROR_INVALID_SELECT_STATEMENT.buildMessage());
-      }
+      validateSfw(sfw);
 
       Select select = sfw.getSelect();
       From from = sfw.getFrom();
       if (from.getTableRefs().size() != 1) {
         throw new IllegalArgumentException(
-            TableStoreClientError.SYNTAX_ERROR_INVALID_SELECT_STATEMENT.buildMessage());
+            TableStoreClientError.SYNTAX_ERROR_CROSS_AND_IMPLICIT_JOIN_NOT_SUPPORTED
+                .buildMessage());
       }
 
       int limit = getLimit(astNode.getLimit());
