@@ -14,8 +14,6 @@ on:
         type: boolean
         default: false
     secrets:
-      CR_PAT:
-        required: true
       SLACK_SECURITY_WEBHOOK_URL:
         required: false
 
@@ -27,5 +25,4 @@ jobs:
       find-latest-release: ${{ inputs.find-latest-release }}
       images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
     secrets:
-      CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
