@@ -81,8 +81,7 @@ public class DigitalSignatureIdentityConfig {
 
     public DigitalSignatureIdentityConfig.Builder certVersion(int certVersion) {
       checkArgument(
-          certVersion >= 0,
-          CommonError.CERT_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO.buildMessage());
+          certVersion > 0, CommonError.CERT_VERSION_MUST_BE_GREATER_THAN_ZERO.buildMessage());
       this.certVersion = certVersion;
       return this;
     }
