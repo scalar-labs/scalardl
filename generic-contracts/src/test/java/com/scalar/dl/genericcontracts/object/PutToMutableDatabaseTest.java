@@ -20,6 +20,11 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.database.Database;
 import com.scalar.dl.ledger.exception.ContractContextException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -47,6 +52,21 @@ public class PutToMutableDatabaseTest {
   private static final double SOME_DOUBLE_COLUMN_VALUE = 1.23;
   private static final String SOME_BLOB_COLUMN_NAME = "blob_column";
   private static final byte[] SOME_BLOB_COLUMN_VALUE = {10, 20, 30};
+  private static final String SOME_DATE_COLUMN_NAME = "date_column";
+  private static final String SOME_DATE_COLUMN_TEXT = "2021-02-03";
+  private static final LocalDate SOME_DATE_COLUMN_VALUE = LocalDate.of(2021, 2, 3);
+  private static final String SOME_TIME_COLUMN_NAME = "time_column";
+  private static final String SOME_TIME_COLUMN_TEXT = "05:45:00";
+  private static final LocalTime SOME_TIME_COLUMN_VALUE = LocalTime.of(5, 45);
+  private static final String SOME_TIMESTAMP_COLUMN_NAME = "timestamp_column";
+  private static final String SOME_TIMESTAMP_COLUMN_TEXT = "2021-02-03 05:45:00";
+  private static final LocalDateTime SOME_TIMESTAMP_COLUMN_VALUE =
+      LocalDateTime.of(2021, 2, 3, 5, 45);
+  private static final String SOME_TIMESTAMPTZ_COLUMN_NAME = "timestamptz_column";
+  private static final String SOME_TIMESTAMPTZ_COLUMN_TEXT = "2021-02-04 05:45:00 Z";
+  private static final Instant SOME_TIMESTAMPTZ_COLUMN_VALUE =
+      LocalDateTime.of(2021, 2, 4, 5, 45).toInstant(ZoneOffset.UTC);
+
   private static final JsonNode SOME_TEXT_COLUMN1 =
       mapper
           .createObjectNode()
@@ -101,6 +121,30 @@ public class PutToMutableDatabaseTest {
           .put(Constants.COLUMN_NAME, SOME_COLUMN_NAME)
           .put(Constants.VALUE, (byte[]) null)
           .put(Constants.DATA_TYPE, "BLOB");
+  private static final JsonNode SOME_DATE_COLUMN =
+      mapper
+          .createObjectNode()
+          .put(Constants.COLUMN_NAME, SOME_DATE_COLUMN_NAME)
+          .put(Constants.VALUE, SOME_DATE_COLUMN_TEXT)
+          .put(Constants.DATA_TYPE, "DATE");
+  private static final JsonNode SOME_TIME_COLUMN =
+      mapper
+          .createObjectNode()
+          .put(Constants.COLUMN_NAME, SOME_TIME_COLUMN_NAME)
+          .put(Constants.VALUE, SOME_TIME_COLUMN_TEXT)
+          .put(Constants.DATA_TYPE, "TIME");
+  private static final JsonNode SOME_TIMESTAMP_COLUMN =
+      mapper
+          .createObjectNode()
+          .put(Constants.COLUMN_NAME, SOME_TIMESTAMP_COLUMN_NAME)
+          .put(Constants.VALUE, SOME_TIMESTAMP_COLUMN_TEXT)
+          .put(Constants.DATA_TYPE, "TIMESTAMP");
+  private static final JsonNode SOME_TIMESTAMPTZ_COLUMN =
+      mapper
+          .createObjectNode()
+          .put(Constants.COLUMN_NAME, SOME_TIMESTAMPTZ_COLUMN_NAME)
+          .put(Constants.VALUE, SOME_TIMESTAMPTZ_COLUMN_TEXT)
+          .put(Constants.DATA_TYPE, "TIMESTAMPTZ");
   private static final JsonNode SOME_COLUMN_WITHOUT_VALUE =
       mapper.createObjectNode().put(Constants.COLUMN_NAME, SOME_COLUMN_NAME);
   private static final JsonNode SOME_COLUMN_WITH_INVALID_TYPE =
@@ -155,7 +199,11 @@ public class PutToMutableDatabaseTest {
             .add(SOME_BIGINT_COLUMN)
             .add(SOME_FLOAT_COLUMN)
             .add(SOME_DOUBLE_COLUMN)
-            .add(SOME_BLOB_COLUMN);
+            .add(SOME_BLOB_COLUMN)
+            .add(SOME_DATE_COLUMN)
+            .add(SOME_TIME_COLUMN)
+            .add(SOME_TIMESTAMP_COLUMN)
+            .add(SOME_TIMESTAMPTZ_COLUMN);
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put(Constants.NAMESPACE, SOME_NAMESPACE);
     arguments.put(Constants.TABLE, SOME_TABLE);
@@ -174,6 +222,10 @@ public class PutToMutableDatabaseTest {
             .floatValue(SOME_FLOAT_COLUMN_NAME, SOME_FLOAT_COLUMN_VALUE)
             .doubleValue(SOME_DOUBLE_COLUMN_NAME, SOME_DOUBLE_COLUMN_VALUE)
             .blobValue(SOME_BLOB_COLUMN_NAME, SOME_BLOB_COLUMN_VALUE)
+            .dateValue(SOME_DATE_COLUMN_NAME, SOME_DATE_COLUMN_VALUE)
+            .timeValue(SOME_TIME_COLUMN_NAME, SOME_TIME_COLUMN_VALUE)
+            .timestampValue(SOME_TIMESTAMP_COLUMN_NAME, SOME_TIMESTAMP_COLUMN_VALUE)
+            .timestampTZValue(SOME_TIMESTAMPTZ_COLUMN_NAME, SOME_TIMESTAMPTZ_COLUMN_VALUE)
             .build();
 
     // Act
@@ -513,11 +565,57 @@ public class PutToMutableDatabaseTest {
         .parallelStream()
         .forEach(
             entry ->
-                invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException(
+                invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
                     entry.getKey(), entry.getValue()));
   }
 
-  private void invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException(
+  @Test
+  public void
+      invoke_ColumnsWithInvalidTimeRelatedFormatGiven_ShouldThrowContractContextException() {
+    // Arrange
+    Builder<JsonNode, String> builder = ImmutableMap.builder();
+    builder
+        .put(
+            mapper
+                .createObjectNode()
+                .put(Constants.COLUMN_NAME, SOME_DATE_COLUMN_NAME)
+                .put(Constants.VALUE, "2025-07")
+                .put(Constants.DATA_TYPE, "DATE"),
+            "DATE without day")
+        .put(
+            mapper
+                .createObjectNode()
+                .put(Constants.COLUMN_NAME, SOME_TIME_COLUMN_NAME)
+                .put(Constants.VALUE, "10:20 PM")
+                .put(Constants.DATA_TYPE, "TIME"),
+            "TIME with unexpected am/pm")
+        .put(
+            mapper
+                .createObjectNode()
+                .put(Constants.COLUMN_NAME, SOME_TIMESTAMP_COLUMN_NAME)
+                .put(Constants.VALUE, "2025-07 10:20:00")
+                .put(Constants.DATA_TYPE, "TIMESTAMP"),
+            "TIMESTAMP without day")
+        .put(
+            mapper
+                .createObjectNode()
+                .put(Constants.COLUMN_NAME, SOME_TIMESTAMPTZ_COLUMN_NAME)
+                .put(Constants.VALUE, "2027-07-01 12:34")
+                .put(Constants.DATA_TYPE, "TIMESTAMPTZ"),
+            "TIMESTAMPTZ without Z");
+
+    // Act Assert
+    builder
+        .build()
+        .entrySet()
+        .parallelStream()
+        .forEach(
+            entry ->
+                invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
+                    entry.getKey(), entry.getValue()));
+  }
+
+  private void invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
       JsonNode column, String description) {
     // Arrange
     ArrayNode partitionKey = mapper.createArrayNode().add(SOME_TEXT_COLUMN1);
