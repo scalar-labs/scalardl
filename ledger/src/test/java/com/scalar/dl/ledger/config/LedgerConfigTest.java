@@ -581,4 +581,38 @@ public class LedgerConfigTest {
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
   }
+
+  @Test
+  public void
+      constructor_ConsensusCommitWithCoordinatorWriteOmissionDisabledSpecified_ShouldConstructProperly() {
+    // Arrange
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+    props.setProperty(
+        ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED, "false");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+    ConsensusCommitConfig consensusCommitConfig =
+        new ConsensusCommitConfig(config.getDatabaseConfig());
+
+    // Assert
+    assertThat(consensusCommitConfig.isCoordinatorWriteOmissionOnReadOnlyEnabled()).isFalse();
+  }
+
+  @Test
+  public void
+      constructor_ConsensusCommitWithCoordinatorWriteOmissionEnabledSpecified_ShouldConstructProperlyWithDisablingIt() {
+    // Arrange
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+    props.setProperty(
+        ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED, "true");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+    ConsensusCommitConfig consensusCommitConfig =
+        new ConsensusCommitConfig(config.getDatabaseConfig());
+
+    // Assert
+    assertThat(consensusCommitConfig.isCoordinatorWriteOmissionOnReadOnlyEnabled()).isFalse();
+  }
 }
