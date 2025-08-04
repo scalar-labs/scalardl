@@ -70,7 +70,7 @@ public class HmacIdentityConfig {
     }
 
     public HmacIdentityConfig.Builder secretKeyVersion(int secretKeyVersion) {
-      checkArgument(secretKeyVersion >= 0);
+      checkArgument(secretKeyVersion > 0);
       this.secretKeyVersion = secretKeyVersion;
       return this;
     }

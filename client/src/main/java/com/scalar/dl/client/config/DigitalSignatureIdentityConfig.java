@@ -79,7 +79,7 @@ public class DigitalSignatureIdentityConfig {
     }
 
     public DigitalSignatureIdentityConfig.Builder certVersion(int certVersion) {
-      checkArgument(certVersion >= 0);
+      checkArgument(certVersion > 0);
       this.certVersion = certVersion;
       return this;
     }
