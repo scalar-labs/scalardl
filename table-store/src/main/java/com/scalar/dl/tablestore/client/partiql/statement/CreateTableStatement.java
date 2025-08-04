@@ -11,11 +11,10 @@ import java.util.Objects;
 
 public class CreateTableStatement extends AbstractJacksonBasedContractStatement {
 
-  private final String contractId;
+  private static final String contractId = Constants.CONTRACT_CREATE;
   private final JsonNode arguments;
 
   private CreateTableStatement(JsonNode arguments) {
-    this.contractId = Constants.CONTRACT_CREATE;
     this.arguments = Objects.requireNonNull(arguments);
   }
 

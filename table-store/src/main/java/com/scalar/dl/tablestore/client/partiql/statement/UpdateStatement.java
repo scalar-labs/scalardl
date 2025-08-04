@@ -1,17 +1,19 @@
 package com.scalar.dl.tablestore.client.partiql.statement;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.MoreObjects;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
+import java.util.List;
 import java.util.Objects;
 
-public class InsertStatement extends AbstractJacksonBasedContractStatement {
+public class UpdateStatement extends AbstractJacksonBasedContractStatement {
 
-  private static final String contractId = Constants.CONTRACT_INSERT;
+  private static final String contractId = Constants.CONTRACT_UPDATE;
   private final JsonNode arguments;
 
-  private InsertStatement(JsonNode arguments) {
+  private UpdateStatement(JsonNode arguments) {
     this.arguments = Objects.requireNonNull(arguments);
   }
 
@@ -38,10 +40,10 @@ public class InsertStatement extends AbstractJacksonBasedContractStatement {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof InsertStatement)) {
+    if (!(o instanceof UpdateStatement)) {
       return false;
     }
-    InsertStatement that = (InsertStatement) o;
+    UpdateStatement that = (UpdateStatement) o;
     return Objects.equals(arguments, that.arguments);
   }
 
@@ -50,14 +52,17 @@ public class InsertStatement extends AbstractJacksonBasedContractStatement {
     return Objects.hash(arguments);
   }
 
-  private static JsonNode buildArguments(String table, JsonNode values) {
+  private static JsonNode buildArguments(String table, JsonNode values, List<JsonNode> predicates) {
     ObjectNode arguments = jacksonSerDe.getObjectMapper().createObjectNode();
-    arguments.put(Constants.RECORD_TABLE, table);
-    arguments.set(Constants.RECORD_VALUES, values);
+    arguments.put(Constants.UPDATE_TABLE, table);
+    arguments.set(Constants.UPDATE_VALUES, values);
+    ArrayNode conditions = jacksonSerDe.getObjectMapper().createArrayNode();
+    predicates.forEach(conditions::add);
+    arguments.set(Constants.UPDATE_CONDITIONS, conditions);
     return arguments;
   }
 
-  public static InsertStatement create(String table, JsonNode values) {
-    return new InsertStatement(buildArguments(table, values));
+  public static UpdateStatement create(String table, JsonNode values, List<JsonNode> predicates) {
+    return new UpdateStatement(buildArguments(table, values, predicates));
   }
 }
