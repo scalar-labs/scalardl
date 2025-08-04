@@ -163,10 +163,10 @@ public enum CommonError implements ScalarDlError {
       ""),
   PRIVATE_KEY_AND_CERT_REQUIRED(
       StatusCode.INVALID_ARGUMENT, "009", "The private key and certificate are required.", "", ""),
-  CERT_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
+  CERT_VERSION_MUST_BE_GREATER_THAN_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "010",
-      "The certificate version must be greater than or equal to zero.",
+      "The certificate version must be greater than zero.",
       "",
       ""),
   SECRET_KEY_REQUIRED(
@@ -175,10 +175,10 @@ public enum CommonError implements ScalarDlError {
       "A secret key is required for HMAC authentication.",
       "",
       ""),
-  SECRET_VERSION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
+  SECRET_VERSION_MUST_BE_GREATER_THAN_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "012",
-      "The secret version for HMAC authentication must be greater than or equal to zero.",
+      "The secret version for HMAC authentication must be greater than zero.",
       "",
       ""),
   GRPC_DEADLINE_DURATION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
