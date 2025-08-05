@@ -14,6 +14,7 @@ import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +68,7 @@ public class ContractsRegistrationTest {
     class whereRegisterContractsFailsViaClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode() throws UnsupportedEncodingException {
         // Arrange
         String[] args =
             new String[] {
@@ -87,7 +88,7 @@ public class ContractsRegistrationTest {
         assertThat(exitCode).isEqualTo(1);
         verify(serviceMock).registerContracts();
         verify(factoryMock).close();
-        assertThat(outputStreamCaptor.toString()).contains("Some error");
+        assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Some error");
       }
     }
 

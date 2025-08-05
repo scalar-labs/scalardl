@@ -23,8 +23,7 @@ public class Common {
     String classResourcePath = clazz.getName().replace('.', '/') + ".class";
     try (InputStream is = clazz.getClassLoader().getResourceAsStream(classResourcePath)) {
       if (is == null) {
-        throw new RuntimeException(
-            ClientError.CLASS_FILE_LOAD_FAILED.buildMessage(clazz.getName()));
+        throw new ClientException(ClientError.CLASS_FILE_LOAD_FAILED, clazz.getName());
       }
 
       ByteArrayOutputStream buffer = new ByteArrayOutputStream();

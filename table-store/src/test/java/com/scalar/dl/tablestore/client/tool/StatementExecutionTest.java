@@ -17,6 +17,7 @@ import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -151,7 +152,7 @@ public class StatementExecutionTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode() throws UnsupportedEncodingException {
         // Arrange
         String[] args =
             new String[] {"--properties=PROPERTIES_FILE", "--statement=INVALID STATEMENT"};
@@ -168,7 +169,7 @@ public class StatementExecutionTest {
         // Assert
         assertThat(exitCode).isEqualTo(1);
         verify(factoryMock).close();
-        assertThat(outputStreamCaptor.toString()).contains("Invalid statement");
+        assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Invalid statement");
       }
     }
   }

@@ -73,7 +73,7 @@ public class StatementExecutionResult {
    * equal if it is the same instance or if:
    *
    * <ul>
-   *   <li>it is also an {@code ContractExecutionResult} and
+   *   <li>it is also an {@code StatementExecutionResult} and
    *   <li>both instances have the same result and proofs.
    * </ul>
    *
@@ -89,7 +89,7 @@ public class StatementExecutionResult {
       return false;
     }
     StatementExecutionResult other = (StatementExecutionResult) o;
-    return this.result.equals(other.result)
+    return Objects.equals(this.result, other.result)
         && this.ledgerProofs.equals(other.ledgerProofs)
         && this.auditorProofs.equals(other.auditorProofs);
   }
