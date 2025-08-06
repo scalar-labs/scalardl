@@ -51,7 +51,7 @@ dependencies {
 
     // The following packages are provided for ScalarDL contracts in runtime
     implementation group: 'org.hashids', name: 'hashids', version: '1.0.3'
-    implementation group: 'com.github.everit-org.json-schema', name: 'org.everit.json.schema', version: '1.14.4'
+    implementation group: 'com.github.everit-org.json-schema', name: 'org.everit.json.schema', version: 'v1.14.6'
 
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
