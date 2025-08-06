@@ -454,8 +454,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR.buildMessage(
                 PROOF_PRIVATE_KEY_PATH, PROOF_PRIVATE_KEY_PEM));
-      }
-      if (authenticationMethod == AuthenticationMethod.HMAC && serversAuthHmacSecretKey == null) {
+      } else if (authenticationMethod == AuthenticationMethod.HMAC
+          && serversAuthHmacSecretKey == null) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR_HMAC
                 .buildMessage(SERVERS_AUTHENTICATION_HMAC_SECRET_KEY));
