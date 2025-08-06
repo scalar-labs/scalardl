@@ -56,7 +56,7 @@ public class TableStoreCommandLineTest {
               "  execute-statement   Execute a specified statement.",
               "",
               "validate ledger",
-              "  validate-ledger     Validate a specified asset in a ledger.",
+              "  validate-ledger     Validate a specified asset in the ledger.",
               "");
       assertThat(actual).isEqualTo(expected);
     }
