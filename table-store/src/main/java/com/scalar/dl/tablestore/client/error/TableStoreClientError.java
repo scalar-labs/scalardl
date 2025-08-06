@@ -185,7 +185,7 @@ public enum TableStoreClientError implements ScalarDlError {
   INVALID_CONDITION_FOR_INFORMATION_SCHEMA_QUERY(
       StatusCode.INVALID_ARGUMENT,
       "030",
-      "The specified condition for information schema query is invalid.",
+      "The specified condition for the information schema query is invalid.",
       "",
       ""),
   ;
