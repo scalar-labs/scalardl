@@ -23,7 +23,7 @@ public class StatementExecution extends CommonOptions implements Callable<Intege
       names = {"--statement"},
       required = true,
       paramLabel = "STATEMENT",
-      description = "A statement to interact with table store.")
+      description = "A statement to interact with the table store.")
   private String statement;
 
   public static void main(String[] args) {

@@ -15,7 +15,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 
-@Command(name = "validate-ledger", description = "Validate a specified asset in a ledger.")
+@Command(name = "validate-ledger", description = "Validate a specified asset in the ledger.")
 public class LedgerValidation extends CommonOptions implements Callable<Integer> {
 
   @CommandLine.Option(
@@ -34,7 +34,7 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
       names = {"--table-name"},
       required = true,
       paramLabel = "TABLE_NAME",
-      description = "The name of a table.")
+      description = "The name of the table.")
   String tableName;
 
   @ArgGroup(exclusive = false, multiplicity = "0..1")
@@ -48,7 +48,7 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
         names = {"--column-value"},
         required = true,
         paramLabel = "COLUMN_VALUE",
-        description = "The column value of primary key or index key as JSON string.")
+        description = "The column value of the primary key or the index key as a JSON string.")
     String value;
   }
 

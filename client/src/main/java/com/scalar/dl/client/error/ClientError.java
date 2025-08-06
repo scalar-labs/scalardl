@@ -115,7 +115,7 @@ public enum ClientError implements ScalarDlError {
   PROCESSING_JSON_FAILED(
       StatusCode.RUNTIME_ERROR, "004", "Processing JSON failed. Details: %s", "", ""),
   CLASS_FILE_LOAD_FAILED(
-      StatusCode.RUNTIME_ERROR, "005", "Failed to load class file. File: %s", "", ""),
+      StatusCode.RUNTIME_ERROR, "005", "Failed to load the class file. File: %s", "", ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-CLIENT";
