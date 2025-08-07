@@ -137,7 +137,7 @@ public enum LedgerError implements ScalarDlError {
   CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR(
       StatusCode.INVALID_ARGUMENT,
       "003",
-      "Authentication between Ledger and Auditor is not correctly configured. Set %s or set a private key with %s or %s.",
+      "Authentication between Ledger and Auditor is not correctly configured. Set a private key with %s or %s if you use digital signature authentication with Auditor enabled.",
       "",
       ""),
   CONFIG_INVALID_AUTHENTICATION_SETTING_BETWEEN_LEDGER_AUDITOR_HMAC(
