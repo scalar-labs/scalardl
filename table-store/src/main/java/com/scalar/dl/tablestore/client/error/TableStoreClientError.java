@@ -170,6 +170,8 @@ public enum TableStoreClientError implements ScalarDlError {
       "The limit clause is not supported except in the history query.",
       "",
       ""),
+  MULTIPLE_STATEMENTS_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT, "028", "Multiple statements are not supported.", "", ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-TABLE-STORE";

@@ -11,6 +11,8 @@ public class Constants {
   public static final String CONTRACT_INSERT = PACKAGE + "." + VERSION + ".Insert";
   public static final String CONTRACT_SELECT = PACKAGE + "." + VERSION + ".Select";
   public static final String CONTRACT_UPDATE = PACKAGE + "." + VERSION + ".Update";
+  public static final String CONTRACT_SHOW_TABLES = PACKAGE + "." + VERSION + ".ShowTables";
+  public static final String CONTRACT_GET_HISTORY = PACKAGE + "." + VERSION + ".GetHistory";
   public static final String CONTRACT_GET_ASSET_ID = PACKAGE + "." + VERSION + ".GetAssetId";
   public static final String CONTRACT_SCAN = PACKAGE + "." + VERSION + ".Scan";
 

@@ -15,26 +15,26 @@ public class CommonOptions {
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
-  boolean helpRequested;
+  protected boolean helpRequested;
 
   @CommandLine.Option(
       names = {"--properties", "--config"},
       required = true,
       paramLabel = "PROPERTIES_FILE",
       description = "A configuration file in properties format.")
-  String properties;
+  protected String properties;
 
   @CommandLine.Option(
       names = {"--stacktrace"},
       description = "output Java Stack Trace to stderr stream.")
-  boolean stacktraceEnabled;
+  protected boolean stacktraceEnabled;
 
   @CommandLine.Option(
       names = {"-g", "--use-gateway"},
       paramLabel = "USE_GATEWAY",
       defaultValue = "false",
       description = "A flag to use the gateway.")
-  boolean useGateway;
+  protected boolean useGateway;
 
   /**
    * Outputs Java stack trace to stderr stream by using {@link Exception#printStackTrace()} when the
