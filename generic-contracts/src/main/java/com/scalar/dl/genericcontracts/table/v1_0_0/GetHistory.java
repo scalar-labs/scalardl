@@ -19,20 +19,13 @@ public class GetHistory extends JacksonBasedContract {
       Ledger<JsonNode> ledger, JsonNode arguments, @Nullable JsonNode properties) {
 
     // Check the arguments
-    if (arguments.size() < 2
-        || arguments.size() > 3
-        || !arguments.has(Constants.RECORD_TABLE)
-        || !arguments.get(Constants.RECORD_TABLE).isTextual()
-        || !arguments.has(Constants.RECORD_KEY)) {
-      throw new ContractContextException(Constants.INVALID_CONTRACT_ARGUMENTS);
-    }
+    validateQuery(arguments);
 
-    JsonNode tableName = arguments.get(Constants.RECORD_TABLE);
+    JsonNode tableName = arguments.get(Constants.QUERY_TABLE);
     if (!isSupportedObjectName(tableName.asText())) {
       throw new ContractContextException(Constants.INVALID_OBJECT_NAME + tableName.asText());
     }
 
-    // Get the table metadata
     JsonNode table =
         ledger
             .get(getAssetId(ledger, Constants.PREFIX_TABLE, tableName))
@@ -41,20 +34,25 @@ public class GetHistory extends JacksonBasedContract {
             .data();
 
     // Check the key type
+    JsonNode condition = arguments.get(Constants.QUERY_CONDITIONS).get(0);
+    String conditionColumn = getColumnName(condition.get(Constants.CONDITION_COLUMN).asText());
+    JsonNode conditionValue = condition.get(Constants.CONDITION_VALUE);
     JsonNode keyColumn = table.get(Constants.TABLE_KEY);
-    JsonNode keyValue = arguments.get(Constants.RECORD_KEY);
+    if (!keyColumn.asText().equals(conditionColumn)) {
+      throw new ContractContextException(Constants.INVALID_HISTORY_QUERY_CONDITION);
+    }
     String keyType = table.get(Constants.TABLE_KEY_TYPE).asText();
-    String givenType = keyValue.getNodeType().name();
+    String givenType = conditionValue.getNodeType().name();
     if (!givenType.equalsIgnoreCase(keyType)) {
       throw new ContractContextException(Constants.INVALID_KEY_TYPE + givenType);
     }
 
     // Prepare scan for the asset of the record
     String recordAssetId =
-        getAssetId(ledger, Constants.PREFIX_RECORD, tableName, keyColumn, keyValue);
+        getAssetId(ledger, Constants.PREFIX_RECORD, tableName, keyColumn, conditionValue);
     AssetFilter filter = new AssetFilter(recordAssetId).withAgeOrder(AgeOrder.DESC);
-    if (arguments.has(Constants.HISTORY_LIMIT)) {
-      filter.withLimit(validateAndGetLimit(arguments.get(Constants.HISTORY_LIMIT)));
+    if (arguments.has(Constants.QUERY_LIMIT)) {
+      filter.withLimit(validateAndGetLimit(arguments.get(Constants.QUERY_LIMIT)));
     }
 
     // Get history of the record
@@ -70,6 +68,76 @@ public class GetHistory extends JacksonBasedContract {
                         .set(Constants.RECORD_VALUES, asset.data())));
 
     return history;
+  }
+
+  private void validateQuery(JsonNode arguments) {
+    // Check the required fields
+    if (arguments.size() < 2
+        || arguments.size() > 3
+        || !arguments.has(Constants.QUERY_TABLE)
+        || !arguments.get(Constants.QUERY_TABLE).isTextual()
+        || !arguments.has(Constants.QUERY_CONDITIONS)) {
+      throw new ContractContextException(Constants.INVALID_CONTRACT_ARGUMENTS);
+    }
+
+    String tableReference = arguments.get(Constants.QUERY_TABLE).asText();
+    validateConditions(tableReference, arguments.get(Constants.QUERY_CONDITIONS));
+  }
+
+  private void validateConditions(String tableReference, JsonNode conditions) {
+    if (!conditions.isArray() || conditions.size() != 1) {
+      throw new ContractContextException(Constants.INVALID_HISTORY_QUERY_CONDITION);
+    }
+
+    JsonNode condition = conditions.get(0);
+    if (!condition.isObject()
+        || !condition.has(Constants.CONDITION_COLUMN)
+        || !condition.get(Constants.CONDITION_COLUMN).isTextual()
+        || !condition.has(Constants.CONDITION_OPERATOR)
+        || !condition.get(Constants.CONDITION_OPERATOR).isTextual()) {
+      throw new ContractContextException(Constants.INVALID_HISTORY_QUERY_CONDITION);
+    }
+
+    if (!condition
+        .get(Constants.CONDITION_OPERATOR)
+        .asText()
+        .equalsIgnoreCase(Constants.OPERATOR_EQ)) {
+      throw new ContractContextException(Constants.INVALID_HISTORY_QUERY_CONDITION);
+    }
+
+    // Check the column
+    validateColumn(tableReference, condition.get(Constants.CONDITION_COLUMN).asText());
+  }
+
+  private boolean isColumnName(String column) {
+    return Constants.OBJECT_NAME.matcher(column).matches();
+  }
+
+  private boolean isColumnReference(String column) {
+    return Constants.COLUMN_REFERENCE.matcher(column).matches();
+  }
+
+  private String getColumnName(String column) {
+    return isColumnReference(column)
+        ? column.substring(column.indexOf(Constants.COLUMN_SEPARATOR) + 1)
+        : column;
+  }
+
+  private String getTableReference(String column) {
+    return column.substring(0, column.indexOf(Constants.COLUMN_SEPARATOR));
+  }
+
+  private void validateColumn(String tableReference, String column) {
+    if (isColumnReference(column)) {
+      String specifiedTableReference = getTableReference(column);
+      if (!specifiedTableReference.equals(tableReference)) {
+        throw new ContractContextException(Constants.UNKNOWN_TABLE + specifiedTableReference);
+      }
+    } else {
+      if (!isColumnName(column)) {
+        throw new ContractContextException(Constants.INVALID_COLUMN_FORMAT + column);
+      }
+    }
   }
 
   private Integer validateAndGetLimit(JsonNode limit) {

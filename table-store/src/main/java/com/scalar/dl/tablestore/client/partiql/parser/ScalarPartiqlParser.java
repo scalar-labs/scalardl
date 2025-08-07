@@ -14,6 +14,10 @@ import org.partiql.spi.errors.Severity;
 
 @ThreadSafe
 public class ScalarPartiqlParser {
+  public static final String HISTORY_FUNCTION = "history";
+  public static final String INFORMATION_SCHEMA = "information_schema";
+  public static final String INFORMATION_SCHEMA_TABLES = "tables";
+  public static final String INFORMATION_SCHEMA_TABLE_NAME = "table_name";
 
   private static final PartiQLParser parser = PartiQLParser.standard();
   private static final PErrorListener errorListener =

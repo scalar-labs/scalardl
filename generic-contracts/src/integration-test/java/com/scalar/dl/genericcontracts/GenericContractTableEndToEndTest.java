@@ -1945,15 +1945,17 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   @Test
   public void getHistory_WithoutLimitAndWithLimitGiven_ShouldReturnRecordAgesCorrectly() {
     // Arrange
-    String keyString = "key1";
+    JsonNode key = TextNode.valueOf("key1");
     JsonNode argumentsWithoutLimit =
         mapper
             .createObjectNode()
-            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
-            .put(Constants.RECORD_KEY, keyString);
+            .put(Constants.QUERY_TABLE, COMMON_TEST_TABLE)
+            .set(
+                Constants.QUERY_CONDITIONS,
+                prepareArrayNode(
+                    ImmutableList.of(prepareCondition(COLUMN_NAME_1, key, Constants.OPERATOR_EQ))));
     ObjectNode argumentsWithLimit = argumentsWithoutLimit.deepCopy();
-    argumentsWithLimit.put(Constants.HISTORY_LIMIT, 2);
-    JsonNode key = TextNode.valueOf(keyString);
+    argumentsWithLimit.put(Constants.QUERY_LIMIT, 2);
     JsonNode value0 = IntNode.valueOf(0);
     JsonNode value1 = IntNode.valueOf(1);
     JsonNode value2 = IntNode.valueOf(2);
@@ -2006,8 +2008,13 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode arguments =
         mapper
             .createObjectNode()
-            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
-            .put(Constants.RECORD_KEY, "key");
+            .put(Constants.QUERY_TABLE, COMMON_TEST_TABLE)
+            .set(
+                Constants.QUERY_CONDITIONS,
+                prepareArrayNode(
+                    ImmutableList.of(
+                        prepareCondition(
+                            COLUMN_NAME_1, TextNode.valueOf("key"), Constants.OPERATOR_EQ))));
 
     // Act
     ContractExecutionResult actual =
@@ -2026,8 +2033,12 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode arguments =
         mapper
             .createObjectNode()
-            .put(Constants.RECORD_TABLE, COMMON_TEST_TABLE)
-            .set(Constants.RECORD_KEY, value);
+            .put(Constants.QUERY_TABLE, COMMON_TEST_TABLE)
+            .set(
+                Constants.QUERY_CONDITIONS,
+                prepareArrayNode(
+                    ImmutableList.of(
+                        prepareCondition(COLUMN_NAME_1, value, Constants.OPERATOR_EQ))));
 
     // Act Assert
     assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments))
