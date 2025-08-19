@@ -64,8 +64,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   public static final String NAMESPACE = PREFIX + "namespace";
   /**
    * <code>scalar.dl.ledger.authentication.method</code> (Optional)<br>
-   * The authentication method for a client and servers. ("digital-signature" by default) This has
-   * to be consistent with the client configuration.
+   * The authentication method for clients and Ledger servers. {@code "digital-signature"} (default)
+   * or {@code "hmac"} can be specified.
    */
   public static final String AUTHENTICATION_METHOD = PREFIX + "authentication.method";
   /**
@@ -446,20 +446,19 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
       }
       serversAuthHmacSecretKey =
           ConfigUtils.getString(props, SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, null);
-      if (serversAuthHmacSecretKey == null && proofPrivateKey == null) {
+      if (authenticationMethod == AuthenticationMethod.DIGITAL_SIGNATURE
+          && proofPrivateKey == null) {
         throw new IllegalArgumentException(
             String.format(
                 "Authentication between Ledger and Auditor is not correctly configured."
-                    + "Set %s or set a private key with %s or %s.",
-                SERVERS_AUTHENTICATION_HMAC_SECRET_KEY,
-                PROOF_PRIVATE_KEY_PATH,
-                PROOF_PRIVATE_KEY_PEM));
-      }
-      if (authenticationMethod == AuthenticationMethod.HMAC && serversAuthHmacSecretKey == null) {
+                    + " Set a private key with %s or %s if you use digital signature authentication with Auditor enabled.",
+                PROOF_PRIVATE_KEY_PATH, PROOF_PRIVATE_KEY_PEM));
+      } else if (authenticationMethod == AuthenticationMethod.HMAC
+          && serversAuthHmacSecretKey == null) {
         throw new IllegalArgumentException(
             String.format(
                 "Authentication between Ledger and Auditor is not correctly configured."
-                    + "Set %s if you use HMAC authentication with Auditor enabled.",
+                    + " Set %s if you use HMAC authentication with Auditor enabled.",
                 SERVERS_AUTHENTICATION_HMAC_SECRET_KEY));
       }
     } else { // Auditor disabled
