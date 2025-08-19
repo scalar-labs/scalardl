@@ -2425,7 +2425,9 @@ public class LedgerServiceEndToEndTest {
     Properties props2 = createProperties();
     props2.put(LedgerConfig.AUDITOR_ENABLED, "true");
     props2.put(LedgerConfig.PROOF_ENABLED, "true");
-    props2.put(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SECRET_KEY_A);
+    props2.put(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
+    props2.put(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SECRET_KEY_B);
     createServices(new LedgerConfig(props2));
     String nonce = UUID.randomUUID().toString();
     JsonNode contractArgument =
@@ -2436,18 +2438,18 @@ public class LedgerServiceEndToEndTest {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
+            ENTITY_ID_C,
             KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
-            hmacSigner1.sign(nonce.getBytes(StandardCharsets.UTF_8)));
+            hmacSigner1.sign(serialized),
+            hmacSigner2.sign(nonce.getBytes(StandardCharsets.UTF_8)));
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
@@ -2463,6 +2465,8 @@ public class LedgerServiceEndToEndTest {
     Properties props2 = createProperties();
     props2.put(LedgerConfig.AUDITOR_ENABLED, "true");
     props2.put(LedgerConfig.PROOF_ENABLED, "true");
+    props2.put(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
     props2.put(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SECRET_KEY_A);
     createServices(new LedgerConfig(props2));
     String nonce = UUID.randomUUID().toString();
@@ -2474,17 +2478,17 @@ public class LedgerServiceEndToEndTest {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
+            ENTITY_ID_C,
             KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            hmacSigner1.sign(serialized),
             hmacSigner2.sign(nonce.getBytes(StandardCharsets.UTF_8))); // invalid HMAC signature
 
     // Act

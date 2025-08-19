@@ -154,8 +154,9 @@ public class ClientConfig {
   public static final String DS_PRIVATE_KEY_PEM = DS_IDENTITY_PREFIX + "private_key_pem";
   /**
    * <code>scalar.dl.client.authentication_method</code> (Optional)<br>
-   * The authentication method for a client and servers. Use {@code "digital-signature"} (default)
-   * or {@code "hmac"}.
+   * The authentication method for clients and Ledger/Auditor servers. {@code "digital-signature"}
+   * (default) or {@code "hmac"} can be specified. This must be consistent with the Ledger/Auditor
+   * configuration.
    *
    * @deprecated This variable will be deleted in release 5.0.0. Use {@code
    *     scalar.dl.client.authentication.method} instead.
@@ -163,8 +164,9 @@ public class ClientConfig {
   public static final String DEPRECATED_AUTHENTICATION_METHOD = PREFIX + "authentication_method";
   /**
    * <code>scalar.dl.client.authentication.method</code> (Optional)<br>
-   * The authentication method for a client and servers. Use {@code "digital-signature"} (default)
-   * or {@code "hmac"}.
+   * The authentication method for clients and Ledger/Auditor servers. {@code "digital-signature"}
+   * (default) or {@code "hmac"} can be specified. This must be consistent with the Ledger/Auditor
+   * configuration.
    */
   public static final String AUTHENTICATION_METHOD = PREFIX + "authentication.method";
   /**
