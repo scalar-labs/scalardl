@@ -451,20 +451,6 @@ public class LedgerConfigTest {
   }
 
   @Test
-  public void constructor_AuditorAndProofEnabledAndSecretKeyGiven_ShouldConstructProperly() {
-    // Arrange
-    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
-    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
-    props.setProperty(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SOME_KEY);
-
-    // Act
-    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
-
-    // Assert
-    assertThat(thrown).doesNotThrowAnyException();
-  }
-
-  @Test
   public void
       constructor_AuditorAndProofEnabledButNeitherPrivateKeyNorSecretKeyGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
@@ -525,12 +511,13 @@ public class LedgerConfigTest {
 
   @Test
   public void
-      constructor_AuditorAndProofEnabledAndHmacConfiguredButSecretKeyNotGiven_ShouldThrowIllegalArgumentException() {
+      constructor_AuditorEnabledButProofDisabledWithHmacConfiguration_ShouldThrowIllegalArgumentException() {
     // Arrange
     props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
     props.setProperty(LedgerConfig.PROOF_ENABLED, "false");
     props.setProperty(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
     props.setProperty(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
+    props.setProperty(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SOME_SECRET_KEY);
 
     // Act
     Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
@@ -546,6 +533,40 @@ public class LedgerConfigTest {
     props.setProperty(LedgerConfig.PROOF_ENABLED, "false");
     props.setProperty(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
     props.setProperty(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SOME_SECRET_KEY);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void
+      constructor_AuditorAndProofEnabledInDigitalSignatureConfigurationButPrivateKeyNotGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(
+        LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.DIGITAL_SIGNATURE.getMethod());
+    props.setProperty(LedgerConfig.SERVERS_AUTHENTICATION_HMAC_SECRET_KEY, SOME_SECRET_KEY);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void
+      constructor_AuditorAndProofEnabledInHmacConfigurationButSecretKeyNotGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props.setProperty(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
+    props.setProperty(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PEM);
 
     // Act
     Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
