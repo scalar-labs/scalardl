@@ -188,6 +188,8 @@ public enum TableStoreClientError implements ScalarDlError {
       "The specified condition for the information schema query is invalid.",
       "",
       ""),
+  MULTIPLE_STATEMENTS_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT, "031", "Multiple statements are not supported.", "", ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-TABLE-STORE";
