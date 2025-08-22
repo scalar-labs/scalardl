@@ -24,7 +24,7 @@ public class Common {
   static final String SCALARDL_GC_SUBCOMMAND_NAME = "generic-contracts";
   static final String SCALARDL_GC_ALIAS = "gc";
 
-  static JsonNode getValidationResult(LedgerValidationResult result) {
+  public static JsonNode getValidationResult(LedgerValidationResult result) {
     ObjectNode json =
         mapper.createObjectNode().put(Common.STATUS_CODE_KEY, result.getCode().toString());
     json.set("Ledger", getProof(result.getLedgerProof().orElse(null)));
@@ -55,7 +55,7 @@ public class Common {
     printJson(json);
   }
 
-  static void printError(ClientException e) {
+  public static void printError(ClientException e) {
     JsonNode json =
         mapper
             .createObjectNode()
@@ -64,7 +64,7 @@ public class Common {
     printJson(json);
   }
 
-  static void printJson(JsonNode json) {
+  public static void printJson(JsonNode json) {
     try {
       System.out.println(mapper.writeValueAsString(json));
     } catch (JsonProcessingException e) {
