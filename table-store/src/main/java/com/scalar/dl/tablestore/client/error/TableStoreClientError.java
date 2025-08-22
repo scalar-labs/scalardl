@@ -170,8 +170,26 @@ public enum TableStoreClientError implements ScalarDlError {
       "The limit clause is not supported except in the history query.",
       "",
       ""),
+  TABLE_ALIAS_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "028",
+      "The table alias not supported in the information schema and history query.",
+      "",
+      ""),
+  PROJECTION_NOT_SUPPORTED_FOR_INFORMATION_SCHEMA_QUERY(
+      StatusCode.INVALID_ARGUMENT,
+      "029",
+      "Projection is not supported for the information schema query. Specify '*' instead.",
+      "",
+      ""),
+  INVALID_CONDITION_FOR_INFORMATION_SCHEMA_QUERY(
+      StatusCode.INVALID_ARGUMENT,
+      "030",
+      "The specified condition for the information schema query is invalid.",
+      "",
+      ""),
   MULTIPLE_STATEMENTS_NOT_SUPPORTED(
-      StatusCode.INVALID_ARGUMENT, "028", "Multiple statements are not supported.", "", ""),
+      StatusCode.INVALID_ARGUMENT, "031", "Multiple statements are not supported.", "", ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-TABLE-STORE";

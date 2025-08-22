@@ -39,13 +39,13 @@ public class Constants {
   public static final String QUERY_JOINS = "joins";
   public static final String QUERY_CONDITIONS = "conditions";
   public static final String QUERY_PROJECTIONS = "projections";
+  public static final String QUERY_LIMIT = "limit";
   public static final String JOIN_TABLE = "table";
   public static final String JOIN_LEFT_KEY = "left";
   public static final String JOIN_RIGHT_KEY = "right";
   public static final String UPDATE_TABLE = "table";
   public static final String UPDATE_VALUES = "values";
   public static final String UPDATE_CONDITIONS = "conditions";
-  public static final String HISTORY_LIMIT = "limit";
   public static final String HISTORY_ASSET_AGE = "age";
   public static final String ALIAS_NAME = "name";
   public static final String ALIAS_AS = "alias";
@@ -102,6 +102,8 @@ public class Constants {
   public static final String INVALID_JOIN_COLUMN =
       "The join column in the right table must be the primary key or index key. Column: ";
   public static final String INVALID_OBJECT_NAME = "The specified name is invalid: ";
+  public static final String INVALID_HISTORY_QUERY_CONDITION =
+      "The specified condition array is invalid. It must have a single equality condition for the primary key.";
   public static final String TABLE_ALREADY_EXISTS = "The specified table already exists.";
   public static final String TABLE_NOT_EXIST = "The specified table does not exist. Table: ";
   public static final String TABLE_AMBIGUOUS =

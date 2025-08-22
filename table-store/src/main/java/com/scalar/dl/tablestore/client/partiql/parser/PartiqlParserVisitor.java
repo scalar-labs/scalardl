@@ -1,5 +1,9 @@
 package com.scalar.dl.tablestore.client.partiql.parser;
 
+import static com.scalar.dl.tablestore.client.partiql.parser.ScalarPartiqlParser.HISTORY_FUNCTION;
+import static com.scalar.dl.tablestore.client.partiql.parser.ScalarPartiqlParser.INFORMATION_SCHEMA;
+import static com.scalar.dl.tablestore.client.partiql.parser.ScalarPartiqlParser.INFORMATION_SCHEMA_TABLES;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BigIntegerNode;
@@ -15,13 +19,16 @@ import com.scalar.dl.tablestore.client.error.TableStoreClientError;
 import com.scalar.dl.tablestore.client.partiql.DataType;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.CreateTableStatement;
+import com.scalar.dl.tablestore.client.partiql.statement.GetHistoryStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.InsertStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.SelectStatement;
+import com.scalar.dl.tablestore.client.partiql.statement.ShowTablesStatement;
 import com.scalar.dl.tablestore.client.partiql.statement.UpdateStatement;
 import com.scalar.dl.tablestore.client.util.JacksonUtils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import org.partiql.ast.AstNode;
 import org.partiql.ast.AstVisitor;
@@ -50,6 +57,7 @@ import org.partiql.ast.dml.UpdateTarget;
 import org.partiql.ast.expr.Expr;
 import org.partiql.ast.expr.ExprAnd;
 import org.partiql.ast.expr.ExprArray;
+import org.partiql.ast.expr.ExprCall;
 import org.partiql.ast.expr.ExprLit;
 import org.partiql.ast.expr.ExprNullPredicate;
 import org.partiql.ast.expr.ExprOperator;
@@ -211,14 +219,24 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     }
   }
 
-  private String getColumnReference(ExprPath exprPath) {
-    if (exprPath.getSteps().size() == 1) {
-      String tableReference = extractNameFromExpr(exprPath.getRoot());
-      PathStep step = exprPath.getSteps().get(0);
+  private List<String> getPath(ExprPath exprPath) {
+    List<String> path = new ArrayList<>();
+    path.add(extractNameFromExpr(exprPath.getRoot()));
+    for (PathStep step : exprPath.getSteps()) {
       if (step instanceof PathStep.Field) {
-        String column = ((PathStep.Field) step).getField().getText();
-        return JacksonUtils.buildColumnReference(tableReference, column);
+        path.add(((PathStep.Field) step).getField().getText());
+      } else {
+        throw new IllegalArgumentException(
+            TableStoreClientError.SYNTAX_ERROR_INVALID_EXPRESSION.buildMessage(toSql(exprPath)));
       }
+    }
+    return path;
+  }
+
+  private String getColumnReference(ExprPath exprPath) {
+    List<String> path = getPath(exprPath);
+    if (path.size() == 2) {
+      return JacksonUtils.buildColumnReference(path.get(0), path.get(1));
     }
 
     throw new IllegalArgumentException(
@@ -288,6 +306,40 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_JOIN_TYPE.buildMessage());
   }
 
+  private boolean isInformationSchemaQuery(FromTableRef tableRef) {
+    if (tableRef instanceof FromExpr) {
+      Expr expr = ((FromExpr) tableRef).getExpr();
+      if (expr instanceof ExprPath) {
+        List<String> path = getPath((ExprPath) expr);
+        return path.size() == 2
+            && path.get(0).equals(INFORMATION_SCHEMA)
+            && path.get(1).equals(INFORMATION_SCHEMA_TABLES);
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isHistoryQuery(Select select, FromTableRef from) {
+    if (select instanceof SelectList && from instanceof FromExpr) {
+      SelectList selectList = (SelectList) select;
+      if (selectList.getItems().size() == 1) {
+        SelectItem item = selectList.getItems().get(0);
+        if (item instanceof SelectItem.Expr) {
+          SelectItem.Expr selectItemExpr = (SelectItem.Expr) item;
+          Expr expr = selectItemExpr.getExpr();
+          if (expr instanceof ExprCall && selectItemExpr.getAsAlias() == null) {
+            ExprCall call = (ExprCall) expr;
+            return call.getFunction().getIdentifier().getText().equals(HISTORY_FUNCTION)
+                && call.getArgs().isEmpty();
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
   private List<String> getProjections(Select select) {
     if (select instanceof SelectStar) {
       SelectStar selectStar = (SelectStar) select;
@@ -319,6 +371,20 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
 
     throw new IllegalArgumentException(
         TableStoreClientError.SYNTAX_ERROR_INVALID_SELECT_STATEMENT.buildMessage());
+  }
+
+  private String getTableNameForShowTables(List<JsonNode> conditions) {
+    if (conditions.isEmpty()) {
+      return null;
+    } else if (conditions.size() == 1) {
+      JsonNode condition = conditions.get(0);
+      if (JacksonUtils.isConditionForShowTables(condition)) {
+        return JacksonUtils.getValueFromCondition(condition).asText();
+      }
+    }
+
+    throw new IllegalArgumentException(
+        TableStoreClientError.INVALID_CONDITION_FOR_INFORMATION_SCHEMA_QUERY.buildMessage());
   }
 
   private int getLimit(Expr expr) {
@@ -377,6 +443,25 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     }
   }
 
+  private void validateInformationSchemaQuery(Select select, FromTableRef tableRef) {
+    FromExpr table = (FromExpr) tableRef;
+    if (table.getFromType().code() != FromType.SCAN || table.getAtAlias() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.SYNTAX_ERROR_INVALID_TABLE.buildMessage(INFORMATION_SCHEMA_TABLES));
+    }
+
+    if (table.getAsAlias() != null) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.TABLE_ALIAS_NOT_SUPPORTED.buildMessage());
+    }
+
+    if (!(select instanceof SelectStar)) {
+      throw new IllegalArgumentException(
+          TableStoreClientError.PROJECTION_NOT_SUPPORTED_FOR_INFORMATION_SCHEMA_QUERY
+              .buildMessage());
+    }
+  }
+
   @Override
   public List<ContractStatement> visitExprQuerySet(ExprQuerySet astNode, Void context) {
     validateExprQuerySet(astNode);
@@ -394,14 +479,33 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
                 .buildMessage());
       }
 
+      FromTableRef tableRef = from.getTableRefs().get(0);
+      List<JsonNode> conditions = getConditions(sfw.getWhere());
+
+      if (isInformationSchemaQuery(tableRef)) {
+        validateInformationSchemaQuery(select, tableRef);
+        String tableName = getTableNameForShowTables(conditions);
+        return tableName == null
+            ? ImmutableList.of(ShowTablesStatement.create())
+            : ImmutableList.of(ShowTablesStatement.create(tableName));
+      }
+
       int limit = getLimit(astNode.getLimit());
+      if (isHistoryQuery(select, tableRef)) {
+        JsonNode table = getTable((FromExpr) tableRef);
+        if (table.isObject()) {
+          throw new IllegalArgumentException(
+              TableStoreClientError.TABLE_ALIAS_NOT_SUPPORTED.buildMessage());
+        }
+
+        return ImmutableList.of(GetHistoryStatement.create(table, conditions, limit));
+      }
+
       if (limit > 0) {
         throw new IllegalArgumentException(
             TableStoreClientError.LIMIT_CLAUSE_NOT_SUPPORTED.buildMessage());
       }
 
-      FromTableRef tableRef = from.getTableRefs().get(0);
-      List<JsonNode> conditions = getConditions(sfw.getWhere());
       List<String> projections = getProjections(select);
       if (tableRef instanceof FromJoin) {
         List<JsonNode> joins = getJoins((FromJoin) tableRef);

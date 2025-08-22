@@ -1,5 +1,7 @@
 package com.scalar.dl.tablestore.client.util;
 
+import static com.scalar.dl.tablestore.client.partiql.parser.ScalarPartiqlParser.INFORMATION_SCHEMA_TABLE_NAME;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -62,6 +64,20 @@ public class JacksonUtils {
 
   public static String buildColumnReference(String tableReference, String column) {
     return tableReference + Constants.COLUMN_SEPARATOR + column;
+  }
+
+  public static JsonNode getValueFromCondition(JsonNode condition) {
+    return condition.get(Constants.CONDITION_VALUE);
+  }
+
+  public static boolean isConditionForShowTables(JsonNode condition) {
+    return condition.isObject()
+        && condition.get(Constants.CONDITION_COLUMN).asText().equals(INFORMATION_SCHEMA_TABLE_NAME)
+        && condition
+            .get(Constants.CONDITION_OPERATOR)
+            .asText()
+            .equalsIgnoreCase(Constants.OPERATOR_EQ)
+        && condition.get(Constants.CONDITION_VALUE).isTextual();
   }
 
   private static String toOperatorFrom(String symbol) {
