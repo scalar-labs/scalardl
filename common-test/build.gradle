@@ -5,6 +5,8 @@ plugins {
 
 dependencies {
     implementation project(':client')
+    implementation project(':ledger')
+    implementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
     implementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
     implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: "${junitVersion}"

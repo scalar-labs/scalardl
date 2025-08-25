@@ -6,6 +6,23 @@ plugins {
 apply plugin:'application'
 startScripts.enabled = false
 
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    integrationTestCompileOnly.extendsFrom testCompileOnly
+}
+
 dependencies {
     implementation project(':client')
     implementation project(':generic-contracts')
@@ -15,6 +32,7 @@ dependencies {
 
     // for test
     testImplementation project(':common-test')
+    integrationTestImplementation project(':common-test')
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
@@ -36,6 +54,19 @@ task TableStore(type: CreateStartScripts) {
 applicationDistribution.into('bin') {
     from(TableStore)
     fileMode = 0755
+}
+
+task integrationTest(type: Test) {
+    useJUnitPlatform()
+    description 'Runs the integration tests.'
+    group 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
+    shouldRunAfter test
+    options {
+        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+    }
 }
 
 spotless {
