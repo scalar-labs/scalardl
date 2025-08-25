@@ -75,12 +75,12 @@ public abstract class LedgerEndToEndTestBase {
           + "-----END CERTIFICATE-----";
   private static final int SOME_KEY_VERSION = 1;
 
-  private static BaseServer ledgerServer;
-  private static Properties props;
-  private static Map<String, String> creationOptions = new HashMap<>();
-  private static Path ledgerSchemaPath;
-  private static DistributedStorage storage;
-  private static DistributedStorageAdmin storageAdmin;
+  private BaseServer ledgerServer;
+  private Properties props;
+  private Map<String, String> creationOptions = new HashMap<>();
+  private Path ledgerSchemaPath;
+  private DistributedStorage storage;
+  private DistributedStorageAdmin storageAdmin;
 
   @BeforeAll
   public void setUpBeforeClass() throws Exception {

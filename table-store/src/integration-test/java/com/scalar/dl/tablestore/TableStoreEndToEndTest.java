@@ -60,7 +60,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
-  private static ClientService clientService;
+  private ClientService clientService;
 
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
@@ -466,7 +466,8 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   }
 
   @Test
-  public void executeStatement_SelectSqlWithJoinGiven_ShouldReturnEmpty() throws IOException {
+  public void executeStatement_SelectSqlWithJoinGiven_ShouldReturnJoinedRecords()
+      throws IOException {
     // Arrange
     String date1 = "2024-01-01";
     String date2 = "2025-01-01";
@@ -507,8 +508,9 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   }
 
   @Test
-  public void executeStatement_SelectSqlWithJoinAndProjectionGiven_ShouldReturnEmpty()
-      throws IOException {
+  public void
+      executeStatement_SelectSqlWithJoinAndProjectionGiven_ShouldReturnJoinedAndProjectedRecords()
+          throws IOException {
     // Arrange
     String date = "2025-01-01";
     int amount = 100;
@@ -545,7 +547,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   }
 
   @Test
-  public void executeStatement_SelectSqlWithJoinAndPredicatesGiven_ShouldReturnEmpty()
+  public void executeStatement_SelectSqlWithJoinAndPredicatesGiven_ShouldReturnJoinedRecords()
       throws IOException {
     // Arrange
     String date = "2025-01-01";
