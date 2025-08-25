@@ -921,6 +921,52 @@ public class ScanTest {
   }
 
   @Test
+  public void invoke_ArgumentsWithOnlyIsNullConditionForPrimaryKeyGiven_ShouldThrowException() {
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(createCondition(SOME_PRIMARY_KEY_COLUMN, Constants.OPERATOR_IS_NULL));
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.QUERY_TABLE, SOME_TABLE_NAME)
+            .set(Constants.QUERY_CONDITIONS, conditions);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    prepareTableAssetId(SOME_TABLE_NAME);
+
+    // Act Assert
+    assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessageContaining(Constants.INVALID_KEY_SPECIFICATION);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+  }
+
+  @Test
+  public void invoke_ArgumentsWithOnlyIsNotNullConditionForIndexKeyGiven_ShouldThrowException() {
+    // Arrange
+    ArrayNode conditions =
+        mapper
+            .createArrayNode()
+            .add(createCondition(SOME_INDEX_KEY_COLUMN_1, Constants.OPERATOR_IS_NOT_NULL));
+    JsonNode argument =
+        mapper
+            .createObjectNode()
+            .put(Constants.QUERY_TABLE, SOME_TABLE_NAME)
+            .set(Constants.QUERY_CONDITIONS, conditions);
+    Asset<JsonNode> table = createAsset(SOME_TABLE);
+    when(ledger.get(SOME_TABLE_ASSET_ID)).thenReturn(Optional.of(table));
+    prepareTableAssetId(SOME_TABLE_NAME);
+
+    // Act Assert
+    assertThatThrownBy(() -> scan.invoke(ledger, argument, null))
+        .isExactlyInstanceOf(ContractContextException.class)
+        .hasMessageContaining(Constants.INVALID_KEY_SPECIFICATION);
+    verify(ledger).get(SOME_TABLE_ASSET_ID);
+  }
+
+  @Test
   public void invoke_InvalidConditionsGiven_ShouldThrowException() {
     // Arrange
     ArrayNode conditions1 = mapper.createArrayNode().add(0);

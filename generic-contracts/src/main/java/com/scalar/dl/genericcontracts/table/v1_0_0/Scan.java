@@ -179,21 +179,25 @@ public class Scan extends JacksonBasedContract {
   }
 
   private boolean isPrimaryKeyCondition(JsonNode condition, String keyType) {
+    String operator = condition.get(Constants.CONDITION_OPERATOR).textValue().toUpperCase();
+    if (!operator.equals(Constants.OPERATOR_EQ)) {
+      return false;
+    }
+
     String givenType = condition.get(Constants.CONDITION_VALUE).getNodeType().name();
     if (!givenType.equalsIgnoreCase(keyType)) {
       throw new ContractContextException(Constants.INVALID_KEY_TYPE + givenType);
     }
 
-    return condition
-        .get(Constants.CONDITION_OPERATOR)
-        .textValue()
-        .equalsIgnoreCase(Constants.OPERATOR_EQ);
+    return true;
   }
 
   private boolean isIndexKeyCondition(JsonNode condition, String keyType) {
     String operator = condition.get(Constants.CONDITION_OPERATOR).textValue().toUpperCase();
     if (operator.equals(Constants.OPERATOR_IS_NULL)) {
       return true;
+    } else if (!operator.equals(Constants.OPERATOR_EQ)) {
+      return false;
     }
 
     String givenType = condition.get(Constants.CONDITION_VALUE).getNodeType().name();
@@ -201,7 +205,7 @@ public class Scan extends JacksonBasedContract {
       throw new ContractContextException(Constants.INVALID_INDEX_KEY_TYPE + givenType);
     }
 
-    return operator.equals(Constants.OPERATOR_EQ);
+    return true;
   }
 
   private JsonNode getKeyColumnCondition(
