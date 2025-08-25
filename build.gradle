@@ -23,7 +23,7 @@ subprojects {
     project.version = projectVersion
 
     ext {
-        grpcVersion = '1.74.0'
+        grpcVersion = '1.75.0'
         protocVersion = '3.25.8'
         picoCliVersion = '4.7.7'
         guiceVersion = '5.1.0'
@@ -36,10 +36,10 @@ subprojects {
         scalarDbVersion = '3.16.1'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
-        dropwizardMetricsVersion = '4.2.33'
+        dropwizardMetricsVersion = '4.2.34'
         prometheusVersion = '0.16.0'
-        jettyVersion = '9.4.57.v20241219'
-        assertjVersion = '3.27.3'
+        jettyVersion = '9.4.58.v20250814'
+        assertjVersion = '3.27.4'
         junitVersion = '5.13.4'
         junitPlatformVersion = '1.13.4'
         mockitoVersion = '4.11.0'
