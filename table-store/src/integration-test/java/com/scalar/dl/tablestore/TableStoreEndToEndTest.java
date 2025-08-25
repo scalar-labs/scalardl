@@ -3,9 +3,6 @@ package com.scalar.dl.tablestore;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.amazon.ion.IonStruct;
-import com.amazon.ion.IonSystem;
-import com.amazon.ion.system.IonSystemBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.IntNode;
@@ -56,7 +53,6 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final Pattern STRING_VALUE = Pattern.compile("\"([^\"]*)\"");
   private static final Pattern SINGLE_QUOTE_ESCAPE = Pattern.compile("'([^']*)'");
 
-  private static final IonSystem ionSystem = IonSystemBuilder.standard().build();
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
@@ -104,18 +100,6 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     for (int i = 0; i < NUM_ACCOUNTS; i++) {
       insertAccountRecord(i, INITIAL_BALANCE);
     }
-  }
-
-  private void populatePaymentRecords() {}
-
-  private IonStruct createAccountIon(int accountId, int accountType, int balance) {
-    IonStruct struct = ionSystem.newEmptyStruct();
-    struct.put(ACCOUNT_ID).newInt(accountId);
-    struct.put(ACCOUNT_TYPE).newInt(accountType);
-    struct.put(ACCOUNT_NAME).newString(accountId + "_" + accountType);
-    struct.put(ACTIVE).newBool(true);
-    struct.put(BALANCE).newInt(balance);
-    return struct;
   }
 
   private int getAccountType(int accountId) {
