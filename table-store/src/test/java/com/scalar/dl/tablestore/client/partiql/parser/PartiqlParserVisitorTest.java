@@ -113,11 +113,11 @@ public class PartiqlParserVisitorTest {
     List<ContractStatement> statements =
         ScalarPartiqlParser.parse(
             "INSERT INTO tbl VALUES {};"
-                + "INSERT INTO tbl VALUES {col1: 'aaa', col2: false, col3: 123, col4: 1.23, col5: 1.23e4, col6: null};"
-                + "INSERT INTO tbl VALUES {col1: 'aaa', col2: [1, [1, 2], {x: 1, y: 1}]};"
-                + "INSERT INTO tbl VALUES {col1: 'aaa', col2: {col3: [1, 2]}};"
-                + "INSERT INTO tbl VALUES {col1: 'aaa', col2: {col3: {x: 1, y: 1}}};"
-                + "INSERT INTO \"tbl\" VALUES {\"col1\": 'aaa'};");
+                + "INSERT INTO tbl VALUES {'col1': 'aaa', 'col2': false, 'col3': 123, 'col4': 1.23, 'col5': 1.23e4, 'col6': null};"
+                + "INSERT INTO tbl VALUES {'col1': 'aaa', 'col2': [1, [1, 2], {'x': 1, 'y': 1}]};"
+                + "INSERT INTO tbl VALUES {'col1': 'aaa', 'col2': {'col3': [1, 2]}};"
+                + "INSERT INTO tbl VALUES {'col1': 'aaa', 'col2': {'col3': {'x': 1, 'y': 1}}};"
+                + "INSERT INTO \"tbl\" VALUES `{\"col1\": \"aaa\"}`;");
 
     // Assert
     assertThat(statements.size()).isEqualTo(6);
@@ -169,10 +169,10 @@ public class PartiqlParserVisitorTest {
     // Act
     List<ContractStatement> statements =
         ScalarPartiqlParser.parse(
-            "INSERT INTO tbl VALUES { col1: "
+            "INSERT INTO tbl VALUES { 'col1': "
                 + bigInteger
                 + " };"
-                + "INSERT INTO tbl VALUES { col1: "
+                + "INSERT INTO tbl VALUES { 'col1': "
                 + bigDecimal
                 + " };");
 
@@ -191,10 +191,13 @@ public class PartiqlParserVisitorTest {
     // Arrange
     List<String> sqlStatements =
         ImmutableList.of(
+            "INSERT INTO tbl VALUE {}",
             "INSERT INTO tbl(col1, col2) VALUES ('aaa', 'bbb')",
             "INSERT INTO tbl(col1, col2) VALUES {col1: 'aaa', col2: 'bbb'}",
             "INSERT INTO tbl VALUES ['aaa', 'bbb']",
-            "INSERT INTO tbl VALUES {\"col1\": \"aaa\"}",
+            "INSERT INTO tbl VALUES {'col1': \"aaa\"}",
+            "INSERT INTO tbl VALUES {\"col1\": 'aaa'};",
+            "INSERT INTO tbl VALUES <<{'col1': 'aaa'}>>",
             "INSERT INTO tbl VALUES {col1: 'aaa', col2: 'bbb'} ON CONFLICT(col1) DO NOTHING",
             "INSERT INTO tbl AS t VALUES {col1: 'aaa', col2: 'bbb'}",
             "INSERT INTO tbl DEFAULT VALUES",
@@ -223,13 +226,14 @@ public class PartiqlParserVisitorTest {
                 + "UPDATE tbl SET col1='aaa' WHERE col1 = 'aaa' AND col2 != false AND col3 > 123 AND col4 < 1.23 AND col5 >= 1.23e4 AND col6 <= 1.23e-4;"
                 + "UPDATE tbl SET col1='aaa' WHERE col1 IS NULL AND col2 IS NOT NULL;"
                 + "UPDATE tbl SET col1='aaa' WHERE col1 = 'aaa' AND (col2 = 'bbb' AND col3 = 'ccc');"
-                + "UPDATE tbl SET col1=[1, [1, 2], {x: 1, y: 1}];"
-                + "UPDATE tbl SET col1={col2: [1, 2]};"
-                + "UPDATE tbl SET col1={col2: {x: 1, y: 1}};"
+                + "UPDATE tbl SET col1=[1, [1, 2], {'x': 1, 'y': 1}];"
+                + "UPDATE tbl SET col1={'col2': [1, 2]};"
+                + "UPDATE tbl SET col1={'col2': {'x': 1, 'y': 1}};"
+                + "UPDATE tbl SET col1=`{\"col2\": \"aaa\"}`;"
                 + "UPDATE \"tbl\" SET \"col1\"='aaa';");
 
     // Assert
-    assertThat(statements.size()).isEqualTo(9);
+    assertThat(statements.size()).isEqualTo(10);
     assertThat(statements.get(0))
         .isEqualTo(
             UpdateStatement.create(
@@ -302,6 +306,13 @@ public class PartiqlParserVisitorTest {
                     .set("col1", JacksonUtils.createObjectNode().set("col2", object)),
                 ImmutableList.of()));
     assertThat(statements.get(8))
+        .isEqualTo(
+            UpdateStatement.create(
+                "tbl",
+                JacksonUtils.createObjectNode()
+                    .set("col1", JacksonUtils.createObjectNode().put("col2", "aaa")),
+                ImmutableList.of()));
+    assertThat(statements.get(9))
         .isEqualTo(
             UpdateStatement.create(
                 "tbl", JacksonUtils.createObjectNode().put("col1", "aaa"), ImmutableList.of()));

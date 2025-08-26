@@ -68,6 +68,7 @@ import org.partiql.ast.expr.ExprStruct;
 import org.partiql.ast.expr.ExprStruct.Field;
 import org.partiql.ast.expr.ExprValues;
 import org.partiql.ast.expr.ExprVarRef;
+import org.partiql.ast.expr.ExprVariant;
 import org.partiql.ast.expr.PathStep;
 import org.partiql.ast.sql.SqlBlock;
 import org.partiql.ast.sql.SqlDialect;
@@ -83,7 +84,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     ImmutableMap.Builder<String, DataType> indexes = ImmutableMap.builder();
 
     for (ColumnDefinition columnDefinition : astNode.getColumns()) {
-      DataType dataType = extractDataType(columnDefinition.getDataType());
+      DataType dataType = convertDataType(columnDefinition.getDataType());
 
       List<AttributeConstraint> constraints = columnDefinition.getConstraints();
       if (constraints.isEmpty()) {
@@ -133,16 +134,24 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
 
       if (insertExpr.getExpr() instanceof ExprValues) {
         List<Expr> rowValues = ((ExprValues) insertExpr.getExpr()).getRows();
-        if (rowValues.size() != 1
-            || !(rowValues.get(0) instanceof ExprRowValue)
-            || !(((ExprRowValue) rowValues.get(0)).getValues().get(0) instanceof ExprStruct)) {
+        if (rowValues.size() != 1 || !(rowValues.get(0) instanceof ExprRowValue)) {
           throw new IllegalArgumentException(
               TableStoreClientError.SYNTAX_ERROR_INVALID_INSERT_STATEMENT.buildMessage());
         }
 
-        ExprStruct struct = (ExprStruct) ((ExprRowValue) rowValues.get(0)).getValues().get(0);
-        return ImmutableList.of(
-            InsertStatement.create(table, convertExprStructToObjectNode(struct)));
+        Expr expr = ((ExprRowValue) rowValues.get(0)).getValues().get(0);
+        JsonNode json;
+        if (expr instanceof ExprStruct) {
+          json = convertExprStructToObjectNode((ExprStruct) expr);
+        } else if (expr instanceof ExprVariant) {
+          ExprVariant exprVariant = (ExprVariant) expr;
+          json = JacksonUtils.deserialize(exprVariant.getValue());
+        } else {
+          throw new IllegalArgumentException(
+              TableStoreClientError.SYNTAX_ERROR_INVALID_INSERT_STATEMENT.buildMessage());
+        }
+
+        return ImmutableList.of(InsertStatement.create(table, json));
       }
     }
 
@@ -191,7 +200,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
   @Override
   public List<ContractStatement> visitUpdate(Update astNode, Void context) {
     String table = astNode.getTableName().getIdentifier().getText();
-    List<JsonNode> predicates = getConditions(astNode.getCondition());
+    List<JsonNode> conditions = getConditions(astNode.getCondition());
 
     ObjectNode values = JacksonUtils.createObjectNode();
     for (SetClause setClause : astNode.getSetClauses()) {
@@ -200,12 +209,12 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
       values.set(column, value);
     }
 
-    return ImmutableList.of(UpdateStatement.create(table, values, predicates));
+    return ImmutableList.of(UpdateStatement.create(table, values, conditions));
   }
 
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   private JsonNode getTable(FromExpr table) {
-    String tableName = extractNameFromExpr(table.getExpr());
+    String tableName = getIdentifier(table.getExpr());
 
     if (table.getFromType().code() != FromType.SCAN || table.getAtAlias() != null) {
       throw new IllegalArgumentException(
@@ -221,7 +230,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
 
   private List<String> getPath(ExprPath exprPath) {
     List<String> path = new ArrayList<>();
-    path.add(extractNameFromExpr(exprPath.getRoot()));
+    path.add(getIdentifier(exprPath.getRoot()));
     for (PathStep step : exprPath.getSteps()) {
       if (step instanceof PathStep.Field) {
         path.add(((PathStep.Field) step).getField().getText());
@@ -245,7 +254,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
 
   private String getColumn(Expr expr) {
     if (expr instanceof ExprVarRef) {
-      return extractNameFromExpr(expr);
+      return getIdentifier(expr);
     } else if (expr instanceof ExprPath) {
       return getColumnReference((ExprPath) expr);
     }
@@ -540,7 +549,7 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
         TableStoreClientError.SYNTAX_ERROR_INVALID_STATEMENT.buildMessage());
   }
 
-  private DataType extractDataType(org.partiql.ast.DataType dataType) {
+  private DataType convertDataType(org.partiql.ast.DataType dataType) {
     switch (dataType.code()) {
       case org.partiql.ast.DataType.BOOL:
       case org.partiql.ast.DataType.BOOLEAN:
@@ -559,10 +568,22 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
     }
   }
 
-  private String extractNameFromExpr(Expr expr) {
+  private String getIdentifier(Expr expr) {
     if (expr instanceof ExprVarRef) {
       ExprVarRef varRef = (ExprVarRef) expr;
       return varRef.getIdentifier().getIdentifier().getText();
+    }
+
+    throw new IllegalArgumentException(
+        TableStoreClientError.SYNTAX_ERROR_INVALID_EXPRESSION.buildMessage(toSql(expr)));
+  }
+
+  private String getField(Expr expr) {
+    if (expr instanceof ExprLit) {
+      Literal literal = ((ExprLit) expr).getLit();
+      if (literal.code() == Literal.STRING) {
+        return literal.stringValue();
+      }
     }
 
     throw new IllegalArgumentException(
@@ -576,6 +597,9 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
       return convertExprArrayToArrayNode((ExprArray) expr);
     } else if (expr instanceof ExprStruct) {
       return convertExprStructToObjectNode((ExprStruct) expr);
+    } else if (expr instanceof ExprVariant) {
+      ExprVariant exprVariant = (ExprVariant) expr;
+      return JacksonUtils.deserialize(exprVariant.getValue());
     }
 
     throw new IllegalArgumentException(
@@ -622,11 +646,11 @@ public class PartiqlParserVisitor extends AstVisitor<List<ContractStatement>, Vo
   private ObjectNode convertExprStructToObjectNode(ExprStruct exprStruct) {
     ObjectNode object = JacksonUtils.createObjectNode();
     for (Field field : exprStruct.getFields()) {
-      // We accept both identifier and string for a field name; i.e., both {a: 1} and {"a": 1} are
-      // accepted as the same. Note that, since any strings, e.g., {"a-b": 1}, are valid in the
-      // parser, the format of the field name is additionally validated on the contract side, and
-      // "a-b" will be rejected there.
-      String name = extractNameFromExpr(field.getName());
+      // We accept PartiQL-style JSON document here; i.e., {'a': 'b'}. If you want to specify a
+      // record with native JSON format, you can use backquotes, e.g., `{"a": "b"}`. Note that,
+      // since any strings, e.g., {'a-b': 1}, are valid in the parser, the format of the field name
+      // is additionally validated on the contract side, and 'a-b' will be rejected there.
+      String name = getField(field.getName());
       Expr expr = field.getValue();
       if (expr instanceof ExprLit) {
         object.set(name, convertExprLitToValueNode((ExprLit) expr));

@@ -23,6 +23,10 @@ public class JacksonUtils {
     return jacksonSerDe.getObjectMapper().createArrayNode();
   }
 
+  public static JsonNode deserialize(String jsonString) {
+    return jacksonSerDe.deserialize(jsonString);
+  }
+
   public static JsonNode buildTable(String name) {
     return TextNode.valueOf(name);
   }

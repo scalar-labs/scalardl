@@ -18,11 +18,10 @@ import com.scalar.dl.tablestore.client.error.TableStoreClientError;
 import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import com.scalar.dl.tablestore.client.service.ClientService;
 import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.util.JacksonUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import javax.json.Json;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,6 +36,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final String ACCOUNT_NAME = "account_name";
   private static final String ACTIVE = "active";
   private static final String BALANCE = "balance";
+  private static final String SOME_FIELD = "some_field";
   private static final String PAYMENT_TABLE = "payment";
   private static final String PAYMENT_ID = "payment_id";
   private static final String SENDER = "sender";
@@ -48,10 +48,6 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final int INITIAL_BALANCE = 1000;
   private static final int NUM_ACCOUNTS = 8;
   private static final int NUM_TYPES = 4;
-
-  private static final Pattern FIELD_KEY = Pattern.compile("\"([^\"]+)\":");
-  private static final Pattern STRING_VALUE = Pattern.compile("\"([^\"]*)\"");
-  private static final Pattern SINGLE_QUOTE_ESCAPE = Pattern.compile("'([^']*)'");
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
@@ -115,7 +111,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     return accountId % 2 == 0;
   }
 
-  private JsonNode createAccountJson(int accountId, int balance) {
+  private ObjectNode createAccountJson(int accountId, int balance) {
     return jacksonSerDe
         .getObjectMapper()
         .createObjectNode()
@@ -127,11 +123,12 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   }
 
   private void insertAccountRecord(int accountId, int balance) {
+    insertAccountRecord(createAccountJson(accountId, balance));
+  }
+
+  private void insertAccountRecord(JsonNode accountJson) {
     clientService.executeStatement(
-        "INSERT INTO "
-            + ACCOUNT_TABLE
-            + " VALUES "
-            + toPartiQLJsonString(createAccountJson(accountId, balance)));
+        "INSERT INTO " + ACCOUNT_TABLE + " VALUES `" + jacksonSerDe.serialize(accountJson) + "`");
   }
 
   private void updateAccountRecord(int accountId, int balance) {
@@ -166,37 +163,18 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     clientService.executeStatement(
         "INSERT INTO "
             + PAYMENT_TABLE
-            + " VALUES "
-            + toPartiQLJsonString(createPaymentJson(paymentId, sender, receiver, amount, date)));
+            + " VALUES `"
+            + jacksonSerDe.serialize(createPaymentJson(paymentId, sender, receiver, amount, date))
+            + "`");
   }
 
   private void insertPaymentRecordWithNullValues(int paymentId) {
     clientService.executeStatement(
         "INSERT INTO "
             + PAYMENT_TABLE
-            + " VALUES "
-            + toPartiQLJsonString(createPaymentJson(paymentId)));
-  }
-
-  private String toPartiQLJsonString(JsonNode node) {
-    String result = jacksonSerDe.serialize(node);
-
-    // Remove double quotation in the key
-    result = FIELD_KEY.matcher(result).replaceAll("$1:");
-
-    // Convert string value to '...'
-    result = STRING_VALUE.matcher(result).replaceAll("'$1'");
-
-    // Escape single quotation
-    Matcher m = SINGLE_QUOTE_ESCAPE.matcher(result);
-    StringBuffer sb = new StringBuffer();
-    while (m.find()) {
-      String inner = m.group(1).replace("'", "''");
-      m.appendReplacement(sb, "'" + inner + "'");
-    }
-    m.appendTail(sb);
-
-    return sb.toString();
+            + " VALUES `"
+            + jacksonSerDe.serialize(createPaymentJson(paymentId))
+            + "`");
   }
 
   private void assertRecords(JsonNode actual, List<JsonNode> expected) {
@@ -636,7 +614,11 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
 
     // Act
     clientService.executeStatement(
-        "INSERT INTO " + ACCOUNT_TABLE + " VALUES " + toPartiQLJsonString(expectedRecord));
+        "INSERT INTO "
+            + ACCOUNT_TABLE
+            + " VALUES `"
+            + jacksonSerDe.serialize(expectedRecord)
+            + "`");
 
     // Assert
     StatementExecutionResult result =
@@ -661,8 +643,9 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
                 clientService.executeStatement(
                     "INSERT INTO "
                         + ACCOUNT_TABLE
-                        + " VALUES "
-                        + toPartiQLJsonString(existingRecord)))
+                        + " VALUES `"
+                        + jacksonSerDe.serialize(existingRecord)
+                        + "`"))
         .isInstanceOf(ClientException.class)
         .hasMessageContaining(Constants.RECORD_ALREADY_EXISTS);
   }
@@ -769,6 +752,36 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_TYPE + " = " + accountType);
     assertThat(result.getResult().isPresent()).isTrue();
     assertRecords(jacksonSerDe.deserialize(result.getResult().get()), expectedRecords);
+  }
+
+  @Test
+  public void executeStatement_UpdateSqlWithNativeJsonStringGiven_ShouldUpdateRecords() {
+    // Arrange
+    ObjectNode account1 = createAccountJson(1, INITIAL_BALANCE).put(SOME_FIELD, 1);
+    ObjectNode account2 = createAccountJson(2, INITIAL_BALANCE).put(SOME_FIELD, 2);
+    ObjectNode object = JacksonUtils.createObjectNode().put("col1", "aaa");
+    JsonNode expected = account1.deepCopy().set(SOME_FIELD, object);
+    insertAccountRecord(account1);
+    insertAccountRecord(account2);
+
+    // Act
+    clientService.executeStatement(
+        "UPDATE "
+            + ACCOUNT_TABLE
+            + " SET "
+            + SOME_FIELD
+            + " = `"
+            + object
+            + "` WHERE "
+            + ACCOUNT_ID
+            + " = 1");
+
+    // Assert
+    StatementExecutionResult result =
+        clientService.executeStatement(
+            "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = 1");
+    assertThat(result.getResult().isPresent()).isTrue();
+    assertRecords(jacksonSerDe.deserialize(result.getResult().get()), ImmutableList.of(expected));
   }
 
   @Test
