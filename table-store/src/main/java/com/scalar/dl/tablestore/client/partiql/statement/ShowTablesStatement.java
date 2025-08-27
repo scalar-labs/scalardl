@@ -2,7 +2,7 @@ package com.scalar.dl.tablestore.client.partiql.statement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
+import com.scalar.dl.genericcontracts.table.Constants;
 
 public class ShowTablesStatement extends AbstractJacksonBasedContractStatement {
 
