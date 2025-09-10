@@ -34,8 +34,7 @@ public class Common {
       }
       return buffer.toByteArray();
     } catch (IOException e) {
-      throw new RuntimeException(
-          ClientError.CLASS_FILE_LOAD_FAILED.buildMessage(clazz.getName()), e);
+      throw new ClientException(ClientError.CLASS_FILE_LOAD_FAILED, e, clazz.getName());
     }
   }
 }
