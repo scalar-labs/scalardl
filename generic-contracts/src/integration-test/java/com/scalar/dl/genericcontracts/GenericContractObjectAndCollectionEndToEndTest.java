@@ -532,9 +532,9 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     clientService.executeContract(
-        CONTRACT_OBJECT_GET, contractArguments0, FUNCTION_PUT, functionArguments0);
+        CONTRACT_PUT, contractArguments0, FUNCTION_PUT, functionArguments0);
     clientService.executeContract(
-        CONTRACT_OBJECT_GET, contractArguments1, FUNCTION_PUT, functionArguments1);
+        CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1);
 
     // Assert
     try (Scanner scanner = storage.scan(scan)) {
@@ -576,7 +576,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_OBJECT_GET, contractArguments, FUNCTION_PUT, functionArguments))
+                    CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(
             LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.buildMessage(
@@ -613,7 +613,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .intValue(METADATA_TX_STATE, TransactionState.PREPARED.get())
             .build();
     clientService.executeContract(
-        CONTRACT_OBJECT_GET, contractArguments0, FUNCTION_PUT, functionArguments0);
+        CONTRACT_PUT, contractArguments0, FUNCTION_PUT, functionArguments0);
     // Make the transaction prepared state and non-expired
     storage.put(put);
     storageAdmin.truncateTable(COORDINATOR_NAMESPACE, COORDINATOR_STATE_TABLE);
@@ -622,7 +622,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_OBJECT_GET, contractArguments1, FUNCTION_PUT, functionArguments1))
+                    CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessageStartingWith(
             LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.buildMessage(
@@ -663,7 +663,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_OBJECT_GET, contractArguments, FUNCTION_PUT, functionArguments))
+                    CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT)
         .extracting("code")
