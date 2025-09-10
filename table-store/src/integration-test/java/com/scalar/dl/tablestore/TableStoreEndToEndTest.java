@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
+import com.scalar.dl.genericcontracts.table.Constants;
 import com.scalar.dl.ledger.LedgerEndToEndTestBase;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;

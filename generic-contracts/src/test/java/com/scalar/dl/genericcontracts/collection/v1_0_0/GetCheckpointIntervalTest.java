@@ -1,9 +1,10 @@
-package com.scalar.dl.genericcontracts.collection;
+package com.scalar.dl.genericcontracts.collection.v1_0_0;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.scalar.dl.genericcontracts.collection.Constants;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import org.assertj.core.api.Assertions;

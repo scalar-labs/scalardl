@@ -6,6 +6,11 @@ import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_EVE
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_ID;
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_ID_PREFIX;
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_SNAPSHOT;
+import static com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_ADD;
+import static com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_CREATE;
+import static com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_GET_CHECKPOINT_INTERVAL;
+import static com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_GET_HISTORY;
+import static com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_REMOVE;
 import static com.scalar.dl.genericcontracts.collection.Constants.DEFAULT_COLLECTION_CHECKPOINT_INTERVAL;
 import static com.scalar.dl.genericcontracts.collection.Constants.INVALID_CHECKPOINT;
 import static com.scalar.dl.genericcontracts.collection.Constants.OBJECT_ALREADY_EXISTS_IN_COLLECTION;
@@ -19,14 +24,18 @@ import static com.scalar.dl.genericcontracts.collection.Constants.OPTION_LIMIT;
 import static com.scalar.dl.genericcontracts.object.Constants.CLUSTERING_KEY;
 import static com.scalar.dl.genericcontracts.object.Constants.COLUMNS;
 import static com.scalar.dl.genericcontracts.object.Constants.COLUMN_NAME;
+import static com.scalar.dl.genericcontracts.object.Constants.CONTRACT_PUT;
+import static com.scalar.dl.genericcontracts.object.Constants.CONTRACT_VALIDATE;
 import static com.scalar.dl.genericcontracts.object.Constants.DATA_TYPE;
 import static com.scalar.dl.genericcontracts.object.Constants.DETAILS;
 import static com.scalar.dl.genericcontracts.object.Constants.DETAILS_CORRECT_STATUS;
 import static com.scalar.dl.genericcontracts.object.Constants.DETAILS_FAULTY_VERSIONS_EXIST;
 import static com.scalar.dl.genericcontracts.object.Constants.DETAILS_NUMBER_OF_VERSIONS_MISMATCH;
 import static com.scalar.dl.genericcontracts.object.Constants.FAULTY_VERSIONS;
+import static com.scalar.dl.genericcontracts.object.Constants.FUNCTION_PUT;
 import static com.scalar.dl.genericcontracts.object.Constants.HASH_VALUE;
 import static com.scalar.dl.genericcontracts.object.Constants.INVALID_METADATA_FORMAT;
+import static com.scalar.dl.genericcontracts.object.Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT;
 import static com.scalar.dl.genericcontracts.object.Constants.INVALID_VERSIONS_FORMAT;
 import static com.scalar.dl.genericcontracts.object.Constants.METADATA;
 import static com.scalar.dl.genericcontracts.object.Constants.NAMESPACE;
@@ -64,7 +73,6 @@ import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.genericcontracts.object.Constants;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -95,34 +103,10 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String DATA_TYPE_TIMESTAMP = "TIMESTAMP";
   private static final String DATA_TYPE_TEXT = "TEXT";
 
-  private static final String PACKAGE_OBJECT = "object";
-  private static final String PACKAGE_COLLECTION = "collection";
-  private static final String NAME_OBJECT_GET = "Get";
-  private static final String NAME_OBJECT_PUT = "Put";
-  private static final String NAME_OBJECT_PUT_TO_MUTABLE = "PutToMutableDatabase";
-  private static final String NAME_OBJECT_VALIDATE = "Validate";
-  private static final String NAME_COLLECTION_CREATE = "Create";
-  private static final String NAME_COLLECTION_ADD = "Add";
-  private static final String NAME_COLLECTION_REMOVE = "Remove";
-  private static final String NAME_COLLECTION_GET = "Get";
-  private static final String NAME_COLLECTION_GET_HISTORY = "GetHistory";
-  private static final String NAME_COLLECTION_GET_CHECKPOINT_INTERVAL = "GetCheckpointInterval";
-  private static final String ID_OBJECT_GET = getObjectContractId(NAME_OBJECT_GET);
-  private static final String ID_OBJECT_PUT = getObjectContractId(NAME_OBJECT_PUT);
-  private static final String ID_OBJECT_VALIDATE = getObjectContractId(NAME_OBJECT_VALIDATE);
-  private static final String ID_OBJECT_PUT_MUTABLE =
-      getFunctionId(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE);
-  private static final String ID_COLLECTION_CREATE =
-      getCollectionContractId(NAME_COLLECTION_CREATE);
-  private static final String ID_COLLECTION_ADD_OBJECTS =
-      getCollectionContractId(NAME_COLLECTION_ADD);
-  private static final String ID_COLLECTION_DEL_OBJECTS =
-      getCollectionContractId(NAME_COLLECTION_REMOVE);
-  private static final String ID_COLLECTION_GET = getCollectionContractId(NAME_COLLECTION_GET);
-  private static final String ID_COLLECTION_GET_HISTORY =
-      getCollectionContractId(NAME_COLLECTION_GET_HISTORY);
-  private static final String ID_COLLECTION_GET_CHECKPOINT_INTERVAL =
-      getCollectionContractId(NAME_COLLECTION_GET_CHECKPOINT_INTERVAL);
+  private static final String CONTRACT_OBJECT_GET =
+      com.scalar.dl.genericcontracts.object.Constants.CONTRACT_GET;
+  private static final String CONTRACT_COLLECTION_GET =
+      com.scalar.dl.genericcontracts.collection.Constants.CONTRACT_GET;
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
@@ -152,51 +136,32 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final JsonNode SOME_LIMIT_OPTION = mapper.createObjectNode().put(OPTION_LIMIT, 1);
   private static final int SOME_CHECKPOINT_INTERVAL = 2;
 
-  private static String getObjectContractId(String contractName) {
-    return getContractId(PACKAGE_OBJECT, contractName);
-  }
-
-  private static String getCollectionContractId(String contractName) {
-    return getContractId(PACKAGE_COLLECTION, contractName);
-  }
-
-  private static String getObjectContractBinaryName(String contractName) {
-    return getContractBinaryName(PACKAGE_OBJECT, contractName);
-  }
-
-  private static String getCollectionContractBinaryName(String contractName) {
-    return getContractBinaryName(PACKAGE_COLLECTION, contractName);
-  }
-
   @Override
   Map<String, String> getContractsMap() {
     return ImmutableMap.<String, String>builder()
-        .put(ID_OBJECT_GET, getObjectContractBinaryName(NAME_OBJECT_GET))
-        .put(ID_OBJECT_PUT, getObjectContractBinaryName(NAME_OBJECT_PUT))
-        .put(ID_OBJECT_VALIDATE, getObjectContractBinaryName(NAME_OBJECT_VALIDATE))
-        .put(ID_COLLECTION_CREATE, getCollectionContractBinaryName(NAME_COLLECTION_CREATE))
-        .put(ID_COLLECTION_ADD_OBJECTS, getCollectionContractBinaryName(NAME_COLLECTION_ADD))
-        .put(ID_COLLECTION_DEL_OBJECTS, getCollectionContractBinaryName(NAME_COLLECTION_REMOVE))
-        .put(ID_COLLECTION_GET, getCollectionContractBinaryName(NAME_COLLECTION_GET))
+        .put(CONTRACT_OBJECT_GET, getContractBinaryName(CONTRACT_OBJECT_GET))
+        .put(CONTRACT_PUT, getContractBinaryName(CONTRACT_PUT))
+        .put(CONTRACT_VALIDATE, getContractBinaryName(CONTRACT_VALIDATE))
+        .put(CONTRACT_CREATE, getContractBinaryName(CONTRACT_CREATE))
+        .put(CONTRACT_ADD, getContractBinaryName(CONTRACT_ADD))
+        .put(CONTRACT_REMOVE, getContractBinaryName(CONTRACT_REMOVE))
+        .put(CONTRACT_COLLECTION_GET, getContractBinaryName(CONTRACT_COLLECTION_GET))
+        .put(CONTRACT_GET_HISTORY, getContractBinaryName(CONTRACT_GET_HISTORY))
         .put(
-            ID_COLLECTION_GET_HISTORY, getCollectionContractBinaryName(NAME_COLLECTION_GET_HISTORY))
-        .put(
-            ID_COLLECTION_GET_CHECKPOINT_INTERVAL,
-            getCollectionContractBinaryName(NAME_COLLECTION_GET_CHECKPOINT_INTERVAL))
+            CONTRACT_GET_CHECKPOINT_INTERVAL,
+            getContractBinaryName(CONTRACT_GET_CHECKPOINT_INTERVAL))
         .build();
   }
 
   @Override
   Map<String, String> getFunctionsMap() {
-    return ImmutableMap.of(
-        getFunctionId(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE),
-        getFunctionBinaryName(PACKAGE_OBJECT, NAME_OBJECT_PUT_TO_MUTABLE));
+    return ImmutableMap.of(FUNCTION_PUT, getFunctionBinaryName(FUNCTION_PUT));
   }
 
   @Override
   protected Map<String, JsonNode> getAnotherContractPropertiesMap() {
     return ImmutableMap.of(
-        ID_COLLECTION_GET_CHECKPOINT_INTERVAL,
+        CONTRACT_GET_CHECKPOINT_INTERVAL,
         mapper.createObjectNode().put(COLLECTION_CHECKPOINT_INTERVAL, SOME_CHECKPOINT_INTERVAL));
   }
 
@@ -219,9 +184,9 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(OBJECT_ID, SOME_OBJECT_ID)
             .put(HASH_VALUE, SOME_HASH_VALUE_2)
             .set(METADATA, SOME_METADATA_2);
-    clientService.executeContract(ID_OBJECT_PUT, objectV0);
-    clientService.executeContract(ID_OBJECT_PUT, objectV1);
-    clientService.executeContract(ID_OBJECT_PUT, objectV2);
+    clientService.executeContract(CONTRACT_PUT, objectV0);
+    clientService.executeContract(CONTRACT_PUT, objectV1);
+    clientService.executeContract(CONTRACT_PUT, objectV2);
   }
 
   private void prepareCollection(GenericContractClientService clientService) {
@@ -230,7 +195,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .createObjectNode()
             .put(COLLECTION_ID, SOME_COLLECTION_ID)
             .set(OBJECT_IDS, SOME_DEFAULT_OBJECT_IDS);
-    clientService.executeContract(ID_COLLECTION_CREATE, arguments);
+    clientService.executeContract(CONTRACT_CREATE, arguments);
   }
 
   private void prepareCollection() {
@@ -287,7 +252,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
       GenericContractClientService clientService, String collectionId, ArrayNode objectIds) {
     JsonNode arguments =
         mapper.createObjectNode().put(COLLECTION_ID, collectionId).set(OBJECT_IDS, objectIds);
-    clientService.executeContract(ID_COLLECTION_ADD_OBJECTS, arguments);
+    clientService.executeContract(CONTRACT_ADD, arguments);
   }
 
   private void addObjectsToCollection(String collectionId, ArrayNode objectIds) {
@@ -304,7 +269,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
       GenericContractClientService clientService, String collectionId, ArrayNode objectIds) {
     JsonNode arguments =
         mapper.createObjectNode().put(COLLECTION_ID, collectionId).set(OBJECT_IDS, objectIds);
-    clientService.executeContract(ID_COLLECTION_DEL_OBJECTS, arguments);
+    clientService.executeContract(CONTRACT_REMOVE, arguments);
   }
 
   private void removeObjectsFromCollection(String collectionId, ArrayNode objectIds) {
@@ -354,7 +319,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_GET, getContractArguments);
+        clientService.executeContract(CONTRACT_OBJECT_GET, getContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -384,7 +349,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments);
+        clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -415,7 +380,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments);
+        clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -448,7 +413,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments);
+        clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -479,7 +444,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments);
+        clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -508,7 +473,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     ContractExecutionResult actual =
-        clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments);
+        clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -533,7 +498,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act Assert
     assertThatThrownBy(
-            () -> clientService.executeContract(ID_OBJECT_VALIDATE, validateContractArguments))
+            () -> clientService.executeContract(CONTRACT_VALIDATE, validateContractArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_VERSIONS_FORMAT);
   }
@@ -567,9 +532,9 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     clientService.executeContract(
-        ID_OBJECT_PUT, contractArguments0, ID_OBJECT_PUT_MUTABLE, functionArguments0);
+        CONTRACT_PUT, contractArguments0, FUNCTION_PUT, functionArguments0);
     clientService.executeContract(
-        ID_OBJECT_PUT, contractArguments1, ID_OBJECT_PUT_MUTABLE, functionArguments1);
+        CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1);
 
     // Assert
     try (Scanner scanner = storage.scan(scan)) {
@@ -611,7 +576,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    ID_OBJECT_PUT, contractArguments, ID_OBJECT_PUT_MUTABLE, functionArguments))
+                    CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(
             LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.buildMessage(
@@ -648,7 +613,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .intValue(METADATA_TX_STATE, TransactionState.PREPARED.get())
             .build();
     clientService.executeContract(
-        ID_OBJECT_PUT, contractArguments0, ID_OBJECT_PUT_MUTABLE, functionArguments0);
+        CONTRACT_PUT, contractArguments0, FUNCTION_PUT, functionArguments0);
     // Make the transaction prepared state and non-expired
     storage.put(put);
     storageAdmin.truncateTable(COORDINATOR_NAMESPACE, COORDINATOR_STATE_TABLE);
@@ -657,7 +622,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    ID_OBJECT_PUT, contractArguments1, ID_OBJECT_PUT_MUTABLE, functionArguments1))
+                    CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessageStartingWith(
             LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.buildMessage(
@@ -698,9 +663,9 @@ public class GenericContractObjectAndCollectionEndToEndTest
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    ID_OBJECT_PUT, contractArguments, ID_OBJECT_PUT_MUTABLE, functionArguments))
+                    CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT)
+        .hasMessage(INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT)
         .extracting("code")
         .isEqualTo(StatusCode.CONTRACT_CONTEXTUAL_ERROR);
   }
@@ -716,7 +681,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(METADATA, SOME_VERSION_ID_0);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(ID_OBJECT_PUT, putArguments))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_PUT, putArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_METADATA_FORMAT);
   }
@@ -738,18 +703,18 @@ public class GenericContractObjectAndCollectionEndToEndTest
     SOME_DEFAULT_OBJECT_IDS.forEach(id -> expectedSet.add(id.textValue()));
 
     // Act
-    clientService.executeContract(ID_OBJECT_PUT, putArguments);
+    clientService.executeContract(CONTRACT_PUT, putArguments);
 
     // Assert
     ContractExecutionResult object =
-        clientService.executeContract(ID_OBJECT_GET, getObjectArguments);
+        clientService.executeContract(CONTRACT_OBJECT_GET, getObjectArguments);
     assertThat(object.getContractResult()).isPresent();
     JsonNode objectJson = jacksonSerDe.deserialize(object.getContractResult().get());
     assertThat(objectJson.get(OBJECT_ID).textValue()).isEqualTo(SOME_COLLECTION_ID);
     assertThat(objectJson.get(HASH_VALUE).textValue()).isEqualTo(SOME_HASH_VALUE_0);
     assertThat(objectJson.get(METADATA)).isEqualTo(SOME_METADATA_0);
     ContractExecutionResult collection =
-        clientService.executeContract(ID_COLLECTION_GET, getCollectionArguments);
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getCollectionArguments);
     assertThat(collection.getContractResult()).isPresent();
     JsonNode collectionJson = jacksonSerDe.deserialize(collection.getContractResult().get());
     assertThat(toSetFrom(collectionJson.get(OBJECT_IDS))).isEqualTo(expectedSet);
@@ -766,7 +731,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     addObjectsToCollection(SOME_COLLECTION_ID, SOME_ADD_OBJECT_IDS_ARRAY);
-    ContractExecutionResult actual = clientService.executeContract(ID_COLLECTION_GET, getArguments);
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -786,7 +752,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .set(OBJECT_IDS, mapper.createArrayNode().add(SOME_OBJECT_ID));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(ID_COLLECTION_ADD_OBJECTS, addArguments))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ADD, addArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(OBJECT_ALREADY_EXISTS_IN_COLLECTION);
   }
@@ -802,7 +768,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
 
     // Act
     removeObjectsFromCollection(SOME_COLLECTION_ID, SOME_REMOVE_OBJECT_IDS_ARRAY);
-    ContractExecutionResult actual = clientService.executeContract(ID_COLLECTION_GET, getArguments);
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -822,8 +789,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .set(OBJECT_IDS, mapper.createArrayNode().add(SOME_OBJECT_ID));
 
     // Act Assert
-    assertThatThrownBy(
-            () -> clientService.executeContract(ID_COLLECTION_DEL_OBJECTS, removeArguments))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_REMOVE, removeArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(OBJECT_NOT_FOUND_IN_COLLECTION);
   }
@@ -845,7 +811,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
     SOME_DEFAULT_OBJECT_IDS.forEach(id -> expectedSet.add(id.textValue()));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(ID_COLLECTION_GET, getArguments);
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -866,7 +833,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
     SOME_DEFAULT_OBJECT_IDS.forEach(id -> expectedSet.add(id.textValue()));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(ID_COLLECTION_GET, getArguments);
+    ContractExecutionResult actual =
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getArguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -887,8 +855,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     // Act
     ContractExecutionResult result =
         clientService.executeContract(
-            ID_COLLECTION_GET_HISTORY,
-            mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID));
+            CONTRACT_GET_HISTORY, mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID));
 
     // Assert
     assertThat(result.getContractResult()).isPresent();
@@ -922,8 +889,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .set(OPTIONS, SOME_LIMIT_OPTION);
 
     // Act
-    ContractExecutionResult result =
-        clientService.executeContract(ID_COLLECTION_GET_HISTORY, arguments);
+    ContractExecutionResult result = clientService.executeContract(CONTRACT_GET_HISTORY, arguments);
 
     // Assert
     assertThat(result.getContractResult()).isPresent();
@@ -976,7 +942,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
     JsonNode getArguments = mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID);
 
     // Act Assert
-    assertThatThrownBy(() -> anotherClientService.executeContract(ID_COLLECTION_GET, getArguments))
+    assertThatThrownBy(
+            () -> anotherClientService.executeContract(CONTRACT_COLLECTION_GET, getArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -989,7 +956,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
     JsonNode getArguments = mapper.createObjectNode().put(COLLECTION_ID, SOME_COLLECTION_ID);
 
     // Act Assert
-    assertThatThrownBy(() -> anotherClientService.executeContract(ID_COLLECTION_GET, getArguments))
+    assertThatThrownBy(
+            () -> anotherClientService.executeContract(CONTRACT_COLLECTION_GET, getArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1006,8 +974,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .set(OBJECT_IDS, mapper.createArrayNode().add("object9"));
 
     // Act Assert
-    assertThatThrownBy(
-            () -> anotherClientService.executeContract(ID_COLLECTION_ADD_OBJECTS, addArguments))
+    assertThatThrownBy(() -> anotherClientService.executeContract(CONTRACT_ADD, addArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1025,8 +992,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .set(OBJECT_IDS, mapper.createArrayNode().add("object1"));
 
     // Act Assert
-    assertThatThrownBy(
-            () -> anotherClientService.executeContract(ID_COLLECTION_DEL_OBJECTS, removeArguments))
+    assertThatThrownBy(() -> anotherClientService.executeContract(CONTRACT_REMOVE, removeArguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(INVALID_CHECKPOINT);
   }
@@ -1047,16 +1013,16 @@ public class GenericContractObjectAndCollectionEndToEndTest
     SOME_DEFAULT_OBJECT_IDS.forEach(id -> expectedSet.add(id.textValue()));
 
     // Act
-    clientService.executeContract(ID_COLLECTION_CREATE, createArguments);
+    clientService.executeContract(CONTRACT_CREATE, createArguments);
 
     // Assert
     ContractExecutionResult collection =
-        clientService.executeContract(ID_COLLECTION_GET, getCollectionArguments);
+        clientService.executeContract(CONTRACT_COLLECTION_GET, getCollectionArguments);
     assertThat(collection.getContractResult()).isPresent();
     JsonNode collectionJson = jacksonSerDe.deserialize(collection.getContractResult().get());
     assertThat(toSetFrom(collectionJson.get(OBJECT_IDS))).isEqualTo(expectedSet);
     ContractExecutionResult object =
-        clientService.executeContract(ID_OBJECT_GET, getObjectArguments);
+        clientService.executeContract(CONTRACT_OBJECT_GET, getObjectArguments);
     assertThat(object.getContractResult()).isPresent();
     JsonNode objectJson = jacksonSerDe.deserialize(object.getContractResult().get());
     assertThat(objectJson.get(OBJECT_ID).textValue()).isEqualTo(SOME_OBJECT_ID);

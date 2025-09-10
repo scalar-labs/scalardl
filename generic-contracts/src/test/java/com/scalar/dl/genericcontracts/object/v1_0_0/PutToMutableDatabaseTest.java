@@ -1,4 +1,4 @@
-package com.scalar.dl.genericcontracts.object;
+package com.scalar.dl.genericcontracts.object.v1_0_0;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -11,13 +11,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.io.Key;
+import com.scalar.dl.genericcontracts.object.Constants;
 import com.scalar.dl.ledger.database.Database;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import java.time.Instant;
@@ -499,7 +499,7 @@ public class PutToMutableDatabaseTest {
   @Test
   public void invoke_ColumnsWithUnmatchedTypeGiven_ShouldThrowContractContextException() {
     // Arrange
-    Builder<JsonNode, String> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<JsonNode, String> builder = ImmutableMap.builder();
     builder
         .put(
             mapper
@@ -573,7 +573,7 @@ public class PutToMutableDatabaseTest {
   public void
       invoke_ColumnsWithInvalidTimeRelatedFormatGiven_ShouldThrowContractContextException() {
     // Arrange
-    Builder<JsonNode, String> builder = ImmutableMap.builder();
+    ImmutableMap.Builder<JsonNode, String> builder = ImmutableMap.builder();
     builder
         .put(
             mapper

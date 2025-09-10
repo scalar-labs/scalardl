@@ -21,8 +21,15 @@ public class Constants {
   public static final int DEFAULT_COLLECTION_CHECKPOINT_INTERVAL = 10;
 
   // Contracts
-  public static final String CONTRACT_GET = "collection.Get";
-  public static final String CONTRACT_GET_CHECKPOINT_INTERVAL = "collection.GetCheckpointInterval";
+  public static final String PACKAGE = "collection";
+  public static final String VERSION = "v1_0_0";
+  public static final String CONTRACT_ADD = PACKAGE + "." + VERSION + ".Add";
+  public static final String CONTRACT_CREATE = PACKAGE + "." + VERSION + ".Create";
+  public static final String CONTRACT_GET = PACKAGE + "." + VERSION + ".Get";
+  public static final String CONTRACT_GET_CHECKPOINT_INTERVAL =
+      PACKAGE + "." + VERSION + ".GetCheckpointInterval";
+  public static final String CONTRACT_GET_HISTORY = PACKAGE + "." + VERSION + ".GetHistory";
+  public static final String CONTRACT_REMOVE = PACKAGE + "." + VERSION + ".Remove";
 
   // Error messages
   public static final String COLLECTION_ID_IS_MISSING_OR_INVALID =

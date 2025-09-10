@@ -1,45 +1,45 @@
 [[contracts]]
-contract-id = "object.Put"
-contract-binary-name = "com.scalar.dl.genericcontracts.object.Put"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/Put.class"
+contract-id = "object.v1_0_0.Put"
+contract-binary-name = "com.scalar.dl.genericcontracts.object.v1_0_0.Put"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/v1_0_0/Put.class"
 
 [[contracts]]
-contract-id = "object.Get"
-contract-binary-name = "com.scalar.dl.genericcontracts.object.Get"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/Get.class"
+contract-id = "object.v1_0_0.Get"
+contract-binary-name = "com.scalar.dl.genericcontracts.object.v1_0_0.Get"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/v1_0_0/Get.class"
 
 [[contracts]]
-contract-id = "object.Validate"
-contract-binary-name = "com.scalar.dl.genericcontracts.object.Validate"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/Validate.class"
+contract-id = "object.v1_0_0.Validate"
+contract-binary-name = "com.scalar.dl.genericcontracts.object.v1_0_0.Validate"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/v1_0_0/Validate.class"
 
 [[contracts]]
-contract-id = "collection.Create"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.Create"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/Create.class"
+contract-id = "collection.v1_0_0.Create"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.Create"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/Create.class"
 
 [[contracts]]
-contract-id = "collection.Add"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.Add"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/Add.class"
+contract-id = "collection.v1_0_0.Add"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.Add"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/Add.class"
 
 [[contracts]]
-contract-id = "collection.Remove"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.Remove"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/Remove.class"
+contract-id = "collection.v1_0_0.Remove"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.Remove"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/Remove.class"
 
 [[contracts]]
-contract-id = "collection.Get"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.Get"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/Get.class"
+contract-id = "collection.v1_0_0.Get"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.Get"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/Get.class"
 
 [[contracts]]
-contract-id = "collection.GetHistory"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.GetHistory"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/GetHistory.class"
+contract-id = "collection.v1_0_0.GetHistory"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.GetHistory"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/GetHistory.class"
 
 [[contracts]]
-contract-id = "collection.GetCheckpointInterval"
-contract-binary-name = "com.scalar.dl.genericcontracts.collection.GetCheckpointInterval"
-contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/GetCheckpointInterval.class"
+contract-id = "collection.v1_0_0.GetCheckpointInterval"
+contract-binary-name = "com.scalar.dl.genericcontracts.collection.v1_0_0.GetCheckpointInterval"
+contract-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/collection/v1_0_0/GetCheckpointInterval.class"
 #contract-properties = '{"checkpoint_interval":10}'

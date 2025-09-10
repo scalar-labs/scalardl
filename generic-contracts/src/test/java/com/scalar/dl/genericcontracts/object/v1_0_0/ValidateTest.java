@@ -1,4 +1,4 @@
-package com.scalar.dl.genericcontracts.object;
+package com.scalar.dl.genericcontracts.object.v1_0_0;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
+import com.scalar.dl.genericcontracts.object.Constants;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;
 import com.scalar.dl.ledger.exception.ContractContextException;

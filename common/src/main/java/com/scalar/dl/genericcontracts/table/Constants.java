@@ -1,4 +1,4 @@
-package com.scalar.dl.genericcontracts.table.v1_0_0;
+package com.scalar.dl.genericcontracts.table;
 
 import java.util.regex.Pattern;
 

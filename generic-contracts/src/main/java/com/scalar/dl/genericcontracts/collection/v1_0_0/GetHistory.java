@@ -1,8 +1,9 @@
-package com.scalar.dl.genericcontracts.collection;
+package com.scalar.dl.genericcontracts.collection.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.scalar.dl.genericcontracts.collection.Constants;
 import com.scalar.dl.ledger.contract.JacksonBasedContract;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;

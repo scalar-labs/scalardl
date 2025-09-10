@@ -3,7 +3,7 @@ package com.scalar.dl.tablestore.client.partiql.statement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
+import com.scalar.dl.genericcontracts.table.Constants;
 import java.util.List;
 
 public class SelectStatement extends AbstractJacksonBasedContractStatement {
