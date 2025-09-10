@@ -1,5 +1,4 @@
 plugins {
-    id 'java-test-fixtures'
     id 'com.palantir.docker' version "${dockerPluginVersion}"
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
@@ -35,8 +34,7 @@ dependencies {
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
 
     // for tests
-    testFixturesImplementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
-    testFixturesImplementation group: 'org.assertj', name: 'assertj-core', version: "${assertjVersion}"
+    testImplementation project(':common-test')
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
