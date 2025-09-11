@@ -341,6 +341,32 @@ public class ClientService {
             CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments));
   }
 
+  /**
+   * Stores a new version of an object in the hash store using JsonNode arguments. Expected format:
+   * {"objectId": "...", "hash": "...", "metadata": {...}}
+   *
+   * @param arguments JsonNode containing objectId, hash, and optional metadata
+   * @return {@link ExecutionResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public ExecutionResult putObject(JsonNode arguments) {
+    return new ExecutionResult(clientService.executeContract(CONTRACT_PUT, arguments));
+  }
+
+  /**
+   * Stores a new version of an object in the hash store and also performs a put operation to a
+   * mutable database using JsonNode arguments.
+   *
+   * @param arguments JsonNode containing objectId, hash, and optional metadata
+   * @param putToMutable JsonNode containing the Put operation data for the mutable database
+   * @return {@link ExecutionResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public ExecutionResult putObject(JsonNode arguments, JsonNode putToMutable) {
+    return new ExecutionResult(
+        clientService.executeContract(CONTRACT_PUT, arguments, FUNCTION_PUT, putToMutable));
+  }
+
   private JsonNode buildPutObjectArguments(String objectId, String hash, JsonObject metadata) {
     return HashStoreClientUtils.createObjectNode()
         .put(OBJECT_ID, objectId)
@@ -460,6 +486,27 @@ public class ClientService {
    */
   public ExecutionResult compareObjectVersions(String objectId, List<Version> versions) {
     JsonNode arguments = buildCompareObjectVersionsArguments(objectId, versions);
+    return new ExecutionResult(clientService.executeContract(CONTRACT_VALIDATE, arguments));
+  }
+
+  /**
+   * Compares object versions to detect tampering using JsonNode arguments.
+   *
+   * <p>Options can include:
+   *
+   * <ul>
+   *   <li>"verbose": true - shows detailed validation information
+   *   <li>"all": true - compares all versions including stored versions in the ledger
+   * </ul>
+   *
+   * <p>Example: {"objectId": "obj1", "versions": [{"versionId": "v1", "hash": "hash1"}], "options":
+   * {"all": true, "verbose": true}}
+   *
+   * @param arguments JsonNode containing objectId, versions array, and options
+   * @return {@link ExecutionResult} containing validation results
+   * @throws ClientException if a request fails for some reason
+   */
+  public ExecutionResult compareObjectVersions(JsonNode arguments) {
     return new ExecutionResult(clientService.executeContract(CONTRACT_VALIDATE, arguments));
   }
 
