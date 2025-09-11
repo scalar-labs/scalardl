@@ -15,7 +15,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,11 +52,10 @@ public class ObjectRemovalFromCollectionTest {
               "--properties=PROPERTIES_FILE", "--collection-id=col123", "--object-ids=obj1"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -69,8 +67,6 @@ public class ObjectRemovalFromCollectionTest {
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Collections.singletonList("obj1"));
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -86,11 +82,10 @@ public class ObjectRemovalFromCollectionTest {
               "--object-ids=obj3"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -102,8 +97,6 @@ public class ObjectRemovalFromCollectionTest {
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Arrays.asList("obj1", "obj2", "obj3"));
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -118,11 +111,10 @@ public class ObjectRemovalFromCollectionTest {
               "--force"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -137,8 +129,6 @@ public class ObjectRemovalFromCollectionTest {
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Collections.singletonList("obj1"));
         assertThat(forceCaptor.getValue()).isTrue();
-
-        verify(factoryMock).close();
       }
     }
 
@@ -178,22 +168,24 @@ public class ObjectRemovalFromCollectionTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=PROPERTIES_FILE", "--collection-id=col123", "--object-ids=obj1"
+              "--properties=" + file.getAbsolutePath(), "--collection-id=col123", "--object-ids=obj1"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to remove objects", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .removeFromCollection(anyString(), anyList());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

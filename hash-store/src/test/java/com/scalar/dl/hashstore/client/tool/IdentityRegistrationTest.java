@@ -15,7 +15,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,20 +41,18 @@ public class IdentityRegistrationTest {
     class whereIdentityRegistrationSucceeds {
       @Test
       @DisplayName("returns 0 as exit code")
-      void returns0AsExitCode() throws Exception {
+      void returns0AsExitCode() {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE"};
         IdentityRegistration command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).registerIdentity();
-        verify(factoryMock).close();
       }
     }
 
@@ -89,19 +86,21 @@ public class IdentityRegistrationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args = new String[] {"--properties=" + file.getAbsolutePath()};
         IdentityRegistration command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to register identity", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .registerIdentity();
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

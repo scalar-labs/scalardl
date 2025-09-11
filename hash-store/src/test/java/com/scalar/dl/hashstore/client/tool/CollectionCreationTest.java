@@ -15,7 +15,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,11 +49,10 @@ public class CollectionCreationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
         CollectionCreation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -66,8 +64,6 @@ public class CollectionCreationTest {
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Collections.emptyList());
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -79,11 +75,10 @@ public class CollectionCreationTest {
               "--properties=PROPERTIES_FILE", "--collection-id=col123", "--object-ids=obj1"
             };
         CollectionCreation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -95,8 +90,6 @@ public class CollectionCreationTest {
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Collections.singletonList("obj1"));
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -112,11 +105,10 @@ public class CollectionCreationTest {
               "--object-ids=obj3"
             };
         CollectionCreation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -128,8 +120,6 @@ public class CollectionCreationTest {
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Arrays.asList("obj1", "obj2", "obj3"));
-
-        verify(factoryMock).close();
       }
     }
 
@@ -166,19 +156,22 @@ public class CollectionCreationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
         CollectionCreation command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to create collection", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .createCollection(anyString(), anyList());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

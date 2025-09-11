@@ -17,7 +17,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,11 +51,10 @@ public class ObjectPutTest {
               "--properties=PROPERTIES_FILE", "--object-id=obj123", "--hash=abc123hash"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -68,8 +66,6 @@ public class ObjectPutTest {
         assertThat(capturedArgument.get("object_id").asText()).isEqualTo("obj123");
         assertThat(capturedArgument.get("hash_value").asText()).isEqualTo("abc123hash");
         assertThat(capturedArgument.has("metadata")).isFalse();
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -84,11 +80,10 @@ public class ObjectPutTest {
               "--metadata={\"key\":\"value\",\"timestamp\":\"2023-01-01\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -103,8 +98,6 @@ public class ObjectPutTest {
         JsonNode metadata = capturedArgument.get("metadata");
         assertThat(metadata.get("key").asText()).isEqualTo("value");
         assertThat(metadata.get("timestamp").asText()).isEqualTo("2023-01-01");
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -119,11 +112,10 @@ public class ObjectPutTest {
               "--put-to-mutable={\"table\":\"test_table\",\"key\":\"key1\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -139,8 +131,6 @@ public class ObjectPutTest {
         JsonNode capturedPut = putCaptor.getValue();
         assertThat(capturedPut.get("table").asText()).isEqualTo("test_table");
         assertThat(capturedPut.get("key").asText()).isEqualTo("key1");
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -156,11 +146,10 @@ public class ObjectPutTest {
               "--put-to-mutable={\"table\":\"test_table\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -178,8 +167,6 @@ public class ObjectPutTest {
 
         JsonNode capturedPut = putCaptor.getValue();
         assertThat(capturedPut.get("table").asText()).isEqualTo("test_table");
-
-        verify(factoryMock).close();
       }
     }
 
@@ -219,22 +206,24 @@ public class ObjectPutTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=PROPERTIES_FILE", "--object-id=obj123", "--hash=abc123hash"
+              "--properties=" + file.getAbsolutePath(), "--object-id=obj123", "--hash=abc123hash"
             };
         ObjectPut command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to put object", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .putObject(any(ObjectNode.class));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

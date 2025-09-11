@@ -18,7 +18,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +53,6 @@ public class ObjectVersionsComparisonTest {
               "--properties=PROPERTIES_FILE", "--object-id=obj123", "--versions=[\"v1\",\"v2\"]"
             };
         ObjectVersionsComparison command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         String resultJson = "{\"result\":\"versions match\"}";
@@ -65,7 +63,7 @@ public class ObjectVersionsComparisonTest {
         when(serviceMock.compareObjectVersions(any(ObjectNode.class))).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -80,8 +78,6 @@ public class ObjectVersionsComparisonTest {
         assertThat(capturedArgument.get("versions").get(0).asText()).isEqualTo("v1");
         assertThat(capturedArgument.get("versions").get(1).asText()).isEqualTo("v2");
         assertThat(capturedArgument.has("options")).isFalse();
-
-        verify(factoryMock).close();
 
         String stdout = outputStreamCaptor.toString(UTF_8.name());
         assertThat(stdout).contains("Result:");
@@ -100,7 +96,6 @@ public class ObjectVersionsComparisonTest {
               "--all"
             };
         ObjectVersionsComparison command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         ContractExecutionResult contractResult =
@@ -110,7 +105,7 @@ public class ObjectVersionsComparisonTest {
         when(serviceMock.compareObjectVersions(any(ObjectNode.class))).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -123,8 +118,6 @@ public class ObjectVersionsComparisonTest {
         assertThat(capturedArgument.has("options")).isTrue();
         assertThat(capturedArgument.get("options").get("all").asBoolean()).isTrue();
         assertThat(capturedArgument.get("options").has("verbose")).isFalse();
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -139,7 +132,6 @@ public class ObjectVersionsComparisonTest {
               "--verbose"
             };
         ObjectVersionsComparison command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         ContractExecutionResult contractResult =
@@ -149,7 +141,7 @@ public class ObjectVersionsComparisonTest {
         when(serviceMock.compareObjectVersions(any(ObjectNode.class))).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -162,8 +154,6 @@ public class ObjectVersionsComparisonTest {
         assertThat(capturedArgument.has("options")).isTrue();
         assertThat(capturedArgument.get("options").get("verbose").asBoolean()).isTrue();
         assertThat(capturedArgument.get("options").has("all")).isFalse();
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -179,7 +169,6 @@ public class ObjectVersionsComparisonTest {
               "--verbose"
             };
         ObjectVersionsComparison command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         ContractExecutionResult contractResult =
@@ -189,7 +178,7 @@ public class ObjectVersionsComparisonTest {
         when(serviceMock.compareObjectVersions(any(ObjectNode.class))).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -202,8 +191,6 @@ public class ObjectVersionsComparisonTest {
         assertThat(capturedArgument.has("options")).isTrue();
         assertThat(capturedArgument.get("options").get("all").asBoolean()).isTrue();
         assertThat(capturedArgument.get("options").get("verbose").asBoolean()).isTrue();
-
-        verify(factoryMock).close();
       }
     }
 
@@ -248,21 +235,23 @@ public class ObjectVersionsComparisonTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=PROPERTIES_FILE", "--object-id=obj123", "--versions=[\"v1\",\"v2\"]"
+              "--properties=" + file.getAbsolutePath(), "--object-id=obj123", "--versions=[\"v1\",\"v2\"]"
             };
         ObjectVersionsComparison command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         when(serviceMock.compareObjectVersions(any(ObjectNode.class)))
             .thenThrow(new ClientException("Failed to compare versions", StatusCode.RUNTIME_ERROR));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

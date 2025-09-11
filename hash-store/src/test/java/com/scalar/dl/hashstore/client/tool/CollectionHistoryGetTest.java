@@ -16,7 +16,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +47,6 @@ public class CollectionHistoryGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
@@ -56,13 +54,12 @@ public class CollectionHistoryGetTest {
         when(resultMock.getResult()).thenReturn(Optional.of("[{\"entry1\":\"data\"}]"));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getCollectionHistory("coll123");
         verify(serviceMock, never()).getCollectionHistory(eq("coll123"), anyInt());
-        verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Result:");
       }
 
@@ -73,7 +70,6 @@ public class CollectionHistoryGetTest {
         String[] args =
             new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123", "--limit=10"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
@@ -81,13 +77,12 @@ public class CollectionHistoryGetTest {
         when(resultMock.getResult()).thenReturn(Optional.of("[{\"entry1\":\"data\"}]"));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getCollectionHistory("coll123", 10);
         verify(serviceMock, never()).getCollectionHistory("coll123");
-        verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Result:");
       }
 
@@ -97,7 +92,6 @@ public class CollectionHistoryGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
@@ -105,12 +99,11 @@ public class CollectionHistoryGetTest {
         when(resultMock.getResult()).thenReturn(Optional.empty());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getCollectionHistory("coll123");
-        verify(factoryMock).close();
       }
     }
 
@@ -150,19 +143,21 @@ public class CollectionHistoryGetTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to get collection history", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .getCollectionHistory("coll123");
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

@@ -16,7 +16,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +47,6 @@ public class CollectionGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
@@ -56,12 +54,11 @@ public class CollectionGetTest {
         when(resultMock.getResult()).thenReturn(Optional.of("{\"collection_id\":\"coll123\"}"));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getCollection("coll123");
-        verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Result:");
       }
 
@@ -71,7 +68,6 @@ public class CollectionGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
@@ -79,12 +75,11 @@ public class CollectionGetTest {
         when(resultMock.getResult()).thenReturn(Optional.empty());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getCollection("coll123");
-        verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Collection not found.");
       }
     }
@@ -125,19 +120,22 @@ public class CollectionGetTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=coll123"};
         CollectionGet command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to get collection", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .getCollection("coll123");
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

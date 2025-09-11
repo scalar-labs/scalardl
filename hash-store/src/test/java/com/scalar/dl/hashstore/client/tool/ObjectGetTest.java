@@ -17,7 +17,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +48,6 @@ public class ObjectGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=obj123"};
         ObjectGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         String resultJson = "{\"object_id\":\"obj123\",\"hash_value\":\"abc123hash\"}";
@@ -60,12 +58,11 @@ public class ObjectGetTest {
         when(serviceMock.getObject(anyString())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getObject("obj123");
-        verify(factoryMock).close();
 
         String stdout = outputStreamCaptor.toString(UTF_8.name());
         assertThat(stdout).contains("Result:");
@@ -79,7 +76,6 @@ public class ObjectGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=nonexistent"};
         ObjectGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         ContractExecutionResult contractResult =
@@ -89,12 +85,11 @@ public class ObjectGetTest {
         when(serviceMock.getObject(anyString())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).getObject("nonexistent");
-        verify(factoryMock).close();
 
         String stdout = outputStreamCaptor.toString(UTF_8.name());
         assertThat(stdout).contains("Object not found.");
@@ -139,18 +134,20 @@ public class ObjectGetTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=obj123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
         ObjectGet command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         when(serviceMock.getObject(anyString()))
             .thenThrow(new ClientException("Failed to get object", StatusCode.RUNTIME_ERROR));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

@@ -16,7 +16,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +48,6 @@ public class LedgerValidationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=obj123"};
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
@@ -59,7 +57,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateObject(anyString(), anyInt(), anyInt())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -74,8 +72,6 @@ public class LedgerValidationTest {
         assertThat(objectIdCaptor.getValue()).isEqualTo("obj123");
         assertThat(startAgeCaptor.getValue()).isEqualTo(0);
         assertThat(endAgeCaptor.getValue()).isEqualTo(Integer.MAX_VALUE);
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -87,7 +83,6 @@ public class LedgerValidationTest {
               "--properties=PROPERTIES_FILE", "--object-id=obj123", "--start-age=10", "--end-age=20"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
@@ -97,7 +92,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateObject(anyString(), anyInt(), anyInt())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -112,8 +107,6 @@ public class LedgerValidationTest {
         assertThat(objectIdCaptor.getValue()).isEqualTo("obj123");
         assertThat(startAgeCaptor.getValue()).isEqualTo(10);
         assertThat(endAgeCaptor.getValue()).isEqualTo(20);
-
-        verify(factoryMock).close();
       }
     }
 
@@ -126,7 +119,6 @@ public class LedgerValidationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
@@ -136,7 +128,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateCollection(anyString(), anyInt(), anyInt())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -151,8 +143,6 @@ public class LedgerValidationTest {
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(startAgeCaptor.getValue()).isEqualTo(0);
         assertThat(endAgeCaptor.getValue()).isEqualTo(Integer.MAX_VALUE);
-
-        verify(factoryMock).close();
       }
 
       @Test
@@ -167,7 +157,6 @@ public class LedgerValidationTest {
               "--end-age=15"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
@@ -177,7 +166,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateCollection(anyString(), anyInt(), anyInt())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -192,8 +181,6 @@ public class LedgerValidationTest {
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(startAgeCaptor.getValue()).isEqualTo(5);
         assertThat(endAgeCaptor.getValue()).isEqualTo(15);
-
-        verify(factoryMock).close();
       }
     }
 
@@ -264,19 +251,21 @@ public class LedgerValidationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code for object validation")
-      void returns1AsExitCodeForObjectValidation() throws UnsupportedEncodingException {
+      void returns1AsExitCodeForObjectValidation(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=obj123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
         LedgerValidation command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to validate object", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .validateObject(anyString(), anyInt(), anyInt());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
@@ -286,19 +275,21 @@ public class LedgerValidationTest {
 
       @Test
       @DisplayName("returns 1 as exit code for collection validation")
-      void returns1AsExitCodeForCollectionValidation() throws UnsupportedEncodingException {
+      void returns1AsExitCodeForCollectionValidation(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
         LedgerValidation command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to validate collection", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .validateCollection(anyString(), anyInt(), anyInt());
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
