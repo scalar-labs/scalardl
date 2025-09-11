@@ -29,9 +29,9 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
-import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import java.math.BigDecimal;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -159,7 +159,7 @@ public class ClientServiceTest {
         .thenReturn(contractExecutionResult);
 
     // Act
-    StatementExecutionResult result = service.executeStatement(statement);
+    ExecutionResult result = service.executeStatement(statement);
 
     // Assert
     verify(clientService).executeContract(eq(CONTRACT_INSERT), any(String.class));
