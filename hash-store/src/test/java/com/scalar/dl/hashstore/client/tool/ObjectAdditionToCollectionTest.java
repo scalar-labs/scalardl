@@ -173,7 +173,9 @@ public class ObjectAdditionToCollectionTest {
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=" + file.getAbsolutePath(), "--collection-id=col123", "--object-ids=obj1"
+              "--properties=" + file.getAbsolutePath(),
+              "--collection-id=col123",
+              "--object-ids=obj1"
             };
         ObjectAdditionToCollection command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);

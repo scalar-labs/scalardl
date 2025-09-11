@@ -137,7 +137,8 @@ public class ObjectGetTest {
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
-        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
         ObjectGet command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);

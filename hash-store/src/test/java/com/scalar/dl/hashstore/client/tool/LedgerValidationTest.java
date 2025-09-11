@@ -254,7 +254,8 @@ public class LedgerValidationTest {
       void returns1AsExitCodeForObjectValidation(@TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
-        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
         LedgerValidation command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
@@ -278,7 +279,8 @@ public class LedgerValidationTest {
       void returns1AsExitCodeForCollectionValidation(@TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
-        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
         LedgerValidation command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);

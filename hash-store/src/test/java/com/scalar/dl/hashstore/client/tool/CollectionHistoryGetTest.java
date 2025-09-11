@@ -146,7 +146,8 @@ public class CollectionHistoryGetTest {
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
-        String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=coll123"};
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);

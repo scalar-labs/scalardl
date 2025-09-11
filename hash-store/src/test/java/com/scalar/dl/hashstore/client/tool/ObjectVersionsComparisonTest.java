@@ -240,7 +240,9 @@ public class ObjectVersionsComparisonTest {
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=" + file.getAbsolutePath(), "--object-id=obj123", "--versions=[\"v1\",\"v2\"]"
+              "--properties=" + file.getAbsolutePath(),
+              "--object-id=obj123",
+              "--versions=[\"v1\",\"v2\"]"
             };
         ObjectVersionsComparison command = parseArgs(args);
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
