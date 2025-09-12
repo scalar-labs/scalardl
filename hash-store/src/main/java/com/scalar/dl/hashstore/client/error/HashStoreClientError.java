@@ -11,13 +11,13 @@ public enum HashStoreClientError implements ScalarDlError {
   PUT_MUST_HAVE_NAMESPACE_AND_TABLE(
       StatusCode.INVALID_ARGUMENT,
       "001",
-      "Put operation for the mutable database must have the namespace and table.",
+      "The put operation for the mutable database must have a namespace and table.",
       "",
       ""),
   UNSUPPORTED_DATA_TYPE_FOR_MUTABLE_PUT(
       StatusCode.INVALID_ARGUMENT,
       "002",
-      "Unsupported data type is specified in the put operation. Data type: %s",
+      "An unsupported data type is specified in the put operation. Data type: %s",
       "",
       ""),
   ;

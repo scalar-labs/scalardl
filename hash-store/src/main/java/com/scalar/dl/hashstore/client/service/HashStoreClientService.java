@@ -42,7 +42,7 @@ import com.scalar.db.io.Column;
 import com.scalar.db.io.DataType;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.client.service.ClientServiceFactory;
+import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.genericcontracts.collection.v1_0_0.Add;
 import com.scalar.dl.genericcontracts.collection.v1_0_0.Create;
@@ -69,17 +69,17 @@ import javax.json.JsonObject;
  *
  * <h3>Usage Examples</h3>
  *
- * Here is a simple example to demonstrate how to use {@code ClientService}. {@code ClientService}
- * should always be created with {@link ClientServiceFactory}, which reuses internal instances as
- * much as possible for better performance and less resource usage. When you create {@code
- * ClientService}, the client certificate or secret key and the necessary contracts for using the
- * hash store are automatically registered by default based on the configuration in {@code
- * ClientConfig}.
+ * Here is a simple example to demonstrate how to use {@code HashStoreClientService}. {@code
+ * HashStoreClientService} should always be created with {@link HashStoreClientServiceFactory},
+ * which reuses internal instances as much as possible for better performance and less resource
+ * usage. When you create {@code HashStoreClientService}, the client certificate or secret key and
+ * the necessary contracts for using the hash store are automatically registered by default based on
+ * the configuration in {@code ClientConfig}.
  *
  * <pre>{@code
- * ClientServiceFactory factory = new ClientServiceFactory(); // the factory should be reused
+ * HashStoreClientServiceFactory factory = new HashStoreClientServiceFactory(); // the factory should be reused
  *
- * ClientService service = factory.create(new ClientConfig(new File(properties));
+ * HashStoreClientService service = factory.create(new ClientConfig(new File(properties));
  * try {
  *   service.putObject(objectId, hash);
  * } catch (ClientException e) {
@@ -91,7 +91,7 @@ import javax.json.JsonObject;
  * }</pre>
  */
 @Immutable
-public class ClientService {
+public class HashStoreClientService {
   private static final String CONTRACT_OBJECT_GET =
       com.scalar.dl.genericcontracts.object.Constants.CONTRACT_GET;
   private static final String CONTRACT_COLLECTION_GET =
@@ -117,17 +117,16 @@ public class ClientService {
           .put(FUNCTION_PUT, PutToMutableDatabase.class)
           .build();
 
-  private final com.scalar.dl.client.service.ClientService clientService;
+  private final ClientService clientService;
   private final ClientConfig config;
 
   /**
-   * Constructs a {@code ClientService} for hash store with the specified primitive {@link
+   * Constructs a {@code HashStoreClientService} for hash store with the specified primitive {@link
    * ClientService}.
    *
    * @param clientService a client service
    */
-  public ClientService(
-      com.scalar.dl.client.service.ClientService clientService, ClientConfig config) {
+  public HashStoreClientService(ClientService clientService, ClientConfig config) {
     this.clientService = clientService;
     this.config = config;
   }
@@ -137,6 +136,11 @@ public class ClientService {
    * the hash store client, based on {@code ClientConfig}. The authentication method (digital
    * signature or HMAC) is determined by the configuration. If the identity or contract is already
    * registered, it is simply skipped without throwing an exception.
+   *
+   * <p>This method is primarily for internal use, and users don't need to call it because the
+   * identity and contracts are automatically registered when creating {@code
+   * HashStoreClientService}. Breaking changes can and will be introduced to this method. Users
+   * should not depend on it.
    *
    * @throws ClientException if a request fails for some reason
    */
