@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
@@ -47,7 +47,7 @@ public class CollectionHistoryGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
         when(serviceMock.getCollectionHistory("coll123")).thenReturn(resultMock);
@@ -70,7 +70,7 @@ public class CollectionHistoryGetTest {
         String[] args =
             new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123", "--limit=10"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
         when(serviceMock.getCollectionHistory("coll123", 10)).thenReturn(resultMock);
@@ -92,7 +92,7 @@ public class CollectionHistoryGetTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
         when(serviceMock.getCollectionHistory("coll123")).thenReturn(resultMock);
@@ -111,8 +111,8 @@ public class CollectionHistoryGetTest {
     @DisplayName("where useGateway option is true")
     class whereUseGatewayOptionIsTrue {
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig")
-      public void createClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
+      @DisplayName("create HashStoreClientService with GatewayClientConfig")
+      public void createHashStoreClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
           throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
@@ -121,8 +121,8 @@ public class CollectionHistoryGetTest {
               "--properties=" + file.getAbsolutePath(), "--collection-id=coll123", "--use-gateway"
             };
         CollectionHistoryGet command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         ExecutionResult resultMock = mock(ExecutionResult.class);
 
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
@@ -139,8 +139,8 @@ public class CollectionHistoryGetTest {
     }
 
     @Nested
-    @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    @DisplayName("where HashStoreClientService throws ClientException")
+    class whereClientExceptionIsThrownByHashStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
@@ -149,8 +149,8 @@ public class CollectionHistoryGetTest {
         String[] args =
             new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=coll123"};
         CollectionHistoryGet command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to get collection history", StatusCode.RUNTIME_ERROR))

@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
@@ -48,7 +48,7 @@ public class LedgerValidationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--object-id=obj123"};
         LedgerValidation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -83,7 +83,7 @@ public class LedgerValidationTest {
               "--properties=PROPERTIES_FILE", "--object-id=obj123", "--start-age=10", "--end-age=20"
             };
         LedgerValidation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -119,7 +119,7 @@ public class LedgerValidationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
         LedgerValidation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -157,7 +157,7 @@ public class LedgerValidationTest {
               "--end-age=15"
             };
         LedgerValidation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -188,9 +188,9 @@ public class LedgerValidationTest {
     @DisplayName("where useGateway option is true")
     class whereUseGatewayOptionIsTrue {
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig for object validation")
-      public void createClientServiceWithGatewayClientConfigForObject(@TempDir Path tempDir)
-          throws Exception {
+      @DisplayName("create HashStoreClientService with GatewayClientConfig for object validation")
+      public void createHashStoreClientServiceWithGatewayClientConfigForObject(
+          @TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
@@ -198,8 +198,8 @@ public class LedgerValidationTest {
               "--properties=" + file.getAbsolutePath(), "--object-id=obj123", "--use-gateway"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -217,9 +217,10 @@ public class LedgerValidationTest {
       }
 
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig for collection validation")
-      public void createClientServiceWithGatewayClientConfigForCollection(@TempDir Path tempDir)
-          throws Exception {
+      @DisplayName(
+          "create HashStoreClientService with GatewayClientConfig for collection validation")
+      public void createHashStoreClientServiceWithGatewayClientConfigForCollection(
+          @TempDir Path tempDir) throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
@@ -227,8 +228,8 @@ public class LedgerValidationTest {
               "--properties=" + file.getAbsolutePath(), "--collection-id=col123", "--use-gateway"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
         LedgerValidationResult result = mock(LedgerValidationResult.class);
 
         when(result.getCode()).thenReturn(StatusCode.OK);
@@ -247,8 +248,8 @@ public class LedgerValidationTest {
     }
 
     @Nested
-    @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    @DisplayName("where HashStoreClientService throws ClientException")
+    class whereClientExceptionIsThrownByHashStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code for object validation")
       void returns1AsExitCodeForObjectValidation(@TempDir Path tempDir) throws Exception {
@@ -257,8 +258,8 @@ public class LedgerValidationTest {
         String[] args =
             new String[] {"--properties=" + file.getAbsolutePath(), "--object-id=obj123"};
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to validate object", StatusCode.RUNTIME_ERROR))
@@ -282,8 +283,8 @@ public class LedgerValidationTest {
         String[] args =
             new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to validate collection", StatusCode.RUNTIME_ERROR))

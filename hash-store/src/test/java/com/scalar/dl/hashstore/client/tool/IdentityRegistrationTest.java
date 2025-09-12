@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,7 +45,7 @@ public class IdentityRegistrationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE"};
         IdentityRegistration command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -60,15 +60,15 @@ public class IdentityRegistrationTest {
     @DisplayName("where useGateway option is true")
     class whereUseGatewayOptionIsTrue {
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig")
-      public void createClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
+      @DisplayName("create HashStoreClientService with GatewayClientConfig")
+      public void createHashStoreClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
           throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--use-gateway"};
         IdentityRegistration command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
 
@@ -82,8 +82,8 @@ public class IdentityRegistrationTest {
     }
 
     @Nested
-    @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    @DisplayName("where HashStoreClientService throws ClientException")
+    class whereClientExceptionIsThrownByHashStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
@@ -91,8 +91,8 @@ public class IdentityRegistrationTest {
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args = new String[] {"--properties=" + file.getAbsolutePath()};
         IdentityRegistration command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to register identity", StatusCode.RUNTIME_ERROR))

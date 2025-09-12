@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,7 +52,7 @@ public class ObjectRemovalFromCollectionTest {
               "--properties=PROPERTIES_FILE", "--collection-id=col123", "--object-ids=obj1"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -62,11 +62,14 @@ public class ObjectRemovalFromCollectionTest {
 
         ArgumentCaptor<String> collectionIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<List> objectIdsCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<Boolean> forceCaptor = ArgumentCaptor.forClass(Boolean.class);
         verify(serviceMock)
-            .removeFromCollection(collectionIdCaptor.capture(), objectIdsCaptor.capture());
+            .removeFromCollection(
+                collectionIdCaptor.capture(), objectIdsCaptor.capture(), forceCaptor.capture());
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Collections.singletonList("obj1"));
+        assertThat(forceCaptor.getValue()).isFalse();
       }
 
       @Test
@@ -82,7 +85,7 @@ public class ObjectRemovalFromCollectionTest {
               "--object-ids=obj3"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -92,11 +95,14 @@ public class ObjectRemovalFromCollectionTest {
 
         ArgumentCaptor<String> collectionIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<List> objectIdsCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<Boolean> forceCaptor = ArgumentCaptor.forClass(Boolean.class);
         verify(serviceMock)
-            .removeFromCollection(collectionIdCaptor.capture(), objectIdsCaptor.capture());
+            .removeFromCollection(
+                collectionIdCaptor.capture(), objectIdsCaptor.capture(), forceCaptor.capture());
 
         assertThat(collectionIdCaptor.getValue()).isEqualTo("col123");
         assertThat(objectIdsCaptor.getValue()).isEqualTo(Arrays.asList("obj1", "obj2", "obj3"));
+        assertThat(forceCaptor.getValue()).isFalse();
       }
 
       @Test
@@ -111,7 +117,7 @@ public class ObjectRemovalFromCollectionTest {
               "--force"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -136,8 +142,8 @@ public class ObjectRemovalFromCollectionTest {
     @DisplayName("where useGateway option is true")
     class whereUseGatewayOptionIsTrue {
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig")
-      public void createClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
+      @DisplayName("create HashStoreClientService with GatewayClientConfig")
+      public void createHashStoreClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
           throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
@@ -149,8 +155,8 @@ public class ObjectRemovalFromCollectionTest {
               "--use-gateway"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
 
@@ -164,8 +170,8 @@ public class ObjectRemovalFromCollectionTest {
     }
 
     @Nested
-    @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    @DisplayName("where HashStoreClientService throws ClientException")
+    class whereClientExceptionIsThrownByHashStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
@@ -178,13 +184,13 @@ public class ObjectRemovalFromCollectionTest {
               "--object-ids=obj1"
             };
         ObjectRemovalFromCollection command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to remove objects", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
-            .removeFromCollection(anyString(), anyList());
+            .removeFromCollection(anyString(), anyList(), anyBoolean());
 
         // Act
         int exitCode = command.call(factoryMock);

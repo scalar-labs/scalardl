@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,7 +49,7 @@ public class CollectionCreationTest {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--collection-id=col123"};
         CollectionCreation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -75,7 +75,7 @@ public class CollectionCreationTest {
               "--properties=PROPERTIES_FILE", "--collection-id=col123", "--object-ids=obj1"
             };
         CollectionCreation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -105,7 +105,7 @@ public class CollectionCreationTest {
               "--object-ids=obj3"
             };
         CollectionCreation command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -137,8 +137,8 @@ public class CollectionCreationTest {
               "--properties=" + file.getAbsolutePath(), "--collection-id=col123", "--use-gateway"
             };
         CollectionCreation command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
 
@@ -162,8 +162,8 @@ public class CollectionCreationTest {
         String[] args =
             new String[] {"--properties=" + file.getAbsolutePath(), "--collection-id=col123"};
         CollectionCreation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to create collection", StatusCode.RUNTIME_ERROR))

@@ -11,8 +11,8 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -51,7 +51,7 @@ public class ObjectPutTest {
               "--properties=PROPERTIES_FILE", "--object-id=obj123", "--hash=abc123hash"
             };
         ObjectPut command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -80,7 +80,7 @@ public class ObjectPutTest {
               "--metadata={\"key\":\"value\",\"timestamp\":\"2023-01-01\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -112,7 +112,7 @@ public class ObjectPutTest {
               "--put-to-mutable={\"table\":\"test_table\",\"key\":\"key1\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -146,7 +146,7 @@ public class ObjectPutTest {
               "--put-to-mutable={\"table\":\"test_table\"}"
             };
         ObjectPut command = parseArgs(args);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
         int exitCode = command.execute(serviceMock);
@@ -174,8 +174,8 @@ public class ObjectPutTest {
     @DisplayName("where useGateway option is true")
     class whereUseGatewayOptionIsTrue {
       @Test
-      @DisplayName("create ClientService with GatewayClientConfig")
-      public void createClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
+      @DisplayName("create HashStoreClientService with GatewayClientConfig")
+      public void createHashStoreClientServiceWithGatewayClientConfig(@TempDir Path tempDir)
           throws Exception {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
@@ -187,8 +187,8 @@ public class ObjectPutTest {
               "--use-gateway"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
 
@@ -202,8 +202,8 @@ public class ObjectPutTest {
     }
 
     @Nested
-    @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    @DisplayName("where HashStoreClientService throws ClientException")
+    class whereClientExceptionIsThrownByHashStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
@@ -214,8 +214,8 @@ public class ObjectPutTest {
               "--properties=" + file.getAbsolutePath(), "--object-id=obj123", "--hash=abc123hash"
             };
         ObjectPut command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
+        HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Failed to put object", StatusCode.RUNTIME_ERROR))

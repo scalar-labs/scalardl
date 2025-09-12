@@ -1,6 +1,6 @@
 package com.scalar.dl.hashstore.client.tool;
 
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import java.util.ArrayList;
 import java.util.List;
 import picocli.CommandLine;
@@ -28,7 +28,7 @@ public class CollectionCreation extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) {
+  protected Integer execute(HashStoreClientService service) {
     service.createCollection(collectionId, objectIds);
     return 0;
   }

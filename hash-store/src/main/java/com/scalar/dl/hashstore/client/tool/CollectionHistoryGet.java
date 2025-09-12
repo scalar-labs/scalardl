@@ -3,7 +3,7 @@ package com.scalar.dl.hashstore.client.tool;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import picocli.CommandLine;
@@ -31,7 +31,7 @@ public class CollectionHistoryGet extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) throws ClientException {
+  protected Integer execute(HashStoreClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
     ExecutionResult result;
     if (limit != null) {

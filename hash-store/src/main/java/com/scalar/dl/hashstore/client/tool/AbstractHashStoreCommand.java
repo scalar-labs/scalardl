@@ -6,8 +6,8 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
 import com.scalar.dl.client.tool.CommonOptions;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -15,13 +15,13 @@ public abstract class AbstractHashStoreCommand extends CommonOptions implements 
 
   @Override
   public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
+    return call(new HashStoreClientServiceFactory());
   }
 
   @VisibleForTesting
-  public final Integer call(ClientServiceFactory factory) throws Exception {
+  public final Integer call(HashStoreClientServiceFactory factory) throws Exception {
     try {
-      ClientService service =
+      HashStoreClientService service =
           useGateway
               ? factory.create(new GatewayClientConfig(new File(properties)), false)
               : factory.create(new ClientConfig(new File(properties)), false);
@@ -42,5 +42,5 @@ public abstract class AbstractHashStoreCommand extends CommonOptions implements 
    * @return the exit code.
    * @throws ClientException if the execution fails.
    */
-  protected abstract Integer execute(ClientService service) throws ClientException;
+  protected abstract Integer execute(HashStoreClientService service) throws ClientException;
 }

@@ -1,7 +1,7 @@
 package com.scalar.dl.hashstore.client.tool;
 
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import java.util.List;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -34,12 +34,8 @@ public class ObjectRemovalFromCollection extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) throws ClientException {
-    if (force) {
-      service.removeFromCollection(collectionId, objectIds, true);
-    } else {
-      service.removeFromCollection(collectionId, objectIds);
-    }
+  protected Integer execute(HashStoreClientService service) throws ClientException {
+    service.removeFromCollection(collectionId, objectIds, force);
     return 0;
   }
 }

@@ -7,7 +7,7 @@ import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import com.scalar.dl.hashstore.client.util.HashStoreClientUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -47,7 +47,7 @@ public class ObjectPut extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) throws ClientException {
+  protected Integer execute(HashStoreClientService service) throws ClientException {
     // Build basic arguments with objectId and hash
     ObjectNode arguments =
         HashStoreClientUtils.createObjectNode().put(OBJECT_ID, objectId).put(HASH_VALUE, hash);

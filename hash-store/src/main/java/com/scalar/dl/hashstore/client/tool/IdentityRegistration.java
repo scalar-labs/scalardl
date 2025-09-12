@@ -1,7 +1,7 @@
 package com.scalar.dl.hashstore.client.tool;
 
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -16,7 +16,7 @@ public class IdentityRegistration extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) throws ClientException {
+  protected Integer execute(HashStoreClientService service) throws ClientException {
     service.registerIdentity();
     return 0;
   }

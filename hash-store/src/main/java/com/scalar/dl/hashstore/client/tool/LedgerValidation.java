@@ -2,7 +2,7 @@ package com.scalar.dl.hashstore.client.tool;
 
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
-import com.scalar.dl.hashstore.client.service.ClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
@@ -46,7 +46,7 @@ public class LedgerValidation extends AbstractHashStoreCommand {
   }
 
   @Override
-  protected Integer execute(ClientService service) throws ClientException {
+  protected Integer execute(HashStoreClientService service) throws ClientException {
     LedgerValidationResult result;
     if (target.objectId != null) {
       result = service.validateObject(target.objectId, startAge, endAge);
