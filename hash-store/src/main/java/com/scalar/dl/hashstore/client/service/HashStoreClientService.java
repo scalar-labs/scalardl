@@ -137,6 +137,11 @@ public class HashStoreClientService {
    * signature or HMAC) is determined by the configuration. If the identity or contract is already
    * registered, it is simply skipped without throwing an exception.
    *
+   * <p>This method is primarily for internal use, and users don't need to call it because the
+   * identity and contracts are automatically registered when creating {@code
+   * HashStoreClientService}. Breaking changes can and will be introduced to this method. Users
+   * should not depend on it.
+   *
    * @throws ClientException if a request fails for some reason
    */
   public void registerIdentity() {
