@@ -68,7 +68,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class ClientServiceTest {
+public class HashStoreClientServiceTest {
   private static final String ANY_OBJECT_ID = "object1";
   private static final String ANY_HASH = "hash1";
   private static final String ANY_COLLECTION_ID = "collection1";
@@ -92,13 +92,13 @@ public class ClientServiceTest {
   @Mock private ContractExecutionResult contractExecutionResult;
   @Mock private LedgerValidationResult ledgerValidationResult;
 
-  private ClientService service;
+  private HashStoreClientService service;
   private final ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    service = new ClientService(clientService, config);
+    service = new HashStoreClientService(clientService, config);
   }
 
   @Test

@@ -43,8 +43,8 @@ import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.hashstore.client.model.Version;
-import com.scalar.dl.hashstore.client.service.ClientService;
-import com.scalar.dl.hashstore.client.service.ClientServiceFactory;
+import com.scalar.dl.hashstore.client.service.HashStoreClientService;
+import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.LedgerEndToEndTestBase;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ExecutionResult;
@@ -94,8 +94,9 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final ImmutableList<String> SOME_REMOVE_OBJECT_IDS_LIST =
       ImmutableList.of("object1", "object4");
 
-  private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
-  private ClientService clientService;
+  private static final HashStoreClientServiceFactory clientServiceFactory =
+      new HashStoreClientServiceFactory();
+  private HashStoreClientService clientService;
 
   @Override
   @BeforeAll
