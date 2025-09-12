@@ -10,8 +10,8 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.service.StatusCode;
-import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import com.scalar.dl.tablestore.client.service.ClientService;
 import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
 import java.io.ByteArrayOutputStream;
@@ -62,7 +62,7 @@ public class StatementExecutionTest {
         ContractExecutionResult contractResult =
             new ContractExecutionResult(
                 resultJson, null, Collections.emptyList(), Collections.emptyList());
-        StatementExecutionResult result = new StatementExecutionResult(contractResult);
+        ExecutionResult result = new ExecutionResult(contractResult);
         when(serviceMock.executeStatement(anyString())).thenReturn(result);
 
         // Act
@@ -95,7 +95,7 @@ public class StatementExecutionTest {
         ContractExecutionResult contractResult =
             new ContractExecutionResult(
                 null, null, Collections.emptyList(), Collections.emptyList());
-        StatementExecutionResult result = new StatementExecutionResult(contractResult);
+        ExecutionResult result = new ExecutionResult(contractResult);
         when(serviceMock.executeStatement(anyString())).thenReturn(result);
 
         // Act
@@ -134,7 +134,7 @@ public class StatementExecutionTest {
         ContractExecutionResult contractResult =
             new ContractExecutionResult(
                 null, null, java.util.Collections.emptyList(), java.util.Collections.emptyList());
-        StatementExecutionResult result = new StatementExecutionResult(contractResult);
+        ExecutionResult result = new ExecutionResult(contractResult);
         when(serviceMock.executeStatement(anyString())).thenReturn(result);
         when(factory.create(any(GatewayClientConfig.class), anyBoolean())).thenReturn(serviceMock);
 

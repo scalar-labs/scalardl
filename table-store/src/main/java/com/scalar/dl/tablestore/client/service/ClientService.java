@@ -29,11 +29,11 @@ import com.scalar.dl.genericcontracts.table.v1_0_0.Select;
 import com.scalar.dl.genericcontracts.table.v1_0_0.ShowTables;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Update;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.tablestore.client.error.TableStoreClientError;
-import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import com.scalar.dl.tablestore.client.partiql.parser.ScalarPartiqlParser;
 import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import java.util.List;
@@ -158,7 +158,7 @@ public class ClientService {
    * @throws IllegalArgumentException if the specified statement is invalid
    * @throws ClientException if a request fails for some reason
    */
-  public StatementExecutionResult executeStatement(String statement) {
+  public ExecutionResult executeStatement(String statement) {
     List<ContractStatement> contractStatements = ScalarPartiqlParser.parse(statement);
     assert !contractStatements.isEmpty();
 
@@ -171,7 +171,7 @@ public class ClientService {
     ContractExecutionResult contractExecutionResult =
         clientService.executeContract(
             contractStatement.getContractId(), contractStatement.getArguments());
-    return new StatementExecutionResult(contractExecutionResult);
+    return new ExecutionResult(contractExecutionResult);
   }
 
   /**

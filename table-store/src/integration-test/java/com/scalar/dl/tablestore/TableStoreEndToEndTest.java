@@ -11,11 +11,11 @@ import com.google.common.collect.ImmutableList;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.genericcontracts.table.Constants;
 import com.scalar.dl.ledger.LedgerEndToEndTestBase;
+import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.tablestore.client.error.TableStoreClientError;
-import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import com.scalar.dl.tablestore.client.service.ClientService;
 import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
 import com.scalar.dl.tablestore.client.util.JacksonUtils;
@@ -194,7 +194,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
         ImmutableList.of(createAccountJson(accountId, INITIAL_BALANCE));
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
 
@@ -212,7 +212,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     JsonNode expected = mapper.createArrayNode();
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
 
@@ -236,7 +236,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     ImmutableList<JsonNode> expectedRecords = ImmutableList.of(expectedJson);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT "
                 + ACCOUNT_ID
@@ -267,7 +267,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_TYPE + " = " + accountType);
 
@@ -286,7 +286,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     ImmutableList<JsonNode> expectedRecords =
         ImmutableList.of(createAccountJson(accountId, INITIAL_BALANCE));
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM "
                 + ACCOUNT_TABLE
@@ -314,7 +314,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACTIVE + " = " + isActive);
 
@@ -342,7 +342,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM "
                 + ACCOUNT_TABLE
@@ -375,7 +375,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     JsonNode expected = mapper.createArrayNode();
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM "
                 + ACCOUNT_TABLE
@@ -405,7 +405,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     insertPaymentRecordWithNullValues(2);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM "
                 + PAYMENT_TABLE
@@ -440,7 +440,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     insertPaymentRecord(3, 1, 4, amount, date2);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             String.format(
                 "SELECT * FROM %s JOIN %s AS %s ON %s = %s JOIN %s AS %s ON %s = %s WHERE %s = '%s'",
@@ -480,7 +480,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     insertPaymentRecord(1, 2, 3, amount, date);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             String.format(
                 "SELECT %s,%s FROM %s JOIN %s AS %s ON %s = %s JOIN %s AS %s ON %s = %s WHERE %s = '%s'",
@@ -519,7 +519,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     insertPaymentRecord(3, 1, 4, 300, date);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             String.format(
                 "SELECT * FROM %s JOIN %s AS %s ON %s = %s JOIN %s AS %s ON %s = %s WHERE %s = '%s' AND %s <= 200",
@@ -621,7 +621,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             + "`");
 
     // Assert
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
     assertThat(result.getResult().isPresent()).isTrue();
@@ -682,7 +682,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             + accountId);
 
     // Assert
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
     assertThat(result.getResult().isPresent()).isTrue();
@@ -712,7 +712,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             + accountId);
 
     // Assert
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
     assertThat(result.getResult().isPresent()).isTrue();
@@ -747,7 +747,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             + accountType);
 
     // Assert
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_TYPE + " = " + accountType);
     assertThat(result.getResult().isPresent()).isTrue();
@@ -777,7 +777,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
             + " = 1");
 
     // Assert
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = 1");
     assertThat(result.getResult().isPresent()).isTrue();
@@ -795,7 +795,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   @Test
   public void executeStatement_MetadataQuerySqlWithTableNameGiven_ShouldReturnSingleTable() {
     // Arrange Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT * FROM "
                 + INFORMATION_SCHEMA_TABLES
@@ -816,7 +816,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
   @Test
   public void executeStatement_MetadataQuerySqlWithoutTableNameGiven_ShouldReturnAllTables() {
     // Arrange Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement("SELECT * FROM " + INFORMATION_SCHEMA_TABLES);
 
     // Assert
@@ -868,7 +868,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     updateAccountRecord(accountId, updatedValue2);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT history() FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
 
@@ -900,7 +900,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     updateAccountRecord(accountId, updatedValue2);
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT history() FROM "
                 + ACCOUNT_TABLE
@@ -932,7 +932,7 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
     JsonNode expected = mapper.createArrayNode();
 
     // Act
-    StatementExecutionResult result =
+    ExecutionResult result =
         clientService.executeStatement(
             "SELECT history() FROM " + ACCOUNT_TABLE + " WHERE " + ACCOUNT_ID + " = " + accountId);
 

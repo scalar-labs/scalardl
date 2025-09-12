@@ -36,6 +36,10 @@ public abstract class LedgerEndToEndTestBase {
   private static final String ASSET_TABLE = "asset";
   private static final String ASSET_METADATA_TABLE = "asset_metadata";
   private static final String LEDGER_SCHEMA_PATH = "/../schema-loader/ledger-schema.json";
+  private static final String FUNCTION_DB_SCHEMA_PATH =
+      "/../generic-contracts/scripts/objects-table-schema.json";
+  private static final String FUNCTION_NAMESPACE = "test";
+  private static final String FUNCTION_TABLE = "objects";
 
   private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
   private static final String PROP_STORAGE = "scalardb.storage";
@@ -79,6 +83,7 @@ public abstract class LedgerEndToEndTestBase {
   private Properties props;
   private Map<String, String> creationOptions = new HashMap<>();
   private Path ledgerSchemaPath;
+  private Path databaseSchemaPath;
   private DistributedStorage storage;
   private DistributedStorageAdmin storageAdmin;
 
@@ -89,7 +94,9 @@ public abstract class LedgerEndToEndTestBase {
     storage = factory.getStorage();
     storageAdmin = factory.getStorageAdmin();
     ledgerSchemaPath = Paths.get(System.getProperty("user.dir") + LEDGER_SCHEMA_PATH);
+    databaseSchemaPath = Paths.get(System.getProperty("user.dir") + FUNCTION_DB_SCHEMA_PATH);
     SchemaLoader.load(props, ledgerSchemaPath, creationOptions, true);
+    SchemaLoader.load(props, databaseSchemaPath, creationOptions, true);
     createServer(new LedgerConfig(props));
   }
 
@@ -99,6 +106,7 @@ public abstract class LedgerEndToEndTestBase {
     storage.close();
     storageAdmin.close();
     SchemaLoader.unload(props, ledgerSchemaPath, true);
+    SchemaLoader.unload(props, databaseSchemaPath, true);
   }
 
   @BeforeEach
@@ -108,6 +116,7 @@ public abstract class LedgerEndToEndTestBase {
   public void tearDown() throws ExecutionException {
     storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_TABLE);
     storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_METADATA_TABLE);
+    storageAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
   }
 
   private Properties createLedgerProperties() {
@@ -159,5 +168,29 @@ public abstract class LedgerEndToEndTestBase {
     props.put(ClientConfig.DS_CERT_PEM, SOME_CERTIFICATE);
     props.put(ClientConfig.DS_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
     return new ClientConfig(props);
+  }
+
+  protected DistributedStorage getStorage() {
+    return storage;
+  }
+
+  protected DistributedStorageAdmin getStorageAdmin() {
+    return storageAdmin;
+  }
+
+  protected String getScalarNamespace() {
+    return SCALAR_NAMESPACE;
+  }
+
+  protected String getAssetTable() {
+    return ASSET_TABLE;
+  }
+
+  protected String getFunctionNamespace() {
+    return FUNCTION_NAMESPACE;
+  }
+
+  protected String getFunctionTable() {
+    return FUNCTION_TABLE;
   }
 }

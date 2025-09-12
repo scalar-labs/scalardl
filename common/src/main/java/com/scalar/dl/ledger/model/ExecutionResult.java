@@ -1,7 +1,6 @@
-package com.scalar.dl.tablestore.client.model;
+package com.scalar.dl.ledger.model;
 
 import com.google.common.collect.ImmutableList;
-import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.proof.AssetProof;
 import java.util.List;
 import java.util.Objects;
@@ -9,32 +8,31 @@ import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
 
 /**
- * The result of statement execution. It contains the result of the statement execution along with a
- * list of {@link AssetProof}s from Ledger and Auditor.
+ * The result of an operation execution in Ledger. It contains the result of the internal contract
+ * execution along with a list of {@link AssetProof}s from Ledger and Auditor.
  */
 @Immutable
 // non-final for mocking
-public class StatementExecutionResult {
+public class ExecutionResult {
   private final String result;
   private final ImmutableList<AssetProof> ledgerProofs;
   private final ImmutableList<AssetProof> auditorProofs;
 
   /**
-   * Constructs a {@code StatementExecutionResult} using the specified {@code
-   * ContractExecutionResult}
+   * Constructs a {@code ExecutionResult} using the specified {@code ContractExecutionResult}
    *
    * @param contractExecutionResult a {@code ContractExecutionResult}
    */
-  public StatementExecutionResult(ContractExecutionResult contractExecutionResult) {
+  public ExecutionResult(ContractExecutionResult contractExecutionResult) {
     this.result = contractExecutionResult.getContractResult().orElse(null);
     this.ledgerProofs = ImmutableList.copyOf(contractExecutionResult.getLedgerProofs());
     this.auditorProofs = ImmutableList.copyOf(contractExecutionResult.getAuditorProofs());
   }
 
   /**
-   * Returns the result of statement execution.
+   * Returns the result of an operation execution in Ledger.
    *
-   * @return the result of statement execution
+   * @return the result of an operation execution in Ledger
    */
   public Optional<String> getResult() {
     return Optional.ofNullable(result);
@@ -73,7 +71,7 @@ public class StatementExecutionResult {
    * equal if it is the same instance or if:
    *
    * <ul>
-   *   <li>it is also an {@code StatementExecutionResult} and
+   *   <li>it is also an {@code ExecutionResult} and
    *   <li>both instances have the same result and proofs.
    * </ul>
    *
@@ -85,10 +83,10 @@ public class StatementExecutionResult {
     if (o == this) {
       return true;
     }
-    if (!(o instanceof StatementExecutionResult)) {
+    if (!(o instanceof ExecutionResult)) {
       return false;
     }
-    StatementExecutionResult other = (StatementExecutionResult) o;
+    ExecutionResult other = (ExecutionResult) o;
     return Objects.equals(this.result, other.result)
         && this.ledgerProofs.equals(other.ledgerProofs)
         && this.auditorProofs.equals(other.auditorProofs);

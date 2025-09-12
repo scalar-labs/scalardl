@@ -7,8 +7,8 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
 import com.scalar.dl.client.tool.CommonOptions;
+import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.util.JacksonSerDe;
-import com.scalar.dl.tablestore.client.model.StatementExecutionResult;
 import com.scalar.dl.tablestore.client.service.ClientService;
 import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
 import java.io.File;
@@ -49,7 +49,7 @@ public class StatementExecution extends CommonOptions implements Callable<Intege
   Integer call(ClientServiceFactory factory, ClientService service) {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
     try {
-      StatementExecutionResult result = service.executeStatement(statement);
+      ExecutionResult result = service.executeStatement(statement);
       result
           .getResult()
           .ifPresent(
