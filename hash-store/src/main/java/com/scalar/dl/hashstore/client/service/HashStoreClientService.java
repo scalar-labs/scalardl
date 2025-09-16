@@ -65,7 +65,7 @@ import javax.json.JsonObject;
 
 /**
  * A thread-safe client for the hash store. The client interacts with Ledger and Auditor components
- * to register identities, manage objects and collections, and validate them.
+ * to bootstrap the hash store, manage objects and collections, and validate them.
  *
  * <h3>Usage Examples</h3>
  *
@@ -133,7 +133,7 @@ public class HashStoreClientService {
 
   /**
    * Bootstraps the hash store by registering the identity (certificate or secret key) and necessary
-   * contracts and functions for, based on {@code ClientConfig}. The authentication method (digital
+   * contracts and functions based on {@code ClientConfig}. The authentication method (digital
    * signature or HMAC) is determined by the configuration. If the identity or contract is already
    * registered, it is simply skipped without throwing an exception.
    *

@@ -50,6 +50,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.hashstore.client.error.HashStoreClientError;
 import com.scalar.dl.hashstore.client.model.Version;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
@@ -87,7 +88,7 @@ public class HashStoreClientServiceTest {
   private static final String COLLECTION_OPTIONS =
       com.scalar.dl.genericcontracts.collection.Constants.OPTIONS;
 
-  @Mock private com.scalar.dl.client.service.ClientService clientService;
+  @Mock private ClientService clientService;
   @Mock private ClientConfig config;
   @Mock private ContractExecutionResult contractExecutionResult;
   @Mock private LedgerValidationResult ledgerValidationResult;
