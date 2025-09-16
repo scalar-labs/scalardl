@@ -28,8 +28,8 @@ public class SecretRegistration extends CommonOptions implements Callable<Intege
   Integer call(ClientServiceFactory factory) throws Exception {
     ClientService service =
         useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
+            ? factory.create(new GatewayClientConfig(new File(properties)), false)
+            : factory.create(new ClientConfig(new File(properties)), false);
     return call(factory, service);
   }
 

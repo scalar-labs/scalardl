@@ -129,14 +129,16 @@ public class ContractRegistrationTest {
             };
         ContractRegistration command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        doReturn(mock(ClientService.class)).when(factory).create(any(GatewayClientConfig.class));
+        doReturn(mock(ClientService.class))
+            .when(factory)
+            .create(any(GatewayClientConfig.class), anyBoolean());
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(GatewayClientConfig.class));
-        verify(factory, never()).create(any(ClientConfig.class));
+        verify(factory).create(any(GatewayClientConfig.class), eq(false));
+        verify(factory, never()).create(any(ClientConfig.class), anyBoolean());
       }
     }
 
@@ -160,14 +162,16 @@ public class ContractRegistrationTest {
             };
         ContractRegistration command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        doReturn(mock(ClientService.class)).when(factory).create(any(ClientConfig.class));
+        doReturn(mock(ClientService.class))
+            .when(factory)
+            .create(any(ClientConfig.class), anyBoolean());
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(ClientConfig.class));
-        verify(factory, never()).create(any(GatewayClientConfig.class));
+        verify(factory).create(any(ClientConfig.class), eq(false));
+        verify(factory, never()).create(any(GatewayClientConfig.class), anyBoolean());
       }
     }
 

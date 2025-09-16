@@ -14,6 +14,8 @@ import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.client.util.RequestSigner;
+import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
+import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -85,6 +87,52 @@ public class ClientService implements AutoCloseable {
     this.config = config;
     this.handler = handler;
     this.signer = signer;
+  }
+
+  /**
+   * Bootstraps the ledger by registering the identity (certificate or secret key) and system
+   * contracts if necessary, based on {@code ClientConfig}. The authentication method (digital
+   * signature or HMAC) is determined by the configuration. If the identity or contract is already
+   * registered, it is simply skipped without throwing an exception.
+   *
+   * <p>This method is primarily for internal use, and users don't need to call it because the
+   * identity and contracts are automatically registered when creating {@code ClientService}.
+   * Breaking changes can and will be introduced to this method. Users should not depend on it.
+   *
+   * @throws ClientException if a request fails for some reason
+   */
+  public void bootstrap() {
+    try {
+      if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
+        registerCertificate();
+      } else {
+        registerSecret();
+      }
+    } catch (ClientException e) {
+      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
+          && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
+        throw e;
+      }
+    }
+
+    registerValidateLedgerContract();
+  }
+
+  private void registerValidateLedgerContract() {
+    if (config.isAuditorEnabled()) {
+      Class<?> clazz = ValidateLedger.class;
+      try {
+        registerContract(
+            config.getAuditorLinearizableValidationContractId(),
+            clazz.getName(),
+            Common.getClassBytes(clazz),
+            (String) null);
+      } catch (ClientException e) {
+        if (!e.getStatusCode().equals(StatusCode.CONTRACT_ALREADY_REGISTERED)) {
+          throw e;
+        }
+      }
+    }
   }
 
   /**

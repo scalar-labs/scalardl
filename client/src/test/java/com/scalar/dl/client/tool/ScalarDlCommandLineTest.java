@@ -39,7 +39,11 @@ public class ScalarDlCommandLineTest {
               "Usage: scalardl [COMMAND]",
               "These are ScalarDL commands used in various situations:",
               "",
-              "register identity information",
+              "bootstrap the ledger",
+              "  bootstrap              Bootstrap the ledger by registering identity and",
+              "                           system contracts.",
+              "",
+              "register identity information manually",
               "  register-cert          Register a specified certificate.",
               "  register-secret        Register a specified secret.",
               "",
@@ -81,6 +85,7 @@ public class ScalarDlCommandLineTest {
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
+                Bootstrap.class,
                 GenericContractCommandLine.class,
                 CertificateRegistration.class,
                 ContractExecution.class,

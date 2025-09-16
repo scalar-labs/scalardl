@@ -2,14 +2,7 @@ package com.scalar.dl.client.tool;
 
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
@@ -26,12 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
-public class SecretRegistrationTest {
+public class BootstrapTest {
   private CommandLine commandLine;
 
   @BeforeEach
   void setup() {
-    commandLine = new CommandLine(new SecretRegistration());
+    commandLine = new CommandLine(new Bootstrap());
   }
 
   @Nested
@@ -46,8 +39,7 @@ public class SecretRegistrationTest {
             // Set the required options.
             "--properties=PROPERTIES_FILE",
           };
-      SecretRegistration command = parseArgs(args);
-      // Mock service that returns ContractExecutionResult.
+      Bootstrap command = parseArgs(args);
       ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
 
@@ -56,6 +48,7 @@ public class SecretRegistrationTest {
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
+      verify(serviceMock).bootstrap();
     }
 
     @Nested
@@ -75,7 +68,7 @@ public class SecretRegistrationTest {
               // Enable Gateway.
               "--use-gateway"
             };
-        SecretRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         doReturn(mock(ClientService.class))
             .when(factory)
@@ -105,7 +98,7 @@ public class SecretRegistrationTest {
               propertiesOption,
               // Gateway is disabled by default.
             };
-        SecretRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         doReturn(mock(ClientService.class))
             .when(factory)
@@ -132,13 +125,11 @@ public class SecretRegistrationTest {
               // Set the required options.
               "--properties=PROPERTIES_FILE",
             };
-        SecretRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
-            .when(serviceMock)
-            .registerSecret();
+        doThrow(new ClientException("", StatusCode.RUNTIME_ERROR)).when(serviceMock).bootstrap();
 
         // Act
         int exitCode = command.call(factoryMock, serviceMock);
@@ -149,7 +140,7 @@ public class SecretRegistrationTest {
     }
   }
 
-  private SecretRegistration parseArgs(String[] args) {
-    return CommandLineTestUtils.parseArgs(commandLine, SecretRegistration.class, args);
+  private Bootstrap parseArgs(String[] args) {
+    return CommandLineTestUtils.parseArgs(commandLine, Bootstrap.class, args);
   }
 }

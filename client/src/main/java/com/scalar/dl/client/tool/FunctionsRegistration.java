@@ -48,8 +48,8 @@ public class FunctionsRegistration extends CommonOptions implements Callable<Int
   Integer call(ClientServiceFactory factory, File functionsFile) throws Exception {
     ClientService service =
         useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
+            ? factory.create(new GatewayClientConfig(new File(properties)), false)
+            : factory.create(new ClientConfig(new File(properties)), false);
     return call(factory, service, functionsFile);
   }
 
