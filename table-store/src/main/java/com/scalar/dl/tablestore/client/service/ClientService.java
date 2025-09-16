@@ -1,17 +1,17 @@
 package com.scalar.dl.tablestore.client.service;
 
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.ASSET_ID_SEPARATOR;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_CREATE;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_GET_ASSET_ID;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_GET_HISTORY;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_INSERT;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_SCAN;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_SELECT;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_SHOW_TABLES;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.CONTRACT_UPDATE;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_INDEX;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_RECORD;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_TABLE;
+import static com.scalar.dl.genericcontracts.table.Constants.ASSET_ID_SEPARATOR;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_CREATE;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_GET_ASSET_ID;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_GET_HISTORY;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_INSERT;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SCAN;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SELECT;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SHOW_TABLES;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_UPDATE;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_INDEX;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_RECORD;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_TABLE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package com.scalar.dl.genericcontracts.object;
+package com.scalar.dl.genericcontracts.object.v1_0_0;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.scalar.db.api.Delete;
@@ -22,6 +22,7 @@ import com.scalar.db.io.TextColumn;
 import com.scalar.db.io.TimeColumn;
 import com.scalar.db.io.TimestampColumn;
 import com.scalar.db.io.TimestampTZColumn;
+import com.scalar.dl.genericcontracts.object.Constants;
 import com.scalar.dl.ledger.database.Database;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.function.JacksonBasedFunction;

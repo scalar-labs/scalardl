@@ -50,6 +50,14 @@ public class Constants {
   public static final String OPTION_ALL = "all";
   public static final String OPTION_VERBOSE = "verbose";
 
+  // Contracts and functions
+  public static final String PACKAGE = "object";
+  public static final String VERSION = "v1_0_0";
+  public static final String CONTRACT_GET = PACKAGE + "." + VERSION + ".Get";
+  public static final String CONTRACT_PUT = PACKAGE + "." + VERSION + ".Put";
+  public static final String CONTRACT_VALIDATE = PACKAGE + "." + VERSION + ".Validate";
+  public static final String FUNCTION_PUT = PACKAGE + "." + VERSION + ".PutToMutableDatabase";
+
   // Error messages
   public static final String OBJECT_ID_IS_MISSING_OR_INVALID =
       "The object ID is not specified in the arguments or is invalid.";
@@ -77,6 +85,7 @@ public class Constants {
           .toFormatter()
           .withResolverStyle(ResolverStyle.STRICT)
           .withChronology(IsoChronology.INSTANCE);
+
   /**
    * A formatter for a TIME literal. The format is "HH:MM:SS[.FFFFFF]". For example,
    * "12:34:56.123456". The fractional second is optional.
@@ -94,6 +103,7 @@ public class Constants {
           .toFormatter()
           .withResolverStyle(ResolverStyle.STRICT)
           .withChronology(IsoChronology.INSTANCE);
+
   /**
    * A formatter for a TIMESTAMP literal. The format is "YYYY-MM-DD HH:MM:SS[.FFF]". For example,
    * "2020-03-04 12:34:56.123". The fractional second is optional.
@@ -111,6 +121,7 @@ public class Constants {
           .optionalStart()
           .appendFraction(NANO_OF_SECOND, 0, 3, true)
           .toFormatter();
+
   /**
    * A formatter for a TIMESTAMPTZ literal. The format is "YYYY-MM-DD HH:MM:SS[.FFF] Z". For
    * example, "2020-03-04 12:34:56.123 Z". The fractional second is optional.
