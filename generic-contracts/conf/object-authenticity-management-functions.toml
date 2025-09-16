@@ -1,4 +1,4 @@
 [[functions]]
-function-id = "object.PutToMutableDatabase"
-function-binary-name = "com.scalar.dl.genericcontracts.object.PutToMutableDatabase"
-function-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/PutToMutableDatabase.class"
+function-id = "object.v1_0_0.PutToMutableDatabase"
+function-binary-name = "com.scalar.dl.genericcontracts.object.v1_0_0.PutToMutableDatabase"
+function-class-file = "generic-contracts/build/classes/java/main/com/scalar/dl/genericcontracts/object/v1_0_0/PutToMutableDatabase.class"

@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.BigIntegerNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.scalar.dl.genericcontracts.table.Constants;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.math.BigInteger;
 import java.util.Arrays;

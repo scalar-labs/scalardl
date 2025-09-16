@@ -1,9 +1,17 @@
 package com.scalar.dl.genericcontracts;
 
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.ASSET_ID_SEPARATOR;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_INDEX;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_RECORD;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_TABLE;
+import static com.scalar.dl.genericcontracts.table.Constants.ASSET_ID_SEPARATOR;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_CREATE;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_GET_ASSET_ID;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_GET_HISTORY;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_INSERT;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SCAN;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SELECT;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_SHOW_TABLES;
+import static com.scalar.dl.genericcontracts.table.Constants.CONTRACT_UPDATE;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_INDEX;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_RECORD;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_TABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -23,7 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableTable;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.genericcontracts.table.v1_0_0.Constants;
+import com.scalar.dl.genericcontracts.table.Constants;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -41,23 +49,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class GenericContractTableEndToEndTest extends GenericContractEndToEndTestBase {
-  private static final String CONTRACT_NAME_CREATE = "Create";
-  private static final String CONTRACT_NAME_INSERT = "Insert";
-  private static final String CONTRACT_NAME_SELECT = "Select";
-  private static final String CONTRACT_NAME_UPDATE = "Update";
-  private static final String CONTRACT_NAME_SHOW_TABLES = "ShowTables";
-  private static final String CONTRACT_NAME_GET_HISTORY = "GetHistory";
-  private static final String CONTRACT_NAME_GET_ASSET_ID = "GetAssetId";
-  private static final String CONTRACT_NAME_SCAN = "Scan";
-  private static final String CONTRACT_ID_PREFIX = Constants.PACKAGE + "." + Constants.VERSION;
-  private static final String CONTRACT_ID_CREATE = getContractId(CONTRACT_NAME_CREATE);
-  private static final String CONTRACT_ID_INSERT = getContractId(CONTRACT_NAME_INSERT);
-  private static final String CONTRACT_ID_SELECT = getContractId(CONTRACT_NAME_SELECT);
-  private static final String CONTRACT_ID_UPDATE = getContractId(CONTRACT_NAME_UPDATE);
-  private static final String CONTRACT_ID_SHOW_TABLES = getContractId(CONTRACT_NAME_SHOW_TABLES);
-  private static final String CONTRACT_ID_GET_HISTORY = getContractId(CONTRACT_NAME_GET_HISTORY);
-  private static final String CONTRACT_ID_SCAN = getContractId(CONTRACT_NAME_SCAN);
-  private static final String CONTRACT_ID_GET_ASSET_ID = getContractId(CONTRACT_NAME_GET_ASSET_ID);
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
@@ -96,25 +87,17 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
   }
 
-  private static String getContractId(String contractName) {
-    return getContractId(CONTRACT_ID_PREFIX, contractName);
-  }
-
-  private static String getContractBinaryName(String contractName) {
-    return getContractBinaryName(CONTRACT_ID_PREFIX, contractName);
-  }
-
   @Override
   Map<String, String> getContractsMap() {
     return ImmutableMap.<String, String>builder()
-        .put(CONTRACT_ID_CREATE, getContractBinaryName(CONTRACT_NAME_CREATE))
-        .put(CONTRACT_ID_INSERT, getContractBinaryName(CONTRACT_NAME_INSERT))
-        .put(CONTRACT_ID_SELECT, getContractBinaryName(CONTRACT_NAME_SELECT))
-        .put(CONTRACT_ID_UPDATE, getContractBinaryName(CONTRACT_NAME_UPDATE))
-        .put(CONTRACT_ID_SHOW_TABLES, getContractBinaryName(CONTRACT_NAME_SHOW_TABLES))
-        .put(CONTRACT_ID_GET_HISTORY, getContractBinaryName(CONTRACT_NAME_GET_HISTORY))
-        .put(CONTRACT_ID_GET_ASSET_ID, getContractBinaryName(CONTRACT_NAME_GET_ASSET_ID))
-        .put(CONTRACT_ID_SCAN, getContractBinaryName(CONTRACT_NAME_SCAN))
+        .put(CONTRACT_CREATE, getContractBinaryName(CONTRACT_CREATE))
+        .put(CONTRACT_INSERT, getContractBinaryName(CONTRACT_INSERT))
+        .put(CONTRACT_SELECT, getContractBinaryName(CONTRACT_SELECT))
+        .put(CONTRACT_UPDATE, getContractBinaryName(CONTRACT_UPDATE))
+        .put(CONTRACT_SHOW_TABLES, getContractBinaryName(CONTRACT_SHOW_TABLES))
+        .put(CONTRACT_GET_HISTORY, getContractBinaryName(CONTRACT_GET_HISTORY))
+        .put(CONTRACT_GET_ASSET_ID, getContractBinaryName(CONTRACT_GET_ASSET_ID))
+        .put(CONTRACT_SCAN, getContractBinaryName(CONTRACT_SCAN))
         .build();
   }
 
@@ -140,7 +123,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .put(Constants.TABLE_KEY, keyColumnName)
             .put(Constants.TABLE_KEY_TYPE, keyColumnType)
             .set(Constants.TABLE_INDEXES, indexNodes);
-    clientService.executeContract(CONTRACT_ID_CREATE, table);
+    clientService.executeContract(CONTRACT_CREATE, table);
     return table;
   }
 
@@ -201,9 +184,9 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 DoubleNode.valueOf(3.45),
                 COLUMN_NAME_6,
                 BooleanNode.valueOf(true)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record0));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record0));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     return ImmutableList.of(record0, record1, record2);
   }
 
@@ -215,7 +198,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 IntNode.valueOf(primaryKey),
                 COLUMN_NAME_2,
                 IntNode.valueOf(indexKey)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record));
   }
 
   private void insertRecord(
@@ -231,7 +214,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 IntNode.valueOf(value1),
                 COLUMN_NAME_4,
                 IntNode.valueOf(value2)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record));
   }
 
   private void prepareJoinTables() {
@@ -433,7 +416,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .set(Constants.TABLE_INDEXES, indexNodes);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_CREATE, table))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_CREATE, table))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.COLUMN_AMBIGUOUS + COLUMN_NAME_2);
   }
@@ -449,10 +432,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode expected = createArrayNode(record);
 
     // Act
-    clientService.executeContract(CONTRACT_ID_INSERT, insert);
+    clientService.executeContract(CONTRACT_INSERT, insert);
 
     // Assert
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
     assertThat(actual.getContractResult()).isPresent();
     assertThat(actual.getContractResult().get()).isEqualTo(jacksonSerDe.serialize(expected));
   }
@@ -467,10 +450,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record2 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, value2));
     JsonNode insert1 = prepareInsert(COMMON_TEST_TABLE, record1);
     JsonNode insert2 = prepareInsert(COMMON_TEST_TABLE, record2);
-    clientService.executeContract(CONTRACT_ID_INSERT, insert1);
+    clientService.executeContract(CONTRACT_INSERT, insert1);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_INSERT, insert2))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_INSERT, insert2))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.RECORD_ALREADY_EXISTS);
   }
@@ -484,7 +467,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode insert = prepareInsert(TABLE_NAME_1, record);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_INSERT, insert))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_INSERT, insert))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
@@ -501,25 +484,25 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record3 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key3));
     JsonNode key4 = DecimalNode.valueOf(new BigDecimal("1.000"));
     JsonNode record4 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key4));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record1));
 
     // Act Assert
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record2)))
+                    CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record2)))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.RECORD_ALREADY_EXISTS);
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record3)))
+                    CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record3)))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.RECORD_ALREADY_EXISTS);
     assertThatThrownBy(
             () ->
                 clientService.executeContract(
-                    CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record4)))
+                    CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record4)))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.RECORD_ALREADY_EXISTS);
   }
@@ -567,10 +550,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, value));
     JsonNode select = prepareSelect(tableName, COLUMN_NAME_1, value);
     JsonNode expected = createArrayNode(record);
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -602,8 +585,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 IntNode.valueOf(0),
                 COLUMN_NAME_5,
                 TextNode.valueOf("aaa")));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode select =
         prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, IntNode.valueOf(1))
             .set(
@@ -620,7 +603,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     expectedRecord2.remove(COLUMN_NAME_2);
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -666,7 +649,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                       .put(COLUMN_NAME_3, 10)
                       .put(COLUMN_NAME_4, 1.2345)
                       .put(COLUMN_NAME_5, false);
-              clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record));
+              clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record));
             });
 
     List<Callable<Void>> testCallables = new ArrayList<>();
@@ -694,11 +677,11 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record2 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key2, indexColumnName, value));
     JsonNode select = prepareSelect(tableName, indexColumnName, value);
     ImmutableList<JsonNode> expected = ImmutableList.of(record1, record2);
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(tableName, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(tableName, record2));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -755,9 +738,9 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 NullNode.getInstance(),
                 COLUMN_NAME_4,
                 NullNode.getInstance()));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record0));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record0));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record2));
 
     List<Callable<Void>> testCallables = new ArrayList<>();
     ImmutableList.of(COLUMN_NAME_2, COLUMN_NAME_3, COLUMN_NAME_4)
@@ -779,7 +762,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode select = prepareSelect(TABLE_NAME_1, columnName);
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1020,7 +1003,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareCondition(columnName, value, operator));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1095,7 +1078,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareCondition(columnName, operator));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1172,7 +1155,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 columnReference7, IntNode.valueOf(0)));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1186,7 +1169,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Arrange
     createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_NUMBER, ImmutableMap.of());
     clientService.executeContract(
-        CONTRACT_ID_INSERT,
+        CONTRACT_INSERT,
         prepareInsert(
             TABLE_NAME_1,
             prepareRecord(
@@ -1194,7 +1177,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                     COLUMN_NAME_1, IntNode.valueOf(1), COLUMN_NAME_2, IntNode.valueOf(1)))));
     createTable(TABLE_NAME_2, COLUMN_NAME_1, KEY_TYPE_STRING, ImmutableMap.of());
     clientService.executeContract(
-        CONTRACT_ID_INSERT,
+        CONTRACT_INSERT,
         prepareInsert(
             TABLE_NAME_2,
             prepareRecord(
@@ -1209,7 +1192,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     select.set(Constants.QUERY_JOINS, createArrayNode(join));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1239,8 +1222,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 IntNode.valueOf(1),
                 COLUMN_NAME_3,
                 mapper.createArrayNode()));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode select =
         prepareSelect(
             COMMON_TEST_TABLE,
@@ -1249,7 +1232,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareCondition(COLUMN_NAME_3, IntNode.valueOf(10), Constants.OPERATOR_NE));
 
     // Act
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1270,10 +1253,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, IntNode.valueOf(1), condition2);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select1))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select1))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_CONDITION_FORMAT + condition1);
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select2))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select2))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_CONDITION_FORMAT + condition2);
   }
@@ -1300,22 +1283,22 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode selectTwoByDecimal = prepareSelect(TABLE_NAME_1, COLUMN_NAME_1, twoDecimal);
     ImmutableList<JsonNode> expectedOne = ImmutableList.of(recordOne);
     ImmutableList<JsonNode> expectedTwo = ImmutableList.of(recordTwo);
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, recordOne));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, recordTwo));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, recordOne));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, recordTwo));
 
     // Act
     ContractExecutionResult actual1 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectOneByDouble);
+        clientService.executeContract(CONTRACT_SELECT, selectOneByDouble);
     ContractExecutionResult actual2 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectOneByLong);
+        clientService.executeContract(CONTRACT_SELECT, selectOneByLong);
     ContractExecutionResult actual3 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectOneByDecimal);
+        clientService.executeContract(CONTRACT_SELECT, selectOneByDecimal);
     ContractExecutionResult actual4 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectTwoByInt);
+        clientService.executeContract(CONTRACT_SELECT, selectTwoByInt);
     ContractExecutionResult actual5 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectTwoByLong);
+        clientService.executeContract(CONTRACT_SELECT, selectTwoByLong);
     ContractExecutionResult actual6 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectTwoByDecimal);
+        clientService.executeContract(CONTRACT_SELECT, selectTwoByDecimal);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1347,10 +1330,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode key4 = TextNode.valueOf("ddd");
     JsonNode value4 = DecimalNode.valueOf(new BigDecimal("1.000"));
     JsonNode record4 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key4, COLUMN_NAME_2, value4));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record3));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record4));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record3));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record4));
     JsonNode selectByInt = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value1);
     JsonNode selectByDouble = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value2);
     JsonNode selectByLong = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value3);
@@ -1363,14 +1346,12 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key4, COLUMN_NAME_2, value2)));
 
     // Act
-    ContractExecutionResult actual1 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByInt);
+    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_SELECT, selectByInt);
     ContractExecutionResult actual2 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByDouble);
-    ContractExecutionResult actual3 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByLong);
+        clientService.executeContract(CONTRACT_SELECT, selectByDouble);
+    ContractExecutionResult actual3 = clientService.executeContract(CONTRACT_SELECT, selectByLong);
     ContractExecutionResult actual4 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByDecimal);
+        clientService.executeContract(CONTRACT_SELECT, selectByDecimal);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1395,9 +1376,9 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode key3 = TextNode.valueOf("ccc");
     JsonNode value3 = DecimalNode.valueOf(new BigDecimal("1.2345678901234567890123456789"));
     JsonNode record3 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key3, COLUMN_NAME_2, value3));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record3));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record3));
     JsonNode selectByDouble = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value1);
     JsonNode selectByDecimal = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value3);
     ImmutableList<JsonNode> expected =
@@ -1408,9 +1389,9 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
 
     // Act
     ContractExecutionResult actual1 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByDouble);
+        clientService.executeContract(CONTRACT_SELECT, selectByDouble);
     ContractExecutionResult actual2 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByDecimal);
+        clientService.executeContract(CONTRACT_SELECT, selectByDecimal);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1428,16 +1409,14 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode key2 = TextNode.valueOf("bbb");
     JsonNode value2 = LongNode.valueOf(Long.MAX_VALUE);
     JsonNode record2 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key2, COLUMN_NAME_2, value2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode selectByMin = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value1);
     JsonNode selectByMax = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value2);
 
     // Act
-    ContractExecutionResult actual1 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByMin);
-    ContractExecutionResult actual2 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByMax);
+    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_SELECT, selectByMin);
+    ContractExecutionResult actual2 = clientService.executeContract(CONTRACT_SELECT, selectByMax);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1459,16 +1438,16 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode value2 =
         BigIntegerNode.valueOf(BigInteger.valueOf(Long.MAX_VALUE).multiply(BigInteger.TEN));
     JsonNode record2 = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key2, COLUMN_NAME_2, value2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode selectByNegative = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value1);
     JsonNode selectByPositive = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value2);
 
     // Act
     ContractExecutionResult actual1 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByNegative);
+        clientService.executeContract(CONTRACT_SELECT, selectByNegative);
     ContractExecutionResult actual2 =
-        clientService.executeContract(CONTRACT_ID_SELECT, selectByPositive);
+        clientService.executeContract(CONTRACT_SELECT, selectByPositive);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1493,8 +1472,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record2 =
         prepareRecord(
             ImmutableMap.of(COLUMN_NAME_1, key2, COLUMN_NAME_2, indexValue, COLUMN_NAME_3, value2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode selectEq =
         prepareSelect(
             COMMON_TEST_TABLE,
@@ -1509,8 +1488,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareCondition(COLUMN_NAME_3, value1, Constants.OPERATOR_NE));
 
     // Act
-    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_ID_SELECT, selectEq);
-    ContractExecutionResult actual2 = clientService.executeContract(CONTRACT_ID_SELECT, selectNe);
+    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_SELECT, selectEq);
+    ContractExecutionResult actual2 = clientService.executeContract(CONTRACT_SELECT, selectNe);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1539,8 +1518,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode record2 =
         prepareRecord(
             ImmutableMap.of(COLUMN_NAME_1, key2, COLUMN_NAME_2, indexValue, COLUMN_NAME_3, value2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record2));
     JsonNode selectEq =
         prepareSelect(
             COMMON_TEST_TABLE,
@@ -1555,8 +1534,8 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             prepareCondition(COLUMN_NAME_3, value1, Constants.OPERATOR_NE));
 
     // Act
-    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_ID_SELECT, selectEq);
-    ContractExecutionResult actual2 = clientService.executeContract(CONTRACT_ID_SELECT, selectNe);
+    ContractExecutionResult actual1 = clientService.executeContract(CONTRACT_SELECT, selectEq);
+    ContractExecutionResult actual2 = clientService.executeContract(CONTRACT_SELECT, selectNe);
 
     // Assert
     assertThat(actual1.getContractResult()).isPresent();
@@ -1573,7 +1552,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode select = prepareSelect(TABLE_NAME_1, COLUMN_NAME_1, IntNode.valueOf(1));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
@@ -1585,7 +1564,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_1, value);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_KEY_TYPE + value.getNodeType());
   }
@@ -1597,7 +1576,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_2, value);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + value.getNodeType().name());
   }
@@ -1608,7 +1587,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode select = prepareSelect(COMMON_TEST_TABLE, COLUMN_NAME_3, IntNode.valueOf(1));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_KEY_SPECIFICATION);
   }
@@ -1618,7 +1597,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     // Arrange
     createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_NUMBER, ImmutableMap.of());
     clientService.executeContract(
-        CONTRACT_ID_INSERT,
+        CONTRACT_INSERT,
         prepareInsert(
             TABLE_NAME_1,
             prepareRecord(
@@ -1634,7 +1613,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     select.set(Constants.QUERY_JOINS, createArrayNode(join));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SELECT, select))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SELECT, select))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_JOIN_COLUMN + COLUMN_NAME_2);
   }
@@ -1652,13 +1631,13 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode expected =
         createArrayNode(
             prepareRecord(ImmutableMap.of(COLUMN_NAME_1, key, COLUMN_NAME_2, newValue)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
 
     // Act
-    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+    clientService.executeContract(CONTRACT_UPDATE, update);
 
     // Assert
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
     assertThat(actual.getContractResult()).isPresent();
     assertThat(actual.getContractResult().get()).isEqualTo(jacksonSerDe.serialize(expected));
   }
@@ -1682,10 +1661,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+    clientService.executeContract(CONTRACT_UPDATE, update);
 
     // Assert
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
     assertThat(actual.getContractResult()).isPresent();
     assertSelectResult(jacksonSerDe.deserialize(actual.getContractResult().get()), expected);
   }
@@ -1717,14 +1696,14 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+    clientService.executeContract(CONTRACT_UPDATE, update);
 
     // Assert
-    ContractExecutionResult before = clientService.executeContract(CONTRACT_ID_SELECT, selectOld);
+    ContractExecutionResult before = clientService.executeContract(CONTRACT_SELECT, selectOld);
     assertThat(before.getContractResult()).isPresent();
     assertSelectResult(
         jacksonSerDe.deserialize(before.getContractResult().get()), ImmutableList.of());
-    ContractExecutionResult after = clientService.executeContract(CONTRACT_ID_SELECT, selectNew);
+    ContractExecutionResult after = clientService.executeContract(CONTRACT_SELECT, selectNew);
     assertThat(after.getContractResult()).isPresent();
     assertSelectResult(jacksonSerDe.deserialize(after.getContractResult().get()), expected);
   }
@@ -1771,9 +1750,9 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                 NullNode.getInstance(),
                 COLUMN_NAME_4,
                 IntNode.valueOf(10)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record1));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record2));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record3));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record1));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record2));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record3));
     String newString = "abc";
     int newValue = 0;
     JsonNode values =
@@ -1804,10 +1783,10 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .collect(ImmutableList.toImmutableList());
 
     // Act
-    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+    clientService.executeContract(CONTRACT_UPDATE, update);
 
     // Assert
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SELECT, select);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SELECT, select);
     assertThat(actual.getContractResult()).isPresent();
     assertSelectResult(jacksonSerDe.deserialize(actual.getContractResult().get()), expected);
   }
@@ -1830,13 +1809,13 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         mapper.createObjectNode().put(Constants.SCAN_OPTIONS_INCLUDE_METADATA, true));
     ObjectNode expected = record.deepCopy();
     expected.put(Constants.SCAN_METADATA_AGE, 0);
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, record));
 
     // Act
-    clientService.executeContract(CONTRACT_ID_UPDATE, update);
+    clientService.executeContract(CONTRACT_UPDATE, update);
 
     // Assert
-    ContractExecutionResult actual = clientService.executeContract(CONTRACT_ID_SCAN, scan);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SCAN, scan);
     assertThat(actual.getContractResult()).isPresent();
     assertThat(actual.getContractResult().get())
         .isEqualTo(jacksonSerDe.serialize(createArrayNode(expected)));
@@ -1850,7 +1829,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode update = prepareUpdate(TABLE_NAME_1, values, COLUMN_NAME_2, IntNode.valueOf(1));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
@@ -1864,7 +1843,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_3, TextNode.valueOf("aaa"));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_KEY_SPECIFICATION);
   }
@@ -1878,7 +1857,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_INDEX_KEY_TYPE + updateValue.getNodeType().name());
   }
@@ -1892,7 +1871,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode update = prepareUpdate(COMMON_TEST_TABLE, values, COLUMN_NAME_2, IntNode.valueOf(1));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_UPDATE, update))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_UPDATE, update))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.CANNOT_UPDATE_KEY);
   }
@@ -1906,8 +1885,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode expected = mapper.createArrayNode().add(commonTestTable);
 
     // Act
-    ContractExecutionResult actual =
-        clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SHOW_TABLES, arguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1923,8 +1901,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode expected = mapper.createArrayNode().add(commonTestTable).add(table1).add(table2);
 
     // Act
-    ContractExecutionResult actual =
-        clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_SHOW_TABLES, arguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -1937,7 +1914,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     JsonNode arguments = mapper.createObjectNode().put(Constants.TABLE_NAME, TABLE_NAME_1);
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_SHOW_TABLES, arguments))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_SHOW_TABLES, arguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.TABLE_NOT_EXIST + TABLE_NAME_1);
   }
@@ -1983,15 +1960,15 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
             .set(Constants.RECORD_VALUES, recordAge2);
     JsonNode expectedWithoutLimit = createArrayNode(result2, result1, result0);
     JsonNode expectedWithLimit = createArrayNode(result2, result1);
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(COMMON_TEST_TABLE, recordAge0));
-    clientService.executeContract(CONTRACT_ID_UPDATE, update1);
-    clientService.executeContract(CONTRACT_ID_UPDATE, update2);
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(COMMON_TEST_TABLE, recordAge0));
+    clientService.executeContract(CONTRACT_UPDATE, update1);
+    clientService.executeContract(CONTRACT_UPDATE, update2);
 
     // Act
     ContractExecutionResult actualWithoutLimit =
-        clientService.executeContract(CONTRACT_ID_GET_HISTORY, argumentsWithoutLimit);
+        clientService.executeContract(CONTRACT_GET_HISTORY, argumentsWithoutLimit);
     ContractExecutionResult actualWithLimit =
-        clientService.executeContract(CONTRACT_ID_GET_HISTORY, argumentsWithLimit);
+        clientService.executeContract(CONTRACT_GET_HISTORY, argumentsWithLimit);
 
     // Assert
     assertThat(actualWithoutLimit.getContractResult()).isPresent();
@@ -2017,8 +1994,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                             COLUMN_NAME_1, TextNode.valueOf("key"), Constants.OPERATOR_EQ))));
 
     // Act
-    ContractExecutionResult actual =
-        clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments);
+    ContractExecutionResult actual = clientService.executeContract(CONTRACT_GET_HISTORY, arguments);
 
     // Assert
     assertThat(actual.getContractResult()).isPresent();
@@ -2041,7 +2017,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
                         prepareCondition(COLUMN_NAME_1, value, Constants.OPERATOR_EQ))));
 
     // Act Assert
-    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_ID_GET_HISTORY, arguments))
+    assertThatThrownBy(() -> clientService.executeContract(CONTRACT_GET_HISTORY, arguments))
         .isExactlyInstanceOf(ClientException.class)
         .hasMessage(Constants.INVALID_KEY_TYPE + value.getNodeType().name());
   }
@@ -2119,7 +2095,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
     String value = "val";
     createTable(TABLE_NAME_1, COLUMN_NAME_1, KEY_TYPE_STRING, ImmutableMap.of());
     JsonNode record = prepareRecord(ImmutableMap.of(COLUMN_NAME_1, TextNode.valueOf(value)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record));
     String expected =
         PREFIX_RECORD
             + String.join(ASSET_ID_SEPARATOR, ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_1, value));
@@ -2149,7 +2125,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         prepareRecord(
             ImmutableMap.of(
                 COLUMN_NAME_1, IntNode.valueOf(1), COLUMN_NAME_2, IntNode.valueOf(value)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record));
     String expected =
         PREFIX_INDEX
             + String.join(
@@ -2177,7 +2153,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         KEY_TYPE_NUMBER,
         ImmutableMap.of(COLUMN_NAME_2, KEY_TYPE_NUMBER));
     clientService.executeContract(
-        CONTRACT_ID_INSERT,
+        CONTRACT_INSERT,
         prepareInsert(
             TABLE_NAME_1,
             prepareRecord(
@@ -2213,7 +2189,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
         prepareRecord(
             ImmutableMap.of(
                 COLUMN_NAME_1, IntNode.valueOf(1), COLUMN_NAME_2, TextNode.valueOf(value)));
-    clientService.executeContract(CONTRACT_ID_INSERT, prepareInsert(TABLE_NAME_1, record));
+    clientService.executeContract(CONTRACT_INSERT, prepareInsert(TABLE_NAME_1, record));
     String expected =
         PREFIX_INDEX
             + String.join(ASSET_ID_SEPARATOR, ImmutableList.of(TABLE_NAME_1, COLUMN_NAME_2, value));
