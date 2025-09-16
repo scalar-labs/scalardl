@@ -193,7 +193,11 @@ public abstract class GenericContractEndToEndTestBase {
   }
 
   protected static String getContractBinaryName(String prefix, String contractName) {
-    return PACKAGE_PREFIX + getContractId(prefix, contractName);
+    return getContractBinaryName(getContractId(prefix, contractName));
+  }
+
+  protected static String getContractBinaryName(String contractId) {
+    return PACKAGE_PREFIX + contractId;
   }
 
   protected static String getFunctionId(String prefix, String functionName) {
@@ -201,7 +205,11 @@ public abstract class GenericContractEndToEndTestBase {
   }
 
   protected static String getFunctionBinaryName(String prefix, String functionName) {
-    return PACKAGE_PREFIX + getFunctionId(prefix, functionName);
+    return getFunctionBinaryName(getFunctionId(prefix, functionName));
+  }
+
+  protected static String getFunctionBinaryName(String functionId) {
+    return PACKAGE_PREFIX + functionId;
   }
 
   protected int getThreadNum() {

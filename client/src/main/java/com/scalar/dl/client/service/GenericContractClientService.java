@@ -3,10 +3,10 @@ package com.scalar.dl.client.service;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.scalar.dl.genericcontracts.collection.Constants.COLLECTION_ID_PREFIX;
 import static com.scalar.dl.genericcontracts.object.Constants.OBJECT_ID_PREFIX;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.ASSET_ID_SEPARATOR;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_INDEX;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_RECORD;
-import static com.scalar.dl.genericcontracts.table.v1_0_0.Constants.PREFIX_TABLE;
+import static com.scalar.dl.genericcontracts.table.Constants.ASSET_ID_SEPARATOR;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_INDEX;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_RECORD;
+import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_TABLE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
