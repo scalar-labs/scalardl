@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.service.ClientService;
+import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.service.StatusCode;
 import org.assertj.core.api.Assertions;
@@ -18,17 +20,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class ClientServiceFactoryTest {
+public class TableStoreClientServiceFactoryTest {
   @Mock private ClientConfig config;
   @Mock private GatewayClientConfig gatewayClientConfig;
-  @Mock private com.scalar.dl.client.service.ClientServiceFactory clientServiceFactory;
-  @Mock private com.scalar.dl.client.service.ClientService clientService;
-  private ClientServiceFactory factory;
+  @Mock private ClientServiceFactory clientServiceFactory;
+  @Mock private ClientService clientService;
+  private TableStoreClientServiceFactory factory;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    factory = new ClientServiceFactory(clientServiceFactory);
+    factory = new TableStoreClientServiceFactory(clientServiceFactory);
   }
 
   @Test

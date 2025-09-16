@@ -16,8 +16,8 @@ import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.tablestore.client.error.TableStoreClientError;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import com.scalar.dl.tablestore.client.util.JacksonUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,8 +51,9 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
 
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
-  private static final ClientServiceFactory clientServiceFactory = new ClientServiceFactory();
-  private ClientService clientService;
+  private static final TableStoreClientServiceFactory clientServiceFactory =
+      new TableStoreClientServiceFactory();
+  private TableStoreClientService clientService;
 
   @BeforeAll
   public void setUpBeforeClass() throws Exception {

@@ -5,11 +5,7 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIS
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.scalar.dl.client.tool.CertificateRegistration;
 import com.scalar.dl.client.tool.CommandGroupRenderer;
-import com.scalar.dl.client.tool.ContractsListing;
-import com.scalar.dl.client.tool.SecretRegistration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import picocli.CommandLine;
@@ -19,15 +15,12 @@ import picocli.CommandLine.HelpCommand;
 @Command(
     name = "scalardl-table-store",
     subcommands = {
-      CertificateRegistration.class,
-      ContractsListing.class,
-      ContractsRegistration.class,
+      Bootstrap.class,
       HelpCommand.class,
       LedgerValidation.class,
-      SecretRegistration.class,
       StatementExecution.class,
     },
-    description = {"These are ScalarDL Table Store commands used in various situations:"})
+    description = {"These are ScalarDL Table Store commands:"})
 public class TableStoreCommandLine {
 
   public static void main(String[] args) {
@@ -56,17 +49,8 @@ public class TableStoreCommandLine {
     //      https://github.com/remkop/picocli/issues/978#issuecomment-604174211
 
     ImmutableMap.Builder<String, List<Class<?>>> sections = ImmutableMap.builder();
-    // Section: register identity information.
-    sections.put(
-        "%nregister identity information%n",
-        Arrays.asList(CertificateRegistration.class, SecretRegistration.class));
-    // Section: register business logic.
-    sections.put(
-        "%nregister contracts for the table store%n",
-        Collections.singletonList(ContractsRegistration.class));
-    // Section: list the registered contracts.
-    sections.put(
-        "%nlist the registered contracts%n", Collections.singletonList(ContractsListing.class));
+    // Section: bootstrap
+    sections.put("%nbootstrap the table store%n", Collections.singletonList(Bootstrap.class));
     // Section: execute a statement.
     sections.put("%nexecute a statement%n", Collections.singletonList(StatementExecution.class));
     // Section: validate ledger.
