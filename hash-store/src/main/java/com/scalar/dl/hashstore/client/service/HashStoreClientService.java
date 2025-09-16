@@ -132,8 +132,8 @@ public class HashStoreClientService {
   }
 
   /**
-   * Registers the identity (certificate or secret key) and necessary contracts and functions for
-   * the hash store client, based on {@code ClientConfig}. The authentication method (digital
+   * Bootstraps the hash store by registering the identity (certificate or secret key) and necessary
+   * contracts and functions for, based on {@code ClientConfig}. The authentication method (digital
    * signature or HMAC) is determined by the configuration. If the identity or contract is already
    * registered, it is simply skipped without throwing an exception.
    *
@@ -144,7 +144,7 @@ public class HashStoreClientService {
    *
    * @throws ClientException if a request fails for some reason
    */
-  public void registerIdentity() {
+  public void bootstrap() {
     try {
       if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
         clientService.registerCertificate();

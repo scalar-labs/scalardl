@@ -102,12 +102,12 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void registerIdentity_DigitalSignature_ShouldCallRegisterCertificateAndContracts() {
+  public void bootstrap_DigitalSignature_ShouldCallRegisterCertificateAndContracts() {
     // Arrange
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
 
     // Act
-    service.registerIdentity();
+    service.bootstrap();
 
     // Assert
     verify(clientService).registerCertificate();
@@ -143,12 +143,12 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void registerIdentity_HmacSignature_ShouldCallRegisterSecretAndContracts() {
+  public void bootstrap_HmacSignature_ShouldCallRegisterSecretAndContracts() {
     // Arrange
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
 
     // Act
-    service.registerIdentity();
+    service.bootstrap();
 
     // Assert
     verify(clientService, never()).registerCertificate();
@@ -161,7 +161,7 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void registerIdentity_CertificateAlreadyRegistered_ShouldContinueWithContracts() {
+  public void bootstrap_CertificateAlreadyRegistered_ShouldContinueWithContracts() {
     // Arrange
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     ClientException exception =
@@ -169,7 +169,7 @@ public class HashStoreClientServiceTest {
     doThrow(exception).when(clientService).registerCertificate();
 
     // Act
-    service.registerIdentity();
+    service.bootstrap();
 
     // Assert
     verify(clientService).registerCertificate();
@@ -180,7 +180,7 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void registerIdentity_SecretAlreadyRegistered_ShouldContinueWithContracts() {
+  public void bootstrap_SecretAlreadyRegistered_ShouldContinueWithContracts() {
     // Arrange
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
     ClientException exception =
@@ -188,7 +188,7 @@ public class HashStoreClientServiceTest {
     doThrow(exception).when(clientService).registerSecret();
 
     // Act
-    service.registerIdentity();
+    service.bootstrap();
 
     // Assert
     verify(clientService).registerSecret();
@@ -199,7 +199,7 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void registerIdentity_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
+  public void bootstrap_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
     // Arrange
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     ClientException exception =
@@ -209,7 +209,7 @@ public class HashStoreClientServiceTest {
         .registerContract(eq(CONTRACT_CREATE), anyString(), any(byte[].class), eq((String) null));
 
     // Act
-    service.registerIdentity();
+    service.bootstrap();
 
     // Assert
     verify(clientService).registerCertificate();

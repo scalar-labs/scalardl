@@ -41,7 +41,7 @@ public class HashStoreClientServiceFactory {
     HashStoreClientService clientService =
         new HashStoreClientService(clientServiceFactory.create(config), config);
     if (autoRegistrationEnabled) {
-      clientService.registerIdentity();
+      clientService.bootstrap();
     }
     return clientService;
   }
@@ -68,7 +68,7 @@ public class HashStoreClientServiceFactory {
     HashStoreClientService clientService =
         new HashStoreClientService(clientServiceFactory.create(config), config.getClientConfig());
     if (autoRegistrationEnabled) {
-      clientService.registerIdentity();
+      clientService.bootstrap();
     }
     return clientService;
   }
