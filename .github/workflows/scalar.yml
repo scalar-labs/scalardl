@@ -156,6 +156,40 @@ jobs:
           name: integration_test_reports_for_generic_contracts
           path: generic-contracts/build/reports/tests/integrationTest
 
+  integration-test-for-hash-store:
+    name: Integration test for hash store
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.1
+        env:
+          MYSQL_ROOT_PASSWORD: mysql
+        ports:
+          - 3306:3306
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run integration tests
+        run:  ./gradlew :hash-store:integrationTest
+
+      - name: Upload Gradle test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration_test_reports_for_hash_store
+          path: hash-store/build/reports/tests/integrationTest
+
   integration-test-for-table-store:
     name: Integration test for table store
     runs-on: ubuntu-latest
