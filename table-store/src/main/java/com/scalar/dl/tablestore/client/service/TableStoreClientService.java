@@ -91,8 +91,7 @@ public class TableStoreClientService {
   private final ClientConfig config;
 
   /**
-   * Constructs a {@code GenericContractClientService} with the specified {@link
-   * TableStoreClientService}.
+   * Constructs a {@code TableStoreClientService} with the specified {@link ClientService}.
    *
    * @param clientService a client service
    */
