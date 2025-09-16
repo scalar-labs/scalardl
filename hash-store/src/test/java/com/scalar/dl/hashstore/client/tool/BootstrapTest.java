@@ -23,13 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
-public class IdentityRegistrationTest {
+public class BootstrapTest {
   private CommandLine commandLine;
   private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
   @BeforeEach
   void setup() throws Exception {
-    commandLine = new CommandLine(new IdentityRegistration());
+    commandLine = new CommandLine(new Bootstrap());
     System.setOut(new PrintStream(outputStreamCaptor, true, UTF_8.name()));
   }
 
@@ -37,14 +37,14 @@ public class IdentityRegistrationTest {
   @DisplayName("#call()")
   class call {
     @Nested
-    @DisplayName("where identity registration succeeds")
-    class whereIdentityRegistrationSucceeds {
+    @DisplayName("where bootstrap succeeds")
+    class whereBootstrapSucceeds {
       @Test
       @DisplayName("returns 0 as exit code")
       void returns0AsExitCode() {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE"};
-        IdentityRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         // Act
@@ -52,7 +52,7 @@ public class IdentityRegistrationTest {
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(serviceMock).registerIdentity();
+        verify(serviceMock).bootstrap();
       }
     }
 
@@ -66,7 +66,7 @@ public class IdentityRegistrationTest {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args = new String[] {"--properties=" + file.getAbsolutePath(), "--use-gateway"};
-        IdentityRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         HashStoreClientServiceFactory factory = mock(HashStoreClientServiceFactory.class);
         HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
@@ -90,14 +90,14 @@ public class IdentityRegistrationTest {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args = new String[] {"--properties=" + file.getAbsolutePath()};
-        IdentityRegistration command = parseArgs(args);
+        Bootstrap command = parseArgs(args);
         HashStoreClientServiceFactory factoryMock = mock(HashStoreClientServiceFactory.class);
         HashStoreClientService serviceMock = mock(HashStoreClientService.class);
 
         when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
-        doThrow(new ClientException("Failed to register identity", StatusCode.RUNTIME_ERROR))
+        doThrow(new ClientException("Failed to bootstrap", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
-            .registerIdentity();
+            .bootstrap();
 
         // Act
         int exitCode = command.call(factoryMock);
@@ -105,13 +105,12 @@ public class IdentityRegistrationTest {
         // Assert
         assertThat(exitCode).isEqualTo(1);
         verify(factoryMock).close();
-        assertThat(outputStreamCaptor.toString(UTF_8.name()))
-            .contains("Failed to register identity");
+        assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Failed to bootstrap");
       }
     }
   }
 
-  private IdentityRegistration parseArgs(String[] args) {
-    return CommandLineTestUtils.parseArgs(commandLine, IdentityRegistration.class, args);
+  private Bootstrap parseArgs(String[] args) {
+    return CommandLineTestUtils.parseArgs(commandLine, Bootstrap.class, args);
   }
 }

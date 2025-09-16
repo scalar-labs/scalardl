@@ -17,7 +17,7 @@ import picocli.CommandLine.HelpCommand;
     name = "scalardl-hash-store",
     subcommands = {
       HelpCommand.class,
-      IdentityRegistration.class,
+      Bootstrap.class,
       ObjectGet.class,
       ObjectPut.class,
       ObjectVersionsComparison.class,
@@ -58,8 +58,7 @@ public class HashStoreCommandLine {
 
     ImmutableMap.Builder<String, List<Class<?>>> sections = ImmutableMap.builder();
     // Section: register identity information.
-    sections.put(
-        "%nregister identity information%n", Collections.singletonList(IdentityRegistration.class));
+    sections.put("%nbootstrap the hash store%n", Collections.singletonList(Bootstrap.class));
     // Section: manage objects.
     sections.put(
         "%nmanage objects%n",

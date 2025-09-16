@@ -39,8 +39,9 @@ public class HashStoreCommandLineTest {
               "Usage: scalardl-hash-store [COMMAND]",
               "These are ScalarDL Hash Store commands used in various situations:",
               "",
-              "register identity information",
-              "  register-identity        Register identity and contracts for the hash store.",
+              "bootstrap the hash store",
+              "  bootstrap                Bootstrap the hash store by registering identity and",
+              "                             contracts.",
               "",
               "manage objects",
               "  get-object               Get an object from the hash store.",
@@ -80,7 +81,7 @@ public class HashStoreCommandLineTest {
           .isEqualTo(
               new Class[] {
                 CommandLine.HelpCommand.class,
-                IdentityRegistration.class,
+                Bootstrap.class,
                 ObjectGet.class,
                 ObjectPut.class,
                 ObjectVersionsComparison.class,
@@ -137,10 +138,10 @@ public class HashStoreCommandLineTest {
     @DisplayName("with valid subcommands")
     class withValidSubcommands {
       @Test
-      @DisplayName("register-identity subcommand is parsed correctly")
-      void registerIdentitySubcommandIsParsedCorrectly() {
+      @DisplayName("bootstrap subcommand is parsed correctly")
+      void bootstrapSubcommandIsParsedCorrectly() {
         // Arrange
-        String[] args = new String[] {"register-identity", "--help"};
+        String[] args = new String[] {"bootstrap", "--help"};
 
         // Act
         ParseResult parseResult = commandLine.parseArgs(args);
@@ -149,7 +150,7 @@ public class HashStoreCommandLineTest {
         // Assert
         assertThat(parsed.size()).isEqualTo(2);
         assertThat(parsed.get(0).getCommand().getClass()).isEqualTo(HashStoreCommandLine.class);
-        assertThat(parsed.get(1).getCommand().getClass()).isEqualTo(IdentityRegistration.class);
+        assertThat(parsed.get(1).getCommand().getClass()).isEqualTo(Bootstrap.class);
       }
 
       @Test

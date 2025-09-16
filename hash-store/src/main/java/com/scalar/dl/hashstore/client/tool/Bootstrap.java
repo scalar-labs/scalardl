@@ -6,18 +6,18 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(
-    name = "register-identity",
-    description = "Register identity and contracts for the hash store.")
-public class IdentityRegistration extends AbstractHashStoreCommand {
+    name = "bootstrap",
+    description = "Bootstrap the hash store by registering identity and contracts.")
+public class Bootstrap extends AbstractHashStoreCommand {
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new IdentityRegistration()).execute(args);
+    int exitCode = new CommandLine(new Bootstrap()).execute(args);
     System.exit(exitCode);
   }
 
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
-    service.registerIdentity();
+    service.bootstrap();
     return 0;
   }
 }
