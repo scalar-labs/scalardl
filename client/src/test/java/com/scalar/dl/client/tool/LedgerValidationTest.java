@@ -90,14 +90,14 @@ public class LedgerValidationTest {
           LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
           when(serviceMock.validateLedger("ASSET_ID_1")).thenReturn(result);
 
-          doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class), anyBoolean());
+          doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class));
 
           // Act
           command.call(factory);
 
           // Verify
-          verify(factory).create(any(GatewayClientConfig.class), eq(false));
-          verify(factory, never()).create(any(ClientConfig.class), anyBoolean());
+          verify(factory).create(any(GatewayClientConfig.class));
+          verify(factory, never()).create(any(ClientConfig.class));
         }
       }
 
@@ -123,14 +123,14 @@ public class LedgerValidationTest {
           LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
           when(serviceMock.validateLedger("ASSET_ID_1")).thenReturn(result);
 
-          doReturn(serviceMock).when(factory).create(any(ClientConfig.class), anyBoolean());
+          doReturn(serviceMock).when(factory).create(any(ClientConfig.class));
 
           // Act
           command.call(factory);
 
           // Verify
-          verify(factory).create(any(ClientConfig.class), eq(false));
-          verify(factory, never()).create(any(GatewayClientConfig.class), anyBoolean());
+          verify(factory).create(any(ClientConfig.class));
+          verify(factory, never()).create(any(GatewayClientConfig.class));
         }
       }
 

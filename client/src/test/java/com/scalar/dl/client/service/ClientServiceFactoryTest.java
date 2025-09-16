@@ -2,7 +2,6 @@ package com.scalar.dl.client.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -53,7 +52,7 @@ public class ClientServiceFactoryTest {
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
 
     // Act
-    ClientService service = factory.create(config, false);
+    ClientService service = factory.create(config);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -80,7 +79,7 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner).when(factory).createRequestSigner(any(HmacIdentityConfig.class));
 
     // Act
-    ClientService service = factory.create(config, false);
+    ClientService service = factory.create(config);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -112,7 +111,7 @@ public class ClientServiceFactoryTest {
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
 
     // Act
-    ClientService service = factory.create(config, false);
+    ClientService service = factory.create(config);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -145,8 +144,8 @@ public class ClientServiceFactoryTest {
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
 
     // Act
-    ClientService service1 = factory.create(config, false);
-    ClientService service2 = factory.create(config, false);
+    ClientService service1 = factory.create(config);
+    ClientService service2 = factory.create(config);
 
     // Assert
     assertThat(service1.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -200,8 +199,8 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner2).when(factory).createRequestSigner(digitalSignatureIdentityConfig2);
 
     // Act
-    ClientService service1 = factory.create(config, false);
-    ClientService service2 = factory.create(config2, false);
+    ClientService service1 = factory.create(config);
+    ClientService service2 = factory.create(config2);
 
     // Assert
     assertThat(service1.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -242,7 +241,7 @@ public class ClientServiceFactoryTest {
     doReturn(auditorClient).when(factory).createAuditorClient(any());
 
     // Act
-    ClientService service = factory.create(config, false);
+    ClientService service = factory.create(config);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(DefaultClientServiceHandler.class);
@@ -273,7 +272,7 @@ public class ClientServiceFactoryTest {
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
 
     // Act
-    ClientService service = factory.create(gatewayClientConfig, false);
+    ClientService service = factory.create(gatewayClientConfig);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
@@ -298,7 +297,7 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner).when(factory).createRequestSigner(any(HmacIdentityConfig.class));
 
     // Act
-    ClientService service = factory.create(gatewayClientConfig, false);
+    ClientService service = factory.create(gatewayClientConfig);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
@@ -322,7 +321,7 @@ public class ClientServiceFactoryTest {
     doReturn(gatewayClient).when(factory).createGatewayClient(any());
 
     // Act
-    ClientService service = factory.create(gatewayClientConfig, false);
+    ClientService service = factory.create(gatewayClientConfig);
 
     // Assert
     assertThat(service.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
@@ -349,8 +348,8 @@ public class ClientServiceFactoryTest {
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
 
     // Act
-    ClientService service1 = factory.create(gatewayClientConfig, false);
-    ClientService service2 = factory.create(gatewayClientConfig, false);
+    ClientService service1 = factory.create(gatewayClientConfig);
+    ClientService service2 = factory.create(gatewayClientConfig);
 
     // Assert
     assertThat(service1.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
@@ -393,8 +392,8 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner2).when(factory).createRequestSigner(digitalSignatureIdentityConfig2);
 
     // Act
-    ClientService service1 = factory.create(gatewayClientConfig, false);
-    ClientService service2 = factory.create(gatewayClientConfig2, false);
+    ClientService service1 = factory.create(gatewayClientConfig);
+    ClientService service2 = factory.create(gatewayClientConfig2);
 
     // Assert
     assertThat(service1.getClientServiceHandler()).isInstanceOf(GatewayClientServiceHandler.class);
@@ -411,28 +410,5 @@ public class ClientServiceFactoryTest {
     verify(factory).createRequestSigner(digitalSignatureIdentityConfig1);
     verify(factory).createGatewayClient(gatewayTargetConfig2);
     verify(factory).createRequestSigner(digitalSignatureIdentityConfig2);
-  }
-
-  @Test
-  public void create_ClientConfigWithBootstrapTrue_ShouldCallBootstrap() {
-    // Arrange
-    ClientService service = mock(ClientService.class);
-    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
-    DigitalSignatureIdentityConfig digitalSignatureIdentityConfig =
-        mock(DigitalSignatureIdentityConfig.class);
-    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
-    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
-    doReturn(ledgerClient).when(factory).createLedgerClient(any());
-    doReturn(requestSigner)
-        .when(factory)
-        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(service).when(factory).createClientService(any(), any(), any());
-    doNothing().when(service).bootstrap();
-
-    // Act
-    factory.create(config);
-
-    // Assert
-    verify(service).bootstrap();
   }
 }

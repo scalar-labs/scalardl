@@ -96,7 +96,7 @@ public class ContractsListingTest {
         ContractsListing command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class), anyBoolean());
+        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class));
         JsonObject jsonObject = Json.createObjectBuilder().build();
         when(serviceMock.listContracts(eq("CONTRACT_ID"))).thenReturn(jsonObject);
 
@@ -104,8 +104,8 @@ public class ContractsListingTest {
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(GatewayClientConfig.class), eq(false));
-        verify(factory, never()).create(any(ClientConfig.class), anyBoolean());
+        verify(factory).create(any(GatewayClientConfig.class));
+        verify(factory, never()).create(any(ClientConfig.class));
       }
     }
 
@@ -129,7 +129,7 @@ public class ContractsListingTest {
         ContractsListing command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        doReturn(serviceMock).when(factory).create(any(ClientConfig.class), anyBoolean());
+        doReturn(serviceMock).when(factory).create(any(ClientConfig.class));
         JsonObject jsonObject = Json.createObjectBuilder().build();
         when(serviceMock.listContracts(eq("CONTRACT_ID"))).thenReturn(jsonObject);
 
@@ -137,8 +137,8 @@ public class ContractsListingTest {
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(ClientConfig.class), eq(false));
-        verify(factory, never()).create(any(GatewayClientConfig.class), anyBoolean());
+        verify(factory).create(any(ClientConfig.class));
+        verify(factory, never()).create(any(GatewayClientConfig.class));
       }
     }
 

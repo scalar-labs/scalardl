@@ -51,8 +51,8 @@ public class SmallbankLoader extends CommonOptions implements Callable<Integer> 
     ClientServiceFactory factory = new ClientServiceFactory();
     ClientService service =
         useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)), false)
-            : factory.create(new ClientConfig(new File(properties)), false);
+            ? factory.create(new GatewayClientConfig(new File(properties)))
+            : factory.create(new ClientConfig(new File(properties)));
 
     ObjectMapper mapper = new ObjectMapper();
     ExecutorService executor = Executors.newFixedThreadPool(numThreads);

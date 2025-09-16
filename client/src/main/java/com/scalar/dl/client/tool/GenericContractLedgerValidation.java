@@ -97,8 +97,8 @@ public class GenericContractLedgerValidation extends CommonOptions implements Ca
   Integer call(ClientServiceFactory factory) throws Exception {
     GenericContractClientService service =
         useGateway
-            ? factory.createForGenericContract(new GatewayClientConfig(new File(properties)), false)
-            : factory.createForGenericContract(new ClientConfig(new File(properties)), false);
+            ? factory.createForGenericContract(new GatewayClientConfig(new File(properties)))
+            : factory.createForGenericContract(new ClientConfig(new File(properties)));
     return call(factory, service);
   }
 

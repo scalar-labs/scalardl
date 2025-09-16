@@ -60,17 +60,6 @@ public class ClientServiceFactory {
    * @return a {@link ClientService} instance
    */
   public ClientService create(ClientConfig config) {
-    return create(config, true);
-  }
-
-  /**
-   * Returns a {@link ClientService} instance.
-   *
-   * @param config a client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
-   * @return a {@link ClientService} instance
-   */
-  public ClientService create(ClientConfig config, boolean autoRegistrationEnabled) {
     // LedgerClient is reused if the specified target is the same
     AbstractLedgerClient ledgerClient =
         ledgerClients.computeIfAbsent(config.getLedgerTargetConfig(), this::createLedgerClient);
@@ -84,7 +73,7 @@ public class ClientServiceFactory {
     }
     ClientServiceHandler handler = new DefaultClientServiceHandler(ledgerClient, auditorClient);
 
-    return createClientService(config, handler, autoRegistrationEnabled);
+    return createClientService(config, handler);
   }
 
   /**
@@ -94,23 +83,12 @@ public class ClientServiceFactory {
    * @return a {@link ClientService} instance
    */
   public ClientService create(GatewayClientConfig config) {
-    return create(config, true);
-  }
-
-  /**
-   * Returns a {@link ClientService} instance.
-   *
-   * @param config a gateway client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
-   * @return a {@link ClientService} instance
-   */
-  public ClientService create(GatewayClientConfig config, boolean autoRegistrationEnabled) {
     // GatewayClient is reused if the specified target is the same
     AbstractGatewayClient gatewayClient =
         gatewayClients.computeIfAbsent(config.getGatewayTargetConfig(), this::createGatewayClient);
     ClientServiceHandler handler = new GatewayClientServiceHandler(gatewayClient);
 
-    return createClientService(config.getClientConfig(), handler, autoRegistrationEnabled);
+    return createClientService(config.getClientConfig(), handler);
   }
 
   /**
@@ -120,19 +98,7 @@ public class ClientServiceFactory {
    * @return a {@link GenericContractClientService} instance
    */
   public GenericContractClientService createForGenericContract(ClientConfig config) {
-    return createForGenericContract(config, true);
-  }
-
-  /**
-   * Returns a {@link GenericContractClientService} instance.
-   *
-   * @param config a client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
-   * @return a {@link GenericContractClientService} instance
-   */
-  public GenericContractClientService createForGenericContract(
-      ClientConfig config, boolean autoRegistrationEnabled) {
-    return new GenericContractClientService(create(config, autoRegistrationEnabled));
+    return new GenericContractClientService(create(config));
   }
 
   /**
@@ -142,19 +108,7 @@ public class ClientServiceFactory {
    * @return a {@link GenericContractClientService} instance
    */
   public GenericContractClientService createForGenericContract(GatewayClientConfig config) {
-    return createForGenericContract(config, true);
-  }
-
-  /**
-   * Returns a {@link GenericContractClientService} instance.
-   *
-   * @param config a gateway client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
-   * @return a {@link GenericContractClientService} instance
-   */
-  public GenericContractClientService createForGenericContract(
-      GatewayClientConfig config, boolean autoRegistrationEnabled) {
-    return new GenericContractClientService(create(config, autoRegistrationEnabled));
+    return new GenericContractClientService(create(config));
   }
 
   /**
@@ -167,8 +121,7 @@ public class ClientServiceFactory {
     gatewayClients.values().forEach(Client::shutdown);
   }
 
-  private ClientService createClientService(
-      ClientConfig config, ClientServiceHandler handler, boolean autoRegistrationEnabled) {
+  private ClientService createClientService(ClientConfig config, ClientServiceHandler handler) {
     // RequestSigner is reused if the specified identity is the same
     RequestSigner signer = null;
     if (config.getDigitalSignatureIdentityConfig() != null) {
@@ -182,17 +135,6 @@ public class ClientServiceFactory {
       assert config.getClientMode().equals(ClientMode.INTERMEDIARY);
     }
 
-    ClientService clientService = createClientService(config, handler, signer);
-    if (autoRegistrationEnabled) {
-      clientService.bootstrap();
-    }
-
-    return clientService;
-  }
-
-  @VisibleForTesting
-  ClientService createClientService(
-      ClientConfig config, ClientServiceHandler handler, RequestSigner signer) {
     return new ClientService(config, handler, signer);
   }
 

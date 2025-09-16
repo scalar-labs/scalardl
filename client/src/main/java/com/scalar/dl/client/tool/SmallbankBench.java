@@ -80,8 +80,8 @@ public class SmallbankBench extends CommonOptions implements Callable<Integer> {
     ClientServiceFactory factory = new ClientServiceFactory();
     ClientService service =
         useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)), false)
-            : factory.create(new ClientConfig(new File(properties)), false);
+            ? factory.create(new GatewayClientConfig(new File(properties)))
+            : factory.create(new ClientConfig(new File(properties)));
 
     long durationMillis = duration * 1000L;
     long rampUpTimeMillis = rampUpTime * 1000L;

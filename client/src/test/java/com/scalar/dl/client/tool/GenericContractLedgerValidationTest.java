@@ -283,14 +283,14 @@ public class GenericContractLedgerValidationTest {
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(clientService.validateObject("OBJECT_ID", 0, 10)).thenReturn(result);
-        when(factory.createForGenericContract(any(GatewayClientConfig.class), anyBoolean()))
+        when(factory.createForGenericContract(any(GatewayClientConfig.class)))
             .thenReturn(clientService);
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).createForGenericContract(any(GatewayClientConfig.class), eq(false));
+        verify(factory).createForGenericContract(any(GatewayClientConfig.class));
         verify(factory, never()).createForGenericContract(any(ClientConfig.class));
       }
     }
@@ -312,14 +312,13 @@ public class GenericContractLedgerValidationTest {
         GenericContractLedgerValidation command = parseArgs(args);
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(clientService.validateObject("OBJECT_ID", 0, 10)).thenReturn(result);
-        when(factory.createForGenericContract(any(ClientConfig.class), anyBoolean()))
-            .thenReturn(clientService);
+        when(factory.createForGenericContract(any(ClientConfig.class))).thenReturn(clientService);
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).createForGenericContract(any(ClientConfig.class), eq(false));
+        verify(factory).createForGenericContract(any(ClientConfig.class));
         verify(factory, never()).createForGenericContract(any(GatewayClientConfig.class));
       }
     }
