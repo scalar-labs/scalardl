@@ -25,11 +25,6 @@ public class CollectionHistoryGet extends AbstractHashStoreCommand {
       description = "Maximum number of recent history entries to return.")
   private Integer limit;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new CollectionHistoryGet()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());

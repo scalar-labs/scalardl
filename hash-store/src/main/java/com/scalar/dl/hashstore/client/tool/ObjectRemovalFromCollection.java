@@ -28,11 +28,6 @@ public class ObjectRemovalFromCollection extends AbstractHashStoreCommand {
       description = "Skip validation for object IDs that are not in the collection.")
   private boolean force;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ObjectRemovalFromCollection()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     service.removeFromCollection(collectionId, objectIds, force);
