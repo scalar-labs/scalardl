@@ -1,4 +1,4 @@
-package com.scalar.dl.tablestore.client.service;
+package com.scalar.dl.hashstore.client.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -14,17 +14,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class TableStoreClientServiceFactoryTest {
+public class HashStoreClientServiceFactoryTest {
   @Mock private ClientConfig config;
   @Mock private GatewayClientConfig gatewayClientConfig;
   @Mock private ClientServiceFactory clientServiceFactory;
   @Mock private ClientService clientService;
-  private TableStoreClientServiceFactory factory;
+  private HashStoreClientServiceFactory factory;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    factory = new TableStoreClientServiceFactory(clientServiceFactory);
+    factory = new HashStoreClientServiceFactory(clientServiceFactory);
   }
 
   @Test

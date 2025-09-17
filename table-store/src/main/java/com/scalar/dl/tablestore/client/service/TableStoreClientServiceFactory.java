@@ -45,7 +45,7 @@ public class TableStoreClientServiceFactory {
    */
   public TableStoreClientService create(ClientConfig config, boolean autoRegistrationEnabled) {
     TableStoreClientService clientService =
-        new TableStoreClientService(clientServiceFactory.create(config), config);
+        new TableStoreClientService(clientServiceFactory.create(config));
     if (autoRegistrationEnabled) {
       clientService.bootstrap();
     }
@@ -72,7 +72,7 @@ public class TableStoreClientServiceFactory {
   public TableStoreClientService create(
       GatewayClientConfig config, boolean autoRegistrationEnabled) {
     TableStoreClientService clientService =
-        new TableStoreClientService(clientServiceFactory.create(config), config.getClientConfig());
+        new TableStoreClientService(clientServiceFactory.create(config));
     if (autoRegistrationEnabled) {
       clientService.bootstrap();
     }

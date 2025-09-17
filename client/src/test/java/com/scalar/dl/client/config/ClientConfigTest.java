@@ -4,7 +4,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
-import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.TargetConfig;
 import java.io.BufferedWriter;
@@ -135,7 +134,7 @@ public class ClientConfigTest {
     assertThat(auditorTargetConfig.getTargetTlsCaRootCert())
         .isEqualTo(SOME_AUDITOR_TLS_CA_ROOT_CERT_PEM);
     assertThat(config.getAuditorLinearizableValidationContractId())
-        .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID + "-" + ValidateLedger.VERSION);
+        .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
   }
 
   @Test
@@ -223,7 +222,7 @@ public class ClientConfigTest {
     assertThat(auditorTargetConfig.getTargetTlsOverrideAuthority())
         .isEqualTo(SOME_AUDITOR_TLS_OVERRIDE_AUTHORITY);
     assertThat(config.getAuditorLinearizableValidationContractId())
-        .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID + "-" + ValidateLedger.VERSION);
+        .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
   }
 
   @Test
@@ -310,10 +309,7 @@ public class ClientConfigTest {
     assertThat(auditorTargetConfig.isTargetTlsEnabled())
         .isEqualTo(ClientConfig.DEFAULT_AUDITOR_TLS_ENABLED);
     assertThat(config.getAuditorLinearizableValidationContractId())
-        .isEqualTo(
-            ClientConfig.DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID
-                + "-"
-                + ValidateLedger.VERSION);
+        .isEqualTo(ClientConfig.DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
   }
 
   @Test

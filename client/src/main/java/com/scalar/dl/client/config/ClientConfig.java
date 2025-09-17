@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.error.ClientError;
-import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ConfigUtils;
 import com.scalar.dl.ledger.config.GrpcClientConfig;
@@ -382,7 +381,7 @@ public class ClientConfig {
   }
 
   public String getAuditorLinearizableValidationContractId() {
-    return auditorLinearizableValidationContractId + "-" + ValidateLedger.VERSION;
+    return auditorLinearizableValidationContractId;
   }
 
   public GrpcClientConfig getGrpcClientConfig() {

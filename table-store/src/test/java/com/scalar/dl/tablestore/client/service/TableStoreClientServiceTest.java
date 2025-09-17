@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,10 +28,8 @@ import com.fasterxml.jackson.databind.node.DecimalNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
-import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -54,7 +51,6 @@ public class TableStoreClientServiceTest {
   private static final JsonObject ANY_JSON_OBJECT = mock(JsonObject.class);
 
   @Mock private ClientService clientService;
-  @Mock private ClientConfig config;
   @Mock private ContractExecutionResult contractExecutionResult;
   @Mock private LedgerValidationResult ledgerValidationResult;
 
@@ -63,20 +59,16 @@ public class TableStoreClientServiceTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    service = new TableStoreClientService(clientService, config);
+    service = new TableStoreClientService(clientService);
   }
 
   @Test
-  public void bootstrap_DigitalSignature_ShouldCallRegisterCertificateAndContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
-
-    // Act
+  public void bootstrap_Called_ShouldCallBootstrapAndRegisterContracts() {
+    // Arrange Act
     service.bootstrap();
 
     // Assert
-    verify(clientService).registerCertificate();
-    verify(clientService, never()).registerSecret();
+    verify(clientService).bootstrap();
     // Verify contracts are registered
     verify(clientService)
         .registerContract(eq(CONTRACT_CREATE), anyString(), any(byte[].class), eq((String) null));
@@ -100,61 +92,8 @@ public class TableStoreClientServiceTest {
   }
 
   @Test
-  public void bootstrap_HmacSignature_ShouldCallRegisterSecretAndContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService, never()).registerCertificate();
-    verify(clientService).registerSecret();
-    // Verify contracts are registered
-    verify(clientService, times(8))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-  }
-
-  @Test
-  public void bootstrap_CertificateAlreadyRegistered_ShouldContinueWithContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
-    ClientException exception =
-        new ClientException("Already registered", StatusCode.CERTIFICATE_ALREADY_REGISTERED);
-    doThrow(exception).when(clientService).registerCertificate();
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService).registerCertificate();
-    // Should still register contracts
-    verify(clientService, times(8))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-  }
-
-  @Test
-  public void bootstrap_SecretAlreadyRegistered_ShouldContinueWithContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
-    ClientException exception =
-        new ClientException("Already registered", StatusCode.SECRET_ALREADY_REGISTERED);
-    doThrow(exception).when(clientService).registerSecret();
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService).registerSecret();
-    // Should still register contracts
-    verify(clientService, times(8))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-  }
-
-  @Test
   public void bootstrap_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
     // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
     doThrow(exception)
@@ -165,17 +104,16 @@ public class TableStoreClientServiceTest {
     service.bootstrap();
 
     // Assert
-    verify(clientService).registerCertificate();
+    verify(clientService).bootstrap();
     // Should still register all contracts
     verify(clientService, times(8))
         .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
   }
 
   @Test
-  public void bootstrap_OtherException_ShouldThrow() {
+  public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
     // Arrange
     ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     doNothing().when(clientService).registerCertificate();
     doThrow(exception)
         .when(clientService)

@@ -199,6 +199,21 @@ public class ClientServiceTest {
   }
 
   @Test
+  public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
+    // Arrange
+    ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    doThrow(exception).when(service).registerCertificate();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.bootstrap());
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(ClientException.class);
+    assertThat(((ClientException) thrown).getStatusCode()).isEqualTo(StatusCode.INVALID_REQUEST);
+  }
+
+  @Test
   public void bootstrap_AuditorDisabled_ShouldContinueWithoutRegisteringContract() {
     // Arrange
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);

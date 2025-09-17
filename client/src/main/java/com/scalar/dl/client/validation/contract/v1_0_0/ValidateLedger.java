@@ -12,7 +12,6 @@ import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.List;
 
 public class ValidateLedger extends JacksonBasedContract {
-  public static final String VERSION = "v1_0_0";
   static final String ASSET_ID_KEY = "asset_id";
   static final String AGE_KEY = "age";
   static final String START_AGE_KEY = "start_age";

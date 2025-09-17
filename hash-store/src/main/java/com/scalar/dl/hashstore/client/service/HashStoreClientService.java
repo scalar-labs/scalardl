@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableMap;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Column;
 import com.scalar.db.io.DataType;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.util.Common;
@@ -54,7 +53,6 @@ import com.scalar.dl.genericcontracts.object.v1_0_0.Validate;
 import com.scalar.dl.hashstore.client.error.HashStoreClientError;
 import com.scalar.dl.hashstore.client.model.Version;
 import com.scalar.dl.hashstore.client.util.HashStoreClientUtils;
-import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -118,7 +116,6 @@ public class HashStoreClientService {
           .build();
 
   private final ClientService clientService;
-  private final ClientConfig config;
 
   /**
    * Constructs a {@code HashStoreClientService} for hash store with the specified primitive {@link
@@ -126,9 +123,8 @@ public class HashStoreClientService {
    *
    * @param clientService a client service
    */
-  public HashStoreClientService(ClientService clientService, ClientConfig config) {
+  public HashStoreClientService(ClientService clientService) {
     this.clientService = clientService;
-    this.config = config;
   }
 
   /**
@@ -145,19 +141,7 @@ public class HashStoreClientService {
    * @throws ClientException if a request fails for some reason
    */
   public void bootstrap() {
-    try {
-      if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
-        clientService.registerCertificate();
-      } else {
-        clientService.registerSecret();
-      }
-    } catch (ClientException e) {
-      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
-          && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
-        throw e;
-      }
-    }
-
+    clientService.bootstrap();
     registerContracts();
     registerFunctions();
   }
