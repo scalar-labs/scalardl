@@ -39,7 +39,6 @@ import com.scalar.dl.tablestore.client.partiql.statement.ContractStatement;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.concurrent.Immutable;
-import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 /**
@@ -60,7 +59,7 @@ import javax.json.JsonValue;
  *
  * TableStoreClientService service = factory.create(new ClientConfig(new File(properties));
  * try {
- *   String statement = ...; // prepare a PartiQL statement
+ *   String statement = ...; // prepare an SQL statement
  *   StatementExecutionResult result = service.executeStatement(statement);
  *   result.getResult().ifPresent(System.out::println);
  * } catch (ClientException e) {
@@ -128,18 +127,6 @@ public class TableStoreClientService {
         }
       }
     }
-  }
-
-  /**
-   * Retrieves a list of contracts for the certificate holder specified in {@code ClientConfig}. If
-   * specified with a contract ID, it will return the matching contract only.
-   *
-   * @param id a contract ID
-   * @return {@link JsonObject}
-   * @throws ClientException if a request fails for some reason
-   */
-  public JsonObject listContracts(String id) {
-    return clientService.listContracts(id);
   }
 
   /**

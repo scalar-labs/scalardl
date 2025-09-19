@@ -46,7 +46,7 @@ dependencies {
 
 task TableStore(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.tablestore.client.tool.TableStoreCommandLine'
-    applicationName = 'scalardl-table-store'
+    applicationName = 'scalardl-tablestore'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
@@ -100,4 +100,27 @@ spotbugsTest.reports {
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
+}
+
+javadoc {
+    title = "ScalarDL TableStore Java Client SDK ${version}"
+    source += sourceSets.main.java
+    source += project(':client').sourceSets.main.java
+    source += project(':common').sourceSets.main.java
+    include "com/scalar/dl/tablestore/**"
+    include "com/scalar/dl/client/exception/*.java"
+    include "com/scalar/dl/ledger/model/*.java"
+}
+
+distZip {
+    archiveFileName = "scalardl-tablestore-java-client-sdk-${project.version}.zip"
+}
+
+archivesBaseName = "scalardl-tablestore-java-client-sdk"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+    (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+     project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
 }

@@ -14,7 +14,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(
-    name = "scalardl-hash-store",
+    name = "scalardl-hashstore",
     subcommands = {
       HelpCommand.class,
       Bootstrap.class,
@@ -28,7 +28,7 @@ import picocli.CommandLine.HelpCommand;
       CollectionHistoryGet.class,
       LedgerValidation.class,
     },
-    description = {"These are ScalarDL Hash Store commands used in various situations:"})
+    description = {"These are ScalarDL HashStore commands used in various situations:"})
 public class HashStoreCommandLine {
 
   public static void main(String[] args) {

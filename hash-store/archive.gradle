@@ -1,0 +1,47 @@
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'scalardl-hashstore-java-client-sdk'
+            from components.java
+            artifact distTar
+            artifact distZip
+            artifact javadocJar
+            artifact sourcesJar
+            pom {
+                name = 'ScalarDL HashStore Java Client SDK'
+                description = 'A client-side Java library to interact with ScalarDL HashStore.'
+                url = 'https://github.com/scalar-labs/scalardl'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hiroyuki'
+                        name = 'Hiroyuki Yamada'
+                        email = 'hiroyuki.yamada@scalar-labs.com'
+                    }
+                    developer {
+                        id = 'jnmt'
+                        name = 'Jun Nemoto'
+                        email = 'jun.nemoto@scalar-labs.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/scalar-labs/scalardl.git'
+                    developerConnection = 'scm:git:https://github.com/scalar-labs/scalardl.git'
+                    url = 'https://github.com/scalar-labs/scalardl'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir('staging-deploy')
+        }
+    }
+}

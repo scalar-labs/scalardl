@@ -36,8 +36,8 @@ public class HashStoreCommandLineTest {
       String expected =
           String.join(
               System.lineSeparator(),
-              "Usage: scalardl-hash-store [COMMAND]",
-              "These are ScalarDL Hash Store commands used in various situations:",
+              "Usage: scalardl-hashstore [COMMAND]",
+              "These are ScalarDL HashStore commands used in various situations:",
               "",
               "bootstrap the hash store",
               "  bootstrap                Bootstrap the hash store by registering identity and",
@@ -76,7 +76,7 @@ public class HashStoreCommandLineTest {
     @Test
     @DisplayName("member values are properly set")
     void memberValuesAreProperlySet() {
-      assertThat(command.name()).isEqualTo("scalardl-hash-store");
+      assertThat(command.name()).isEqualTo("scalardl-hashstore");
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
@@ -114,7 +114,7 @@ public class HashStoreCommandLineTest {
         // Verify that the argument contains only the top-level command.
         assertThat(parsed.size()).isEqualTo(1);
 
-        // Verify that the top-level command is "scalardl-hash-store".
+        // Verify that the top-level command is "scalardl-hashstore".
         assertThat(parsed.get(0).getCommand().getClass()).isEqualTo(HashStoreCommandLine.class);
       }
     }

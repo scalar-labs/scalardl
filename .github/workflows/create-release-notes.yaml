@@ -78,6 +78,32 @@ jobs:
           asset_name: scalardl-java-client-sdk-${{ steps.version.outputs.version }}.zip
           asset_content_type: application/zip
 
+      - name: Build HashStore client SDK zip
+        run: ./gradlew :hash-store:distZip
+
+      - name: Upload HashStore client SDK zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PROJECT_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: hash-store/build/distributions/scalardl-hashstore-java-client-sdk-${{ steps.version.outputs.version }}.zip
+          asset_name: scalardl-hashstore-java-client-sdk-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip
+
+      - name: Build TableStore client SDK zip
+        run: ./gradlew :table-store:distZip
+
+      - name: Upload TableStore client SDK zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PROJECT_ACCESS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: table-store/build/distributions/scalardl-tablestore-java-client-sdk-${{ steps.version.outputs.version }}.zip
+          asset_name: scalardl-tablestore-java-client-sdk-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip
+
       - name: Build zip for generic contracts and functions
         run: ./gradlew :generic-contracts:distZip
 

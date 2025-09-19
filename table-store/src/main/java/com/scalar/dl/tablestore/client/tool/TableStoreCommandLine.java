@@ -13,14 +13,14 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
 
 @Command(
-    name = "scalardl-table-store",
+    name = "scalardl-tablestore",
     subcommands = {
       Bootstrap.class,
       HelpCommand.class,
       LedgerValidation.class,
       StatementExecution.class,
     },
-    description = {"These are ScalarDL Table Store commands:"})
+    description = {"These are ScalarDL TableStore commands:"})
 public class TableStoreCommandLine {
 
   public static void main(String[] args) {

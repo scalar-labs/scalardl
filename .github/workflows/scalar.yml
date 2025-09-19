@@ -156,8 +156,8 @@ jobs:
           name: integration_test_reports_for_generic_contracts
           path: generic-contracts/build/reports/tests/integrationTest
 
-  integration-test-for-hash-store:
-    name: Integration test for hash store
+  integration-test-for-hashstore:
+    name: Integration test for HashStore
     runs-on: ubuntu-latest
 
     services:
@@ -190,8 +190,8 @@ jobs:
           name: integration_test_reports_for_hash_store
           path: hash-store/build/reports/tests/integrationTest
 
-  integration-test-for-table-store:
-    name: Integration test for table store
+  integration-test-for-tablestore:
+    name: Integration test for TableStore
     runs-on: ubuntu-latest
 
     services:
