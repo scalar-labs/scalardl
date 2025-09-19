@@ -41,11 +41,6 @@ public class ObjectPut extends AbstractHashStoreCommand {
       description = "Optional Put operation for mutable database as JSON string.")
   private String putToMutable;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ObjectPut()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     // Build basic arguments with objectId and hash

@@ -28,11 +28,6 @@ public class ObjectAdditionToCollection extends AbstractHashStoreCommand {
       description = "Skip validation for duplicate object IDs already in the collection.")
   private boolean force;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ObjectAdditionToCollection()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     service.addToCollection(collectionId, objectIds, force);

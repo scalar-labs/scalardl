@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -28,6 +29,7 @@ import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -40,7 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class ClientServiceTest {
+public class TableStoreClientServiceTest {
   private static final String ANY_ID = "id";
   private static final String ANY_TABLE = "tbl";
   private static final String ANY_COLUMN = "col";
@@ -48,42 +50,26 @@ public class ClientServiceTest {
   private static final int ANY_END_AGE = 5;
   private static final JsonObject ANY_JSON_OBJECT = mock(JsonObject.class);
 
-  @Mock private com.scalar.dl.client.service.ClientService clientService;
+  @Mock private ClientService clientService;
   @Mock private ContractExecutionResult contractExecutionResult;
   @Mock private LedgerValidationResult ledgerValidationResult;
 
-  private ClientService service;
+  private TableStoreClientService service;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    service = new ClientService(clientService);
+    service = new TableStoreClientService(clientService);
   }
 
   @Test
-  public void registerCertificate_ShouldCallClientServiceRegisterCertificate() {
+  public void bootstrap_Called_ShouldCallBootstrapAndRegisterContracts() {
     // Arrange Act
-    service.registerCertificate();
+    service.bootstrap();
 
     // Assert
-    verify(clientService).registerCertificate();
-  }
-
-  @Test
-  public void registerSecret_ShouldCallClientServiceRegisterSecret() {
-    // Arrange Act
-    service.registerSecret();
-
-    // Assert
-    verify(clientService).registerSecret();
-  }
-
-  @Test
-  public void registerContracts_ShouldRegisterAllPredefinedContracts() {
-    // Arrange Act
-    service.registerContracts();
-
-    // Assert
+    verify(clientService).bootstrap();
+    // Verify contracts are registered
     verify(clientService)
         .registerContract(eq(CONTRACT_CREATE), anyString(), any(byte[].class), eq((String) null));
     verify(clientService)
@@ -106,7 +92,7 @@ public class ClientServiceTest {
   }
 
   @Test
-  public void registerContracts_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
+  public void bootstrap_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
     // Arrange
     ClientException exception =
         new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
@@ -115,23 +101,26 @@ public class ClientServiceTest {
         .registerContract(eq(CONTRACT_CREATE), anyString(), any(byte[].class), eq((String) null));
 
     // Act
-    service.registerContracts();
+    service.bootstrap();
 
     // Assert
+    verify(clientService).bootstrap();
+    // Should still register all contracts
     verify(clientService, times(8))
         .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
   }
 
   @Test
-  public void registerContracts_OtherException_ShouldThrow() {
+  public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
     // Arrange
     ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
+    doNothing().when(clientService).registerCertificate();
     doThrow(exception)
         .when(clientService)
         .registerContract(eq(CONTRACT_CREATE), anyString(), any(byte[].class), eq((String) null));
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.registerContracts());
+    Throwable thrown = catchThrowable(() -> service.bootstrap());
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(ClientException.class);

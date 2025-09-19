@@ -46,7 +46,7 @@ public class Common {
         .put("signature", Base64.getEncoder().encodeToString(proof.getSignature()));
   }
 
-  static void printOutput(@Nullable JsonNode value) {
+  public static void printOutput(@Nullable JsonNode value) {
     JsonNode json =
         mapper
             .createObjectNode()

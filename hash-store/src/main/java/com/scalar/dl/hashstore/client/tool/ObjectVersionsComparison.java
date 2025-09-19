@@ -45,11 +45,6 @@ public class ObjectVersionsComparison extends AbstractHashStoreCommand {
       description = "Show detailed validation information.")
   private boolean verbose;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ObjectVersionsComparison()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());

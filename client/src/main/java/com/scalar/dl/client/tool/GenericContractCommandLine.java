@@ -15,6 +15,7 @@ import picocli.CommandLine.HelpCommand;
     name = Common.SCALARDL_GC_SUBCOMMAND_NAME,
     aliases = Common.SCALARDL_GC_ALIAS,
     subcommands = {
+      Bootstrap.class,
       CertificateRegistration.class,
       ContractExecution.class,
       ContractRegistration.class,
@@ -40,9 +41,11 @@ public class GenericContractCommandLine {
 
   static void setupSections(CommandLine cmd) {
     ImmutableMap.Builder<String, List<Class<?>>> sections = ImmutableMap.builder();
+    // Section: bootstrap.
+    sections.put("%nbootstrap the ledger%n", Collections.singletonList(Bootstrap.class));
     // Section: register identity information.
     sections.put(
-        "%nregister identity information%n",
+        "%nregister identity information manually%n",
         Arrays.asList(CertificateRegistration.class, SecretRegistration.class));
     // Section: register business logic.
     sections.put(

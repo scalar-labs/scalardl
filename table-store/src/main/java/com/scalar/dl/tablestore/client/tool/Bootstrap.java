@@ -6,29 +6,25 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
 import com.scalar.dl.client.tool.CommonOptions;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.File;
 import java.util.concurrent.Callable;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "register-contracts", description = "Register all necessary contracts.")
-public class ContractsRegistration extends CommonOptions implements Callable<Integer> {
-
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ContractsRegistration()).execute(args);
-    System.exit(exitCode);
-  }
+@Command(
+    name = "bootstrap",
+    description = "Bootstrap the table store by registering identity and contracts.")
+public class Bootstrap extends CommonOptions implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
+    return call(new TableStoreClientServiceFactory());
   }
 
   @VisibleForTesting
-  Integer call(ClientServiceFactory factory) throws Exception {
-    ClientService service =
+  Integer call(TableStoreClientServiceFactory factory) throws Exception {
+    TableStoreClientService service =
         useGateway
             ? factory.create(new GatewayClientConfig(new File(properties)), false)
             : factory.create(new ClientConfig(new File(properties)), false);
@@ -36,9 +32,10 @@ public class ContractsRegistration extends CommonOptions implements Callable<Int
   }
 
   @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service) {
+  Integer call(TableStoreClientServiceFactory factory, TableStoreClientService service) {
     try {
-      service.registerContracts();
+      service.bootstrap();
+      Common.printOutput(null);
       return 0;
     } catch (ClientException e) {
       Common.printError(e);

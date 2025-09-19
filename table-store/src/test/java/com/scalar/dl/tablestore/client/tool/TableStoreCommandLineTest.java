@@ -4,9 +4,6 @@ import static com.scalar.dl.tablestore.client.tool.TableStoreCommandLine.setupSe
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-import com.scalar.dl.client.tool.CertificateRegistration;
-import com.scalar.dl.client.tool.ContractsListing;
-import com.scalar.dl.client.tool.SecretRegistration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,23 +37,17 @@ public class TableStoreCommandLineTest {
           String.join(
               System.lineSeparator(),
               "Usage: scalardl-table-store [COMMAND]",
-              "These are ScalarDL Table Store commands used in various situations:",
+              "These are ScalarDL Table Store commands:",
               "",
-              "register identity information",
-              "  register-cert       Register a specified certificate.",
-              "  register-secret     Register a specified secret.",
-              "",
-              "register contracts for the table store",
-              "  register-contracts  Register all necessary contracts.",
-              "",
-              "list the registered contracts",
-              "  list-contracts      List registered contracts.",
+              "bootstrap the table store",
+              "  bootstrap          Bootstrap the table store by registering identity and",
+              "                       contracts.",
               "",
               "execute a statement",
-              "  execute-statement   Execute a specified statement.",
+              "  execute-statement  Execute a specified statement.",
               "",
               "validate ledger",
-              "  validate-ledger     Validate a specified asset in the ledger.",
+              "  validate-ledger    Validate a specified asset in the ledger.",
               "");
       assertThat(actual).isEqualTo(expected);
     }
@@ -80,12 +71,9 @@ public class TableStoreCommandLineTest {
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
-                CertificateRegistration.class,
-                ContractsListing.class,
-                ContractsRegistration.class,
+                Bootstrap.class,
                 CommandLine.HelpCommand.class,
                 LedgerValidation.class,
-                SecretRegistration.class,
                 StatementExecution.class,
               });
     }
@@ -150,10 +138,10 @@ public class TableStoreCommandLineTest {
       }
 
       @Test
-      @DisplayName("register-contracts subcommand is parsed correctly")
+      @DisplayName("bootstrap subcommand is parsed correctly")
       void registerContractsSubcommandIsParsedCorrectly() {
         // Arrange
-        String[] args = new String[] {"register-contracts", "--help"};
+        String[] args = new String[] {"bootstrap", "--help"};
 
         // Act
         ParseResult parseResult = commandLine.parseArgs(args);
@@ -162,7 +150,7 @@ public class TableStoreCommandLineTest {
         // Assert
         assertThat(parsed.size()).isEqualTo(2);
         assertThat(parsed.get(0).getCommand().getClass()).isEqualTo(TableStoreCommandLine.class);
-        assertThat(parsed.get(1).getCommand().getClass()).isEqualTo(ContractsRegistration.class);
+        assertThat(parsed.get(1).getCommand().getClass()).isEqualTo(Bootstrap.class);
       }
 
       @Test

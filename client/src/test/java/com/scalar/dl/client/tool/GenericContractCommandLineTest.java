@@ -36,7 +36,11 @@ public class GenericContractCommandLineTest {
               "Usage: generic-contracts [COMMAND]",
               "Run commands for generic-contracts-based setup.",
               "",
-              "register identity information",
+              "bootstrap the ledger",
+              "  bootstrap           Bootstrap the ledger by registering identity and system",
+              "                        contracts.",
+              "",
+              "register identity information manually",
               "  register-cert       Register a specified certificate.",
               "  register-secret     Register a specified secret.",
               "",
@@ -75,6 +79,7 @@ public class GenericContractCommandLineTest {
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
+                Bootstrap.class,
                 CertificateRegistration.class,
                 ContractExecution.class,
                 ContractRegistration.class,

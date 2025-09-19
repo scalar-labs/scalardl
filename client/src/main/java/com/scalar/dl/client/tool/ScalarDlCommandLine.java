@@ -15,6 +15,7 @@ import picocli.CommandLine.HelpCommand;
 @Command(
     name = "scalardl",
     subcommands = {
+      Bootstrap.class,
       GenericContractCommandLine.class,
       CertificateRegistration.class,
       ContractExecution.class,
@@ -58,9 +59,11 @@ public class ScalarDlCommandLine {
     //      https://github.com/remkop/picocli/issues/978#issuecomment-604174211
 
     ImmutableMap.Builder<String, List<Class<?>>> sections = ImmutableMap.builder();
+    // Section: bootstrap.
+    sections.put("%nbootstrap the ledger%n", Collections.singletonList(Bootstrap.class));
     // Section: register identity information.
     sections.put(
-        "%nregister identity information%n",
+        "%nregister identity information manually%n",
         Arrays.asList(CertificateRegistration.class, SecretRegistration.class));
     // Section: register business logic.
     sections.put(

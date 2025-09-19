@@ -36,7 +36,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,11 +47,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.hashstore.client.error.HashStoreClientError;
 import com.scalar.dl.hashstore.client.model.Version;
-import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -87,8 +85,7 @@ public class HashStoreClientServiceTest {
   private static final String COLLECTION_OPTIONS =
       com.scalar.dl.genericcontracts.collection.Constants.OPTIONS;
 
-  @Mock private com.scalar.dl.client.service.ClientService clientService;
-  @Mock private ClientConfig config;
+  @Mock private ClientService clientService;
   @Mock private ContractExecutionResult contractExecutionResult;
   @Mock private LedgerValidationResult ledgerValidationResult;
 
@@ -98,20 +95,16 @@ public class HashStoreClientServiceTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    service = new HashStoreClientService(clientService, config);
+    service = new HashStoreClientService(clientService);
   }
 
   @Test
-  public void bootstrap_DigitalSignature_ShouldCallRegisterCertificateAndContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
-
-    // Act
+  public void bootstrap_Called_ShouldCallBootstrapAndRegisterContracts() {
+    // Arrange Act
     service.bootstrap();
 
     // Assert
-    verify(clientService).registerCertificate();
-    verify(clientService, never()).registerSecret();
+    verify(clientService).bootstrap();
     // Verify contracts are registered
     verify(clientService)
         .registerContract(
@@ -143,65 +136,8 @@ public class HashStoreClientServiceTest {
   }
 
   @Test
-  public void bootstrap_HmacSignature_ShouldCallRegisterSecretAndContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService, never()).registerCertificate();
-    verify(clientService).registerSecret();
-    // Verify contracts are registered
-    verify(clientService, times(9))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-    // Verify function is registered
-    verify(clientService).registerFunction(eq(FUNCTION_PUT), anyString(), any(byte[].class));
-  }
-
-  @Test
-  public void bootstrap_CertificateAlreadyRegistered_ShouldContinueWithContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
-    ClientException exception =
-        new ClientException("Already registered", StatusCode.CERTIFICATE_ALREADY_REGISTERED);
-    doThrow(exception).when(clientService).registerCertificate();
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService).registerCertificate();
-    // Should still register contracts
-    verify(clientService, times(9))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-    verify(clientService).registerFunction(eq(FUNCTION_PUT), anyString(), any(byte[].class));
-  }
-
-  @Test
-  public void bootstrap_SecretAlreadyRegistered_ShouldContinueWithContracts() {
-    // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
-    ClientException exception =
-        new ClientException("Already registered", StatusCode.SECRET_ALREADY_REGISTERED);
-    doThrow(exception).when(clientService).registerSecret();
-
-    // Act
-    service.bootstrap();
-
-    // Assert
-    verify(clientService).registerSecret();
-    // Should still register contracts
-    verify(clientService, times(9))
-        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
-    verify(clientService).registerFunction(eq(FUNCTION_PUT), anyString(), any(byte[].class));
-  }
-
-  @Test
   public void bootstrap_ContractAlreadyRegistered_ShouldContinueWithOtherContracts() {
     // Arrange
-    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
     doThrow(exception)
@@ -212,7 +148,7 @@ public class HashStoreClientServiceTest {
     service.bootstrap();
 
     // Assert
-    verify(clientService).registerCertificate();
+    verify(clientService).bootstrap();
     // Should still register all contracts
     verify(clientService, times(9))
         .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
