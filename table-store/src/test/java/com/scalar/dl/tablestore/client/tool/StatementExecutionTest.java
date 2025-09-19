@@ -12,8 +12,8 @@ import com.scalar.dl.client.tool.CommandLineTestUtils;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.service.StatusCode;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
@@ -55,8 +55,8 @@ public class StatementExecutionTest {
               "--statement=INSERT INTO test_table VALUES {'id': '123', 'name': 'test'}"
             };
         StatementExecution command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         String resultJson = "{\"status\":\"success\"}";
         ContractExecutionResult contractResult =
@@ -89,8 +89,8 @@ public class StatementExecutionTest {
               "--statement=CREATE TABLE test_table (id STRING PRIMARY KEY, name STRING)"
             };
         StatementExecution command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         ContractExecutionResult contractResult =
             new ContractExecutionResult(
@@ -128,8 +128,8 @@ public class StatementExecutionTest {
               "--use-gateway"
             };
         StatementExecution command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factory = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         ContractExecutionResult contractResult =
             new ContractExecutionResult(
@@ -149,7 +149,7 @@ public class StatementExecutionTest {
 
     @Nested
     @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    class whereClientExceptionIsThrownByTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode() throws UnsupportedEncodingException {
@@ -157,8 +157,8 @@ public class StatementExecutionTest {
         String[] args =
             new String[] {"--properties=PROPERTIES_FILE", "--statement=INVALID STATEMENT"};
         StatementExecution command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         when(serviceMock.executeStatement(anyString()))
             .thenThrow(new ClientException("Invalid statement", StatusCode.RUNTIME_ERROR));

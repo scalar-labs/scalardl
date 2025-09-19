@@ -19,11 +19,6 @@ public class CollectionGet extends AbstractHashStoreCommand {
       description = "The ID of the collection to retrieve.")
   private String collectionId;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new CollectionGet()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
