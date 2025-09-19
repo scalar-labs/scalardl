@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import com.google.common.collect.ImmutableMap;
 import com.scalar.dl.client.exception.ClientException;
-import com.scalar.dl.client.service.ClientServiceFactory;
+import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Create;
 import com.scalar.dl.genericcontracts.table.v1_0_0.GetAssetId;
@@ -44,21 +44,21 @@ import javax.json.JsonValue;
 
 /**
  * A thread-safe client for a table store. The client interacts with Ledger and Auditor components
- * to register certificates, register contracts, execute statements, and validate data.
+ * to bootstrap the table store, execute statements, and validate data.
  *
  * <h3>Usage Examples</h3>
  *
- * Here is a simple example to demonstrate how to use {@code ClientService}. {@code ClientService}
- * should always be created with {@link ClientServiceFactory}, which reuses internal instances as
- * much as possible for better performance and less resource usage. When you create {@code
- * ClientService}, the client certificate or secret key and the necessary contracts for using a
- * table store are automatically registered by default based on the configuration in {@code
- * ClientConfig}.
+ * Here is a simple example to demonstrate how to use {@code TableStoreClientService}. {@code
+ * TableStoreClientService} should always be created with {@link TableStoreClientServiceFactory},
+ * which reuses internal instances as much as possible for better performance and less resource
+ * usage. When you create {@code TableStoreClientService}, the client certificate or secret key and
+ * the necessary contracts for using a table store are automatically registered by default based on
+ * the configuration in {@code ClientConfig}.
  *
  * <pre>{@code
- * ClientServiceFactory factory = new ClientServiceFactory(); // the factory should be reused
+ * TableStoreClientServiceFactory factory = new TableStoreClientServiceFactory(); // the factory should be reused
  *
- * ClientService service = factory.create(new ClientConfig(new File(properties));
+ * TableStoreClientService service = factory.create(new ClientConfig(new File(properties));
  * try {
  *   String statement = ...; // prepare a PartiQL statement
  *   StatementExecutionResult result = service.executeStatement(statement);
@@ -72,7 +72,7 @@ import javax.json.JsonValue;
  * }</pre>
  */
 @Immutable
-public class ClientService {
+public class TableStoreClientService {
   private static final ImmutableMap<String, Class<?>> CONTRACTS =
       ImmutableMap.<String, Class<?>>builder()
           .put(CONTRACT_CREATE, Create.class)
@@ -85,44 +85,36 @@ public class ClientService {
           .put(CONTRACT_SCAN, Scan.class)
           .build();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
-  private final com.scalar.dl.client.service.ClientService clientService;
+  private final ClientService clientService;
 
   /**
-   * Constructs a {@code GenericContractClientService} with the specified {@link ClientService}.
+   * Constructs a {@code TableStoreClientService} with the specified {@link ClientService}.
    *
    * @param clientService a client service
    */
-  public ClientService(com.scalar.dl.client.service.ClientService clientService) {
+  public TableStoreClientService(ClientService clientService) {
     this.clientService = clientService;
   }
 
   /**
-   * Registers the certificate specified in the given {@code ClientConfig} for digital signature
-   * authentication.
+   * Bootstraps the table store by registering the identity (certificate or secret key) and
+   * necessary contracts based on {@code ClientConfig}. The authentication method (digital signature
+   * or HMAC) is determined by the configuration. If the identity or contract is already registered,
+   * it is simply skipped without throwing an exception.
+   *
+   * <p>This method is primarily for internal use, and users don't need to call it because the
+   * identity and contracts are automatically registered when creating {@code
+   * TableStoreClientService}. Breaking changes can and will be introduced to this method. Users
+   * should not depend on it.
    *
    * @throws ClientException if a request fails for some reason
    */
-  public void registerCertificate() {
-    clientService.registerCertificate();
+  public void bootstrap() {
+    clientService.bootstrap();
+    registerContracts();
   }
 
-  /**
-   * Registers the secret key specified in the given {@code ClientConfig} for HMAC authentication.
-   *
-   * @throws ClientException if a request fails for some reason
-   */
-  public void registerSecret() {
-    clientService.registerSecret();
-  }
-
-  /**
-   * Registers the predefined contracts for the table store client with the identity specified in
-   * {@code ClientConfig}. If a contract is already registered, it is simply skipped without
-   * throwing an exception.
-   *
-   * @throws ClientException if a request fails for some reason
-   */
-  public void registerContracts() {
+  private void registerContracts() {
     for (Map.Entry<String, Class<?>> entry : CONTRACTS.entrySet()) {
       String contractId = entry.getKey();
       Class<?> clazz = entry.getValue();

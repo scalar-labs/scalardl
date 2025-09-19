@@ -7,8 +7,8 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
 import com.scalar.dl.client.tool.CommonOptions;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.File;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
@@ -70,12 +70,12 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
 
   @Override
   public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
+    return call(new TableStoreClientServiceFactory());
   }
 
   @VisibleForTesting
-  Integer call(ClientServiceFactory factory) throws Exception {
-    ClientService service =
+  Integer call(TableStoreClientServiceFactory factory) throws Exception {
+    TableStoreClientService service =
         useGateway
             ? factory.create(new GatewayClientConfig(new File(properties)), false)
             : factory.create(new ClientConfig(new File(properties)), false);
@@ -83,7 +83,7 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
   }
 
   @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service) {
+  Integer call(TableStoreClientServiceFactory factory, TableStoreClientService service) {
     try {
       LedgerValidationResult result;
       if (key == null) {

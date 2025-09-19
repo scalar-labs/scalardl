@@ -1,5 +1,6 @@
 package com.scalar.dl.hashstore.client.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.service.ClientServiceFactory;
@@ -18,6 +19,11 @@ public class HashStoreClientServiceFactory {
 
   public HashStoreClientServiceFactory() {
     clientServiceFactory = new ClientServiceFactory();
+  }
+
+  @VisibleForTesting
+  HashStoreClientServiceFactory(ClientServiceFactory factory) {
+    clientServiceFactory = factory;
   }
 
   /**
@@ -39,7 +45,7 @@ public class HashStoreClientServiceFactory {
    */
   public HashStoreClientService create(ClientConfig config, boolean autoRegistrationEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config), config);
+        new HashStoreClientService(clientServiceFactory.create(config));
     if (autoRegistrationEnabled) {
       clientService.bootstrap();
     }
@@ -66,7 +72,7 @@ public class HashStoreClientServiceFactory {
   public HashStoreClientService create(
       GatewayClientConfig config, boolean autoRegistrationEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config), config.getClientConfig());
+        new HashStoreClientService(clientServiceFactory.create(config));
     if (autoRegistrationEnabled) {
       clientService.bootstrap();
     }

@@ -10,8 +10,8 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.File;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,8 +47,8 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateTableSchema("test_table", 0, 10)).thenReturn(result);
@@ -76,8 +76,8 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateRecord("test_table", "id", "\"123\"", 0, 10)).thenReturn(result);
@@ -105,8 +105,8 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateIndexRecord("test_table", "email", "\"test@example.com\"", 0, 10))
@@ -137,8 +137,8 @@ public class LedgerValidationTest {
               "--properties=" + file.getAbsolutePath(), "--table-name=test_table", "--use-gateway"
             };
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factory = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateTableSchema(anyString(), anyInt(), anyInt())).thenReturn(result);
@@ -155,15 +155,15 @@ public class LedgerValidationTest {
 
     @Nested
     @DisplayName("where ClientService throws ClientException")
-    class whereClientExceptionIsThrownByClientService {
+    class whereClientExceptionIsThrownByTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode() {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--table-name=test_table"};
         LedgerValidation command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         when(serviceMock.validateTableSchema(anyString(), anyInt(), anyInt()))
             .thenThrow(new ClientException("Validation failed", StatusCode.RUNTIME_ERROR));

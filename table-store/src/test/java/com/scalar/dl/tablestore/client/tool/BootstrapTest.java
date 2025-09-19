@@ -9,8 +9,8 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
 import com.scalar.dl.ledger.service.StatusCode;
-import com.scalar.dl.tablestore.client.service.ClientService;
-import com.scalar.dl.tablestore.client.service.ClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
@@ -23,13 +23,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
-public class ContractsRegistrationTest {
+public class BootstrapTest {
   private CommandLine commandLine;
   private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
   @BeforeEach
   void setup() throws Exception {
-    commandLine = new CommandLine(new ContractsRegistration());
+    commandLine = new CommandLine(new Bootstrap());
 
     // To verify the output to stdout, e.g., System.out.println(...).
     System.setOut(new PrintStream(outputStreamCaptor, true, UTF_8.name()));
@@ -39,8 +39,8 @@ public class ContractsRegistrationTest {
   @DisplayName("#call()")
   class call {
     @Nested
-    @DisplayName("where register-contracts succeeds via ClientService")
-    class whereRegisterContractsSucceedsViaClientService {
+    @DisplayName("where bootstrap succeeds via ClientService")
+    class whereBootstrapSucceedsViaTableStoreClientService {
       @Test
       @DisplayName("returns 0 as exit code")
       void returns0AsExitCode() {
@@ -49,23 +49,23 @@ public class ContractsRegistrationTest {
             new String[] {
               "--properties=PROPERTIES_FILE",
             };
-        ContractsRegistration command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        Bootstrap command = parseArgs(args);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         // Act
         int exitCode = command.call(factoryMock, serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
-        verify(serviceMock).registerContracts();
+        verify(serviceMock).bootstrap();
         verify(factoryMock).close();
       }
     }
 
     @Nested
-    @DisplayName("where register-contracts fails via ClientService")
-    class whereRegisterContractsFailsViaClientService {
+    @DisplayName("where bootstrap fails via ClientService")
+    class whereBootstrapFailsViaTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
       void returns1AsExitCode() throws UnsupportedEncodingException {
@@ -74,19 +74,19 @@ public class ContractsRegistrationTest {
             new String[] {
               "--properties=PROPERTIES_FILE",
             };
-        ContractsRegistration command = parseArgs(args);
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-        ClientService serviceMock = mock(ClientService.class);
+        Bootstrap command = parseArgs(args);
+        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+        TableStoreClientService serviceMock = mock(TableStoreClientService.class);
         doThrow(new ClientException("Some error", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
-            .registerContracts();
+            .bootstrap();
 
         // Act
         int exitCode = command.call(factoryMock, serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
-        verify(serviceMock).registerContracts();
+        verify(serviceMock).bootstrap();
         verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Some error");
       }
@@ -101,9 +101,9 @@ public class ContractsRegistrationTest {
           new String[] {
             "--properties=" + propertiesFile.getAbsolutePath(), "--use-gateway",
           };
-      ContractsRegistration command = parseArgs(args);
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
-      ClientService serviceMock = mock(ClientService.class);
+      Bootstrap command = parseArgs(args);
+      TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
+      TableStoreClientService serviceMock = mock(TableStoreClientService.class);
       when(factoryMock.create(any(GatewayClientConfig.class), anyBoolean()))
           .thenReturn(serviceMock);
 
@@ -112,12 +112,12 @@ public class ContractsRegistrationTest {
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
-      verify(serviceMock).registerContracts();
+      verify(serviceMock).bootstrap();
       verify(factoryMock).close();
     }
   }
 
-  private ContractsRegistration parseArgs(String[] args) {
-    return CommandLineTestUtils.parseArgs(commandLine, ContractsRegistration.class, args);
+  private Bootstrap parseArgs(String[] args) {
+    return CommandLineTestUtils.parseArgs(commandLine, Bootstrap.class, args);
   }
 }
