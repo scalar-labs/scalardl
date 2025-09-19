@@ -40,11 +40,6 @@ public class LedgerValidation extends AbstractHashStoreCommand {
     String collectionId;
   }
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new LedgerValidation()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     LedgerValidationResult result;

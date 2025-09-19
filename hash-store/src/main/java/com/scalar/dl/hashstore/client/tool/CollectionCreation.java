@@ -22,11 +22,6 @@ public class CollectionCreation extends AbstractHashStoreCommand {
       description = "Object IDs to include in the collection.")
   private List<String> objectIds = new ArrayList<>();
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new CollectionCreation()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) {
     service.createCollection(collectionId, objectIds);

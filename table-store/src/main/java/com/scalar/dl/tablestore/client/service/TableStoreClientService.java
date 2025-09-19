@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import com.google.common.collect.ImmutableMap;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.util.Common;
@@ -29,7 +28,6 @@ import com.scalar.dl.genericcontracts.table.v1_0_0.Scan;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Select;
 import com.scalar.dl.genericcontracts.table.v1_0_0.ShowTables;
 import com.scalar.dl.genericcontracts.table.v1_0_0.Update;
-import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -88,16 +86,14 @@ public class TableStoreClientService {
           .build();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
   private final ClientService clientService;
-  private final ClientConfig config;
 
   /**
    * Constructs a {@code TableStoreClientService} with the specified {@link ClientService}.
    *
    * @param clientService a client service
    */
-  public TableStoreClientService(ClientService clientService, ClientConfig config) {
+  public TableStoreClientService(ClientService clientService) {
     this.clientService = clientService;
-    this.config = config;
   }
 
   /**
@@ -114,19 +110,7 @@ public class TableStoreClientService {
    * @throws ClientException if a request fails for some reason
    */
   public void bootstrap() {
-    try {
-      if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
-        clientService.registerCertificate();
-      } else {
-        clientService.registerSecret();
-      }
-    } catch (ClientException e) {
-      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
-          && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
-        throw e;
-      }
-    }
-
+    clientService.bootstrap();
     registerContracts();
   }
 

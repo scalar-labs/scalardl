@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -17,7 +19,9 @@ import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.ClientMode;
 import com.scalar.dl.client.config.DigitalSignatureIdentityConfig;
 import com.scalar.dl.client.config.HmacIdentityConfig;
+import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.RequestSigner;
+import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -94,6 +98,136 @@ public class ClientServiceTest {
     when(hmacIdentityConfig.getSecretKey()).thenReturn(ANY_SECRET_KEY);
     service = spy(new ClientService(config, handler, signer));
     anyFilePath = File.createTempFile(ANY_FILE_NAME, "").getPath();
+  }
+
+  @Test
+  public void bootstrap_DigitalSignature_ShouldCallRegisterCertificateAndContracts() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service, never()).registerSecret();
+    verify(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_HmacSignature_ShouldCallRegisterSecretAndContracts() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service, never()).registerCertificate();
+    verify(service).registerSecret();
+    verify(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_CertificateAlreadyRegistered_ShouldContinueWithContracts() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+    ClientException exception =
+        new ClientException("Already registered", StatusCode.CERTIFICATE_ALREADY_REGISTERED);
+    doThrow(exception).when(service).registerCertificate();
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_SecretAlreadyRegistered_ShouldContinueWithContracts() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+    ClientException exception =
+        new ClientException("Already registered", StatusCode.SECRET_ALREADY_REGISTERED);
+    doThrow(exception).when(service).registerSecret();
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerSecret();
+    verify(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_ContractAlreadyRegistered_ShouldContinueWithoutRegisteringContract() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+    ClientException exception =
+        new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
+    doThrow(exception)
+        .when(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service)
+        .registerContract(eq(ANY_CONTRACT_ID), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
+    // Arrange
+    ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    doThrow(exception).when(service).registerCertificate();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.bootstrap());
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(ClientException.class);
+    assertThat(((ClientException) thrown).getStatusCode()).isEqualTo(StatusCode.INVALID_REQUEST);
+  }
+
+  @Test
+  public void bootstrap_AuditorDisabled_ShouldContinueWithoutRegisteringContract() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service, never())
+        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
   }
 
   @Test

@@ -26,6 +26,7 @@ configurations {
 
 dependencies {
     api project(':common')
+    implementation project(':ledger') // to bundle ValidateLedger contract
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
     api group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"

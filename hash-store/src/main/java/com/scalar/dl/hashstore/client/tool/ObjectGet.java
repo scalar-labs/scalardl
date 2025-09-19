@@ -19,11 +19,6 @@ public class ObjectGet extends AbstractHashStoreCommand {
       description = "The ID of the object to retrieve.")
   private String objectId;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new ObjectGet()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(HashStoreClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
