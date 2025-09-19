@@ -34,7 +34,7 @@ jobs:
         if: contains(steps.version.outputs.version, '-SNAPSHOT')
         run: ./gradlew publish
 
-      - name: Upload the SNAPSHOT versions of scalardl-ledger, scalardl-java-client-sdk, scalardl-common, and scalardl-rpc to Maven Central Repository
+      - name: Upload the SNAPSHOT versions of scalardl-* libraries to Maven Central Repository
         if: contains(steps.version.outputs.version, '-SNAPSHOT')
         env:
           JRELEASER_NEXUS2_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}

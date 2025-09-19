@@ -47,7 +47,7 @@ dependencies {
 
 task HashStore(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.hashstore.client.tool.HashStoreCommandLine'
-    applicationName = 'scalardl-hash-store'
+    applicationName = 'scalardl-hashstore'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
@@ -101,4 +101,27 @@ spotbugsTest.reports {
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
+}
+
+javadoc {
+    title = "ScalarDL HashStore Java Client SDK ${version}"
+    source += sourceSets.main.java
+    source += project(':client').sourceSets.main.java
+    source += project(':common').sourceSets.main.java
+    include "com/scalar/dl/hashstore/**"
+    include "com/scalar/dl/client/exception/*.java"
+    include "com/scalar/dl/ledger/model/*.java"
+}
+
+distZip {
+    archiveFileName = "scalardl-hashstore-java-client-sdk-${project.version}.zip"
+}
+
+archivesBaseName = "scalardl-hashstore-java-client-sdk"
+
+// for archiving and uploading to maven central
+if (!project.gradle.startParameter.taskNames.isEmpty() &&
+    (project.gradle.startParameter.taskNames[0].endsWith('publish') ||
+     project.gradle.startParameter.taskNames[0].endsWith('publishToMavenLocal'))) {
+    apply from: 'archive.gradle'
 }

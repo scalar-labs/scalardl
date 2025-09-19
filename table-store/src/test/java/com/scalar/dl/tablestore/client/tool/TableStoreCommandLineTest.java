@@ -36,8 +36,8 @@ public class TableStoreCommandLineTest {
       String expected =
           String.join(
               System.lineSeparator(),
-              "Usage: scalardl-table-store [COMMAND]",
-              "These are ScalarDL Table Store commands:",
+              "Usage: scalardl-tablestore [COMMAND]",
+              "These are ScalarDL TableStore commands:",
               "",
               "bootstrap the table store",
               "  bootstrap          Bootstrap the table store by registering identity and",
@@ -67,7 +67,7 @@ public class TableStoreCommandLineTest {
     @Test
     @DisplayName("member values are properly set")
     void memberValuesAreProperlySet() {
-      assertThat(command.name()).isEqualTo("scalardl-table-store");
+      assertThat(command.name()).isEqualTo("scalardl-tablestore");
       assertThat(command.subcommands())
           .isEqualTo(
               new Class[] {
@@ -98,7 +98,7 @@ public class TableStoreCommandLineTest {
         // Verify that the argument contains only the top-level command.
         assertThat(parsed.size()).isEqualTo(1);
 
-        // Verify that the top-level command is "scalardl-table-store".
+        // Verify that the top-level command is "scalardl-tablestore".
         assertThat(parsed.get(0).getCommand().getClass()).isEqualTo(TableStoreCommandLine.class);
       }
     }

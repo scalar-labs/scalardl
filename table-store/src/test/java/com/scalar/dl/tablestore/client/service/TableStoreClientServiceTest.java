@@ -128,19 +128,6 @@ public class TableStoreClientServiceTest {
   }
 
   @Test
-  public void listContracts_ShouldCallClientServiceListContracts() {
-    // Arrange
-    when(clientService.listContracts(ANY_ID)).thenReturn(ANY_JSON_OBJECT);
-
-    // Act
-    JsonObject result = service.listContracts(ANY_ID);
-
-    // Assert
-    verify(clientService).listContracts(ANY_ID);
-    assertThat(result).isEqualTo(ANY_JSON_OBJECT);
-  }
-
-  @Test
   public void executeStatement_ValidStatement_ShouldReturnStatementExecutionResult() {
     // Arrange
     String statement = "INSERT INTO test VALUES {}";
