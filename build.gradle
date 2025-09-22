@@ -134,8 +134,10 @@ jreleaser {
         maven {
             def stagingRepositories = ['client/build/staging-deploy',
                                        'common/build/staging-deploy',
+                                       'hash-store/build/staging-deploy',
                                        'ledger/build/staging-deploy',
-                                       'rpc/build/staging-deploy']
+                                       'rpc/build/staging-deploy',
+                                       'table-store/build/staging-deploy']
             mavenCentral {
                 'release-deploy' {
                     active = 'RELEASE'
