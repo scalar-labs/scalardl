@@ -23,7 +23,7 @@ jobs:
         java-version: '8'
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Prepare
       run: sudo mkdir -m 777 /var/log/scalar
@@ -73,7 +73,7 @@ jobs:
           java-version: '8'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build
         run: |
@@ -109,7 +109,7 @@ jobs:
           java-version: '8'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build
         run: |
@@ -144,7 +144,7 @@ jobs:
           java-version: '8'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Run integration tests
         run:  ./gradlew :generic-contracts:integrationTest
@@ -170,7 +170,7 @@ jobs:
           java-version: '8'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Prepare
         run: sudo mkdir -m 777 /var/log/scalar
