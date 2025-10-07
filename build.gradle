@@ -33,7 +33,7 @@ subprojects {
         jsonpVersion = '1.1.4'
         jacksonVersion = '2.18.1'
         toml4jVersion = '0.7.2'
-        scalarDbVersion = '3.14.3'
+        scalarDbVersion = '3.14.4'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
         dropwizardMetricsVersion = '4.2.28'
