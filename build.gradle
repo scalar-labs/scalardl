@@ -23,25 +23,25 @@ subprojects {
     project.version = projectVersion
 
     ext {
-        grpcVersion = '1.74.0'
+        grpcVersion = '1.74.0' // keep using 1.74.0 since 1.75.0 is unstable in our environments
         protocVersion = '3.25.8'
         picoCliVersion = '4.7.7'
         guiceVersion = '5.1.0'
         guavaVersion = '32.1.3-jre'
         slf4jVersion = '1.7.36'
-        log4jVersion = '2.25.1'
+        log4jVersion = '2.25.2'
         jsonpVersion = '1.1.4'
         jacksonVersion = '2.20.0'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.16.1'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
-        dropwizardMetricsVersion = '4.2.36'
+        dropwizardMetricsVersion = '4.2.37'
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.58.v20250814'
-        assertjVersion = '3.27.4'
-        junitVersion = '5.13.4'
-        junitPlatformVersion = '1.13.4'
+        assertjVersion = '3.27.6'
+        junitVersion = '5.14.0'
+        junitPlatformVersion = '1.14.0'
         mockitoVersion = '4.11.0'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
@@ -53,7 +53,7 @@ subprojects {
         googleJavaFormatVersion = '1.7'
         dockerPluginVersion = '0.34.0'
         bouncyCastleCryptoVersion = '1.70'
-        partiqlVersion = '1.2.2'
+        partiqlVersion = '1.2.3'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
