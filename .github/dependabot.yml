@@ -9,8 +9,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
     ignore:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
@@ -28,8 +26,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
 
   - package-ecosystem: "github-actions"
     target-branch: "3"
@@ -40,8 +36,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
+
+  - package-ecosystem: "github-actions"
+    target-branch: "3.12"
+    groups:
+      actions on branch 3.12:
+        patterns:
+          - "*"
+    directory: "/"
+    schedule:
+      interval: "weekly"
 
   - package-ecosystem: "github-actions"
     target-branch: "3.11"
@@ -52,8 +56,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
 
   - package-ecosystem: "github-actions"
     target-branch: "3.10"
@@ -64,8 +66,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
 
   - package-ecosystem: "github-actions"
     target-branch: "3.9"
@@ -76,5 +76,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "scalar-labs/scalardl"
