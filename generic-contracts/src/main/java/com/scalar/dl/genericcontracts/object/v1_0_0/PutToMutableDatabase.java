@@ -172,7 +172,7 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
     }
 
     if (dataType.equals(DataType.FLOAT)) {
-      if (!value.isFloat()) {
+      if (!value.isDouble()) {
         throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
       }
       return FloatColumn.of(columnName, value.floatValue());
@@ -193,7 +193,7 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
     }
 
     if (dataType.equals(DataType.BLOB)) {
-      if (!value.isBinary()) {
+      if (!value.isTextual()) {
         throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
       }
       try {
