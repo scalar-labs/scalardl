@@ -172,6 +172,9 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
     }
 
     if (dataType.equals(DataType.FLOAT)) {
+      // The JSON deserializer does not distinguish between float and double values; all JSON
+      // numbers with a decimal point are deserialized as double. Therefore, we check for isDouble()
+      // here even for FLOAT columns.
       if (!value.isDouble()) {
         throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
       }
@@ -193,6 +196,8 @@ public class PutToMutableDatabase extends JacksonBasedFunction {
     }
 
     if (dataType.equals(DataType.BLOB)) {
+      // BLOB data is expected as a Base64-encoded string due to JSON limitations. JSON cannot
+      // represent binary data directly, so BLOBs must be provided as Base64-encoded strings.
       if (!value.isTextual()) {
         throw new ContractContextException(Constants.INVALID_PUT_MUTABLE_FUNCTION_ARGUMENT_FORMAT);
       }
