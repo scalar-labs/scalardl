@@ -23,7 +23,7 @@ subprojects {
     project.version = projectVersion
 
     ext {
-        grpcVersion = '1.74.0' // keep using 1.74.0 since 1.75.0 is unstable in our environments
+        grpcVersion = '1.76.0' // keep using 1.74.0 since 1.75.0 is unstable in our environments
         protocVersion = '3.25.8'
         picoCliVersion = '4.7.7'
         guiceVersion = '5.1.0'
