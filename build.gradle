@@ -23,7 +23,7 @@ subprojects {
     project.version = projectVersion
 
     ext {
-        grpcVersion = '1.74.0'
+        grpcVersion = '1.76.0'
         protocVersion = '3.25.8'
         picoCliVersion = '4.7.7'
         guiceVersion = '5.1.0'
