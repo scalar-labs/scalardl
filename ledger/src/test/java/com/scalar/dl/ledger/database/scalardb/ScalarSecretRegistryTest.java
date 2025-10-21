@@ -22,6 +22,7 @@ import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.crypto.Cipher;
 import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.MissingSecretException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,18 +154,17 @@ public class ScalarSecretRegistryTest {
   }
 
   @Test
-  public void lookup_ValidArgumentGivenButEmptyResultReturned_ShouldReturnNull()
+  public void lookup_ValidArgumentGivenButEmptyResultReturned_ShouldThrowMissingSecretException()
       throws ExecutionException {
     // Arrange
     SecretEntry.Key key = new SecretEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION);
     when(storage.get(any(Get.class))).thenReturn(Optional.empty());
 
     // Act Assert
-    SecretEntry actual = registry.lookup(key);
+    assertThatThrownBy(() -> registry.lookup(key)).isInstanceOf(MissingSecretException.class);
 
     // Assert
     verify(storage).get(any(Get.class));
-    assertThat(actual).isNull();
   }
 
   @Test

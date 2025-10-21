@@ -17,10 +17,10 @@ import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.database.SecretRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.MissingSecretException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
@@ -72,7 +72,6 @@ public class ScalarSecretRegistry implements SecretRegistry {
   }
 
   @Override
-  @Nullable
   public SecretEntry lookup(SecretEntry.Key key) {
     Get get =
         new Get(
@@ -81,11 +80,17 @@ public class ScalarSecretRegistry implements SecretRegistry {
             .withConsistency(Consistency.SEQUENTIAL)
             .forTable(TABLE);
 
+    Result result;
     try {
-      return storage.get(get).map(this::toSecretEntry).orElse(null);
+      result =
+          storage
+              .get(get)
+              .orElseThrow(() -> new MissingSecretException(CommonError.SECRET_NOT_FOUND));
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.GETTING_SECRET_KEY_FAILED, e, e.getMessage());
     }
+
+    return toSecretEntry(result);
   }
 
   private SecretEntry toSecretEntry(Result result) {
