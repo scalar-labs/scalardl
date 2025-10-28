@@ -45,7 +45,7 @@ jobs:
         for x in ./*/build/reports/tests; do cp -a --parents $x ./artifacts/${x%%/*}; done
         zip -r artifacts.zip artifacts
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v5
       if: always()
       with:
         name: artifacts
