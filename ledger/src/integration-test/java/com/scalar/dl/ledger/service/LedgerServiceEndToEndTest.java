@@ -89,6 +89,7 @@ import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.MissingContractException;
+import com.scalar.dl.ledger.exception.MissingSecretException;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
@@ -2384,7 +2385,7 @@ public class LedgerServiceEndToEndTest {
   }
 
   @Test
-  public void execute_HmacConfiguredAndInvalidHmacSignatureGiven_ShouldExecuteProperly() {
+  public void execute_HmacConfiguredAndInvalidHmacSignatureGiven_ShouldThrowSignatureException() {
     // Arrange
     Properties props2 = createProperties();
     props2.put(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
@@ -2417,6 +2418,43 @@ public class LedgerServiceEndToEndTest {
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(SignatureException.class);
+  }
+
+  @Test
+  public void
+      execute_HmacConfiguredAndValidDigitalSignatureGiven_ShouldThrowMissingSecretException() {
+    // Arrange
+    Properties props2 = createProperties();
+    props2.put(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
+    props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
+    createServices(new LedgerConfig(props2));
+    String nonce = UUID.randomUUID().toString();
+    JsonNode contractArgument =
+        mapper
+            .createObjectNode()
+            .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+            .put(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1);
+    String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
+
+    byte[] serialized =
+        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID1, argument, ENTITY_ID_A, KEY_VERSION);
+    ContractExecutionRequest request =
+        new ContractExecutionRequest(
+            nonce,
+            ENTITY_ID_A,
+            KEY_VERSION,
+            CREATE_CONTRACT_ID1,
+            argument,
+            Collections.emptyList(),
+            null,
+            dsSigner1.sign(serialized),
+            null);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(MissingSecretException.class);
   }
 
   @Test
