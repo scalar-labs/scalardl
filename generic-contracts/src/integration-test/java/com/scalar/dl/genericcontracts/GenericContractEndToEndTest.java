@@ -485,14 +485,6 @@ public class GenericContractEndToEndTest {
     return jsonColumn;
   }
 
-  private JsonNode createColumn(String columnName, DataType dataType, String value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, columnName)
-        .put(VALUE, value)
-        .put(DATA_TYPE, dataType.name());
-  }
-
   private JsonNode createNullColumn(String columnName, DataType dataType) {
     return mapper
         .createObjectNode()
