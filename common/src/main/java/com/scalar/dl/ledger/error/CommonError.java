@@ -215,6 +215,12 @@ public enum CommonError implements ScalarDlError {
       ""),
 
   //
+  // Errors for SECRET_NOT_FOUND(415)
+  //
+  SECRET_NOT_FOUND(
+      StatusCode.SECRET_NOT_FOUND, "001", "The specified secret is not found.", "", ""),
+
+  //
   // Errors for DATABASE_ERROR(500)
   //
   BINDING_CERTIFICATE_FAILED(
