@@ -715,7 +715,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .build();
 
     // Act
-    clientService.executeContract(CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments);
+    clientService.executeContract(
+        ID_OBJECT_PUT, contractArguments, ID_OBJECT_PUT_MUTABLE, functionArguments);
 
     // Assert
     try (Scanner scanner = storage.scan(scan)) {
