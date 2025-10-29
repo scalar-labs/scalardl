@@ -46,7 +46,8 @@ public class PutToMutableDatabaseTest {
   private static final String SOME_DOUBLE_COLUMN_NAME = "double_column";
   private static final double SOME_DOUBLE_COLUMN_VALUE = 1.23;
   private static final String SOME_BLOB_COLUMN_NAME = "blob_column";
-  private static final byte[] SOME_BLOB_COLUMN_VALUE = {10, 20, 30};
+  private static final byte[] SOME_BLOB_COLUMN_VALUE = {1, 2, 3, 4, 5};
+  private static final String SOME_BLOB_COLUMN_TEXT = "AQIDBAU="; // Base64 of {1, 2, 3, 4, 5}
   private static final JsonNode SOME_TEXT_COLUMN1 =
       mapper
           .createObjectNode()
@@ -81,7 +82,10 @@ public class PutToMutableDatabaseTest {
       mapper
           .createObjectNode()
           .put(Constants.COLUMN_NAME, SOME_FLOAT_COLUMN_NAME)
-          .put(Constants.VALUE, SOME_FLOAT_COLUMN_VALUE)
+          .put(
+              Constants.VALUE,
+              Double.valueOf(
+                  SOME_FLOAT_COLUMN_VALUE)) // float is always converted to double in function args
           .put(Constants.DATA_TYPE, "FLOAT");
   private static final JsonNode SOME_DOUBLE_COLUMN =
       mapper
@@ -93,7 +97,7 @@ public class PutToMutableDatabaseTest {
       mapper
           .createObjectNode()
           .put(Constants.COLUMN_NAME, SOME_BLOB_COLUMN_NAME)
-          .put(Constants.VALUE, SOME_BLOB_COLUMN_VALUE)
+          .put(Constants.VALUE, SOME_BLOB_COLUMN_TEXT)
           .put(Constants.DATA_TYPE, "BLOB");
   private static final JsonNode SOME_NULL_COLUMN =
       mapper
@@ -481,9 +485,9 @@ public class PutToMutableDatabaseTest {
             mapper
                 .createObjectNode()
                 .put(Constants.COLUMN_NAME, SOME_FLOAT_COLUMN_NAME)
-                .put(Constants.VALUE, SOME_DOUBLE_COLUMN_VALUE)
+                .put(Constants.VALUE, SOME_INT_COLUMN_VALUE)
                 .put(Constants.DATA_TYPE, "FLOAT"),
-            "DOUBLE value with FLOAT data type")
+            "INT value with FLOAT data type")
         .put(
             mapper
                 .createObjectNode()
@@ -495,16 +499,16 @@ public class PutToMutableDatabaseTest {
             mapper
                 .createObjectNode()
                 .put(Constants.COLUMN_NAME, SOME_TEXT_COLUMN1_NAME)
-                .put(Constants.VALUE, SOME_BLOB_COLUMN_VALUE)
+                .put(Constants.VALUE, SOME_INT_COLUMN_VALUE)
                 .put(Constants.DATA_TYPE, "TEXT"),
-            "BLOB value with TEXT data type")
+            "INT value with TEXT data type")
         .put(
             mapper
                 .createObjectNode()
                 .put(Constants.COLUMN_NAME, SOME_BLOB_COLUMN_NAME)
-                .put(Constants.VALUE, SOME_TEXT_COLUMN1_VALUE)
+                .put(Constants.VALUE, SOME_BLOB_COLUMN_VALUE)
                 .put(Constants.DATA_TYPE, "BLOB"),
-            "TEXT value with BLOB data type");
+            "BLOB value with BLOB data type");
 
     // Act Assert
     builder

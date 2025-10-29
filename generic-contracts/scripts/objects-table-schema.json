@@ -11,9 +11,14 @@
       "object_id": "TEXT",
       "version": "TEXT",
       "status": "INT",
-      "registered_at": "BIGINT"
+      "registered_at": "BIGINT",
+      "column_boolean": "BOOLEAN",
+      "column_bigint": "BIGINT",
+      "column_float": "FLOAT",
+      "column_double": "DOUBLE",
+      "column_text": "TEXT",
+      "column_blob": "BLOB"
     },
     "compaction-strategy": "LCS"
   }
 }
-
