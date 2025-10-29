@@ -13,6 +13,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.scalar.dl.ledger.database.SecretRegistry;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.MissingSecretException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -43,7 +44,8 @@ public class SecretManagerTest {
   @Test
   public void register_ProperSecretEntryGiven_ShouldCallBind() {
     // Arrange
-    when(registry.lookup(entry.getKey())).thenReturn(null);
+    MissingSecretException toThrow = mock(MissingSecretException.class);
+    when(registry.lookup(entry.getKey())).thenThrow(toThrow);
 
     // Act
     manager.register(entry);
