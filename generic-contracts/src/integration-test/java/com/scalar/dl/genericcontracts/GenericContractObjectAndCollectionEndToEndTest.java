@@ -61,7 +61,16 @@ import com.scalar.db.api.Scanner;
 import com.scalar.db.api.TransactionState;
 import com.scalar.db.common.error.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.io.BigIntColumn;
+import com.scalar.db.io.BlobColumn;
+import com.scalar.db.io.BooleanColumn;
+import com.scalar.db.io.Column;
+import com.scalar.db.io.DataType;
+import com.scalar.db.io.DoubleColumn;
+import com.scalar.db.io.FloatColumn;
+import com.scalar.db.io.IntColumn;
 import com.scalar.db.io.Key;
+import com.scalar.db.io.TextColumn;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.GenericContractClientService;
 import com.scalar.dl.genericcontracts.object.Constants;
@@ -71,7 +80,11 @@ import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -87,9 +100,6 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String ASSET_ID = "id";
   private static final String ASSET_AGE = "age";
   private static final String ASSET_OUTPUT = "output";
-  private static final String DATA_TYPE_INT = "INT";
-  private static final String DATA_TYPE_TIMESTAMP = "TIMESTAMP";
-  private static final String DATA_TYPE_TEXT = "TEXT";
 
   private static final String PACKAGE_OBJECT = "object";
   private static final String PACKAGE_COLLECTION = "collection";
@@ -136,8 +146,29 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
+  private static final String SOME_COLUMN_NAME_BOOLEAN = "column_boolean";
+  private static final String SOME_COLUMN_NAME_BIGINT = "column_bigint";
+  private static final String SOME_COLUMN_NAME_FLOAT = "column_float";
+  private static final String SOME_COLUMN_NAME_DOUBLE = "column_double";
+  private static final String SOME_COLUMN_NAME_TEXT = "column_text";
+  private static final String SOME_COLUMN_NAME_BLOB = "column_blob";
+  private static final String SOME_COLUMN_NAME_DATE = "column_date";
+  private static final String SOME_COLUMN_NAME_TIME = "column_time";
+  private static final String SOME_COLUMN_NAME_TIMESTAMPTZ = "column_timestamptz";
+  private static final String SOME_DATE_TEXT = "2021-02-03";
+  private static final String SOME_TIME_TEXT = "05:45:00";
   private static final String SOME_TIMESTAMP_TEXT = "2021-02-03 05:45:00";
+  private static final String SOME_TIMESTAMPTZ_TEXT = "2021-02-03 05:45:00.000 Z";
+  private static final boolean SOME_BOOLEAN_VALUE = false;
+  private static final long SOME_BIGINT_VALUE = BigIntColumn.MAX_VALUE;
+  private static final float SOME_FLOAT_VALUE = Float.MAX_VALUE;
+  private static final double SOME_DOUBLE_VALUE = Double.MAX_VALUE;
+  private static final byte[] SOME_BLOB_VALUE = {1, 2, 3, 4, 5};
+  private static final LocalDate SOME_DATE_VALUE = LocalDate.of(2021, 2, 3);
+  private static final LocalTime SOME_TIME_VALUE = LocalTime.of(5, 45);
   private static final LocalDateTime SOME_TIMESTAMP_VALUE = LocalDateTime.of(2021, 2, 3, 5, 45);
+  private static final Instant SOME_TIMESTAMPTZ_VALUE =
+      SOME_TIMESTAMP_VALUE.atZone(ZoneId.of("UTC")).toInstant();
   private static final String SOME_COLLECTION_ID = "set";
   private static final ArrayNode SOME_DEFAULT_OBJECT_IDS =
       mapper.createArrayNode().add("object1").add("object2").add("object3").add("object4");
@@ -233,41 +264,96 @@ public class GenericContractObjectAndCollectionEndToEndTest
     prepareCollection(clientService);
   }
 
-  private JsonNode createColumn(String name, int value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_INT);
-  }
-
-  private JsonNode createColumn(String name, String value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_TEXT);
-  }
-
-  private JsonNode createTimestampColumn(String name, String value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_TIMESTAMP);
-  }
-
-  private JsonNode createFunctionArguments(
-      String objectId, String version, int status, long registeredAt) {
-    ArrayNode partitionKey =
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, objectId));
-    ArrayNode clusteringKey =
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_2, version));
-    ArrayNode columns =
+  private JsonNode createColumn(Column<?> column) {
+    ObjectNode jsonColumn =
         mapper
-            .createArrayNode()
-            .add(createColumn(SOME_COLUMN_NAME_3, status))
-            .add(createTimestampColumn(SOME_COLUMN_NAME_4, SOME_TIMESTAMP_TEXT));
+            .createObjectNode()
+            .put(COLUMN_NAME, column.getName())
+            .put(DATA_TYPE, column.getDataType().name());
+
+    switch (column.getDataType()) {
+      case BOOLEAN:
+        jsonColumn.put(VALUE, column.getBooleanValue());
+        break;
+      case INT:
+        jsonColumn.put(VALUE, column.getIntValue());
+        break;
+      case BIGINT:
+        jsonColumn.put(VALUE, column.getBigIntValue());
+        break;
+      case FLOAT:
+        jsonColumn.put(VALUE, column.getFloatValue());
+        break;
+      case DOUBLE:
+        jsonColumn.put(VALUE, column.getDoubleValue());
+        break;
+      case TEXT:
+        jsonColumn.put(VALUE, column.getTextValue());
+        break;
+      case BLOB:
+        jsonColumn.put(VALUE, column.getBlobValueAsBytes());
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid data type: " + column.getDataType());
+    }
+
+    return jsonColumn;
+  }
+
+  private JsonNode createColumn(String columnName, DataType dataType, String value) {
+    return mapper
+        .createObjectNode()
+        .put(COLUMN_NAME, columnName)
+        .put(VALUE, value)
+        .put(DATA_TYPE, dataType.name());
+  }
+
+  private JsonNode createNullColumn(String columnName, DataType dataType) {
+    return mapper
+        .createObjectNode()
+        .put(COLUMN_NAME, columnName)
+        .put(DATA_TYPE, dataType.name())
+        .set(VALUE, null);
+  }
+
+  private ArrayNode createColumns(int status) {
+    return mapper
+        .createArrayNode()
+        .add(createColumn(IntColumn.of(SOME_COLUMN_NAME_3, status)))
+        .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP, SOME_TIMESTAMP_TEXT))
+        .add(createColumn(BooleanColumn.of(SOME_COLUMN_NAME_BOOLEAN, SOME_BOOLEAN_VALUE)))
+        .add(createColumn(BigIntColumn.of(SOME_COLUMN_NAME_BIGINT, SOME_BIGINT_VALUE)))
+        .add(createColumn(FloatColumn.of(SOME_COLUMN_NAME_FLOAT, SOME_FLOAT_VALUE)))
+        .add(createColumn(DoubleColumn.of(SOME_COLUMN_NAME_DOUBLE, SOME_DOUBLE_VALUE)))
+        .add(createColumn(BlobColumn.of(SOME_COLUMN_NAME_BLOB, SOME_BLOB_VALUE)))
+        .add(createColumn(SOME_COLUMN_NAME_DATE, DataType.DATE, SOME_DATE_TEXT))
+        .add(createColumn(SOME_COLUMN_NAME_TIME, DataType.TIME, SOME_TIME_TEXT))
+        .add(
+            createColumn(
+                SOME_COLUMN_NAME_TIMESTAMPTZ, DataType.TIMESTAMPTZ, SOME_TIMESTAMPTZ_TEXT));
+  }
+
+  private ArrayNode createNullColumns() {
+    return mapper
+        .createArrayNode()
+        .add(createNullColumn(SOME_COLUMN_NAME_3, DataType.INT))
+        .add(createNullColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP))
+        .add(createNullColumn(SOME_COLUMN_NAME_BOOLEAN, DataType.BOOLEAN))
+        .add(createNullColumn(SOME_COLUMN_NAME_BIGINT, DataType.BIGINT))
+        .add(createNullColumn(SOME_COLUMN_NAME_FLOAT, DataType.FLOAT))
+        .add(createNullColumn(SOME_COLUMN_NAME_DOUBLE, DataType.DOUBLE))
+        .add(createNullColumn(SOME_COLUMN_NAME_TEXT, DataType.TEXT))
+        .add(createNullColumn(SOME_COLUMN_NAME_BLOB, DataType.BLOB))
+        .add(createNullColumn(SOME_COLUMN_NAME_DATE, DataType.DATE))
+        .add(createNullColumn(SOME_COLUMN_NAME_TIME, DataType.TIME))
+        .add(createNullColumn(SOME_COLUMN_NAME_TIMESTAMPTZ, DataType.TIMESTAMPTZ));
+  }
+
+  private ObjectNode createFunctionArguments(String objectId, String version, ArrayNode columns) {
+    ArrayNode partitionKey =
+        mapper.createArrayNode().add(createColumn(TextColumn.of(SOME_COLUMN_NAME_1, objectId)));
+    ArrayNode clusteringKey =
+        mapper.createArrayNode().add(createColumn(TextColumn.of(SOME_COLUMN_NAME_2, version)));
 
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put(NAMESPACE, getFunctionNamespace());
@@ -277,6 +363,14 @@ public class GenericContractObjectAndCollectionEndToEndTest
     arguments.set(COLUMNS, columns);
 
     return arguments;
+  }
+
+  private ObjectNode createFunctionArguments(String objectId, String version, int status) {
+    return createFunctionArguments(objectId, version, createColumns(status));
+  }
+
+  private ObjectNode createFunctionArgumentsWithNullColumns(String objectId, String version) {
+    return createFunctionArguments(objectId, version, createNullColumns());
   }
 
   private void addObjectsToCollection(
@@ -550,9 +644,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(OBJECT_ID, SOME_OBJECT_ID)
             .put(HASH_VALUE, SOME_HASH_VALUE_1)
             .set(METADATA, SOME_METADATA_1);
-    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0, 1L);
-    JsonNode functionArguments1 =
-        createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_1, 1, 1234567890123L);
+    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0);
+    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_1, 1);
     Scan scan =
         Scan.newBuilder()
             .namespace(getFunctionNamespace())
@@ -575,10 +668,72 @@ public class GenericContractObjectAndCollectionEndToEndTest
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
       assertThat(results.get(0).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(0).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
+      assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(0).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
+      assertThat(results.get(0).getDouble(SOME_COLUMN_NAME_DOUBLE)).isEqualTo(SOME_DOUBLE_VALUE);
+      assertThat(results.get(0).getBlobAsBytes(SOME_COLUMN_NAME_BLOB)).isEqualTo(SOME_BLOB_VALUE);
+      assertThat(results.get(0).getDate(SOME_COLUMN_NAME_DATE)).isEqualTo(SOME_DATE_VALUE);
+      assertThat(results.get(0).getTime(SOME_COLUMN_NAME_TIME)).isEqualTo(SOME_TIME_VALUE);
+      assertThat(results.get(0).getTimestampTZ(SOME_COLUMN_NAME_TIMESTAMPTZ))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
       assertThat(results.get(1).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(1).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
+      assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(1).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
+      assertThat(results.get(1).getDouble(SOME_COLUMN_NAME_DOUBLE)).isEqualTo(SOME_DOUBLE_VALUE);
+      assertThat(results.get(1).getBlobAsBytes(SOME_COLUMN_NAME_BLOB)).isEqualTo(SOME_BLOB_VALUE);
+      assertThat(results.get(1).getDate(SOME_COLUMN_NAME_DATE)).isEqualTo(SOME_DATE_VALUE);
+      assertThat(results.get(1).getTime(SOME_COLUMN_NAME_TIME)).isEqualTo(SOME_TIME_VALUE);
+      assertThat(results.get(1).getTimestampTZ(SOME_COLUMN_NAME_TIMESTAMPTZ))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void putObject_FunctionArgumentsWithNullColumnsGiven_ShouldPutRecordToFunctionTable()
+      throws ExecutionException {
+    // Arrange
+    JsonNode contractArguments =
+        mapper
+            .createObjectNode()
+            .put(OBJECT_ID, SOME_OBJECT_ID)
+            .put(HASH_VALUE, SOME_HASH_VALUE_0)
+            .set(METADATA, SOME_METADATA_0);
+    JsonNode functionArguments =
+        createFunctionArgumentsWithNullColumns(SOME_OBJECT_ID, SOME_VERSION_ID_0);
+    Scan scan =
+        Scan.newBuilder()
+            .namespace(getFunctionNamespace())
+            .table(getFunctionTable())
+            .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))
+            .build();
+
+    // Act
+    clientService.executeContract(CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments);
+
+    // Assert
+    try (Scanner scanner = storage.scan(scan)) {
+      List<Result> results = scanner.all();
+      assertThat(results).hasSize(1);
+      assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
+      assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_3)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_4)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BOOLEAN)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BIGINT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_FLOAT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_DOUBLE)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_TEXT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BLOB)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_DATE)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_TIME)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_TIMESTAMPTZ)).isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -601,7 +756,9 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(TABLE, "foo")
             .set(
                 PARTITION_KEY,
-                mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, SOME_OBJECT_ID)));
+                mapper
+                    .createArrayNode()
+                    .add(createColumn(TextColumn.of(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))));
 
     // Act Assert
     assertThatThrownBy(
@@ -633,8 +790,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(OBJECT_ID, SOME_OBJECT_ID)
             .put(HASH_VALUE, SOME_HASH_VALUE_1)
             .set(METADATA, SOME_METADATA_1);
-    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0, 1L);
-    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 1, 1L);
+    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0);
+    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 1);
     Put put =
         Put.newBuilder()
             .namespace(getFunctionNamespace())
@@ -677,16 +834,20 @@ public class GenericContractObjectAndCollectionEndToEndTest
             .put(TABLE, getFunctionTable());
     functionArguments.set(
         PARTITION_KEY,
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, SOME_OBJECT_ID)));
+        mapper
+            .createArrayNode()
+            .add(createColumn(TextColumn.of(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))));
     functionArguments.set(
         CLUSTERING_KEY,
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_2, SOME_VERSION_ID_0)));
+        mapper
+            .createArrayNode()
+            .add(createColumn(TextColumn.of(SOME_COLUMN_NAME_2, SOME_VERSION_ID_0))));
     functionArguments.set(
         COLUMNS,
         mapper
             .createArrayNode()
-            .add(createColumn(SOME_COLUMN_NAME_3, 0))
-            .add(createTimestampColumn(SOME_COLUMN_NAME_4, "2024-05-19")));
+            .add(createColumn(IntColumn.of(SOME_COLUMN_NAME_3, 0)))
+            .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP, "2024-05-19")));
 
     // Act Assert
     assertThatThrownBy(
