@@ -66,7 +66,16 @@ import com.scalar.db.api.TransactionState;
 import com.scalar.db.common.error.CoreError;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.io.BigIntColumn;
+import com.scalar.db.io.BlobColumn;
+import com.scalar.db.io.BooleanColumn;
+import com.scalar.db.io.Column;
+import com.scalar.db.io.DataType;
+import com.scalar.db.io.DoubleColumn;
+import com.scalar.db.io.FloatColumn;
+import com.scalar.db.io.IntColumn;
 import com.scalar.db.io.Key;
+import com.scalar.db.io.TextColumn;
 import com.scalar.db.schemaloader.SchemaLoader;
 import com.scalar.db.schemaloader.SchemaLoaderException;
 import com.scalar.db.service.StorageFactory;
@@ -115,9 +124,6 @@ public class GenericContractEndToEndTest {
   private static final String ASSET_ID = "id";
   private static final String ASSET_AGE = "age";
   private static final String ASSET_OUTPUT = "output";
-  private static final String DATA_TYPE_INT = "INT";
-  private static final String DATA_TYPE_BIGINT = "BIGINT";
-  private static final String DATA_TYPE_TEXT = "TEXT";
 
   private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
   private static final String PROP_STORAGE = "scalardb.storage";
@@ -241,6 +247,17 @@ public class GenericContractEndToEndTest {
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
+  private static final String SOME_COLUMN_NAME_BOOLEAN = "column_boolean";
+  private static final String SOME_COLUMN_NAME_BIGINT = "column_bigint";
+  private static final String SOME_COLUMN_NAME_FLOAT = "column_float";
+  private static final String SOME_COLUMN_NAME_DOUBLE = "column_double";
+  private static final String SOME_COLUMN_NAME_TEXT = "column_text";
+  private static final String SOME_COLUMN_NAME_BLOB = "column_blob";
+  private static final boolean SOME_BOOLEAN_VALUE = false;
+  private static final long SOME_BIGINT_VALUE = BigIntColumn.MAX_VALUE;
+  private static final float SOME_FLOAT_VALUE = Float.MAX_VALUE;
+  private static final double SOME_DOUBLE_VALUE = Double.MAX_VALUE;
+  private static final byte[] SOME_BLOB_VALUE = {1, 2, 3, 4, 5};
   private static final String SOME_COLLECTION_ID = "set";
   private static final ArrayNode SOME_DEFAULT_OBJECT_IDS =
       mapper.createArrayNode().add("object1").add("object2").add("object3").add("object4");
@@ -432,41 +449,80 @@ public class GenericContractEndToEndTest {
     prepareCollection(clientService);
   }
 
-  private JsonNode createColumn(String name, int value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_INT);
-  }
-
-  private JsonNode createColumn(String name, long value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_BIGINT);
-  }
-
-  private JsonNode createColumn(String name, String value) {
-    return mapper
-        .createObjectNode()
-        .put(COLUMN_NAME, name)
-        .put(VALUE, value)
-        .put(DATA_TYPE, DATA_TYPE_TEXT);
-  }
-
-  private JsonNode createFunctionArguments(
-      String objectId, String version, int status, long registeredAt) {
-    ArrayNode partitionKey =
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, objectId));
-    ArrayNode clusteringKey =
-        mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_2, version));
-    ArrayNode columns =
+  private JsonNode createColumn(Column<?> column) {
+    ObjectNode jsonColumn =
         mapper
-            .createArrayNode()
-            .add(createColumn(SOME_COLUMN_NAME_3, status))
-            .add(createColumn(SOME_COLUMN_NAME_4, registeredAt));
+            .createObjectNode()
+            .put(COLUMN_NAME, column.getName())
+            .put(DATA_TYPE, column.getDataType().name());
+
+    switch (column.getDataType()) {
+      case BOOLEAN:
+        jsonColumn.put(VALUE, column.getBooleanValue());
+        break;
+      case INT:
+        jsonColumn.put(VALUE, column.getIntValue());
+        break;
+      case BIGINT:
+        jsonColumn.put(VALUE, column.getBigIntValue());
+        break;
+      case FLOAT:
+        jsonColumn.put(VALUE, column.getFloatValue());
+        break;
+      case DOUBLE:
+        jsonColumn.put(VALUE, column.getDoubleValue());
+        break;
+      case TEXT:
+        jsonColumn.put(VALUE, column.getTextValue());
+        break;
+      case BLOB:
+        jsonColumn.put(VALUE, column.getBlobValueAsBytes());
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid data type: " + column.getDataType());
+    }
+
+    return jsonColumn;
+  }
+
+  private JsonNode createNullColumn(String columnName, DataType dataType) {
+    return mapper
+        .createObjectNode()
+        .put(COLUMN_NAME, columnName)
+        .put(DATA_TYPE, dataType.name())
+        .set(VALUE, null);
+  }
+
+  private ArrayNode createColumns(int status) {
+    return mapper
+        .createArrayNode()
+        .add(createColumn(IntColumn.of(SOME_COLUMN_NAME_3, status)))
+        .add(createColumn(BigIntColumn.of(SOME_COLUMN_NAME_4, SOME_BIGINT_VALUE)))
+        .add(createColumn(BooleanColumn.of(SOME_COLUMN_NAME_BOOLEAN, SOME_BOOLEAN_VALUE)))
+        .add(createColumn(BigIntColumn.of(SOME_COLUMN_NAME_BIGINT, SOME_BIGINT_VALUE)))
+        .add(createColumn(FloatColumn.of(SOME_COLUMN_NAME_FLOAT, SOME_FLOAT_VALUE)))
+        .add(createColumn(DoubleColumn.of(SOME_COLUMN_NAME_DOUBLE, SOME_DOUBLE_VALUE)))
+        .add(createColumn(BlobColumn.of(SOME_COLUMN_NAME_BLOB, SOME_BLOB_VALUE)));
+  }
+
+  private ArrayNode createNullColumns() {
+    return mapper
+        .createArrayNode()
+        .add(createNullColumn(SOME_COLUMN_NAME_3, DataType.INT))
+        .add(createNullColumn(SOME_COLUMN_NAME_4, DataType.BIGINT))
+        .add(createNullColumn(SOME_COLUMN_NAME_BOOLEAN, DataType.BOOLEAN))
+        .add(createNullColumn(SOME_COLUMN_NAME_BIGINT, DataType.BIGINT))
+        .add(createNullColumn(SOME_COLUMN_NAME_FLOAT, DataType.FLOAT))
+        .add(createNullColumn(SOME_COLUMN_NAME_DOUBLE, DataType.DOUBLE))
+        .add(createNullColumn(SOME_COLUMN_NAME_TEXT, DataType.TEXT))
+        .add(createNullColumn(SOME_COLUMN_NAME_BLOB, DataType.BLOB));
+  }
+
+  private ObjectNode createFunctionArguments(String objectId, String version, ArrayNode columns) {
+    ArrayNode partitionKey =
+        mapper.createArrayNode().add(createColumn(TextColumn.of(SOME_COLUMN_NAME_1, objectId)));
+    ArrayNode clusteringKey =
+        mapper.createArrayNode().add(createColumn(TextColumn.of(SOME_COLUMN_NAME_2, version)));
 
     ObjectNode arguments = mapper.createObjectNode();
     arguments.put(NAMESPACE, SOME_FUNCTION_NAMESPACE);
@@ -476,6 +532,14 @@ public class GenericContractEndToEndTest {
     arguments.set(COLUMNS, columns);
 
     return arguments;
+  }
+
+  private ObjectNode createFunctionArguments(String objectId, String version, int status) {
+    return createFunctionArguments(objectId, version, createColumns(status));
+  }
+
+  private ObjectNode createFunctionArgumentsWithNullColumns(String objectId, String version) {
+    return createFunctionArguments(objectId, version, createNullColumns());
   }
 
   private void addObjectsToCollection(
@@ -749,9 +813,8 @@ public class GenericContractEndToEndTest {
             .put(OBJECT_ID, SOME_OBJECT_ID)
             .put(HASH_VALUE, SOME_HASH_VALUE_1)
             .set(METADATA, SOME_METADATA_1);
-    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0, 1L);
-    JsonNode functionArguments1 =
-        createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_1, 1, 1234567890123L);
+    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0);
+    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_1, 1);
     Scan scan =
         Scan.newBuilder()
             .namespace(SOME_FUNCTION_NAMESPACE)
@@ -773,11 +836,63 @@ public class GenericContractEndToEndTest {
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
-      assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(1L);
+      assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(0).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
+      assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(0).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
+      assertThat(results.get(0).getDouble(SOME_COLUMN_NAME_DOUBLE)).isEqualTo(SOME_DOUBLE_VALUE);
+      assertThat(results.get(0).getBlobAsBytes(SOME_COLUMN_NAME_BLOB)).isEqualTo(SOME_BLOB_VALUE);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
-      assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(1234567890123L);
+      assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_4)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(1).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
+      assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
+      assertThat(results.get(1).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
+      assertThat(results.get(1).getDouble(SOME_COLUMN_NAME_DOUBLE)).isEqualTo(SOME_DOUBLE_VALUE);
+      assertThat(results.get(1).getBlobAsBytes(SOME_COLUMN_NAME_BLOB)).isEqualTo(SOME_BLOB_VALUE);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void putObject_FunctionArgumentsWithNullColumnsGiven_ShouldPutRecordToFunctionTable()
+      throws ExecutionException {
+    // Arrange
+    JsonNode contractArguments =
+        mapper
+            .createObjectNode()
+            .put(OBJECT_ID, SOME_OBJECT_ID)
+            .put(HASH_VALUE, SOME_HASH_VALUE_0)
+            .set(METADATA, SOME_METADATA_0);
+    JsonNode functionArguments =
+        createFunctionArgumentsWithNullColumns(SOME_OBJECT_ID, SOME_VERSION_ID_0);
+    Scan scan =
+        Scan.newBuilder()
+            .namespace(SOME_FUNCTION_NAMESPACE)
+            .table(SOME_FUNCTION_TABLE)
+            .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))
+            .build();
+
+    // Act
+    clientService.executeContract(
+        ID_OBJECT_PUT, contractArguments, ID_OBJECT_PUT_MUTABLE, functionArguments);
+
+    // Assert
+    try (Scanner scanner = storage.scan(scan)) {
+      List<Result> results = scanner.all();
+      assertThat(results).hasSize(1);
+      assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
+      assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_3)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_4)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BOOLEAN)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BIGINT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_FLOAT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_DOUBLE)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_TEXT)).isTrue();
+      assertThat(results.get(0).isNull(SOME_COLUMN_NAME_BLOB)).isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -800,7 +915,9 @@ public class GenericContractEndToEndTest {
             .put(TABLE, "foo")
             .set(
                 PARTITION_KEY,
-                mapper.createArrayNode().add(createColumn(SOME_COLUMN_NAME_1, SOME_OBJECT_ID)));
+                mapper
+                    .createArrayNode()
+                    .add(createColumn(TextColumn.of(SOME_COLUMN_NAME_1, SOME_OBJECT_ID))));
 
     // Act Assert
     assertThatThrownBy(
@@ -832,8 +949,8 @@ public class GenericContractEndToEndTest {
             .put(OBJECT_ID, SOME_OBJECT_ID)
             .put(HASH_VALUE, SOME_HASH_VALUE_1)
             .set(METADATA, SOME_METADATA_1);
-    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0, 1L);
-    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 1, 1L);
+    JsonNode functionArguments0 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 0);
+    JsonNode functionArguments1 = createFunctionArguments(SOME_OBJECT_ID, SOME_VERSION_ID_0, 1);
     Put put =
         Put.newBuilder()
             .namespace(SOME_FUNCTION_NAMESPACE)
