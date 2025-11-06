@@ -1,6 +1,6 @@
 plugins {
     id("com.diffplug.spotless") version "6.13.0"
-    id("org.jreleaser") version "1.20.0"
+    id("org.jreleaser") version "1.21.0"
 }
 
 ext {
@@ -31,7 +31,7 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.25.2'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.20.0'
+        jacksonVersion = '2.20.1'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.16.1'
         scalarAdminVersion = '2.2.1'
@@ -40,8 +40,8 @@ subprojects {
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.58.v20250814'
         assertjVersion = '3.27.6'
-        junitVersion = '5.14.0'
-        junitPlatformVersion = '1.14.0'
+        junitVersion = '5.14.1'
+        junitPlatformVersion = '1.14.1'
         mockitoVersion = '4.11.0'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
