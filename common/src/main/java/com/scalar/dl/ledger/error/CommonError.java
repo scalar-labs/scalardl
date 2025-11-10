@@ -223,7 +223,7 @@ public enum CommonError implements ScalarDlError {
       StatusCode.SECRET_NOT_FOUND, "001", "The specified secret is not found.", "", ""),
 
   //
-  // Errors for SECRET_ALREADY_REGISTERED(416)
+  // Errors for NAMESPACE_ALREADY_EXISTS(416)
   //
   NAMESPACE_ALREADY_EXISTS(
       StatusCode.NAMESPACE_ALREADY_EXISTS,

@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
  * <p>A {@code NamespaceManager} manages namespaces in a {@link NamespaceRegistry}.
  */
 public class NamespaceManager {
-  public static final Pattern NAMESPACE_NAME_PATTERN = Pattern.compile("[a-zA-Z][A-Za-z0-9_]*");
+  public static final Pattern NAMESPACE_NAME_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]*");
   private final NamespaceRegistry registry;
 
   /**
@@ -37,8 +37,7 @@ public class NamespaceManager {
    */
   public void create(@Nonnull String namespace) {
     if (!isValidNamespaceName(namespace)) {
-      throw new LedgerException(
-          CommonError.INVALID_NAMESPACE_NAME, new IllegalArgumentException(), namespace);
+      throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
     }
     registry.create(namespace);
   }

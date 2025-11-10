@@ -20,14 +20,13 @@ import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
-import com.scalar.db.api.Result;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.exception.storage.NoMutationException;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +107,6 @@ public class LedgerNamespaceRegistryTest {
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
-    verify(storage).get(expectedGet);
     verify(storage).put(expectedPut);
   }
 
@@ -116,15 +114,15 @@ public class LedgerNamespaceRegistryTest {
   public void create_ExistingNamespaceGiven_ShouldThrowException() throws ExecutionException {
     // Arrange
     String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
-    Result result = Mockito.mock(Result.class);
-    when(storage.get(any(Get.class))).thenReturn(Optional.of(result));
-    Get expectedGet =
-        Get.newBuilder()
+    Put expectedPut =
+        Put.newBuilder()
             .namespace(SOME_DEFAULT_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .build();
     when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    NoMutationException toThrow = Mockito.mock(NoMutationException.class);
+    doThrow(toThrow).when(storage).put(any(Put.class));
 
     // Act Assert
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
@@ -137,8 +135,7 @@ public class LedgerNamespaceRegistryTest {
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
-    verify(storage).get(expectedGet);
-    verify(storage, never()).put(any(Put.class));
+    verify(storage).put(expectedPut);
   }
 
   @Test
@@ -187,9 +184,15 @@ public class LedgerNamespaceRegistryTest {
       throws ExecutionException {
     // Arrange
     String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(SOME_DEFAULT_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .build();
     when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
-    doThrow(toThrow).when(storage).get(any(Get.class));
+    doThrow(toThrow).when(storage).put(expectedPut);
 
     // Act Assert
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
@@ -203,7 +206,6 @@ public class LedgerNamespaceRegistryTest {
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
-    verify(storage).get(any(Get.class));
-    verify(storage, never()).put(any(Put.class));
+    verify(storage).put(expectedPut);
   }
 }

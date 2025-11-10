@@ -8,10 +8,10 @@ import com.scalar.db.api.Consistency;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
-import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.exception.storage.NoMutationException;
 import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.ServerConfig;
@@ -117,12 +117,6 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
   }
 
   private void addNamespaceEntry(String namespace) {
-    Get get =
-        Get.newBuilder()
-            .namespace(config.getNamespace())
-            .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, namespace))
-            .build();
     Put put =
         Put.newBuilder()
             .namespace(config.getNamespace())
@@ -131,13 +125,9 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
             .consistency(Consistency.SEQUENTIAL)
             .build();
     try {
-      storage
-          .get(get)
-          .ifPresent(
-              result -> {
-                throw new DatabaseException(CommonError.NAMESPACE_ALREADY_EXISTS);
-              });
       storage.put(put);
+    } catch (NoMutationException e) {
+      throw new DatabaseException(CommonError.NAMESPACE_ALREADY_EXISTS);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
     }
