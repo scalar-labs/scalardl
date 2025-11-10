@@ -47,13 +47,9 @@ public class LedgerValidation extends AbstractClientCommand {
           });
       return 0;
     } catch (NumberFormatException e) {
-      System.err.println(ClientError.OPTION_ASSET_ID_CONTAINS_INVALID_INTEGER.buildMessage());
-      printStackTrace(e);
-      return 1;
+      throw new ClientException(ClientError.OPTION_ASSET_ID_CONTAINS_INVALID_INTEGER, e);
     } catch (IndexOutOfBoundsException e) {
-      System.err.println(ClientError.OPTION_ASSET_ID_IS_MALFORMED.buildMessage());
-      printStackTrace(e);
-      return 1;
+      throw new ClientException(ClientError.OPTION_ASSET_ID_IS_MALFORMED, e);
     }
   }
 }

@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 public abstract class AbstractHashStoreCommand extends CommonOptions implements Callable<Integer> {
 
   @Override
-  public Integer call() throws Exception {
+  public final Integer call() throws Exception {
     return call(new HashStoreClientServiceFactory());
   }
 

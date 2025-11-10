@@ -83,9 +83,7 @@ public class FunctionsRegistration extends AbstractClientCommand {
           tomlWriter.write(toml.toMap(), fileWriter);
         }
       } catch (IOException e) {
-        System.err.printf(ClientError.WRITING_RESULT_TO_FILE_FAILED.buildMessage(e.getMessage()));
-        printStackTrace(e);
-        return 1;
+        throw new ClientException(ClientError.WRITING_RESULT_TO_FILE_FAILED, e, e.getMessage());
       }
 
       System.out.printf(
