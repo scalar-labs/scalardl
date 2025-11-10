@@ -213,12 +213,24 @@ public enum CommonError implements ScalarDlError {
       "The deserialization type is not supported. Type: %s",
       "",
       ""),
+  INVALID_NAMESPACE_NAME(
+      StatusCode.INVALID_ARGUMENT, "019", "The namespace name is invalid. Name: %s", "", ""),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
   //
   SECRET_NOT_FOUND(
       StatusCode.SECRET_NOT_FOUND, "001", "The specified secret is not found.", "", ""),
+
+  //
+  // Errors for SECRET_ALREADY_REGISTERED(416)
+  //
+  NAMESPACE_ALREADY_EXISTS(
+      StatusCode.NAMESPACE_ALREADY_EXISTS,
+      "001",
+      "The specified namespace already exists.",
+      "",
+      ""),
 
   //
   // Errors for DATABASE_ERROR(500)
@@ -241,6 +253,10 @@ public enum CommonError implements ScalarDlError {
       StatusCode.DATABASE_ERROR, "008", "Getting the contract failed. Details: %s", "", ""),
   SCANNING_CONTRACT_FAILED(
       StatusCode.DATABASE_ERROR, "009", "Scanning the contracts failed. Details: %s", "", ""),
+  CREATING_NAMESPACE_TABLE_FAILED(
+      StatusCode.DATABASE_ERROR, "010", "Creating the namespace table failed. Details: %s", "", ""),
+  CREATING_NAMESPACE_FAILED(
+      StatusCode.DATABASE_ERROR, "011", "Creating the namespace failed. Details: %s", "", ""),
 
   //
   // Errors for RUNTIME_ERROR(502)

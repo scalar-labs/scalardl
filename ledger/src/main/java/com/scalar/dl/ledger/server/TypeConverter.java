@@ -11,6 +11,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.StateRetrievalRequest;
 import java.util.Base64;
@@ -105,6 +106,11 @@ public class TypeConverter {
       ExecutionAbortRequest req) {
     return new com.scalar.dl.ledger.model.ExecutionAbortRequest(
         req.getNonce(), req.getEntityId(), req.getKeyVersion(), req.getSignature().toByteArray());
+  }
+
+  public static com.scalar.dl.ledger.model.NamespaceCreationRequest convert(
+      NamespaceCreationRequest req) {
+    return new com.scalar.dl.ledger.model.NamespaceCreationRequest(req.getNamespace());
   }
 
   public static String convert(List<ContractEntry> entries) {
