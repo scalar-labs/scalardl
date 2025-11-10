@@ -4,7 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.scalar.db.api.Consistency;
+import com.scalar.db.api.ConditionBuilder;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -122,7 +122,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
             .namespace(config.getNamespace())
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, namespace))
-            .consistency(Consistency.SEQUENTIAL)
+            .condition(ConditionBuilder.putIfNotExists())
             .build();
     try {
       storage.put(put);

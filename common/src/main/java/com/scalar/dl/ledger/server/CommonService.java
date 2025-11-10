@@ -139,6 +139,7 @@ public class CommonService {
       case CERTIFICATE_ALREADY_REGISTERED:
       case SECRET_ALREADY_REGISTERED:
       case CONTRACT_ALREADY_REGISTERED:
+      case NAMESPACE_ALREADY_EXISTS:
         return io.grpc.Status.ALREADY_EXISTS;
       case UNAVAILABLE:
         return io.grpc.Status.UNAVAILABLE;

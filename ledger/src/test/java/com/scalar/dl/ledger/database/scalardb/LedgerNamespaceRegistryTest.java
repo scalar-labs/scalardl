@@ -15,6 +15,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.scalar.db.api.ConditionBuilder;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -82,17 +83,12 @@ public class LedgerNamespaceRegistryTest {
   public void create_NewNamespaceGiven_ShouldCreateProperly() throws ExecutionException {
     // Arrange
     String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
-    Get expectedGet =
-        Get.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
-            .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
-            .build();
     Put expectedPut =
         Put.newBuilder()
             .namespace(SOME_DEFAULT_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
 
@@ -119,6 +115,7 @@ public class LedgerNamespaceRegistryTest {
             .namespace(SOME_DEFAULT_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
     NoMutationException toThrow = Mockito.mock(NoMutationException.class);
@@ -189,6 +186,7 @@ public class LedgerNamespaceRegistryTest {
             .namespace(SOME_DEFAULT_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
