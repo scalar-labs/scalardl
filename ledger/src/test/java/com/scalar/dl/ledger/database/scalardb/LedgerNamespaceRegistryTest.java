@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
@@ -22,6 +23,7 @@ import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.TableMetadata;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.storage.NoMutationException;
 import com.scalar.db.io.Key;
@@ -205,5 +207,146 @@ public class LedgerNamespaceRegistryTest {
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
     verify(storage).put(expectedPut);
+  }
+
+  @Test
+  public void create_AddNamespaceEntryFailedDueToTableNotFound_ShouldRetry()
+      throws ExecutionException {
+    // Arrange
+    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(SOME_DEFAULT_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
+            .build();
+    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
+    doThrow(toThrow).doNothing().when(storage).put(expectedPut);
+
+    // Act
+    namespaceRegistry.create(SOME_NAMESPACE);
+
+    // Assert
+    verify(storageAdmin, times(2))
+        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
+    verify(transactionAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+    verify(transactionAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+    verify(storageAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+    verify(storageAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+    verify(storage, times(2)).put(expectedPut);
+  }
+
+  @Test
+  public void create_AddNamespaceEntryFailedDueToNamespaceNotFound_ShouldRetry()
+      throws ExecutionException {
+    // Arrange
+    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(SOME_DEFAULT_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
+            .build();
+    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.NAMESPACE_NOT_FOUND.buildMessage(SOME_DEFAULT_NAMESPACE));
+    doThrow(toThrow).doNothing().when(storage).put(expectedPut);
+
+    // Act
+    namespaceRegistry.create(SOME_NAMESPACE);
+
+    // Assert
+    verify(storageAdmin, times(2))
+        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
+    verify(transactionAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+    verify(transactionAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+    verify(storageAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+    verify(storageAdmin, times(2))
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+    verify(storage, times(2)).put(expectedPut);
+  }
+
+  @Test
+  public void create_MaxAttemptsExceeded_ShouldThrowDatabaseException() throws ExecutionException {
+    // Arrange
+    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(SOME_DEFAULT_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
+            .build();
+    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
+    doThrow(toThrow).when(storage).put(expectedPut);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
+    verify(storageAdmin, times(5))
+        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+    verify(storageAdmin, times(5)).createNamespace(fullNamespace, true);
+    verify(transactionAdmin, times(5))
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+    verify(transactionAdmin, times(5))
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+    verify(storageAdmin, times(5))
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+    verify(storageAdmin, times(5))
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+    verify(storage, times(5)).put(expectedPut);
+  }
+
+  @Test
+  public void create_NonRetryableException_ShouldNotRetry() throws ExecutionException {
+    // Arrange
+    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(SOME_DEFAULT_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.putIfNotExists())
+            .build();
+    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    // This is an IllegalArgumentException but with a different error code (not retryable)
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException("Some other error that should not trigger retry");
+    doThrow(toThrow).when(storage).put(expectedPut);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Some other error that should not trigger retry");
+    // Should only attempt once (no retry)
+    verify(storageAdmin, times(1))
+        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+    verify(storageAdmin, times(1)).createNamespace(fullNamespace, true);
+    verify(transactionAdmin, times(1))
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+    verify(transactionAdmin, times(1))
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+    verify(storageAdmin, times(1))
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+    verify(storageAdmin, times(1))
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+    verify(storage, times(1)).put(expectedPut);
   }
 }

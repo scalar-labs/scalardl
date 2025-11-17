@@ -4,12 +4,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.ConditionBuilder;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.TableMetadata;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.storage.NoMutationException;
 import com.scalar.db.io.DataType;
@@ -19,13 +21,23 @@ import com.scalar.dl.ledger.database.NamespaceRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Immutable
 public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegistry {
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractScalarNamespaceRegistry.class.getName());
+  private static final int MAX_ATTEMPTS = 5;
+  private static final long SLEEP_BASE_MILLIS = 100L;
   @VisibleForTesting static final String NAMESPACE_NAME_SEPARATOR = "_";
   @VisibleForTesting static final String NAMESPACE_TABLE_NAME = "namespace";
   @VisibleForTesting static final String NAMESPACE_COLUMN_NAME = "name";
@@ -44,6 +56,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
   private final Set<TableMetadataProvider> tableMetadataProviders;
   private final ImmutableMap<String, TableMetadata> storageTables;
   private final ImmutableMap<String, TableMetadata> transactionTables;
+  private final Retry retry;
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public AbstractScalarNamespaceRegistry(
@@ -59,6 +72,20 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     this.tableMetadataProviders = checkNotNull(tableMetadataProviders);
     this.storageTables = collectStorageTables();
     this.transactionTables = collectTransactionTables();
+    this.retry =
+        Retry.of(
+            "retry",
+            RetryConfig.custom()
+                .maxAttempts(MAX_ATTEMPTS)
+                .intervalFunction(IntervalFunction.ofExponentialBackoff(SLEEP_BASE_MILLIS, 2.0))
+                .retryOnException(
+                    e -> {
+                      LOGGER.warn("Namespace creation failed");
+                      return e instanceof IllegalArgumentException
+                          && (e.getMessage().startsWith(CoreError.NAMESPACE_NOT_FOUND.buildCode())
+                              || e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode()));
+                    })
+                .build());
   }
 
   public AbstractScalarNamespaceRegistry(
@@ -71,9 +98,14 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
 
   @Override
   public void create(String namespace) {
-    createNamespaceManagementTable();
-    createNamespace(namespace);
-    addNamespaceEntry(namespace);
+    Retry.decorateRunnable(
+            retry,
+            () -> {
+              createNamespaceManagementTable();
+              createNamespace(namespace);
+              addNamespaceEntry(namespace);
+            })
+        .run();
   }
 
   private void createNamespaceManagementTable() {
@@ -89,6 +121,8 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     try {
       String fullNamespaceName = config.getNamespace() + NAMESPACE_NAME_SEPARATOR + namespace;
       storageAdmin.createNamespace(fullNamespaceName, true);
+      // this sleep can be removed after negative cache is disabled in ScalarDB
+      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
       createStorageTables(fullNamespaceName);
       createTransactionTables(fullNamespaceName);
     } catch (ExecutionException e) {
