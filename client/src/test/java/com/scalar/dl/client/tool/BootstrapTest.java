@@ -1,6 +1,7 @@
 package com.scalar.dl.client.tool;
 
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -10,7 +11,9 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.ledger.service.StatusCode;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +24,12 @@ import picocli.CommandLine;
 
 public class BootstrapTest {
   private CommandLine commandLine;
+  private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
 
   @BeforeEach
-  void setup() {
+  void setup() throws Exception {
     commandLine = new CommandLine(new Bootstrap());
+    System.setOut(new PrintStream(outputStreamCaptor, true, UTF_8.name()));
   }
 
   @Nested
@@ -32,7 +37,7 @@ public class BootstrapTest {
   class call {
     @Test
     @DisplayName("returns 0 as exit code")
-    void returns0AsExitCode() {
+    void returns0AsExitCode() throws ClientException {
       // Arrange
       String[] args =
           new String[] {
@@ -40,11 +45,10 @@ public class BootstrapTest {
             "--properties=PROPERTIES_FILE",
           };
       Bootstrap command = parseArgs(args);
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
 
       // Act
-      int exitCode = command.call(factoryMock, serviceMock);
+      int exitCode = command.execute(serviceMock);
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
@@ -114,24 +118,27 @@ public class BootstrapTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
             };
         Bootstrap command = parseArgs(args);
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
+        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR)).when(serviceMock).bootstrap();
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
+        verify(factoryMock).close();
       }
     }
   }

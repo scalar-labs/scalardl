@@ -1,4 +1,4 @@
-package com.scalar.dl.hashstore.client.tool;
+package com.scalar.dl.tablestore.client.tool;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.config.ClientConfig;
@@ -6,22 +6,22 @@ import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
 import com.scalar.dl.client.tool.CommonOptions;
-import com.scalar.dl.hashstore.client.service.HashStoreClientService;
-import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
+import com.scalar.dl.tablestore.client.service.TableStoreClientService;
+import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-public abstract class AbstractHashStoreCommand extends CommonOptions implements Callable<Integer> {
+public abstract class AbstractTableStoreCommand extends CommonOptions implements Callable<Integer> {
 
   @Override
   public final Integer call() throws Exception {
-    return call(new HashStoreClientServiceFactory());
+    return call(new TableStoreClientServiceFactory());
   }
 
   @VisibleForTesting
-  public final Integer call(HashStoreClientServiceFactory factory) throws Exception {
+  public final Integer call(TableStoreClientServiceFactory factory) throws Exception {
     try {
-      HashStoreClientService service =
+      TableStoreClientService service =
           useGateway
               ? factory.create(new GatewayClientConfig(new File(properties)), false)
               : factory.create(new ClientConfig(new File(properties)), false);
@@ -42,5 +42,5 @@ public abstract class AbstractHashStoreCommand extends CommonOptions implements 
    * @return the exit code.
    * @throws ClientException if the execution fails.
    */
-  protected abstract Integer execute(HashStoreClientService service) throws ClientException;
+  protected abstract Integer execute(TableStoreClientService service) throws ClientException;
 }

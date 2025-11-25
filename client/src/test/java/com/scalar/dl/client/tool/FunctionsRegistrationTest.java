@@ -80,14 +80,14 @@ public class FunctionsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE", "--functions-file=FUNCTIONS_FILE",
+                "--properties=PROPERTIES_FILE",
+                "--functions-file=" + functionsFile.getAbsolutePath(),
               };
           FunctionsRegistration command = parseArgs(args);
-          ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock, functionsFile);
+          int exitCode = command.execute(serviceMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(0);
@@ -121,7 +121,7 @@ public class FunctionsRegistrationTest {
               new String[] {
                 // Set the required options.
                 propertiesOption,
-                "--functions-file=FUNCTIONS_FILE",
+                "--functions-file=" + functionsFile.getAbsolutePath(),
                 // Enable Gateway.
                 "--use-gateway"
               };
@@ -130,7 +130,7 @@ public class FunctionsRegistrationTest {
           doReturn(mock(ClientService.class)).when(factory).create(any(GatewayClientConfig.class));
 
           // Act
-          command.call(factory, functionsFile);
+          command.call(factory);
 
           // Verify
           verify(factory).create(any(GatewayClientConfig.class));
@@ -150,7 +150,7 @@ public class FunctionsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                propertiesOption, "--functions-file=FUNCTIONS_FILE",
+                propertiesOption, "--functions-file=" + functionsFile.getAbsolutePath(),
                 // Gateway is disabled by default.
               };
           FunctionsRegistration command = parseArgs(args);
@@ -158,7 +158,7 @@ public class FunctionsRegistrationTest {
           doReturn(mock(ClientService.class)).when(factory).create(any(ClientConfig.class));
 
           // Act
-          command.call(factory, functionsFile);
+          command.call(factory);
 
           // Verify
           verify(factory).create(any(ClientConfig.class));
@@ -176,11 +176,11 @@ public class FunctionsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE", "--functions-file=FUNCTIONS_FILE",
+                "--properties=PROPERTIES_FILE",
+                "--functions-file=" + functionsFile.getAbsolutePath(),
               };
           FunctionsRegistration command = parseArgs(args);
           // Mock service that throws an exception.
-          ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
@@ -188,7 +188,7 @@ public class FunctionsRegistrationTest {
                   eq("FUNCTION_ID_1"), eq("FUNCTION_BINARY_NAME_1"), eq("FUNCTION_CLASS_FILE_1"));
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock, functionsFile);
+          int exitCode = command.execute(serviceMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
@@ -250,15 +250,15 @@ public class FunctionsRegistrationTest {
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE", "--functions-file=FUNCTIONS_FILE",
+              "--properties=PROPERTIES_FILE",
+              "--functions-file=" + malformedFunctionsFile.getAbsolutePath(),
             };
         FunctionsRegistration command = parseArgs(args);
         // Mock service that throws an exception.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock, malformedFunctionsFile);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

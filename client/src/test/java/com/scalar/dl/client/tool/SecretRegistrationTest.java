@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
@@ -37,7 +38,7 @@ public class SecretRegistrationTest {
   class call {
     @Test
     @DisplayName("returns 0 as exit code")
-    void returns0AsExitCode() {
+    void returns0AsExitCode() throws ClientException {
       // Arrange
       String[] args =
           new String[] {
@@ -46,11 +47,10 @@ public class SecretRegistrationTest {
           };
       SecretRegistration command = parseArgs(args);
       // Mock service that returns ContractExecutionResult.
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
 
       // Act
-      int exitCode = command.call(factoryMock, serviceMock);
+      int exitCode = command.execute(serviceMock);
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
@@ -119,26 +119,29 @@ public class SecretRegistrationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
             };
         SecretRegistration command = parseArgs(args);
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
+        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .registerSecret();
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
+        verify(factoryMock).close();
       }
     }
   }

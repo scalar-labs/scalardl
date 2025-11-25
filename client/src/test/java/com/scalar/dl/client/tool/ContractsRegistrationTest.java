@@ -83,14 +83,14 @@ public class ContractsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE", "--contracts-file=CONTRACTS_FILE",
+                "--properties=PROPERTIES_FILE",
+                "--contracts-file=" + contractsFile.getAbsolutePath(),
               };
           ContractsRegistration command = parseArgs(args);
-          ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock, contractsFile);
+          int exitCode = command.execute(serviceMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(0);
@@ -126,10 +126,10 @@ public class ContractsRegistrationTest {
             String[] args =
                 new String[] {
                   // Set the required options.
-                  "--properties=PROPERTIES_FILE", "--contracts-file=CONTRACTS_FILE",
+                  "--properties=PROPERTIES_FILE",
+                  "--contracts-file=" + contractsFile.getAbsolutePath(),
                 };
             ContractsRegistration command = parseArgs(args);
-            ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
             ClientService serviceMock = mock(ClientService.class);
             // Mock that one of the contracts is already registered.
             doThrow(new ClientException("", StatusCode.CONTRACT_ALREADY_REGISTERED))
@@ -141,7 +141,7 @@ public class ContractsRegistrationTest {
                     any(JsonNode.class));
 
             // Act
-            int exitCode = command.call(factoryMock, serviceMock, contractsFile);
+            int exitCode = command.execute(serviceMock);
 
             // Assert
             assertThat(exitCode).isEqualTo(0);
@@ -183,7 +183,7 @@ public class ContractsRegistrationTest {
               new String[] {
                 // Set the required options.
                 propertiesOption,
-                "--contracts-file=CONTRACTS_FILE",
+                "--contracts-file=" + contractsFile.getAbsolutePath(),
                 // Enable Gateway.
                 "--use-gateway"
               };
@@ -192,7 +192,7 @@ public class ContractsRegistrationTest {
           doReturn(mock(ClientService.class)).when(factory).create(any(GatewayClientConfig.class));
 
           // Act
-          command.call(factory, contractsFile);
+          command.call(factory);
 
           // Verify
           verify(factory).create(any(GatewayClientConfig.class));
@@ -212,7 +212,7 @@ public class ContractsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                propertiesOption, "--contracts-file=CONTRACTS_FILE",
+                propertiesOption, "--contracts-file=" + contractsFile.getAbsolutePath(),
                 // Gateway is disabled by default.
               };
           ContractsRegistration command = parseArgs(args);
@@ -220,7 +220,7 @@ public class ContractsRegistrationTest {
           doReturn(mock(ClientService.class)).when(factory).create(any(ClientConfig.class));
 
           // Act
-          command.call(factory, contractsFile);
+          command.call(factory);
 
           // Verify
           verify(factory).create(any(ClientConfig.class));
@@ -238,11 +238,11 @@ public class ContractsRegistrationTest {
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE", "--contracts-file=CONTRACTS_FILE",
+                "--properties=PROPERTIES_FILE",
+                "--contracts-file=" + contractsFile.getAbsolutePath(),
               };
           ContractsRegistration command = parseArgs(args);
           // Mock service that throws an exception.
-          ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
@@ -253,7 +253,7 @@ public class ContractsRegistrationTest {
                   any(JsonNode.class));
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock, contractsFile);
+          int exitCode = command.execute(serviceMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
@@ -319,15 +319,15 @@ public class ContractsRegistrationTest {
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE", "--contracts-file=CONTRACTS_FILE",
+              "--properties=PROPERTIES_FILE",
+              "--contracts-file=" + malformedContractsFile.getAbsolutePath(),
             };
         ContractsRegistration command = parseArgs(args);
         // Mock service that throws an exception.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock, malformedContractsFile);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

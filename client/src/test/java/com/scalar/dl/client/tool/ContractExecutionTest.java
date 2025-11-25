@@ -64,7 +64,6 @@ public class ContractExecutionTest {
             };
         ContractExecution command = parseArgs(args);
         // Mock service that returns ContractExecutionResult.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ContractExecutionResult result =
             new ContractExecutionResult(
@@ -74,7 +73,7 @@ public class ContractExecutionTest {
             .thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -106,7 +105,6 @@ public class ContractExecutionTest {
             };
         ContractExecution command = parseArgs(args);
         // Mock service that returns ContractExecutionResult.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
         ContractExecutionResult result =
             new ContractExecutionResult(
@@ -119,7 +117,7 @@ public class ContractExecutionTest {
             .thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -220,12 +218,13 @@ public class ContractExecutionTest {
       class withJsonDeserializationFormat {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() throws Exception {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--contract-id=CONTRACT_ID",
                 "--contract-argument={}",
                 // By default, JSON is the deserialization format.
@@ -234,15 +233,17 @@ public class ContractExecutionTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
           when(serviceMock.executeContract(
                   eq("CONTRACT_ID"), any(JsonNode.class), isNull(), isNull()))
               .thenThrow(new ClientException("", StatusCode.RUNTIME_ERROR));
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
         }
       }
 
@@ -251,12 +252,13 @@ public class ContractExecutionTest {
       class withStringDeserializationFormat {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() throws Exception {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--contract-id=CONTRACT_ID",
                 "--contract-argument=CONTRACT_ARGUMENT",
                 // Use String as deserialization format.
@@ -266,6 +268,7 @@ public class ContractExecutionTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
           when(serviceMock.executeContract(
                   eq("CONTRACT_ID"),
                   eq("CONTRACT_ARGUMENT"),
@@ -274,10 +277,11 @@ public class ContractExecutionTest {
               .thenThrow(new ClientException("", StatusCode.RUNTIME_ERROR));
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
         }
       }
     }

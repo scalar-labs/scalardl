@@ -37,7 +37,7 @@ public class LedgerValidationTest {
     class whereTableNameIsSet {
       @Test
       @DisplayName("validates table schema when no key is specified and returns 0 as exit code")
-      void validatesTableSchemaAndReturns0AsExitCode() {
+      void validatesTableSchemaAndReturns0AsExitCode() throws ClientException {
         // Arrange
         String[] args =
             new String[] {
@@ -47,24 +47,22 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateTableSchema("test_table", 0, 10)).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).validateTableSchema("test_table", 0, 10);
-        verify(factoryMock).close();
       }
 
       @Test
       @DisplayName("validates record with primary key and returns 0 as exit code")
-      void validatesRecordWithPrimaryKeyAndReturns0AsExitCode() {
+      void validatesRecordWithPrimaryKeyAndReturns0AsExitCode() throws ClientException {
         // Arrange
         String[] args =
             new String[] {
@@ -76,24 +74,22 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
         when(serviceMock.validateRecord("test_table", "id", "\"123\"", 0, 10)).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).validateRecord("test_table", "id", "\"123\"", 0, 10);
-        verify(factoryMock).close();
       }
 
       @Test
       @DisplayName("validates index record and returns 0 as exit code")
-      void validatesIndexRecordAndReturns0AsExitCode() {
+      void validatesIndexRecordAndReturns0AsExitCode() throws ClientException {
         // Arrange
         String[] args =
             new String[] {
@@ -105,7 +101,6 @@ public class LedgerValidationTest {
               "--end-age=10"
             };
         LedgerValidation command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
@@ -113,13 +108,12 @@ public class LedgerValidationTest {
             .thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock)
             .validateIndexRecord("test_table", "email", "\"test@example.com\"", 0, 10);
-        verify(factoryMock).close();
       }
     }
 
@@ -158,18 +152,21 @@ public class LedgerValidationTest {
     class whereClientExceptionIsThrownByTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
-        String[] args = new String[] {"--properties=PROPERTIES_FILE", "--table-name=test_table"};
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
+        String[] args =
+            new String[] {"--properties=" + file.getAbsolutePath(), "--table-name=test_table"};
         LedgerValidation command = parseArgs(args);
         TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         when(serviceMock.validateTableSchema(anyString(), anyInt(), anyInt()))
             .thenThrow(new ClientException("Validation failed", StatusCode.RUNTIME_ERROR));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);

@@ -2,21 +2,15 @@ package com.scalar.dl.client.tool;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
-import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
-import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.util.JacksonSerDe;
-import java.io.File;
-import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "execute-contract", description = "Execute a specified contract.")
-public class ContractExecution extends CommonOptions implements Callable<Integer> {
+public class ContractExecution extends AbstractClientCommand {
 
   @CommandLine.Option(
       names = {"--contract-id"},
@@ -61,63 +55,41 @@ public class ContractExecution extends CommonOptions implements Callable<Integer
   }
 
   @Override
-  public Integer call() throws Exception {
-    return call(new ClientServiceFactory());
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory) throws Exception {
-    ClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)))
-            : factory.create(new ClientConfig(new File(properties)));
-    return call(factory, service);
-  }
-
-  @VisibleForTesting
-  Integer call(ClientServiceFactory factory, ClientService service) throws Exception {
+  protected Integer execute(ClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
 
-    try {
-      if (deserializationFormat == DeserializationFormat.JSON) {
-        JsonNode jsonContractArgument = serde.deserialize(contractArgument);
-        JsonNode jsonFunctionArgument = null;
-        if (functionArgument != null) {
-          jsonFunctionArgument = serde.deserialize(functionArgument);
-        }
-        ContractExecutionResult result =
-            service.executeContract(
-                contractId, jsonContractArgument, functionId, jsonFunctionArgument);
-
-        result
-            .getContractResult()
-            .ifPresent(
-                r -> {
-                  System.out.println("Contract result:");
-                  Common.printJson(serde.deserialize(r));
-                });
-        result
-            .getFunctionResult()
-            .ifPresent(
-                r -> {
-                  System.out.println("Function result:");
-                  Common.printJson(serde.deserialize(r));
-                });
-      } else if (deserializationFormat == DeserializationFormat.STRING) {
-        ContractExecutionResult result =
-            service.executeContract(contractId, contractArgument, functionId, functionArgument);
-
-        result.getContractResult().ifPresent(r -> System.out.println("Contract result: " + r));
-        result.getFunctionResult().ifPresent(r -> System.out.println("Function result: " + r));
+    if (deserializationFormat == DeserializationFormat.JSON) {
+      JsonNode jsonContractArgument = serde.deserialize(contractArgument);
+      JsonNode jsonFunctionArgument = null;
+      if (functionArgument != null) {
+        jsonFunctionArgument = serde.deserialize(functionArgument);
       }
+      ContractExecutionResult result =
+          service.executeContract(
+              contractId, jsonContractArgument, functionId, jsonFunctionArgument);
 
-      return 0;
-    } catch (ClientException e) {
-      Common.printError(e);
-      printStackTrace(e);
-      return 1;
-    } finally {
-      factory.close();
+      result
+          .getContractResult()
+          .ifPresent(
+              r -> {
+                System.out.println("Contract result:");
+                Common.printJson(serde.deserialize(r));
+              });
+      result
+          .getFunctionResult()
+          .ifPresent(
+              r -> {
+                System.out.println("Function result:");
+                Common.printJson(serde.deserialize(r));
+              });
+    } else if (deserializationFormat == DeserializationFormat.STRING) {
+      ContractExecutionResult result =
+          service.executeContract(contractId, contractArgument, functionId, functionArgument);
+
+      result.getContractResult().ifPresent(r -> System.out.println("Contract result: " + r));
+      result.getFunctionResult().ifPresent(r -> System.out.println("Function result: " + r));
     }
+
+    return 0;
   }
 }

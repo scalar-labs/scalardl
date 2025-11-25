@@ -36,7 +36,7 @@ public class LedgerValidationTest {
     class whereAgeIsSetInAssetIdOption {
       @Test
       @DisplayName("returns 0 as exit code")
-      void returns0AsExitCode() {
+      void returns0AsExitCode() throws ClientException {
         // Arrange
         String[] args =
             new String[] {
@@ -47,7 +47,6 @@ public class LedgerValidationTest {
             };
         LedgerValidation command = parseArgs(args);
         // Mock service that returns ContractExecutionResult.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         LedgerValidationResult result1 = new LedgerValidationResult(StatusCode.OK, null, null);
@@ -56,7 +55,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateLedger("ASSET_ID_2", 2, 3)).thenReturn(result2);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -139,12 +138,13 @@ public class LedgerValidationTest {
       class whereClientExceptionIsThrownByClientService {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--asset-id=ASSET_ID_1,0,1", // startAge = 0 & endAge = 1.
                 "--asset-id=ASSET_ID_2,2,3", // startAge = 2 & endAge = 3.
               };
@@ -152,15 +152,17 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
               .validateLedger("ASSET_ID_1", 0, 1);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
 
           verify(serviceMock).validateLedger("ASSET_ID_1", 0, 1);
           verify(serviceMock, never()).validateLedger(eq("ASSET_ID_2"), anyInt(), anyInt());
@@ -172,12 +174,13 @@ public class LedgerValidationTest {
       class whenAgeIsNotInteger {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--asset-id=ASSET_ID_1,a,1", // Set invalid start age.
                 "--asset-id=ASSET_ID_2,2,3",
               };
@@ -185,12 +188,14 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
 
           // Verify that validate-ledger was not called.
           verify(serviceMock, never()).validateLedger(eq("ASSET_ID_1"), anyInt(), anyInt());
@@ -203,12 +208,13 @@ public class LedgerValidationTest {
       class whenEndAgeIsMissing {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--asset-id=ASSET_ID_1,0", // startAge = 0 & no endAge.
                 "--asset-id=ASSET_ID_2,2,3", // startAge = 2 & endAge = 3.
               };
@@ -216,12 +222,14 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
 
           // Verify validate-ledger was not called.
           verify(serviceMock, never()).validateLedger(eq("ASSET_ID_1"), anyInt(), anyInt());
@@ -234,12 +242,13 @@ public class LedgerValidationTest {
       class whenTooManyArgsAreSet {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE",
+                "--properties=" + file.getAbsolutePath(),
                 "--asset-id=ASSET_ID_1,0,1,2", // startAge = 0 & endAge = 1 (and more...).
                 "--asset-id=ASSET_ID_2,2,3", // startAge = 2 & endAge = 3.
               };
@@ -247,12 +256,14 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
 
           // Verify validate-ledger was not called.
           verify(serviceMock, never()).validateLedger(eq("ASSET_ID_1"), anyInt(), anyInt());
@@ -266,7 +277,7 @@ public class LedgerValidationTest {
     class whereAgeIsNotSetInAssetIdOption {
       @Test
       @DisplayName("returns 0 as exit code")
-      void returns0AsExitCode() {
+      void returns0AsExitCode() throws ClientException {
         // Arrange
         String[] args =
             new String[] {
@@ -275,7 +286,6 @@ public class LedgerValidationTest {
             };
         LedgerValidation command = parseArgs(args);
         // Mock service that returns ContractExecutionResult.
-        ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
 
         LedgerValidationResult result1 = new LedgerValidationResult(StatusCode.OK, null, null);
@@ -284,7 +294,7 @@ public class LedgerValidationTest {
         when(serviceMock.validateLedger("ASSET_ID_2")).thenReturn(result2);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
@@ -298,26 +308,31 @@ public class LedgerValidationTest {
       class whereClientExceptionIsThrownByClientService {
         @Test
         @DisplayName("returns 1 as exit code")
-        void returns1AsExitCode() {
+        void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
           // Arrange
+          File file = createDefaultClientPropertiesFile(tempDir, "client.props");
           String[] args =
               new String[] {
                 // Set the required options.
-                "--properties=PROPERTIES_FILE", "--asset-id=ASSET_ID_1", "--asset-id=ASSET_ID_2",
+                "--properties=" + file.getAbsolutePath(),
+                "--asset-id=ASSET_ID_1",
+                "--asset-id=ASSET_ID_2",
               };
           LedgerValidation command = parseArgs(args);
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
+          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
               .validateLedger("ASSET_ID_1");
 
           // Act
-          int exitCode = command.call(factoryMock, serviceMock);
+          int exitCode = command.call(factoryMock);
 
           // Assert
           assertThat(exitCode).isEqualTo(1);
+          verify(factoryMock).close();
 
           verify(serviceMock).validateLedger("ASSET_ID_1");
           verify(serviceMock, never()).validateLedger("ASSET_ID_2");
