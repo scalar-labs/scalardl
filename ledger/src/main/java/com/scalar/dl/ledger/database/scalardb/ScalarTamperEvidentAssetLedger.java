@@ -1,5 +1,6 @@
 package com.scalar.dl.ledger.database.scalardb;
 
+import com.google.common.collect.ImmutableMap;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.Get;
@@ -8,11 +9,13 @@ import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scan.Ordering.Order;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CommitException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.CrudException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
@@ -44,6 +47,26 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger {
   static final String TABLE = "asset";
+  private static final TableMetadata TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(AssetRecord.ID, DataType.TEXT)
+          .addColumn(AssetRecord.AGE, DataType.INT)
+          .addColumn(AssetRecord.ARGUMENT, DataType.TEXT)
+          .addColumn(AssetRecord.CONTRACT_ID, DataType.TEXT)
+          .addColumn(AssetRecord.HASH, DataType.BLOB)
+          .addColumn(AssetRecord.INPUT, DataType.TEXT)
+          .addColumn(AssetRecord.OUTPUT, DataType.TEXT)
+          .addColumn(AssetRecord.PREV_HASH, DataType.BLOB)
+          .addColumn(AssetRecord.SIGNATURE, DataType.BLOB)
+          .addPartitionKey(AssetRecord.ID)
+          .addClusteringKey(AssetRecord.AGE)
+          .build();
+  private static final TableMetadata METADATA_TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(AssetMetadata.ID, DataType.TEXT)
+          .addColumn(AssetMetadata.AGE, DataType.INT)
+          .addPartitionKey(AssetMetadata.ID)
+          .build();
   private final DistributedTransaction transaction;
   private final Metadata metadata;
   private final Snapshot snapshot;
@@ -71,6 +94,10 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     this.proofComposer = proofComposer;
     this.stateManager = stateManager;
     this.config = config;
+  }
+
+  static Map<String, TableMetadata> getTransactionTables() {
+    return ImmutableMap.of(TABLE, TABLE_METADATA, Metadata.TABLE, METADATA_TABLE_METADATA);
   }
 
   @Override

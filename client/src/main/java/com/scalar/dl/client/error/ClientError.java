@@ -102,6 +102,8 @@ public enum ClientError implements ScalarDlError {
       "The specified keys are incorrect for the asset type.",
       "",
       ""),
+  SERVICE_NAMESPACE_NAME_CANNOT_BE_NULL(
+      StatusCode.INVALID_ARGUMENT, "025", "The namespace name cannot be null.", "", ""),
 
   //
   // Errors for RUNTIME_ERROR(502)

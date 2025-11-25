@@ -9,6 +9,7 @@ import com.scalar.dl.ledger.util.JsonpSerDe;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.Status;
 import io.grpc.Metadata;
@@ -28,6 +29,8 @@ public interface Client {
   void register(ContractRegistrationRequest request);
 
   JsonObject list(ContractsListingRequest request);
+
+  void create(NamespaceCreationRequest request);
 
   default <T> void accept(ThrowableConsumer<T> f, T request) {
     try {

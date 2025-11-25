@@ -724,4 +724,95 @@ public class ClientServiceTest {
     verify(config, never()).getHmacIdentityConfig();
     verify(signer, never()).sign(any(LedgerValidationRequest.Builder.class));
   }
+
+  @Test
+  public void createNamespace_CorrectInputsGiven_ShouldCreateNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String namespace = "test_namespace";
+
+    // Act
+    service.createNamespace(namespace);
+
+    // Assert
+    com.scalar.dl.rpc.NamespaceCreationRequest expected =
+        com.scalar.dl.rpc.NamespaceCreationRequest.newBuilder().setNamespace(namespace).build();
+    verify(handler).createNamespace(expected);
+  }
+
+  @Test
+  public void createNamespace_NullNamespaceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.createNamespace((String) null));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
+
+  @Test
+  public void
+      createNamespace_NamespaceNameWithIntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    String namespace = "test_namespace";
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.createNamespace(namespace));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
+
+  @Test
+  public void createNamespace_SerializedBinaryGiven_ShouldCreateNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    com.scalar.dl.rpc.NamespaceCreationRequest expected =
+        com.scalar.dl.rpc.NamespaceCreationRequest.newBuilder()
+            .setNamespace("test_namespace")
+            .build();
+
+    // Act
+    service.createNamespace(expected.toByteArray());
+
+    // Assert
+    verify(handler).createNamespace(expected);
+  }
+
+  @Test
+  public void createNamespace_InvalidSerializedBinaryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    byte[] invalidBinary = "invalid".getBytes(StandardCharsets.UTF_8);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.createNamespace(invalidBinary));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
+
+  @Test
+  public void
+      createNamespace_SerializedBinaryClientModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    com.scalar.dl.rpc.NamespaceCreationRequest request =
+        com.scalar.dl.rpc.NamespaceCreationRequest.newBuilder()
+            .setNamespace("test_namespace")
+            .build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.createNamespace(request.toByteArray()));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
 }

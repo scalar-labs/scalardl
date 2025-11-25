@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.database.scalardb;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Delete;
@@ -9,7 +10,9 @@ import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.crypto.CertificateEntry;
 import com.scalar.dl.ledger.database.CertificateRegistry;
@@ -18,17 +21,32 @@ import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Map;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class ScalarCertificateRegistry implements CertificateRegistry {
+public class ScalarCertificateRegistry implements CertificateRegistry, TableMetadataProvider {
   static final String TABLE = "certificate";
+  private static final TableMetadata TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(CertificateEntry.ENTITY_ID, DataType.TEXT)
+          .addColumn(CertificateEntry.VERSION, DataType.INT)
+          .addColumn(CertificateEntry.PEM, DataType.TEXT)
+          .addColumn(CertificateEntry.REGISTERED_AT, DataType.BIGINT)
+          .addPartitionKey(CertificateEntry.ENTITY_ID)
+          .addClusteringKey(CertificateEntry.VERSION)
+          .build();
   private final DistributedStorage storage;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ScalarCertificateRegistry(DistributedStorage storage) {
     this.storage = checkNotNull(storage);
+  }
+
+  @Override
+  public Map<String, TableMetadata> getStorageTables() {
+    return ImmutableMap.of(TABLE, TABLE_METADATA);
   }
 
   @Override

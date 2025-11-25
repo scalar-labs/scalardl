@@ -1,15 +1,16 @@
 package com.scalar.dl.ledger.service;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import com.scalar.db.api.DistributedStorage;
+import com.scalar.db.api.DistributedStorageAdmin;
+import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.config.DatabaseConfig;
-import com.scalar.db.service.StorageModule;
-import com.scalar.db.service.TransactionModule;
+import com.scalar.db.service.StorageFactory;
+import com.scalar.db.service.TransactionFactory;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.config.ServersHmacAuthenticatable;
@@ -27,18 +28,22 @@ import com.scalar.dl.ledger.crypto.SignatureSigner;
 import com.scalar.dl.ledger.database.CertificateRegistry;
 import com.scalar.dl.ledger.database.ContractRegistry;
 import com.scalar.dl.ledger.database.FunctionRegistry;
+import com.scalar.dl.ledger.database.NamespaceRegistry;
 import com.scalar.dl.ledger.database.SecretRegistry;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.database.scalardb.DefaultTamperEvidentAssetComposer;
+import com.scalar.dl.ledger.database.scalardb.LedgerNamespaceRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarCertificateRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarContractRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarFunctionRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarSecretRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarTransactionManager;
+import com.scalar.dl.ledger.database.scalardb.TableMetadataProvider;
 import com.scalar.dl.ledger.database.scalardb.TamperEvidentAssetComposer;
 import com.scalar.dl.ledger.database.scalardb.TransactionStateManager;
 import com.scalar.dl.ledger.function.FunctionLoader;
 import com.scalar.dl.ledger.function.FunctionManager;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.net.SocketPermission;
 import java.security.PermissionCollection;
 import java.security.Permissions;
@@ -77,6 +82,17 @@ public class LedgerModule extends AbstractModule {
     bind(TransactionStateManager.class).in(Singleton.class);
     bind(ClientKeyValidator.class).in(Singleton.class);
     bind(AuditorKeyValidator.class).in(Singleton.class);
+    bind(NamespaceManager.class).in(Singleton.class);
+    bind(NamespaceRegistry.class).to(LedgerNamespaceRegistry.class).in(Singleton.class);
+
+    // to manage the list of transaction and storage tables for a namespace in Ledger
+    Multibinder<TableMetadataProvider> binder =
+        Multibinder.newSetBinder(binder(), TableMetadataProvider.class);
+    binder.addBinding().to(ScalarTransactionManager.class);
+    binder.addBinding().to(ScalarCertificateRegistry.class);
+    binder.addBinding().to(ScalarSecretRegistry.class);
+    binder.addBinding().to(ScalarContractRegistry.class);
+    binder.addBinding().to(ScalarFunctionRegistry.class);
   }
 
   @Provides
@@ -115,21 +131,42 @@ public class LedgerModule extends AbstractModule {
 
   @Provides
   @Singleton
+  StorageFactory provideStorageFactory() {
+    return StorageFactory.create(databaseConfig.getProperties());
+  }
+
+  @Provides
+  @Singleton
   DistributedStorage provideDistributedStorage() {
-    Injector injector = Guice.createInjector(new StorageModule(databaseConfig));
-    DistributedStorage storage = injector.getInstance(DistributedStorage.class);
+    DistributedStorage storage = provideStorageFactory().getStorage();
     storage.withNamespace(config.getNamespace());
     return storage;
   }
 
   @Provides
   @Singleton
+  DistributedStorageAdmin provideDistributedStorageAdmin() {
+    return provideStorageFactory().getStorageAdmin();
+  }
+
+  @Provides
+  @Singleton
+  TransactionFactory provideTransactionFactory() {
+    return TransactionFactory.create(databaseConfig.getProperties());
+  }
+
+  @Provides
+  @Singleton
   DistributedTransactionManager provideDistributedTransactionManager() {
-    Injector injector = Guice.createInjector(new TransactionModule(databaseConfig));
-    DistributedTransactionManager manager =
-        injector.getInstance(DistributedTransactionManager.class);
+    DistributedTransactionManager manager = provideTransactionFactory().getTransactionManager();
     manager.withNamespace(config.getNamespace());
     return manager;
+  }
+
+  @Provides
+  @Singleton
+  DistributedTransactionAdmin provideDistributedTransactionAdmin() {
+    return provideTransactionFactory().getTransactionAdmin();
   }
 
   @Provides

@@ -19,7 +19,6 @@ public class LedgerConfigTest {
   private static final String SOME_NUMBER = "9999";
   private static final String SOME_PATH = "/dev/null";
   private static final String SOME_PEM = "-- PEM --";
-  private static final String SOME_KEY = "key";
   private static final String SOME_NAME = "My Ledger";
   private static final String SOME_SECRET_KEY = "secret-key";
   private static final String SOME_CIPHER_KEY = "cipher-key";

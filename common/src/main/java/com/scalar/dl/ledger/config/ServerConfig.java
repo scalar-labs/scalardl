@@ -6,6 +6,8 @@ public interface ServerConfig {
 
   String getName();
 
+  String getNamespace();
+
   int getPort();
 
   int getPrivilegedPort();

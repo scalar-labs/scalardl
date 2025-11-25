@@ -24,6 +24,8 @@ import com.scalar.dl.ledger.model.AbstractRequest;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
+import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -39,10 +41,12 @@ public class BaseServiceTest {
   @Mock private SecretManager secretManager;
   @Mock private ClientKeyValidator clientKeyValidator;
   @Mock private ContractManager contractManager;
+  @Mock private NamespaceManager namespaceManager;
   @Mock private CertificateRegistrationRequest certRegistrationRequest;
   @Mock private SecretEntry secretEntry;
   @Mock private ContractRegistrationRequest contractRegistrationRequest;
   @Mock private ContractsListingRequest contractsListingRequest;
+  @Mock private NamespaceCreationRequest namespaceCreationRequest;
   @Mock private DigitalSignatureValidator validator;
   @InjectMocks private BaseService service;
 
@@ -53,6 +57,7 @@ public class BaseServiceTest {
   private static final int SOME_KEY_VERSION = 1;
   private static final byte[] SOME_SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
   private static final String SOME_PEM = "pem";
+  private static final String SOME_NAMESPACE = "test_namespace";
 
   @BeforeEach
   public void setUp() {
@@ -91,6 +96,10 @@ public class BaseServiceTest {
     } else {
       doThrow(mock(SignatureException.class)).when(request).validateWith(validator);
     }
+  }
+
+  private void configureNamespaceCreationRequest(NamespaceCreationRequest request) {
+    when(request.getNamespace()).thenReturn(SOME_NAMESPACE);
   }
 
   private ContractEntry prepareContractEntry(String contractId) {
@@ -187,5 +196,18 @@ public class BaseServiceTest {
     verify(contractManager)
         .scan(contractsListingRequest.getEntityId(), contractsListingRequest.getKeyVersion());
     assertThat(actual).containsExactly(entry1, entry2);
+  }
+
+  @Test
+  public void create_ProperNamespaceCreationRequestGiven_ShouldCreateNamespace() {
+    // Arrange
+    configureNamespaceCreationRequest(namespaceCreationRequest);
+    doNothing().when(namespaceManager).create(SOME_NAMESPACE);
+
+    // Act
+    service.create(namespaceCreationRequest);
+
+    // Assert
+    verify(namespaceManager).create(SOME_NAMESPACE);
   }
 }

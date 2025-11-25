@@ -20,6 +20,10 @@ public class LedgerException extends RuntimeException {
     this(error.buildMessage(args), error.getStatusCode());
   }
 
+  public LedgerException(ScalarDlError error, Throwable cause, Object... args) {
+    this(error.buildMessage(args), cause, error.getStatusCode());
+  }
+
   public StatusCode getCode() {
     return code;
   }

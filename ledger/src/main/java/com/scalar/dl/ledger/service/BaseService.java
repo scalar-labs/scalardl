@@ -13,6 +13,8 @@ import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
+import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
@@ -22,17 +24,20 @@ public class BaseService {
   private final SecretManager secretManager;
   private final ClientKeyValidator clientKeyValidator;
   private final ContractManager contractManager;
+  private final NamespaceManager namespaceManager;
 
   @Inject
   public BaseService(
       CertificateManager certManager,
       SecretManager secretManager,
       ClientKeyValidator clientKeyValidator,
-      ContractManager contractManager) {
+      ContractManager contractManager,
+      NamespaceManager namespaceManager) {
     this.certManager = certManager;
     this.secretManager = secretManager;
     this.clientKeyValidator = clientKeyValidator;
     this.contractManager = contractManager;
+    this.namespaceManager = namespaceManager;
   }
 
   public void register(CertificateRegistrationRequest request) {
@@ -58,5 +63,9 @@ public class BaseService {
 
     return new ContractScanner(contractManager)
         .scan(request.getEntityId(), request.getKeyVersion(), request.getContractId());
+  }
+
+  public void create(NamespaceCreationRequest request) {
+    namespaceManager.create(request.getNamespace());
   }
 }

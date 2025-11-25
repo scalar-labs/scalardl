@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.database.scalardb;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.scalar.db.api.Consistency;
@@ -10,7 +11,9 @@ import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.crypto.Cipher;
 import com.scalar.dl.ledger.crypto.SecretEntry;
@@ -21,11 +24,21 @@ import com.scalar.dl.ledger.exception.MissingSecretException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
-public class ScalarSecretRegistry implements SecretRegistry {
+public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvider {
   static final String TABLE = "secret";
+  static final TableMetadata TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(SecretEntry.ENTITY_ID, DataType.TEXT)
+          .addColumn(SecretEntry.KEY_VERSION, DataType.INT)
+          .addColumn(SecretEntry.SECRET_KEY, DataType.BLOB)
+          .addColumn(SecretEntry.REGISTERED_AT, DataType.BIGINT)
+          .addPartitionKey(SecretEntry.ENTITY_ID)
+          .addClusteringKey(SecretEntry.KEY_VERSION)
+          .build();
   private final DistributedStorage storage;
   private final Cipher cipher;
 
@@ -34,6 +47,11 @@ public class ScalarSecretRegistry implements SecretRegistry {
   public ScalarSecretRegistry(DistributedStorage storage, @Named("SecretRegistry") Cipher cipher) {
     this.storage = checkNotNull(storage);
     this.cipher = cipher;
+  }
+
+  @Override
+  public Map<String, TableMetadata> getStorageTables() {
+    return ImmutableMap.of(TABLE, TABLE_METADATA);
   }
 
   @Override

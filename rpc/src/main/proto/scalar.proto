@@ -34,6 +34,8 @@ service LedgerPrivileged {
     }
     rpc RetrieveState (StateRetrievalRequest) returns (StateRetrievalResponse) {
     }
+    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    }
 }
 
 service Auditor {
@@ -51,6 +53,8 @@ service AuditorPrivileged {
     rpc RegisterCert (CertificateRegistrationRequest) returns (google.protobuf.Empty) {
     }
     rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
 }
 
@@ -71,6 +75,8 @@ service GatewayPrivileged {
     rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
     }
     rpc RegisterFunction (FunctionRegistrationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
 }
 
@@ -157,6 +163,10 @@ message ExecutionValidationRequest {
 
 message ContractsListingResponse {
     string json = 1;
+}
+
+message NamespaceCreationRequest {
+    string namespace = 1;
 }
 
 message ContractExecutionResponse {
