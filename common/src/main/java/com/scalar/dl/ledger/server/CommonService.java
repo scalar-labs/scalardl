@@ -130,11 +130,13 @@ public class CommonService {
       case CONTRACT_CONTEXTUAL_ERROR:
       case UNLOADABLE_FUNCTION:
       case INVALID_FUNCTION:
+      case INVALID_ARGUMENT:
         return io.grpc.Status.INVALID_ARGUMENT;
       case CERTIFICATE_NOT_FOUND:
       case CONTRACT_NOT_FOUND:
       case ASSET_NOT_FOUND:
       case FUNCTION_NOT_FOUND:
+      case SECRET_NOT_FOUND:
         return io.grpc.Status.NOT_FOUND;
       case CERTIFICATE_ALREADY_REGISTERED:
       case SECRET_ALREADY_REGISTERED:
