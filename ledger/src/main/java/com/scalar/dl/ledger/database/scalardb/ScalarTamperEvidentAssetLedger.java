@@ -18,6 +18,7 @@ import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
+import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.AssetRecord;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
@@ -264,7 +265,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
         .filter(p -> p.forTable().get().equals(ScalarTamperEvidentAssetLedger.TABLE))
         .forEach(
             p -> {
-              AssetProof proof = proofComposer.create(p, nonce);
+              AssetProof proof = createProofFrom(p, nonce);
               proofs.putIfAbsent(proof.getId(), proof);
             });
 
@@ -272,6 +273,15 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     readSet.forEach((k, v) -> proofs.putIfAbsent(k, proofComposer.create(v)));
 
     return new ArrayList<>(proofs.values());
+  }
+
+  private AssetProof createProofFrom(Put p, String nonce) {
+    String id = p.getPartitionKey().getColumns().get(0).getTextValue();
+    int age = p.getClusteringKey().get().getColumns().get(0).getIntValue();
+    String input = p.getTextValue(AssetAttribute.INPUT);
+    byte[] hash = p.getBlobValueAsBytes(AssetAttribute.HASH);
+    byte[] prevHash = p.getBlobValueAsBytes(AssetAttribute.PREV_HASH);
+    return proofComposer.create(id, age, nonce, input, hash, prevHash);
   }
 
   static class Metadata {
