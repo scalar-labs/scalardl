@@ -1,7 +1,7 @@
 package com.scalar.dl.ledger.test;
 
 /** Common test constants shared across all Ledger test classes. */
-public class TestConstants {
+public final class TestConstants {
   public static final String PRIVATE_KEY_A =
       "-----BEGIN EC PRIVATE KEY-----\n"
           + "MHcCAQEEIF4SjQxTArRcZaROSFjlBP2rR8fAKtL8y+kmGiSlM5hEoAoGCCqGSM49\n"
