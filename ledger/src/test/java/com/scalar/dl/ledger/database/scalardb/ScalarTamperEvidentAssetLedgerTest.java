@@ -33,6 +33,7 @@ import com.scalar.db.transaction.consensuscommit.TransactionResult;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.database.AssetFilter;
+import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.AssetRecord;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TransactionState;
