@@ -32,7 +32,7 @@ public class CertificateRegistrationTest {
   class call {
     @Test
     @DisplayName("returns 0 as exit code")
-    void returns0AsExitCode() {
+    void returns0AsExitCode() throws ClientException {
       // Arrange
       String[] args =
           new String[] {
@@ -41,11 +41,10 @@ public class CertificateRegistrationTest {
           };
       CertificateRegistration command = parseArgs(args);
       // Mock service that returns ContractExecutionResult.
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
 
       // Act
-      int exitCode = command.call(factoryMock, serviceMock);
+      int exitCode = command.execute(serviceMock);
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
@@ -114,26 +113,29 @@ public class CertificateRegistrationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
             };
         CertificateRegistration command = parseArgs(args);
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
+        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .registerCertificate();
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
+        verify(factoryMock).close();
       }
     }
   }

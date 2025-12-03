@@ -54,7 +54,6 @@ public class ContractsListingTest {
           };
       ContractsListing command = parseArgs(args);
       // Mock service that returns ContractExecutionResult.
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
       JsonObject jsonObject =
           Json.createObjectBuilder()
@@ -64,7 +63,7 @@ public class ContractsListingTest {
       when(serviceMock.listContracts(eq("CONTRACT_ID"))).thenReturn(jsonObject);
 
       // Act
-      int exitCode = command.call(factoryMock, serviceMock);
+      int exitCode = command.execute(serviceMock);
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
@@ -147,12 +146,13 @@ public class ContractsListingTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
               // Set the optional options.
               "--contract-id=CONTRACT_ID",
             };
@@ -160,14 +160,16 @@ public class ContractsListingTest {
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
+        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
         when(serviceMock.listContracts(eq("CONTRACT_ID")))
             .thenThrow(new ClientException("", StatusCode.RUNTIME_ERROR));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
+        verify(factoryMock).close();
       }
     }
   }

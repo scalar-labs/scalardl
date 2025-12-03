@@ -5,6 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
+import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.CommandLineTestUtils;
@@ -14,7 +15,6 @@ import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,16 +50,14 @@ public class BootstrapTest {
               "--properties=PROPERTIES_FILE",
             };
         Bootstrap command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock).bootstrap();
-        verify(factoryMock).close();
       }
     }
 
@@ -68,25 +66,27 @@ public class BootstrapTest {
     class whereBootstrapFailsViaTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
             };
         Bootstrap command = parseArgs(args);
         TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
+
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         doThrow(new ClientException("Some error", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .bootstrap();
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
-        verify(serviceMock).bootstrap();
         verify(factoryMock).close();
         assertThat(outputStreamCaptor.toString(UTF_8.name())).contains("Some error");
       }
