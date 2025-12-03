@@ -1,5 +1,6 @@
 package com.scalar.dl.ledger.database.scalardb;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Delete;
@@ -7,7 +8,9 @@ import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.database.FunctionRegistry;
 import com.scalar.dl.ledger.error.CommonError;
@@ -16,16 +19,30 @@ import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.function.FunctionEntry;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Map;
 import java.util.Optional;
 
-public class ScalarFunctionRegistry implements FunctionRegistry {
+public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataProvider {
   static final String FUNCTION_TABLE = "function";
+  private static final TableMetadata FUNCTION_TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(FunctionEntry.ID, DataType.TEXT)
+          .addColumn(FunctionEntry.BINARY_NAME, DataType.TEXT)
+          .addColumn(FunctionEntry.BYTE_CODE, DataType.BLOB)
+          .addColumn(FunctionEntry.REGISTERED_AT, DataType.BIGINT)
+          .addPartitionKey(FunctionEntry.ID)
+          .build();
   private final DistributedStorage storage;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ScalarFunctionRegistry(DistributedStorage storage) {
     this.storage = storage;
+  }
+
+  @Override
+  public Map<String, TableMetadata> getStorageTables() {
+    return ImmutableMap.of(FUNCTION_TABLE, FUNCTION_TABLE_METADATA);
   }
 
   @Override

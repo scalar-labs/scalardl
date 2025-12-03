@@ -8,6 +8,7 @@ import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.transaction.consensuscommit.ConsensusCommitManager;
 import com.scalar.dl.ledger.config.LedgerConfig;
@@ -30,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ThreadSafe
-public class ScalarTransactionManager implements TransactionManager {
+public class ScalarTransactionManager implements TransactionManager, TableMetadataProvider {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ScalarTransactionManager.class.getName());
   private final DistributedTransactionManager manager;
@@ -52,6 +53,11 @@ public class ScalarTransactionManager implements TransactionManager {
     this.proofComposer = proofComposer;
     this.stateManager = stateManager;
     this.config = config;
+  }
+
+  @Override
+  public Map<String, TableMetadata> getTransactionTables() {
+    return ScalarTamperEvidentAssetLedger.getTransactionTables();
   }
 
   @Override

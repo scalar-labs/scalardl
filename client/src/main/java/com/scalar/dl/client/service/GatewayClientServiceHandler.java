@@ -10,6 +10,7 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import javax.json.JsonObject;
 
@@ -106,6 +107,11 @@ public class GatewayClientServiceHandler implements ClientServiceHandler {
   @Override
   public LedgerValidationResult validateLedger(LedgerValidationRequest request) {
     return client.validate(request);
+  }
+
+  @Override
+  public void createNamespace(NamespaceCreationRequest request) {
+    client.create(request);
   }
 
   @VisibleForTesting
