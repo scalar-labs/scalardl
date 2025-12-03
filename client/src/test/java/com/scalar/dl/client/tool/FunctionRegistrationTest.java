@@ -33,7 +33,7 @@ public class FunctionRegistrationTest {
   class call {
     @Test
     @DisplayName("returns 0 as exit code")
-    void returns0AsExitCode() {
+    void returns0AsExitCode() throws ClientException {
       // Arrange
       String[] args =
           new String[] {
@@ -44,11 +44,10 @@ public class FunctionRegistrationTest {
             "--function-class-file=FUNCTION_CLASS_FILE",
           };
       FunctionRegistration command = parseArgs(args);
-      ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
       ClientService serviceMock = mock(ClientService.class);
 
       // Act
-      int exitCode = command.call(factoryMock, serviceMock);
+      int exitCode = command.execute(serviceMock);
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
@@ -127,12 +126,13 @@ public class FunctionRegistrationTest {
     class whereClientExceptionIsThrownByClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
             new String[] {
               // Set the required options.
-              "--properties=PROPERTIES_FILE",
+              "--properties=" + file.getAbsolutePath(),
               "--function-id=FUNCTION_ID",
               "--function-binary-name=FUNCTION_BINARY_NAME",
               "--function-class-file=FUNCTION_CLASS_FILE",
@@ -141,16 +141,18 @@ public class FunctionRegistrationTest {
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
+        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .registerFunction(
                 eq("FUNCTION_ID"), eq("FUNCTION_BINARY_NAME"), eq("FUNCTION_CLASS_FILE"));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
+        verify(factoryMock).close();
       }
     }
   }

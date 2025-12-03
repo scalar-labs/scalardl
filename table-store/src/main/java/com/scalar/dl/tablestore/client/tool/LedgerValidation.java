@@ -1,22 +1,15 @@
 package com.scalar.dl.tablestore.client.tool;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.client.config.GatewayClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.tool.Common;
-import com.scalar.dl.client.tool.CommonOptions;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.tablestore.client.service.TableStoreClientService;
-import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
-import java.io.File;
-import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 
 @Command(name = "validate-ledger", description = "Validate a specified asset in the ledger.")
-public class LedgerValidation extends CommonOptions implements Callable<Integer> {
+public class LedgerValidation extends AbstractTableStoreCommand {
 
   @CommandLine.Option(
       names = {"--start-age"},
@@ -69,41 +62,19 @@ public class LedgerValidation extends CommonOptions implements Callable<Integer>
   }
 
   @Override
-  public Integer call() throws Exception {
-    return call(new TableStoreClientServiceFactory());
-  }
-
-  @VisibleForTesting
-  Integer call(TableStoreClientServiceFactory factory) throws Exception {
-    TableStoreClientService service =
-        useGateway
-            ? factory.create(new GatewayClientConfig(new File(properties)), false)
-            : factory.create(new ClientConfig(new File(properties)), false);
-    return call(factory, service);
-  }
-
-  @VisibleForTesting
-  Integer call(TableStoreClientServiceFactory factory, TableStoreClientService service) {
-    try {
-      LedgerValidationResult result;
-      if (key == null) {
-        result = service.validateTableSchema(tableName, startAge, endAge);
+  protected Integer execute(TableStoreClientService service) throws ClientException {
+    LedgerValidationResult result;
+    if (key == null) {
+      result = service.validateTableSchema(tableName, startAge, endAge);
+    } else {
+      if (key.name.primary != null) {
+        result = service.validateRecord(tableName, key.name.primary, key.value, startAge, endAge);
       } else {
-        if (key.name.primary != null) {
-          result = service.validateRecord(tableName, key.name.primary, key.value, startAge, endAge);
-        } else {
-          result =
-              service.validateIndexRecord(tableName, key.name.index, key.value, startAge, endAge);
-        }
+        result =
+            service.validateIndexRecord(tableName, key.name.index, key.value, startAge, endAge);
       }
-      Common.printJson(Common.getValidationResult(result));
-      return 0;
-    } catch (ClientException e) {
-      Common.printError(e);
-      printStackTrace(e);
-      return 1;
-    } finally {
-      factory.close();
     }
+    Common.printJson(Common.getValidationResult(result));
+    return 0;
   }
 }
