@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.ConditionBuilder;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
@@ -26,7 +25,6 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
@@ -121,8 +119,6 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     try {
       String fullNamespaceName = config.getNamespace() + NAMESPACE_NAME_SEPARATOR + namespace;
       storageAdmin.createNamespace(fullNamespaceName, true);
-      // this sleep can be removed after negative cache is disabled in ScalarDB
-      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
       createStorageTables(fullNamespaceName);
       createTransactionTables(fullNamespaceName);
     } catch (ExecutionException e) {
