@@ -17,7 +17,6 @@ import com.scalar.dl.tablestore.client.service.TableStoreClientServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +54,6 @@ public class StatementExecutionTest {
               "--statement=INSERT INTO test_table VALUES {'id': '123', 'name': 'test'}"
             };
         StatementExecution command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         String resultJson = "{\"status\":\"success\"}";
@@ -66,13 +64,12 @@ public class StatementExecutionTest {
         when(serviceMock.executeStatement(anyString())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock)
             .executeStatement("INSERT INTO test_table VALUES {'id': '123', 'name': 'test'}");
-        verify(factoryMock).close();
 
         String stdout = outputStreamCaptor.toString(UTF_8.name());
         assertThat(stdout).contains("Result:");
@@ -89,7 +86,6 @@ public class StatementExecutionTest {
               "--statement=CREATE TABLE test_table (id STRING PRIMARY KEY, name STRING)"
             };
         StatementExecution command = parseArgs(args);
-        TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
         ContractExecutionResult contractResult =
@@ -99,13 +95,12 @@ public class StatementExecutionTest {
         when(serviceMock.executeStatement(anyString())).thenReturn(result);
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.execute(serviceMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(0);
         verify(serviceMock)
             .executeStatement("CREATE TABLE test_table (id STRING PRIMARY KEY, name STRING)");
-        verify(factoryMock).close();
 
         String stdout = outputStreamCaptor.toString(UTF_8.name());
         assertThat(stdout).doesNotContain("Result:");
@@ -152,19 +147,23 @@ public class StatementExecutionTest {
     class whereClientExceptionIsThrownByTableStoreClientService {
       @Test
       @DisplayName("returns 1 as exit code")
-      void returns1AsExitCode() throws UnsupportedEncodingException {
+      void returns1AsExitCode(@TempDir Path tempDir) throws Exception {
         // Arrange
+        File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args =
-            new String[] {"--properties=PROPERTIES_FILE", "--statement=INVALID STATEMENT"};
+            new String[] {
+              "--properties=" + file.getAbsolutePath(), "--statement=INVALID STATEMENT"
+            };
         StatementExecution command = parseArgs(args);
         TableStoreClientServiceFactory factoryMock = mock(TableStoreClientServiceFactory.class);
         TableStoreClientService serviceMock = mock(TableStoreClientService.class);
 
+        when(factoryMock.create(any(ClientConfig.class), anyBoolean())).thenReturn(serviceMock);
         when(serviceMock.executeStatement(anyString()))
             .thenThrow(new ClientException("Invalid statement", StatusCode.RUNTIME_ERROR));
 
         // Act
-        int exitCode = command.call(factoryMock, serviceMock);
+        int exitCode = command.call(factoryMock);
 
         // Assert
         assertThat(exitCode).isEqualTo(1);
