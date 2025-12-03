@@ -294,6 +294,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     return name;
   }
 
+  @Override
   public String getNamespace() {
     return namespace;
   }

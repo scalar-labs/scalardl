@@ -22,6 +22,7 @@ import com.scalar.dl.rpc.GatewayGrpc;
 import com.scalar.dl.rpc.GatewayPrivilegedGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -181,6 +182,17 @@ public class GatewayClient extends AbstractGatewayClient {
     }
     // Java compiler requires this line even though it won't come here
     return new LedgerValidationResult(StatusCode.RUNTIME_ERROR, null, null);
+  }
+
+  @Override
+  public void create(NamespaceCreationRequest request) {
+    ThrowableConsumer<NamespaceCreationRequest> f =
+        r -> getGatewayPrivilegedStub().createNamespace(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
   }
 
   private GatewayGrpc.GatewayBlockingStub getGatewayStub() {
