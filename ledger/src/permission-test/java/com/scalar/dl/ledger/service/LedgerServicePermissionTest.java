@@ -30,6 +30,7 @@ import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import java.io.File;
@@ -81,6 +82,7 @@ public class LedgerServicePermissionTest {
   @Mock private FunctionManager functionManager;
   @Mock private ClientKeyValidator clientKeyValidator;
   @Mock private AuditorKeyValidator auditorKeyValidator;
+  @Mock private NamespaceManager namespaceManager;
   private LedgerService service;
 
   @BeforeEach
@@ -105,7 +107,8 @@ public class LedgerServicePermissionTest {
         new ContractExecutor(config, contractManager, functionManager, transactionManager);
     service =
         new LedgerService(
-            new BaseService(certManager, secretManager, clientKeyValidator, contractManager),
+            new BaseService(
+                certManager, secretManager, clientKeyValidator, contractManager, namespaceManager),
             config,
             clientKeyValidator,
             auditorKeyValidator,

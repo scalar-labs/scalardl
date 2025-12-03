@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.database.scalardb;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
 import com.google.inject.Inject;
 import com.scalar.db.api.Consistency;
@@ -12,8 +13,10 @@ import com.scalar.db.api.PutIfNotExists;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scanner;
+import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.storage.NoMutationException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
@@ -27,17 +30,37 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ThreadSafe
-public class ScalarContractRegistry implements ContractRegistry {
+public class ScalarContractRegistry implements ContractRegistry, TableMetadataProvider {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ScalarContractRegistry.class.getName());
   static final String CONTRACT_TABLE = "contract";
   static final String CONTRACT_CLASS_TABLE = "contract_class";
+  private static final TableMetadata CONTRACT_TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(ContractEntry.ID, DataType.TEXT)
+          .addColumn(ContractEntry.ENTITY_ID, DataType.TEXT)
+          .addColumn(ContractEntry.KEY_VERSION, DataType.INT)
+          .addColumn(ContractEntry.BINARY_NAME, DataType.TEXT)
+          .addColumn(ContractEntry.PROPERTIES, DataType.TEXT)
+          .addColumn(ContractEntry.REGISTERED_AT, DataType.BIGINT)
+          .addColumn(ContractEntry.SIGNATURE, DataType.BLOB)
+          .addPartitionKey(ContractEntry.ENTITY_ID)
+          .addClusteringKey(ContractEntry.KEY_VERSION)
+          .addClusteringKey(ContractEntry.ID)
+          .build();
+  private static final TableMetadata CONTRACT_CLASS_TABLE_METADATA =
+      TableMetadata.newBuilder()
+          .addColumn(ContractEntry.BINARY_NAME, DataType.TEXT)
+          .addColumn(ContractEntry.BYTE_CODE, DataType.BLOB)
+          .addPartitionKey(ContractEntry.BINARY_NAME)
+          .build();
   private static final int CONTRACT_CACHE_SIZE = 1048576;
   private static final int CONTRACT_CLASS_CACHE_SIZE = 128;
   private final DistributedStorage storage;
@@ -51,6 +74,15 @@ public class ScalarContractRegistry implements ContractRegistry {
     this.contractCache = CacheBuilder.newBuilder().maximumSize(CONTRACT_CACHE_SIZE).build();
     this.contractClassCache =
         CacheBuilder.newBuilder().maximumSize(CONTRACT_CLASS_CACHE_SIZE).build();
+  }
+
+  @Override
+  public Map<String, TableMetadata> getStorageTables() {
+    return ImmutableMap.of(
+        CONTRACT_TABLE,
+        CONTRACT_TABLE_METADATA,
+        CONTRACT_CLASS_TABLE,
+        CONTRACT_CLASS_TABLE_METADATA);
   }
 
   @Override

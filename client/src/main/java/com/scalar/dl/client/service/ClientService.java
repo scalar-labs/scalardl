@@ -27,6 +27,7 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.Collections;
 import java.util.List;
@@ -983,6 +984,41 @@ public class ClientService implements AutoCloseable {
     }
 
     return handler.validateLedger(request);
+  }
+
+  /**
+   * Creates the specified namespace.
+   *
+   * @param namespace a namespace name to create
+   * @throws ClientException if a request fails for some reason
+   */
+  public void createNamespace(String namespace) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(
+        namespace != null, ClientError.SERVICE_NAMESPACE_NAME_CANNOT_BE_NULL.buildMessage());
+    NamespaceCreationRequest request =
+        NamespaceCreationRequest.newBuilder().setNamespace(namespace).build();
+
+    handler.createNamespace(request);
+  }
+
+  /**
+   * Creates the namespace specified with the serialized byte array of a {@code
+   * NamespaceCreationRequest}.
+   *
+   * @param serializedBinary a serialized byte array of {@code NamespaceCreationRequest}
+   * @throws ClientException if a request fails for some reason
+   */
+  public void createNamespace(byte[] serializedBinary) {
+    checkClientMode(ClientMode.INTERMEDIARY);
+    NamespaceCreationRequest request;
+    try {
+      request = NamespaceCreationRequest.parseFrom(serializedBinary);
+    } catch (InvalidProtocolBufferException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+
+    handler.createNamespace(request);
   }
 
   /**

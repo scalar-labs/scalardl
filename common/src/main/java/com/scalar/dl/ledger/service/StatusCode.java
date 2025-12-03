@@ -129,6 +129,9 @@ public enum StatusCode {
   /** StatusCode: 415. This indicates that the given secret is not found. */
   SECRET_NOT_FOUND(415),
 
+  /** StatusCode: 416. This indicates that the given namespace already exists. */
+  NAMESPACE_ALREADY_EXISTS(416),
+
   /**
    * StatusCode: 500. This indicates that the system encountered a database error such as IO error.
    */

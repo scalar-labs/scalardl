@@ -11,6 +11,7 @@ import com.scalar.dl.ledger.service.ThrowableConsumer;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerPrivilegedGrpc;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.StateRetrievalRequest;
 import com.scalar.dl.rpc.StateRetrievalResponse;
@@ -69,5 +70,12 @@ public class LedgerPrivilegedService extends LedgerPrivilegedGrpc.LedgerPrivileg
       LOGGER.error(e.getMessage(), e);
       responseObserver.onError(e);
     }
+  }
+
+  @Override
+  public void createNamespace(
+      NamespaceCreationRequest request, StreamObserver<Empty> responseObserver) {
+    ThrowableConsumer<NamespaceCreationRequest> f = r -> ledger.create(convert(r));
+    commonService.serve(f, request, responseObserver);
   }
 }
