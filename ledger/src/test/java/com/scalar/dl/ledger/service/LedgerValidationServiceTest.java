@@ -1,5 +1,8 @@
 package com.scalar.dl.ledger.service;
 
+import static com.scalar.dl.ledger.test.TestConstants.CERTIFICATE_A;
+import static com.scalar.dl.ledger.test.TestConstants.PRIVATE_KEY_A;
+import static com.scalar.dl.ledger.test.TestConstants.PRIVATE_KEY_B;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -27,10 +30,10 @@ import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetFilter.AgeOrder;
+import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
-import com.scalar.dl.ledger.database.scalardb.AssetProofComposer;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
@@ -86,34 +89,6 @@ public class LedgerValidationServiceTest {
   private static final String ANY_INPUT = "input";
   private static final byte[] FIRST_HASH = "first".getBytes(StandardCharsets.UTF_8);
   private static final byte[] LAST_HASH = "second".getBytes(StandardCharsets.UTF_8);
-  private static final String PRIVATE_KEY_A =
-      "-----BEGIN EC PRIVATE KEY-----\n"
-          + "MHcCAQEEIF4SjQxTArRcZaROSFjlBP2rR8fAKtL8y+kmGiSlM5hEoAoGCCqGSM49\n"
-          + "AwEHoUQDQgAEY0i/iAFxIBS3etbjoSC1/aUKQV66+wiawL4bZqklu86ObIc7wrif\n"
-          + "HExPmVhKFSklOyZqGoOiVZA0zf0LZeFaPA==\n"
-          + "-----END EC PRIVATE KEY-----";
-  private static final String PRIVATE_KEY_B =
-      "-----BEGIN EC PRIVATE KEY-----\n"
-          + "MHcCAQEEIAHSsi6IZaB4aO7qbvkf4uv4HIAHNdMH2l6YDGyyYzY+oAoGCCqGSM49\n"
-          + "AwEHoUQDQgAEDhDSlG3KmPN2zK16AFB68vSa4M5MLuEtNSL7c1/ul8b6HKrq9Ivo\n"
-          + "xmxDUidA3pmIotkcjPtMSAxoDC98NjV2Aw==\n"
-          + "-----END EC PRIVATE KEY-----";
-  private static final String CERTIFICATE_A =
-      "-----BEGIN CERTIFICATE-----\n"
-          + "MIICQTCCAeagAwIBAgIUEKARigcZQ3sLEXdlEtjYissVx0cwCgYIKoZIzj0EAwIw\n"
-          + "QTELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMQ4wDAYDVQQHEwVUb2t5bzES\n"
-          + "MBAGA1UEChMJU2FtcGxlIENBMB4XDTE4MDYyMTAyMTUwMFoXDTE5MDYyMTAyMTUw\n"
-          + "MFowRTELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMQ4wDAYDVQQHEwVUb2t5\n"
-          + "bzEWMBQGA1UEChMNU2FtcGxlIENsaWVudDBZMBMGByqGSM49AgEGCCqGSM49AwEH\n"
-          + "A0IABGNIv4gBcSAUt3rW46Egtf2lCkFeuvsImsC+G2apJbvOjmyHO8K4nxxMT5lY\n"
-          + "ShUpJTsmahqDolWQNM39C2XhWjyjgbcwgbQwDgYDVR0PAQH/BAQDAgWgMB0GA1Ud\n"
-          + "JQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQW\n"
-          + "BBTpBQl/JxB7yr77uMVT9mMicPeVJTAfBgNVHSMEGDAWgBQrJo3N3/0j3oPS6F6m\n"
-          + "wunHe8xLpzA1BgNVHREELjAsghJjbGllbnQuZXhhbXBsZS5jb22CFnd3dy5jbGll\n"
-          + "bnQuZXhhbXBsZS5jb20wCgYIKoZIzj0EAwIDSQAwRgIhAJPtXSzuncDJXnM+7us8\n"
-          + "46MEVjGHJy70bRY1My23RkxbAiEA5oFgTKMvls8e4UpnmUgFNP+FH8a5bF4tUPaV\n"
-          + "BQiBbgk=\n"
-          + "-----END CERTIFICATE-----";
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
