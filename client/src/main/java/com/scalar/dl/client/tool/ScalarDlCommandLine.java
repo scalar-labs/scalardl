@@ -27,6 +27,7 @@ import picocli.CommandLine.HelpCommand;
       HelpCommand.class,
       LedgerValidation.class,
       SecretRegistration.class,
+      NamespaceCreation.class,
     },
     description = {"These are ScalarDL commands used in various situations:"})
 public class ScalarDlCommandLine {
@@ -77,6 +78,8 @@ public class ScalarDlCommandLine {
     sections.put(
         "%nexecute and list the registered business logic%n",
         Arrays.asList(ContractExecution.class, ContractsListing.class));
+    // Section: manage namespaces.
+    sections.put("%nmanage namespaces%n", Collections.singletonList(NamespaceCreation.class));
     // Section: validate ledger.
     sections.put("%nvalidate ledger%n", Collections.singletonList(LedgerValidation.class));
     // Section: generic contracts.
