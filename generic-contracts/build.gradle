@@ -22,8 +22,6 @@ configurations {
 
 dependencies {
     implementation project(':client')
-    implementation project(':ledger')
-    implementation group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
 
     // for Error Prone
