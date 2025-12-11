@@ -39,12 +39,6 @@ configurations {
 
 dependencies {
     implementation project(':common')
-    implementation(group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}") {
-        exclude group: 'io.grpc', module: 'grpc-stub'
-        exclude group: 'io.grpc', module: 'grpc-netty'
-        exclude group: 'io.grpc', module: 'grpc-protobuf'
-        exclude group: 'io.grpc', module: 'grpc-services'
-    }
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
     implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"

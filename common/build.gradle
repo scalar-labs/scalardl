@@ -5,6 +5,12 @@ plugins {
 
 dependencies {
     api project(':rpc')
+    api(group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}") {
+        exclude group: 'io.grpc', module: 'grpc-stub'
+        exclude group: 'io.grpc', module: 'grpc-netty'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-services'
+    }
     implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncyCastleCryptoVersion}"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncyCastleCryptoVersion}"
     implementation group: 'io.dropwizard.metrics', name: 'metrics-core', version: "${dropwizardMetricsVersion}"
