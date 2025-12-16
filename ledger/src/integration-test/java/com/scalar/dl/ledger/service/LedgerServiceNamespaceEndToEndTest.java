@@ -67,7 +67,7 @@ import org.junit.jupiter.api.Test;
 public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTestBase {
   private static final String SOME_NAMESPACE1 = "namespace1";
   private static final String SOME_NAMESPACE2 = "namespace2";
-  private static final List<String> TABLES =
+  private static final ImmutableList<String> TABLES =
       ImmutableList.of(
           "asset",
           "asset_metadata",
@@ -126,10 +126,6 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
                 CONTRACT_PACKAGE_NAME + NAMESPACE_AWARE_PAYMENT_ID,
                 CONTRACT_CLASS_DIR + NAMESPACE_AWARE_PAYMENT_ID + ".class")
             .build();
-    Map<String, String> contractsMap2 =
-        ImmutableMap.of(
-            CONTRACT_PACKAGE_NAME + HOLDER_CHECKER_CONTRACT_ID,
-            CONTRACT_CLASS_DIR + HOLDER_CHECKER_CONTRACT_ID + ".class");
     return ImmutableMap.of(ENTITY_ID_A, contractsMap, ENTITY_ID_C, contractsMap);
   }
 
