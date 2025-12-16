@@ -125,10 +125,7 @@ public abstract class LedgerServiceEndToEndTestBase {
     registerCertificate();
     signers.entrySet().stream()
         .filter(entry -> entry.getValue() instanceof DigitalSignatureSigner)
-        .forEach(
-            entry -> {
-              registerContracts(entry.getKey());
-            });
+        .forEach(entry -> registerContracts(entry.getKey()));
     registerFunction(getFunctionsMap());
 
     // For HMAC
@@ -140,10 +137,7 @@ public abstract class LedgerServiceEndToEndTestBase {
     registerSecret();
     signers.entrySet().stream()
         .filter(entry -> entry.getValue() instanceof HmacSigner)
-        .forEach(
-            entry -> {
-              registerContracts(entry.getKey());
-            });
+        .forEach(entry -> registerContracts(entry.getKey()));
 
     // Set up the security manager
     System.setProperty("java.security.manager", "default");
@@ -275,29 +269,33 @@ public abstract class LedgerServiceEndToEndTestBase {
       SignatureSigner signer,
       Map<String, String> contractMap,
       @Nullable Map<String, String> properties) {
+    final Map<String, String> contractProperties =
+        properties != null ? properties : ImmutableMap.of();
     for (Map.Entry<String, String> entry : contractMap.entrySet()) {
       byte[] bytes;
       try {
         bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Failed to read contract file: " + entry.getValue(), e);
       }
 
       String contractName = entry.getKey();
       String contractId = contractName.substring(contractName.lastIndexOf('.') + 1);
-      if (properties == null) {
-        properties = ImmutableMap.of();
-      }
 
       byte[] serialized =
           ContractRegistrationRequest.serialize(
-              contractId, contractName, bytes, properties.get(contractId), entityId, KEY_VERSION);
+              contractId,
+              contractName,
+              bytes,
+              contractProperties.get(contractId),
+              entityId,
+              KEY_VERSION);
       ContractRegistrationRequest request =
           new ContractRegistrationRequest(
               contractId,
               contractName,
               bytes,
-              properties.get(contractId),
+              contractProperties.get(contractId),
               entityId,
               KEY_VERSION,
               signer.sign(serialized));
@@ -306,9 +304,15 @@ public abstract class LedgerServiceEndToEndTestBase {
     }
   }
 
-  private void registerFunction(Map<String, String> functionMap) throws IOException {
+  private void registerFunction(Map<String, String> functionMap) {
     for (Map.Entry<String, String> entry : functionMap.entrySet()) {
-      byte[] bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
+      byte[] bytes;
+      try {
+        bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to read function file: " + entry.getValue(), e);
+      }
+
       FunctionRegistrationRequest request =
           new FunctionRegistrationRequest(entry.getKey(), entry.getKey(), bytes);
       ledgerService.register(request);
