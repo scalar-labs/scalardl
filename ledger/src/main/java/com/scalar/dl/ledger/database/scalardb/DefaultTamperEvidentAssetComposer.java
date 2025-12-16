@@ -1,6 +1,8 @@
 package com.scalar.dl.ledger.database.scalardb;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.asset.AssetHasher;
@@ -9,24 +11,29 @@ import com.scalar.dl.ledger.crypto.CertificateEntry;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.statemachine.AssetInput;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class DefaultTamperEvidentAssetComposer implements TamperEvidentAssetComposer {
+  private final ScalarNamespaceResolver namespaceResolver;
+
+  @Inject
+  public DefaultTamperEvidentAssetComposer(ScalarNamespaceResolver namespaceResolver) {
+    this.namespaceResolver = namespaceResolver;
+  }
 
   @Override
-  public List<Put> compose(Snapshot snapshot, ContractExecutionRequest request) {
-    List<Put> puts = new ArrayList<>();
-    Map<String, InternalAsset> readSet = snapshot.getReadSet();
-    Map<String, InternalAsset> writeSet = snapshot.getWriteSet();
+  public Map<AssetKey, Put> compose(Snapshot snapshot, ContractExecutionRequest request) {
+    ImmutableMap.Builder<AssetKey, Put> builder = ImmutableMap.builder();
+    Map<AssetKey, InternalAsset> readSet = snapshot.getReadSet();
+    Map<AssetKey, InternalAsset> writeSet = snapshot.getWriteSet();
 
     writeSet.forEach(
-        (id, uncommitted) -> {
-          InternalAsset committed = readSet.get(id);
+        (key, uncommitted) -> {
+          InternalAsset committed = readSet.get(key);
           int age = uncommitted.age();
 
           String input = new AssetInput(readSet).toString();
@@ -41,7 +48,7 @@ public class DefaultTamperEvidentAssetComposer implements TamperEvidentAssetComp
 
           Put put =
               new Put(
-                      new Key(AssetAttribute.toIdValue(id)),
+                      new Key(AssetAttribute.toIdValue(key.assetId())),
                       new Key(AssetAttribute.toAgeValue(age)))
                   .withValue(AssetAttribute.toInputValue(input))
                   .withValue(AssetAttribute.toOutputValue(output))
@@ -52,7 +59,7 @@ public class DefaultTamperEvidentAssetComposer implements TamperEvidentAssetComp
                   .withValue(
                       AssetAttribute.toHashValue(
                           hashWith(
-                              id,
+                              key.assetId(),
                               age,
                               input,
                               output,
@@ -60,10 +67,11 @@ public class DefaultTamperEvidentAssetComposer implements TamperEvidentAssetComp
                               argument,
                               signature,
                               prevHash)))
+                  .forNamespace(namespaceResolver.resolve(key.namespace()))
                   .forTable(ScalarTamperEvidentAssetLedger.TABLE);
-          puts.add(put);
+          builder.put(key, put);
         });
-    return puts;
+    return builder.build();
   }
 
   @VisibleForTesting

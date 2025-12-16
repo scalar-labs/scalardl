@@ -41,6 +41,8 @@ import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.AssetProofRetrievalRequest;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -78,6 +80,9 @@ public class LedgerValidationServiceTest {
   @Mock private Transaction transaction;
   @Mock private TamperEvidentAssetLedger ledger;
   private LedgerValidationService service;
+  private static final String DEFAULT_NAMESPACE = NamespaceManager.DEFAULT_NAMESPACE;
+  private static final String BASE_NAMESPACE = "scalar";
+  private static final String NAMESPACE = "namespace";
   private static final String ID = "id";
   private static final int AGE = 1;
   private static final String ENTITY_ID = "request_entity_id";
@@ -92,11 +97,13 @@ public class LedgerValidationServiceTest {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
+  private static final Context context = Context.withNamespace(DEFAULT_NAMESPACE);
 
   @BeforeEach
   public void init() {
     MockitoAnnotations.openMocks(this);
     when(config.isAuditorEnabled()).thenReturn(false);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
   }
 
   private List<LedgerValidator> createValidators() {
@@ -153,7 +160,8 @@ public class LedgerValidationServiceTest {
     doNothing().when(tracer).setInput(anyString());
     List<LedgerValidator> validators = createValidators();
     for (LedgerValidator v : validators) {
-      when(v.validate(any(), any(ContractMachine.class), any(InternalAsset.class)))
+      when(v.validate(
+              any(), any(ContractMachine.class), any(String.class), any(InternalAsset.class)))
           .thenReturn(StatusCode.OK);
     }
     service =
@@ -165,11 +173,11 @@ public class LedgerValidationServiceTest {
                 contractManager,
                 proofComposer,
                 validators));
-    when(service.getLedgerTracerBase(DeserializationType.JSONP_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    LedgerValidationResult result = service.validate(ID, 0, Integer.MAX_VALUE);
+    LedgerValidationResult result = service.validate(context, null, ID, 0, Integer.MAX_VALUE);
 
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.OK);
@@ -177,8 +185,8 @@ public class LedgerValidationServiceTest {
     verify(contractManager, times(2)).get(expected);
     verify(contract, times(2)).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
-      verify(v).validate(tracer, contract, assets.get(0));
-      verify(v).validate(tracer, contract, assets.get(1));
+      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
+      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(1));
     }
     AssetFilter filter =
         new AssetFilter(ID)
@@ -199,11 +207,19 @@ public class LedgerValidationServiceTest {
     List<LedgerValidator> validators = createValidators();
     when(validators
             .get(0)
-            .validate(any(Ledger.class), any(ContractMachine.class), any(InternalAsset.class)))
+            .validate(
+                any(Ledger.class),
+                any(ContractMachine.class),
+                anyString(),
+                any(InternalAsset.class)))
         .thenReturn(StatusCode.OK);
     when(validators
             .get(1)
-            .validate(any(Ledger.class), any(ContractMachine.class), any(InternalAsset.class)))
+            .validate(
+                any(Ledger.class),
+                any(ContractMachine.class),
+                anyString(),
+                any(InternalAsset.class)))
         .thenReturn(StatusCode.INVALID_CONTRACT);
     service =
         spy(
@@ -214,11 +230,11 @@ public class LedgerValidationServiceTest {
                 contractManager,
                 proofComposer,
                 validators));
-    when(service.getLedgerTracerBase(DeserializationType.JSONP_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    LedgerValidationResult result = service.validate(ID, 0, Integer.MAX_VALUE);
+    LedgerValidationResult result = service.validate(context, null, ID, 0, Integer.MAX_VALUE);
 
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
@@ -226,7 +242,7 @@ public class LedgerValidationServiceTest {
     verify(contractManager).get(expected);
     verify(contract).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
-      verify(v).validate(tracer, contract, assets.get(0));
+      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
     }
     verify(transaction).commit();
   }
@@ -249,7 +265,8 @@ public class LedgerValidationServiceTest {
             validators);
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.validate(ID, 0, Integer.MAX_VALUE));
+    Throwable thrown =
+        catchThrowable(() -> service.validate(context, null, ID, 0, Integer.MAX_VALUE));
 
     // Assert
     assertThat(thrown).isEqualTo(toThrow);
@@ -262,7 +279,7 @@ public class LedgerValidationServiceTest {
     prepareContractBehaviors(createAssetMocks());
     List<LedgerValidator> validators = createValidators();
     byte[] serialized =
-        LedgerValidationRequest.serialize(ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+        LedgerValidationRequest.serialize(null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -277,16 +294,16 @@ public class LedgerValidationServiceTest {
                 contractManager,
                 proofComposer,
                 validators));
-    when(service.getLedgerTracerBase(DeserializationType.JSONP_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
     service.validate(
         new LedgerValidationRequest(
-            ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
+            null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
 
     // Assert
-    verify(service).validate(ID, 0, Integer.MAX_VALUE);
+    verify(service).validate(context, null, ID, 0, Integer.MAX_VALUE);
   }
 
   @Test
@@ -294,7 +311,7 @@ public class LedgerValidationServiceTest {
       validate_LedgerValidationRequestSignedByWrongKeyGiven_ShouldThrowSignatureException() {
     // Arrange
     byte[] serialized =
-        LedgerValidationRequest.serialize(ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+        LedgerValidationRequest.serialize(null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_B);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -308,11 +325,18 @@ public class LedgerValidationServiceTest {
             () ->
                 service.validate(
                     new LedgerValidationRequest(
-                        ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))))
+                        null,
+                        ID,
+                        0,
+                        Integer.MAX_VALUE,
+                        ENTITY_ID,
+                        KEY_VERSION,
+                        signer.sign(serialized))))
         .isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(service, never()).validate(ID, 0, Integer.MAX_VALUE);
+    verify(service, never())
+        .validate(any(Context.class), nullable(String.class), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -320,7 +344,7 @@ public class LedgerValidationServiceTest {
     // Arrange
     prepareContractBehaviors(createAssetMocks());
     List<LedgerValidator> validators = createValidators();
-    byte[] serialized = LedgerValidationRequest.serialize(ID, 0, AGE, ENTITY_ID, KEY_VERSION);
+    byte[] serialized = LedgerValidationRequest.serialize(null, ID, 0, AGE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -341,12 +365,48 @@ public class LedgerValidationServiceTest {
             () ->
                 service.validate(
                     new LedgerValidationRequest(
-                        ID, 0, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))));
+                        null, ID, 0, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))));
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(LedgerException.class);
     assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.INVALID_REQUEST);
-    verify(service, never()).validate(anyString(), anyInt(), anyInt());
+    verify(service, never())
+        .validate(any(Context.class), nullable(String.class), anyString(), anyInt(), anyInt());
+  }
+
+  @Test
+  public void
+      validate_LedgerValidationRequestWithNamespaceSignedByCorrectKeyGiven_ShouldCallInternalValidateWithNamespace() {
+    // Arrange
+    prepareContractBehaviors(createAssetMocks());
+    List<LedgerValidator> validators = createValidators();
+    byte[] serialized =
+        LedgerValidationRequest.serialize(
+            NAMESPACE, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+    DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
+    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+        .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
+    JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
+    doNothing().when(tracer).setInput(anyString());
+    service =
+        spy(
+            new LedgerValidationService(
+                config,
+                transactionManager,
+                clientKeyValidator,
+                contractManager,
+                proofComposer,
+                validators));
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
+        .thenReturn((LedgerTracerBase) tracer);
+
+    // Act
+    service.validate(
+        new LedgerValidationRequest(
+            NAMESPACE, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
+
+    // Assert
+    verify(service).validate(context, NAMESPACE, ID, 0, Integer.MAX_VALUE);
   }
 
   @Test
@@ -370,7 +430,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(ID, age);
+    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, age);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
@@ -387,19 +447,19 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     InternalAsset asset = createAssetMocks().get(1);
-    doReturn(Optional.of(asset)).when(ledger).get(ID);
+    doReturn(Optional.of(asset)).when(ledger).get(DEFAULT_NAMESPACE, ID);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(ID, -1);
+    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, -1);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
     assertThat(actual.age()).isEqualTo(age);
-    verify(ledger).get(ID);
+    verify(ledger).get(DEFAULT_NAMESPACE, ID);
     verify(transaction).commit();
   }
 
@@ -411,7 +471,7 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     InternalAsset asset = createAssetMocks().get(1);
-    doReturn(Optional.of(asset)).when(ledger).get(ID);
+    doReturn(Optional.of(asset)).when(ledger).get(DEFAULT_NAMESPACE, ID);
     proofComposer = new AssetProofComposer(new DigitalSignatureSigner(PRIVATE_KEY_A));
     service =
         spy(
@@ -419,12 +479,12 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(ID, Integer.MAX_VALUE);
+    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, Integer.MAX_VALUE);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
     assertThat(actual.age()).isEqualTo(age);
-    verify(ledger).get(ID);
+    verify(ledger).get(DEFAULT_NAMESPACE, ID);
     verify(transaction).commit();
   }
 
@@ -433,17 +493,17 @@ public class LedgerValidationServiceTest {
     // Arrange
     prepareContractBehaviors(createAssetMocks());
     DatabaseException toThrow = mock(DatabaseException.class);
-    when(ledger.get(any())).thenThrow(toThrow);
+    when(ledger.get(anyString(), anyString())).thenThrow(toThrow);
     service =
         new LedgerValidationService(
             config, transactionManager, clientKeyValidator, contractManager, proofComposer);
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(ID, -1));
+    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, -1));
 
     // Assert
     assertThat(thrown).isEqualTo(toThrow);
-    verify(ledger).get(ID);
+    verify(ledger).get(DEFAULT_NAMESPACE, ID);
     verify(transaction).abort();
   }
 
@@ -461,7 +521,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(ID, age));
+    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, age));
 
     // Assert
     assertThat(thrown).isInstanceOf(ValidationException.class);
@@ -482,7 +542,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(ID, -1));
+    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, -1));
 
     // Assert
     assertThat(thrown).isInstanceOf(ValidationException.class);
@@ -495,7 +555,7 @@ public class LedgerValidationServiceTest {
     // Arrange
     prepareContractBehaviors(createAssetMocks());
     List<LedgerValidator> validators = createValidators();
-    byte[] serialized = AssetProofRetrievalRequest.serialize(ID, AGE, ENTITY_ID, KEY_VERSION);
+    byte[] serialized = AssetProofRetrievalRequest.serialize(null, ID, AGE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -511,16 +571,17 @@ public class LedgerValidationServiceTest {
 
     // Act
     service.retrieve(
-        new AssetProofRetrievalRequest(ID, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
+        new AssetProofRetrievalRequest(
+            null, ID, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
 
     // Assert
-    verify(service).retrieve(ID, AGE);
+    verify(service).retrieve(DEFAULT_NAMESPACE, ID, AGE);
   }
 
   @Test
   public void retrieve_AssetRetrievalRequestSignedByWrongKeyGiven_ShouldThrowSignatureException() {
     // Arrange
-    byte[] serialized = AssetProofRetrievalRequest.serialize(ID, AGE, ENTITY_ID, KEY_VERSION);
+    byte[] serialized = AssetProofRetrievalRequest.serialize(null, ID, AGE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_B);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -534,11 +595,11 @@ public class LedgerValidationServiceTest {
             () ->
                 service.retrieve(
                     new AssetProofRetrievalRequest(
-                        ID, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))))
+                        null, ID, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))))
         .isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(service, never()).retrieve(ID, AGE);
+    verify(service, never()).retrieve(DEFAULT_NAMESPACE, ID, AGE);
   }
 
   @Test
@@ -560,21 +621,21 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.DEPRECATED);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.DEPRECATED))
+    when(service.getLedgerTracerBase(context, DeserializationType.DEPRECATED))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -598,21 +659,23 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.DEPRECATED);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.DEPRECATED))
-        .thenReturn((LedgerTracerBase) tracer);
+    doReturn((LedgerTracerBase) tracer)
+        .when(service)
+        .getLedgerTracerBase(
+            any(Context.class), ArgumentMatchers.eq(DeserializationType.DEPRECATED));
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -634,21 +697,21 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JSONP_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.JSONP_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -672,21 +735,21 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JSONP_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.JSONP_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -708,21 +771,21 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JACKSON_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.JACKSON_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JACKSON_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jacksonSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -746,21 +809,21 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JACKSON_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.JACKSON_JSON))
+    when(service.getLedgerTracerBase(context, DeserializationType.JACKSON_JSON))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jacksonSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 
   @Test
@@ -784,20 +847,20 @@ public class LedgerValidationServiceTest {
     when(contractManager.getInstance(entry)).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.STRING);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(validator.validate(any(), any(), any())).thenReturn(StatusCode.OK);
+    when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
-    when(service.getLedgerTracerBase(DeserializationType.STRING))
+    when(service.getLedgerTracerBase(context, DeserializationType.STRING))
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(validators, asset);
+    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, contractArgument, null);
-    verify(validator).validate(tracer, contract, asset);
+    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
   }
 }

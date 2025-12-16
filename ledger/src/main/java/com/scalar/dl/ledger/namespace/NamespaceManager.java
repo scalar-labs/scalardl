@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
  * <p>A {@code NamespaceManager} manages namespaces in a {@link NamespaceRegistry}.
  */
 public class NamespaceManager {
+  public static final String DEFAULT_NAMESPACE = "default";
   public static final Pattern NAMESPACE_NAME_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]*");
   private final NamespaceRegistry registry;
 

@@ -32,6 +32,7 @@ public class CommonTypeConverter {
   public static AssetProof convert(com.scalar.dl.ledger.proof.AssetProof proof) {
     AssetProof.Builder builder =
         AssetProof.newBuilder()
+            .setNamespace(proof.getNamespace())
             .setAssetId(proof.getId())
             .setAge(proof.getAge())
             .setNonce(proof.getNonce())
@@ -46,6 +47,7 @@ public class CommonTypeConverter {
 
   public static com.scalar.dl.ledger.proof.AssetProof convert(AssetProof proof) {
     return com.scalar.dl.ledger.proof.AssetProof.newBuilder()
+        .namespace(proof.getNamespace())
         .id(proof.getAssetId())
         .age(proof.getAge())
         .nonce(proof.getNonce())

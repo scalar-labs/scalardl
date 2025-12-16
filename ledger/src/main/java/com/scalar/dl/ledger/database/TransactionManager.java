@@ -1,6 +1,7 @@
 package com.scalar.dl.ledger.database;
 
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import java.util.Map;
 
 public interface TransactionManager {
@@ -13,5 +14,5 @@ public interface TransactionManager {
 
   TransactionState abort(String transactionId);
 
-  void recover(Map<String, Integer> assetIds);
+  void recover(Map<AssetKey, Integer> assetIds);
 }

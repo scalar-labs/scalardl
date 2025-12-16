@@ -76,7 +76,7 @@ public class ContractExecutor {
       return new ContractExecutionResult(contractResult, functionResult, proofs, null);
     } catch (ConflictException e) {
       transaction.abort();
-      transactionManager.recover(e.getIds());
+      transactionManager.recover(e.getKeys());
       throw e;
     } catch (Exception e) {
       transaction.abort();

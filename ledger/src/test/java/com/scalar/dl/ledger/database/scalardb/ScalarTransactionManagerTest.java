@@ -20,11 +20,13 @@ import com.scalar.db.transaction.jdbc.JdbcTransactionManager;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
+import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,12 +36,17 @@ import org.mockito.MockitoAnnotations;
 
 public class ScalarTransactionManagerTest {
   private static final String NONCE = "nonce";
+  private static final String BASE_NAMESPACE = "scalar";
+  private static final String DEFAULT_NAMESPACE = "default";
+  private static final String SOME_NAMESPACE = "namespace";
   private static final String SOME_ASSET_ID = "asset_id";
+  private static final AssetKey SOME_ASSET_KEY = AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID);
   private static final int SOME_ASSET_AGE = 1;
   @Mock private DistributedTransactionManager manager;
   @Mock private TamperEvidentAssetComposer assetComposer;
   @Mock private AssetProofComposer proofComposer;
   @Mock private TransactionStateManager stateManager;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
   @Mock private ContractExecutionRequest request;
   @Mock private LedgerConfig config;
   private ScalarTransactionManager transactionManager;
@@ -47,6 +54,7 @@ public class ScalarTransactionManagerTest {
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    when(namespaceResolver.resolve(DEFAULT_NAMESPACE)).thenReturn(BASE_NAMESPACE);
   }
 
   @Test
@@ -54,8 +62,10 @@ public class ScalarTransactionManagerTest {
       throws TransactionException {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(false);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
 
     // Act
     transactionManager.startWith(null);
@@ -69,8 +79,10 @@ public class ScalarTransactionManagerTest {
       throws TransactionException {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(false);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(request.getNonce()).thenReturn(NONCE);
 
     // Act
@@ -86,7 +98,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(false);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     com.scalar.db.api.TransactionState dbState = com.scalar.db.api.TransactionState.COMMITTED;
     when(manager.getState(NONCE)).thenReturn(dbState);
 
@@ -103,7 +116,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(false);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     com.scalar.db.api.TransactionState dbState = com.scalar.db.api.TransactionState.ABORTED;
     when(manager.getState(NONCE)).thenReturn(dbState);
 
@@ -120,7 +134,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(false);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     com.scalar.db.api.TransactionState dbState = com.scalar.db.api.TransactionState.UNKNOWN;
     when(manager.getState(NONCE)).thenReturn(dbState);
 
@@ -137,7 +152,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.getState(NONCE)).thenReturn(TransactionState.COMMITTED);
 
     // Act
@@ -154,7 +170,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.getState(NONCE)).thenReturn(TransactionState.ABORTED);
 
     // Act
@@ -171,7 +188,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.getState(NONCE)).thenReturn(TransactionState.UNKNOWN);
 
     // Act
@@ -188,7 +206,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.putAbort(NONCE)).thenReturn(TransactionState.COMMITTED);
 
     // Act
@@ -205,7 +224,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.putAbort(NONCE)).thenReturn(TransactionState.ABORTED);
 
     // Act
@@ -222,7 +242,8 @@ public class ScalarTransactionManagerTest {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
-        new ScalarTransactionManager(manager, assetComposer, proofComposer, stateManager, config);
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     when(stateManager.putAbort(NONCE)).thenReturn(TransactionState.UNKNOWN);
 
     // Act
@@ -235,29 +256,29 @@ public class ScalarTransactionManagerTest {
 
   @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-  public void recover_AssetIdsGivenAndConsensusCommitManagerUsed_ShouldRecoverAssetIds() {
+  public void recover_AssetKeysGivenAndConsensusCommitManagerUsed_ShouldRecoverAssetIds() {
     // Arrange
     ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
     transactionManager =
         spy(
             new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, config));
+                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
     Transaction transaction = mock(Transaction.class);
     TamperEvidentAssetLedger ledger = mock(TamperEvidentAssetLedger.class);
     doReturn(transaction).when(transactionManager).startWith();
     doReturn(ledger).when(transaction).getLedger();
-    Map<String, Integer> ids = ImmutableMap.of(SOME_ASSET_ID, SOME_ASSET_AGE);
+    Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
-    transactionManager.recover(ids);
+    transactionManager.recover(keys);
 
     // Assert
     AssetFilter filter =
-        new AssetFilter(SOME_ASSET_ID)
+        new NamespaceAwareAssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
             .withStartAge(SOME_ASSET_AGE, true)
             .withEndAge(SOME_ASSET_AGE + 1, false);
     verify(ledger).scan(filter);
-    verify(ledger).get(SOME_ASSET_ID);
+    verify(ledger).get(SOME_NAMESPACE, SOME_ASSET_ID);
     verify(transaction).commit();
     verify(transaction, never()).abort();
   }
@@ -265,44 +286,44 @@ public class ScalarTransactionManagerTest {
   @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
   public void
-      recover_AssetIdsGivenAndConsensusCommitManagerUsedButDatabaseExceptionThrownInRecovery_ShouldAbort() {
+      recover_AssetKeysGivenAndConsensusCommitManagerUsedButDatabaseExceptionThrownInRecovery_ShouldAbort() {
     // Arrange
     ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
     transactionManager =
         spy(
             new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, config));
+                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
     Transaction transaction = mock(Transaction.class);
     TamperEvidentAssetLedger ledger = mock(TamperEvidentAssetLedger.class);
     doReturn(transaction).when(transactionManager).startWith();
     doReturn(ledger).when(transaction).getLedger();
     DatabaseException toThrow = mock(DatabaseException.class);
     doThrow(toThrow).when(ledger).scan(any());
-    Map<String, Integer> ids = ImmutableMap.of(SOME_ASSET_ID, SOME_ASSET_AGE);
+    Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
-    Throwable thrown = catchThrowable(() -> transactionManager.recover(ids));
+    Throwable thrown = catchThrowable(() -> transactionManager.recover(keys));
 
     // Assert
     assertThat(thrown).doesNotThrowAnyException();
     verify(ledger).scan(any());
-    verify(ledger, never()).get(anyString());
+    verify(ledger, never()).get(anyString(), anyString());
     verify(transaction, never()).commit();
     verify(transaction).abort();
   }
 
   @Test
-  public void recover_AssetIdsGivenAndConsensusCommitManagerNotUsed_ShouldDoNothing() {
+  public void recover_AssetKeysGivenAndConsensusCommitManagerNotUsed_ShouldDoNothing() {
     // Arrange
     JdbcTransactionManager manager = mock(JdbcTransactionManager.class);
     transactionManager =
         spy(
             new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, config));
-    Map<String, Integer> ids = ImmutableMap.of(SOME_ASSET_ID, SOME_ASSET_AGE);
+                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
+    Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
-    transactionManager.recover(ids);
+    transactionManager.recover(keys);
 
     // Assert
     verify(transactionManager, never()).startWith();

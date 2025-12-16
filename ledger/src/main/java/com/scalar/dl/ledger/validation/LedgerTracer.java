@@ -10,6 +10,9 @@ import com.scalar.dl.ledger.database.Ledger;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
+import com.scalar.dl.ledger.statemachine.AssetInput;
+import com.scalar.dl.ledger.statemachine.AssetKey;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import java.util.HashMap;
@@ -25,11 +28,13 @@ import javax.json.JsonObject;
 @ThreadSafe
 public class LedgerTracer implements Ledger {
   private static final JsonpSerDe serde = new JsonpSerDe();
+  private final Context context;
   private final AssetScanner scanner;
-  private final Map<String, Optional<Asset>> inputs;
-  private final Map<String, JsonObject> outputs;
+  private final Map<AssetKey, Optional<Asset>> inputs;
+  private final Map<AssetKey, JsonObject> outputs;
 
-  public LedgerTracer(AssetScanner scanner) {
+  public LedgerTracer(Context context, AssetScanner scanner) {
+    this.context = context;
     this.scanner = scanner;
     this.inputs = new ConcurrentHashMap<>();
     this.outputs = new ConcurrentHashMap<>();
@@ -37,52 +42,65 @@ public class LedgerTracer implements Ledger {
 
   @VisibleForTesting
   LedgerTracer(
-      AssetScanner scanner, Map<String, Optional<Asset>> inputs, Map<String, JsonObject> outputs) {
+      Context context,
+      AssetScanner scanner,
+      Map<AssetKey, Optional<Asset>> inputs,
+      Map<AssetKey, JsonObject> outputs) {
+    this.context = context;
     this.scanner = scanner;
     this.inputs = inputs;
     this.outputs = outputs;
   }
 
-  public void setInput(JsonObject input) {
-    input.forEach(
-        (id, value) -> {
-          JsonObject json = value.asJsonObject();
-          InternalAsset asset = scanner.doGet(id, json.getInt("age"));
+  public void setInput(String input) {
+    AssetInput assetInput = new AssetInput(input);
+    assetInput.forEach(
+        eachInput -> {
+          String inputNamespace =
+              eachInput.namespace() == null ? context.getNamespace() : eachInput.namespace();
+          InternalAsset asset = scanner.doGet(inputNamespace, eachInput.id(), eachInput.age());
           if (asset == null) {
             throw new ValidationException(LedgerError.INCONSISTENT_INPUT_DEPENDENCIES);
           }
-          inputs.put(id, Optional.of(new MetadataComprisedAsset(asset, serde::deserialize)));
+          inputs.put(
+              AssetKey.of(inputNamespace, eachInput.id()),
+              Optional.of(new MetadataComprisedAsset(asset, serde::deserialize)));
         });
   }
 
-  public void setInput(String assetId, InternalAsset asset) {
+  public void setInput(AssetKey key, InternalAsset asset) {
     if (asset == null) {
-      inputs.put(assetId, Optional.empty());
+      inputs.put(key, Optional.empty());
     } else {
-      inputs.put(assetId, Optional.of(new MetadataComprisedAsset(asset, serde::deserialize)));
+      inputs.put(key, Optional.of(new MetadataComprisedAsset(asset, serde::deserialize)));
     }
   }
 
-  public JsonObject getOutput(String assetId) {
-    return outputs.get(assetId);
+  public JsonObject getOutput(AssetKey key) {
+    return outputs.get(key);
   }
 
-  public Map<String, String> getOutputs() {
-    Map<String, String> result = new HashMap<>();
-    outputs.forEach((assetId, output) -> result.put(assetId, serde.serialize(output)));
+  public Map<AssetKey, String> getOutputs() {
+    Map<AssetKey, String> result = new HashMap<>();
+    outputs.forEach((key, output) -> result.put(key, serde.serialize(output)));
     return result;
   }
 
   @Override
   public Optional<Asset> get(String assetId) {
-    if (outputs.containsKey(assetId)) {
+    return get(context.getNamespace(), assetId);
+  }
+
+  public Optional<Asset> get(String namespace, String assetId) {
+    AssetKey key = AssetKey.of(namespace, assetId);
+    if (outputs.containsKey(key)) {
       int age = 0;
-      if (inputs.containsKey(assetId) && inputs.get(assetId).isPresent()) {
-        age = inputs.get(assetId).get().age() + 1;
+      if (inputs.containsKey(key) && inputs.get(key).isPresent()) {
+        age = inputs.get(key).get().age() + 1;
       }
-      return Optional.of(createAsset(assetId, age, outputs.get(assetId)));
-    } else if (inputs.containsKey(assetId)) {
-      return inputs.get(assetId);
+      return Optional.of(createAsset(assetId, age, outputs.get(key)));
+    } else if (inputs.containsKey(key)) {
+      return inputs.get(key);
     }
     return Optional.empty();
   }
@@ -96,7 +114,11 @@ public class LedgerTracer implements Ledger {
 
   @Override
   public void put(String assetId, JsonObject data) {
-    outputs.put(assetId, data);
+    put(context.getNamespace(), assetId, data);
+  }
+
+  public void put(String namespace, String assetId, JsonObject data) {
+    outputs.put(AssetKey.of(namespace, assetId), data);
   }
 
   private Asset createAsset(String id, int age, JsonObject data) {

@@ -20,6 +20,7 @@ import javax.annotation.concurrent.Immutable;
 /** A proof stored in client-side to validate the server ledger states. */
 @Immutable
 public class AssetProof {
+  private final String namespace;
   private final String id;
   private final int age;
   private final String nonce;
@@ -35,6 +36,7 @@ public class AssetProof {
    * @param builder an {@code AssetProof.Builder} object
    */
   private AssetProof(Builder builder) {
+    this.namespace = builder.namespace;
     this.id = builder.id;
     this.age = builder.age;
     this.nonce = builder.nonce;
@@ -42,7 +44,7 @@ public class AssetProof {
     this.hash = builder.hash;
     this.prevHash = builder.prevHash;
     this.signature = builder.signature;
-    this.key = new AssetProof.Key(id, age);
+    this.key = new AssetProof.Key(namespace, id, age);
   }
 
   /**
@@ -51,6 +53,7 @@ public class AssetProof {
    * @param proof a {@code com.scalar.rpc.AssetProof} object
    */
   public AssetProof(com.scalar.dl.rpc.AssetProof proof) {
+    this.namespace = proof.getNamespace();
     this.id = proof.getAssetId();
     this.age = proof.getAge();
     this.nonce = proof.getNonce();
@@ -58,7 +61,7 @@ public class AssetProof {
     this.hash = proof.getHash().toByteArray();
     this.prevHash = proof.getPrevHash().toByteArray();
     this.signature = proof.getSignature().toByteArray();
-    this.key = new AssetProof.Key(id, age);
+    this.key = new AssetProof.Key(namespace, id, age);
   }
 
   /**
@@ -68,6 +71,15 @@ public class AssetProof {
    */
   public AssetProof.Key getKey() {
     return key;
+  }
+
+  /**
+   * Returns the asset's namespace.
+   *
+   * @return the asset's namespace
+   */
+  public String getNamespace() {
+    return namespace;
   }
 
   /**
@@ -139,7 +151,7 @@ public class AssetProof {
    * @throws SignatureException if the proof is invalid.
    */
   public void validateWith(SignatureValidator validator) {
-    byte[] bytes = serialize(id, age, nonce, input, hash, prevHash);
+    byte[] bytes = serialize(namespace, id, age, nonce, input, hash, prevHash);
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(CommonError.PROOF_SIGNATURE_VALIDATION_FAILED);
@@ -154,6 +166,7 @@ public class AssetProof {
   @Override
   public int hashCode() {
     return Objects.hash(
+        namespace,
         id,
         age,
         nonce,
@@ -184,7 +197,8 @@ public class AssetProof {
       return false;
     }
     AssetProof other = (AssetProof) o;
-    return this.id.equals(other.id)
+    return this.namespace.equals(other.namespace)
+        && this.id.equals(other.id)
         && this.age == other.age
         && this.nonce.equals(other.nonce)
         && this.input.equals(other.input)
@@ -213,7 +227,8 @@ public class AssetProof {
       return false;
     }
     AssetProof other = (AssetProof) o;
-    return this.id.equals(other.id)
+    return this.namespace.equals(other.namespace)
+        && this.id.equals(other.id)
         && this.age == other.age
         && this.nonce.equals(other.nonce)
         && this.input.equals(other.input)
@@ -224,6 +239,7 @@ public class AssetProof {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("namespace", namespace)
         .add("id", id)
         .add("age", age)
         .add("nonce", nonce)
@@ -239,19 +255,27 @@ public class AssetProof {
   }
 
   public static byte[] serialize(
-      String id, int age, String nonce, String input, byte[] hash, byte[] prevHash) {
+      String namespace,
+      String id,
+      int age,
+      String nonce,
+      String input,
+      byte[] hash,
+      byte[] prevHash) {
     int prevHashLength = 0;
     if (prevHash != null) {
       prevHashLength = prevHash.length;
     }
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            id.getBytes(StandardCharsets.UTF_8).length
+            namespace.getBytes(StandardCharsets.UTF_8).length
+                + id.getBytes(StandardCharsets.UTF_8).length
                 + Integer.BYTES
                 + nonce.getBytes(StandardCharsets.UTF_8).length
                 + input.getBytes(StandardCharsets.UTF_8).length
                 + hash.length
                 + prevHashLength);
+    buffer.put(namespace.getBytes(StandardCharsets.UTF_8));
     buffer.put(id.getBytes(StandardCharsets.UTF_8));
     buffer.putInt(age);
     buffer.put(nonce.getBytes(StandardCharsets.UTF_8));
@@ -265,6 +289,7 @@ public class AssetProof {
   }
 
   public static final class Builder {
+    private String namespace;
     private String id;
     private int age;
     private String nonce;
@@ -274,6 +299,7 @@ public class AssetProof {
     private byte[] signature;
 
     Builder() {
+      this.namespace = null;
       this.id = null;
       this.age = -1;
       this.nonce = null;
@@ -281,6 +307,12 @@ public class AssetProof {
       this.hash = null;
       this.prevHash = null;
       this.signature = null;
+    }
+
+    public Builder namespace(String namespace) {
+      checkArgument(namespace != null);
+      this.namespace = namespace;
+      return this;
     }
 
     public Builder id(String id) {
@@ -328,7 +360,8 @@ public class AssetProof {
     }
 
     public AssetProof build() {
-      if (id == null
+      if (namespace == null
+          || id == null
           || age < 0
           || nonce == null
           || input == null
@@ -344,12 +377,18 @@ public class AssetProof {
 
   @Immutable
   public static class Key implements Comparable<AssetProof.Key> {
+    private final String namespace;
     private final String id;
     private final int age;
 
-    public Key(String id, int age) {
+    public Key(String namespace, String id, int age) {
+      this.namespace = checkNotNull(namespace);
       this.id = checkNotNull(id);
       this.age = age;
+    }
+
+    public String getNamespace() {
+      return namespace;
     }
 
     public String getId() {
@@ -362,7 +401,7 @@ public class AssetProof {
 
     @Override
     public int hashCode() {
-      return Objects.hash(id, age);
+      return Objects.hash(namespace, id, age);
     }
 
     @Override
@@ -374,17 +413,24 @@ public class AssetProof {
         return false;
       }
       AssetProof.Key another = (AssetProof.Key) o;
-      return this.id.equals(another.id) && this.age == another.age;
+      return this.namespace.equals(another.namespace)
+          && this.id.equals(another.id)
+          && this.age == another.age;
     }
 
     @Override
     public int compareTo(AssetProof.Key o) {
-      return ComparisonChain.start().compare(this.id, o.id).compare(this.age, o.age).result();
+      return ComparisonChain.start()
+          .compare(this.namespace, o.namespace)
+          .compare(this.id, o.id)
+          .compare(this.age, o.age)
+          .result();
     }
   }
 
   @Immutable
   public static class Range implements Comparable<AssetProof.Range> {
+    private final String namespace;
     private final String id;
     private final int startAge;
     private final int endAge;
@@ -394,6 +440,7 @@ public class AssetProof {
     private final int limit;
 
     private Range(Builder builder) {
+      this.namespace = builder.namespace;
       this.id = builder.id;
       this.startAge = builder.startAge;
       this.startInclusive = builder.startInclusive;
@@ -401,6 +448,10 @@ public class AssetProof {
       this.endInclusive = builder.endInclusive;
       this.order = builder.order;
       this.limit = builder.limit;
+    }
+
+    public String getNamespace() {
+      return namespace;
     }
 
     public String getId() {
@@ -433,7 +484,8 @@ public class AssetProof {
 
     @Override
     public int hashCode() {
-      return Objects.hash(id, startAge, startInclusive, endAge, endInclusive, order, limit);
+      return Objects.hash(
+          namespace, id, startAge, startInclusive, endAge, endInclusive, order, limit);
     }
 
     @Override
@@ -445,7 +497,8 @@ public class AssetProof {
         return false;
       }
       AssetProof.Range another = (AssetProof.Range) o;
-      return this.id.equals(another.id)
+      return this.namespace.equals(another.namespace)
+          && this.id.equals(another.id)
           && this.startAge == another.startAge
           && this.startInclusive == another.startInclusive
           && this.endAge == another.endAge
@@ -457,6 +510,7 @@ public class AssetProof {
     @Override
     public int compareTo(Range o) {
       return ComparisonChain.start()
+          .compare(this.namespace, o.namespace)
           .compare(this.id, o.id)
           .compare(this.startAge, o.startAge)
           .compare(this.endAge, o.endAge)
@@ -472,6 +526,7 @@ public class AssetProof {
     }
 
     public static final class Builder {
+      private String namespace;
       private String id;
       private int startAge;
       private boolean startInclusive;
@@ -481,6 +536,7 @@ public class AssetProof {
       private int limit;
 
       Builder() {
+        this.namespace = null;
         this.id = null;
         this.startAge = 0;
         this.startInclusive = true;
@@ -488,6 +544,12 @@ public class AssetProof {
         this.endInclusive = true;
         this.order = Order.ASC;
         this.limit = -1;
+      }
+
+      public Range.Builder namespace(String namespace) {
+        checkArgument(namespace != null);
+        this.namespace = namespace;
+        return this;
       }
 
       public Range.Builder id(String id) {

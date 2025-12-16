@@ -15,6 +15,7 @@ import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.MutableDatabase;
+import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
@@ -23,6 +24,7 @@ import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -38,6 +40,7 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
   private final TamperEvidentAssetComposer assetComposer;
   private final AssetProofComposer proofComposer;
   private final TransactionStateManager stateManager;
+  private final ScalarNamespaceResolver namespaceResolver;
   private final LedgerConfig config;
 
   @Inject
@@ -47,11 +50,13 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
       TamperEvidentAssetComposer assetComposer,
       AssetProofComposer proofComposer,
       TransactionStateManager stateManager,
+      ScalarNamespaceResolver namespaceResolver,
       LedgerConfig config) {
     this.manager = manager;
     this.assetComposer = assetComposer;
     this.proofComposer = proofComposer;
     this.stateManager = stateManager;
+    this.namespaceResolver = namespaceResolver;
     this.config = config;
   }
 
@@ -81,12 +86,13 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
     TamperEvidentAssetLedger ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
-            new ScalarTamperEvidentAssetLedger.Metadata(transaction),
+            new ScalarTamperEvidentAssetLedger.Metadata(transaction, namespaceResolver),
             new Snapshot(),
             request,
             assetComposer,
             proofComposer,
             stateManager,
+            namespaceResolver,
             config);
     return new Transaction(ledger, database);
   }
@@ -124,7 +130,7 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
   }
 
   @Override
-  public void recover(Map<String, Integer> assetIds) {
+  public void recover(Map<AssetKey, Integer> assetKeys) {
     if (manager instanceof ConsensusCommitManager) {
       /*
        * This rolls back asset records which might be left PREPARED due to some failure
@@ -133,12 +139,17 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
       Transaction transaction = startWith();
 
       try {
-        assetIds.forEach(
-            (id, age) -> {
+        assetKeys.forEach(
+            (key, age) -> {
               AssetFilter filter =
-                  new AssetFilter(id).withStartAge(age, true).withEndAge(age + 1, false);
+                  new NamespaceAwareAssetFilter(key.namespace(), key.assetId())
+                      .withStartAge(age, true)
+                      .withEndAge(age + 1, false);
               transaction.getLedger().scan(filter);
-              transaction.getLedger().get(id); // for asset_metadata when it is enabled
+              transaction
+                  .getLedger()
+                  .get( // for asset_metadata when it is enabled
+                      key.namespace(), key.assetId());
             });
         transaction.commit();
       } catch (Exception e) {

@@ -7,6 +7,8 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.AssetInput;
+import com.scalar.dl.ledger.statemachine.AssetKey;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.MetadataComprisedAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -17,7 +19,8 @@ import java.util.stream.Collectors;
 public class StringBasedLedgerTracer extends LedgerTracerBase<String> {
   private final AssetScanner scanner;
 
-  public StringBasedLedgerTracer(AssetScanner scanner) {
+  public StringBasedLedgerTracer(Context context, AssetScanner scanner) {
+    super(context);
     this.scanner = scanner;
   }
 
@@ -26,30 +29,34 @@ public class StringBasedLedgerTracer extends LedgerTracerBase<String> {
     AssetInput assetInput = new AssetInput(input);
     assetInput.forEach(
         eachInput -> {
-          InternalAsset asset = scanner.doGet(eachInput.id(), eachInput.age());
+          String inputNamespace =
+              eachInput.namespace() == null ? context.getNamespace() : eachInput.namespace();
+          InternalAsset asset = scanner.doGet(inputNamespace, eachInput.id(), eachInput.age());
           if (asset == null) {
             throw new ValidationException(LedgerError.INCONSISTENT_INPUT_DEPENDENCIES);
           }
-          inputs.put(eachInput.id(), new MetadataComprisedAsset<>(asset, data -> data));
+          inputs.put(
+              AssetKey.of(inputNamespace, eachInput.id()),
+              new MetadataComprisedAsset<>(asset, data -> data));
         });
   }
 
   @Override
-  public void setInput(String assetId, InternalAsset asset) {
+  public void setInput(AssetKey key, InternalAsset asset) {
     if (asset == null) {
       return;
     }
-    inputs.put(assetId, new MetadataComprisedAsset<>(asset, data -> data));
+    inputs.put(key, new MetadataComprisedAsset<>(asset, data -> data));
   }
 
   @Override
-  public String getOutput(String assetId) {
-    return outputs.get(assetId);
+  public String getOutput(AssetKey key) {
+    return outputs.get(key);
   }
 
   @Override
   @SuppressFBWarnings("EI_EXPOSE_REP")
-  public Map<String, String> getOutputs() {
+  public Map<AssetKey, String> getOutputs() {
     return outputs;
   }
 
@@ -61,7 +68,7 @@ public class StringBasedLedgerTracer extends LedgerTracerBase<String> {
   }
 
   @VisibleForTesting
-  Map<String, Asset<String>> getInputs() {
+  Map<AssetKey, Asset<String>> getInputs() {
     return inputs;
   }
 }

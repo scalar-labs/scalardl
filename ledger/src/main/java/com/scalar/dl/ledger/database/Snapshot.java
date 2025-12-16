@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.database;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import java.util.Map;
 import java.util.Optional;
@@ -10,8 +11,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public class Snapshot {
-  private final Map<String, InternalAsset> readSet;
-  private final Map<String, InternalAsset> writeSet;
+  private final Map<AssetKey, InternalAsset> readSet;
+  private final Map<AssetKey, InternalAsset> writeSet;
 
   public Snapshot() {
     this.readSet = new ConcurrentHashMap<>();
@@ -19,35 +20,35 @@ public class Snapshot {
   }
 
   @VisibleForTesting
-  Snapshot(Map<String, InternalAsset> readSet, Map<String, InternalAsset> writeSet) {
+  Snapshot(Map<AssetKey, InternalAsset> readSet, Map<AssetKey, InternalAsset> writeSet) {
     this.readSet = readSet;
     this.writeSet = writeSet;
   }
 
-  public void put(String assetId, InternalAsset record) {
-    readSet.put(assetId, record);
+  public void put(AssetKey key, InternalAsset record) {
+    readSet.put(key, record);
   }
 
-  public void put(String assetId, String data) {
-    int age = readSet.containsKey(assetId) ? readSet.get(assetId).age() + 1 : 0;
-    InternalAsset asset = createAsset(assetId, age, data);
-    writeSet.put(assetId, asset);
+  public void put(AssetKey key, String data) {
+    int age = readSet.containsKey(key) ? readSet.get(key).age() + 1 : 0;
+    InternalAsset asset = createAsset(key, age, data);
+    writeSet.put(key, asset);
   }
 
-  public Optional<InternalAsset> get(String assetId) {
-    if (writeSet.containsKey(assetId)) {
-      return Optional.of(writeSet.get(assetId));
-    } else if (readSet.containsKey(assetId)) {
-      return Optional.of(readSet.get(assetId));
+  public Optional<InternalAsset> get(AssetKey key) {
+    if (writeSet.containsKey(key)) {
+      return Optional.of(writeSet.get(key));
+    } else if (readSet.containsKey(key)) {
+      return Optional.of(readSet.get(key));
     }
     return Optional.empty();
   }
 
-  public Map<String, InternalAsset> getReadSet() {
+  public Map<AssetKey, InternalAsset> getReadSet() {
     return ImmutableMap.copyOf(readSet);
   }
 
-  public Map<String, InternalAsset> getWriteSet() {
+  public Map<AssetKey, InternalAsset> getWriteSet() {
     return ImmutableMap.copyOf(writeSet);
   }
 
@@ -59,7 +60,7 @@ public class Snapshot {
     return !writeSet.isEmpty();
   }
 
-  private AssetRecord createAsset(String assetId, int age, String data) {
-    return AssetRecord.newBuilder().id(assetId).age(age).data(data).build();
+  private AssetRecord createAsset(AssetKey key, int age, String data) {
+    return AssetRecord.newBuilder().id(key.assetId()).age(age).data(data).build();
   }
 }
