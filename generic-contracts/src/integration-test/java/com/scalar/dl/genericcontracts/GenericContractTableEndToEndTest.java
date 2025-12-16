@@ -1365,6 +1365,7 @@ public class GenericContractTableEndToEndTest extends GenericContractEndToEndTes
   }
 
   @Test
+  @SuppressWarnings("FloatingPointLiteralPrecision")
   public void select_HighPrecisionIndexValuesGiven_ShouldReturnRecordsWithLosingPrecision() {
     // Arrange
     JsonNode key1 = TextNode.valueOf("aaa");
