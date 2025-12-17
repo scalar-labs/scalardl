@@ -310,7 +310,6 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
     assertThat(actual).isEqualTo(expected);
   }
 
-  @Disabled("Currently, IllegalArgumentException is directly thrown from ScalarDB core.")
   @Test
   public void execute_CreateWithNonExistingNamespaceGiven_ShouldThrowException() {
     // Arrange
@@ -322,7 +321,7 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
 
     // Assert
     assertThat(thrown).isInstanceOf(LedgerException.class);
-    // assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
   }
 
   @Test
@@ -342,7 +341,6 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
     assertThat(jsonpSerDe.deserialize(actual.getContractResult().get())).isEqualTo(expected);
   }
 
-  @Disabled("Currently, IllegalArgumentException is directly thrown from ScalarDB core.")
   @Test
   public void execute_GetBalanceWithNonExistingNamespaceGiven_ShouldThrowException() {
     // Arrange
@@ -354,7 +352,7 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
 
     // Assert
     assertThat(thrown).isInstanceOf(LedgerException.class);
-    // assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
   }
 
   @Test

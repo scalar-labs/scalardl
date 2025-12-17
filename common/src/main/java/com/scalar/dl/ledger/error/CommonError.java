@@ -233,6 +233,16 @@ public enum CommonError implements ScalarDlError {
       ""),
 
   //
+  // Errors for NAMESPACE_NOT_FOUND(416)
+  //
+  NAMESPACE_NOT_FOUND(
+      StatusCode.NAMESPACE_NOT_FOUND,
+      "001",
+      "The specified namespace is not found. Namespace: %s",
+      "",
+      ""),
+
+  //
   // Errors for DATABASE_ERROR(500)
   //
   BINDING_CERTIFICATE_FAILED(
