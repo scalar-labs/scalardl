@@ -1,6 +1,8 @@
 package com.scalar.dl.ledger.database;
 
 import com.scalar.dl.ledger.asset.MetadataComprisedAsset;
+import com.scalar.dl.ledger.error.CommonError;
+import com.scalar.dl.ledger.exception.ContractException;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -27,6 +29,10 @@ public class AssetLedger implements Ledger {
 
   @Override
   public List<com.scalar.dl.ledger.asset.Asset> scan(AssetFilter filter) {
+    if (filter instanceof NamespaceAwareAssetFilter) {
+      throw new ContractException(
+          CommonError.NAMESPACE_AWARE_ASSET_FILTER_UNSUPPORTED_IN_DEPRECATED_CONTRACT);
+    }
     return ledger.scan(filter).stream().map(this::createAsset).collect(Collectors.toList());
   }
 
