@@ -135,7 +135,8 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
         result = getLatestWithTwoLookups(namespace, assetId);
       }
     } catch (IllegalArgumentException e) {
-      if (e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
         throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
       } else {
         throw e;
@@ -176,7 +177,8 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
                 records.add(record);
               });
     } catch (IllegalArgumentException e) {
-      if (e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
         throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
       } else {
         throw e;
