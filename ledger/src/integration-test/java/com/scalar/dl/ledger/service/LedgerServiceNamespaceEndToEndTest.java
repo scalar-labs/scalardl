@@ -399,10 +399,6 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
   public void
       execute_ProofEnabledAndCreateWithNamespaceGiven_ShouldReturnProofWithGivenNamespace() {
     // Arrange
-    Properties props2 = createProperties();
-    props2.put(LedgerConfig.PROOF_ENABLED, "true");
-    props2.put(LedgerConfig.PROOF_PRIVATE_KEY_PEM, PRIVATE_KEY_B);
-    createServices(new LedgerConfig(props2));
     ContractExecutionRequest request =
         prepareRequestForCreate(SOME_NAMESPACE1, SOME_ASSET_ID_1, SOME_AMOUNT_1, ENTITY_ID_A);
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_B);
