@@ -233,7 +233,7 @@ public enum CommonError implements ScalarDlError {
       ""),
 
   //
-  // Errors for NAMESPACE_NOT_FOUND(416)
+  // Errors for NAMESPACE_NOT_FOUND(417)
   //
   NAMESPACE_NOT_FOUND(
       StatusCode.NAMESPACE_NOT_FOUND,
