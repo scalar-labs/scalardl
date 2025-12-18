@@ -59,7 +59,6 @@ import java.util.Properties;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTestBase {
