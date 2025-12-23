@@ -31,8 +31,15 @@ public class Payment extends Contract {
     }
 
     ledger.put(
-        fromId, Json.createObjectBuilder(fromData).add("balance", fromBalance - amount).build());
-    ledger.put(toId, Json.createObjectBuilder(toData).add("balance", toBalance + amount).build());
+        fromId,
+        Json.createObjectBuilder(fromData)
+            .add(Constants.BALANCE_ATTRIBUTE_NAME, fromBalance - amount)
+            .build());
+    ledger.put(
+        toId,
+        Json.createObjectBuilder(toData)
+            .add(Constants.BALANCE_ATTRIBUTE_NAME, toBalance + amount)
+            .build());
 
     return null;
   }

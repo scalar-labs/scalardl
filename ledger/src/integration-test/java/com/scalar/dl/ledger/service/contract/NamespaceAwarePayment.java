@@ -10,7 +10,7 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nullable;
 
-public class PaymentWithJackson extends JacksonBasedContract {
+public class NamespaceAwarePayment extends JacksonBasedContract {
 
   @Nullable
   @Override
@@ -18,11 +18,15 @@ public class PaymentWithJackson extends JacksonBasedContract {
       Ledger<JsonNode> ledger, JsonNode argument, @Nullable JsonNode properties) {
     ArrayNode array = (ArrayNode) argument.get(Constants.ASSETS_ATTRIBUTE_NAME);
     int amount = argument.get(Constants.AMOUNT_ATTRIBUTE_NAME).asInt();
-    String fromId = array.get(0).asText();
-    String toId = array.get(1).asText();
+    String[] fromAssetKey = array.get(0).asText().split(Constants.ASSET_ID_SEPARATOR);
+    String fromNamespace = fromAssetKey[0];
+    String fromAssetId = fromAssetKey[1];
+    String[] toAssetKey = array.get(1).asText().split(Constants.ASSET_ID_SEPARATOR);
+    String toNamespace = toAssetKey[0];
+    String toAssetId = toAssetKey[1];
 
-    Asset<JsonNode> from = ledger.get(fromId).get();
-    Asset<JsonNode> to = ledger.get(toId).get();
+    Asset<JsonNode> from = ledger.get(fromNamespace, fromAssetId).get();
+    Asset<JsonNode> to = ledger.get(toNamespace, toAssetId).get();
     JsonNode fromData = from.data();
     JsonNode toData = to.data();
 
@@ -33,11 +37,13 @@ public class PaymentWithJackson extends JacksonBasedContract {
     }
 
     ledger.put(
-        fromId,
+        fromNamespace,
+        fromAssetId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) fromData))
             .put(Constants.BALANCE_ATTRIBUTE_NAME, fromBalance - amount));
     ledger.put(
-        toId,
+        toNamespace,
+        toAssetId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) toData))
             .put(Constants.BALANCE_ATTRIBUTE_NAME, toBalance + amount));
 
