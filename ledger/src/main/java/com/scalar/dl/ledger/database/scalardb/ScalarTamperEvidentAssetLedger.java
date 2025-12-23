@@ -165,7 +165,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
             });
 
     // add the asset ID to the snapshot to create a proof
-    get(filter.getId());
+    get(namespace, filter.getId());
 
     return records;
   }
