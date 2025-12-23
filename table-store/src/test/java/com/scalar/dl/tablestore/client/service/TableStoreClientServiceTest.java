@@ -19,7 +19,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,19 +35,16 @@ import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import java.math.BigDecimal;
 import javax.json.Json;
-import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class TableStoreClientServiceTest {
-  private static final String ANY_ID = "id";
   private static final String ANY_TABLE = "tbl";
   private static final String ANY_COLUMN = "col";
   private static final int ANY_START_AGE = 0;
   private static final int ANY_END_AGE = 5;
-  private static final JsonObject ANY_JSON_OBJECT = mock(JsonObject.class);
 
   @Mock private ClientService clientService;
   @Mock private ContractExecutionResult contractExecutionResult;
