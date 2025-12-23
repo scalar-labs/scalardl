@@ -55,12 +55,14 @@ public class TableStoreEndToEndTest extends LedgerEndToEndTestBase {
       new TableStoreClientServiceFactory();
   private TableStoreClientService clientService;
 
+  @Override
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
     super.setUpBeforeClass();
     clientService = clientServiceFactory.create(createClientConfig(SOME_ENTITY));
   }
 
+  @Override
   @BeforeEach
   public void setUp() {
     createTables();
