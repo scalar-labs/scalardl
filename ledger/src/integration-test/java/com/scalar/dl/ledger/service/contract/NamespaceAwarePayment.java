@@ -10,6 +10,7 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("StringSplitter")
 public class NamespaceAwarePayment extends JacksonBasedContract {
 
   @Nullable

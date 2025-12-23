@@ -13,6 +13,7 @@ import static com.scalar.dl.ledger.service.Constants.ENTITY_ID_C;
 import static com.scalar.dl.ledger.service.Constants.KEY_VERSION;
 import static com.scalar.dl.ledger.service.Constants.NAMESPACE_AWARE_CREATE_ID;
 import static com.scalar.dl.ledger.service.Constants.NAMESPACE_AWARE_GET_BALANCE_ID;
+import static com.scalar.dl.ledger.service.Constants.NAMESPACE_AWARE_GET_HISTORY_ID;
 import static com.scalar.dl.ledger.service.Constants.NAMESPACE_AWARE_PAYMENT_ID;
 import static com.scalar.dl.ledger.service.Constants.SOME_AMOUNT_1;
 import static com.scalar.dl.ledger.service.Constants.SOME_AMOUNT_2;
@@ -121,6 +122,9 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
                 CONTRACT_PACKAGE_NAME + NAMESPACE_AWARE_GET_BALANCE_ID,
                 CONTRACT_CLASS_DIR + NAMESPACE_AWARE_GET_BALANCE_ID + ".class")
             .put(
+                CONTRACT_PACKAGE_NAME + NAMESPACE_AWARE_GET_HISTORY_ID,
+                CONTRACT_CLASS_DIR + NAMESPACE_AWARE_GET_HISTORY_ID + ".class")
+            .put(
                 CONTRACT_PACKAGE_NAME + NAMESPACE_AWARE_PAYMENT_ID,
                 CONTRACT_CLASS_DIR + NAMESPACE_AWARE_PAYMENT_ID + ".class")
             .build();
@@ -186,8 +190,17 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
 
   private ContractExecutionRequest prepareRequestForGetBalance(
       String namespace, String assetId, String entityId) {
+    return prepareRequestForGet(NAMESPACE_AWARE_GET_BALANCE_ID, namespace, assetId, entityId);
+  }
+
+  private ContractExecutionRequest prepareRequestForGetHistory(
+      String namespace, String assetId, String entityId) {
+    return prepareRequestForGet(NAMESPACE_AWARE_GET_HISTORY_ID, namespace, assetId, entityId);
+  }
+
+  private ContractExecutionRequest prepareRequestForGet(
+      String contractId, String namespace, String assetId, String entityId) {
     String nonce = UUID.randomUUID().toString();
-    String contractId = NAMESPACE_AWARE_GET_BALANCE_ID;
     ObjectNode contractArgument =
         mapper
             .createObjectNode()
@@ -419,6 +432,52 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
             proof.getHash(),
             proof.getPrevHash());
     assertThat(validator.validate(toBeValidated, proof.getSignature())).isTrue();
+  }
+
+  @Test
+  public void execute_ProofEnabledAndGetHistoryGiven_ShouldReturnProofWithGivenNamespace() {
+    // Arrange
+    ledgerService.execute(
+        prepareRequestForCreate(SOME_NAMESPACE1, SOME_ASSET_ID_1, SOME_AMOUNT_1, ENTITY_ID_A));
+    ledgerService.execute(
+        prepareRequestForCreate(SOME_NAMESPACE2, SOME_ASSET_ID_2, SOME_AMOUNT_1, ENTITY_ID_A));
+    ledgerService.execute(
+        prepareRequestForPayment(
+            SOME_NAMESPACE1,
+            SOME_ASSET_ID_1,
+            SOME_NAMESPACE2,
+            SOME_ASSET_ID_2,
+            SOME_AMOUNT_2,
+            ENTITY_ID_A));
+    ContractExecutionRequest request =
+        prepareRequestForGetHistory(SOME_NAMESPACE1, SOME_ASSET_ID_1, ENTITY_ID_A);
+    JsonNode expected =
+        jacksonSerDe
+            .getObjectMapper()
+            .createArrayNode()
+            .add(
+                jacksonSerDe
+                    .getObjectMapper()
+                    .createObjectNode()
+                    .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1 - SOME_AMOUNT_2)
+                    .put(ASSET_AGE_COLUMN_NAME, 1))
+            .add(
+                jacksonSerDe
+                    .getObjectMapper()
+                    .createObjectNode()
+                    .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+                    .put(ASSET_AGE_COLUMN_NAME, 0));
+
+    // Act
+    ContractExecutionResult result = ledgerService.execute(request);
+
+    // Assert
+    assertThat(jacksonSerDe.deserialize(result.getContractResult().get())).isEqualTo(expected);
+    assertThat(result.getLedgerProofs().size()).isEqualTo(1);
+    AssetProof proof = result.getLedgerProofs().get(0);
+    assertThat(proof.getNamespace()).isEqualTo(SOME_NAMESPACE1);
+    assertThat(proof.getId()).isEqualTo(SOME_ASSET_ID_1);
+    assertThat(proof.getAge()).isEqualTo(1);
   }
 
   @Test

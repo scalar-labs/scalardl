@@ -29,6 +29,7 @@ public class Constants {
   public static final String NAMESPACE_AWARE_CREATE_ID = "NamespaceAwareCreate";
   public static final String NAMESPACE_AWARE_PAYMENT_ID = "NamespaceAwarePayment";
   public static final String NAMESPACE_AWARE_GET_BALANCE_ID = "NamespaceAwareGetBalance";
+  public static final String NAMESPACE_AWARE_GET_HISTORY_ID = "NamespaceAwareGetHistory";
 
   public static final String FUNCTION_NAMESPACE = "test";
   public static final String FUNCTION_TABLE = "function_test";

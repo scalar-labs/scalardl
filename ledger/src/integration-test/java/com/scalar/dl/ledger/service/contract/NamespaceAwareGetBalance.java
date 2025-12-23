@@ -9,6 +9,7 @@ import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("StringSplitter")
 public class NamespaceAwareGetBalance extends JacksonBasedContract {
 
   @Nullable
