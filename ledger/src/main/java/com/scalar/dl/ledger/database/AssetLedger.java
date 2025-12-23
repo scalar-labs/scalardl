@@ -29,9 +29,8 @@ public class AssetLedger implements Ledger {
 
   @Override
   public List<com.scalar.dl.ledger.asset.Asset> scan(AssetFilter filter) {
-    if (filter instanceof NamespaceAwareAssetFilter) {
-      throw new ContractException(
-          CommonError.NAMESPACE_AWARE_ASSET_FILTER_UNSUPPORTED_IN_DEPRECATED_CONTRACT);
+    if (filter.getNamespace().isPresent()) {
+      throw new ContractException(CommonError.NAMESPACE_NOT_SUPPORTED_IN_DEPRECATED_CONTRACT);
     }
     return ledger.scan(filter).stream().map(this::createAsset).collect(Collectors.toList());
   }

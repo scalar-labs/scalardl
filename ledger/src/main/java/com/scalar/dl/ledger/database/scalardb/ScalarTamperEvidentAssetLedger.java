@@ -23,7 +23,6 @@ import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.AssetRecord;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.error.CommonError;
@@ -143,13 +142,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
   @Override
   public List<InternalAsset> scan(AssetFilter filter) {
-    String namespace;
-    if (filter instanceof NamespaceAwareAssetFilter) {
-      namespace = ((NamespaceAwareAssetFilter) filter).getNamespace();
-    } else {
-      namespace = context.getNamespace();
-    }
-
+    String namespace = filter.getNamespace().orElse(context.getNamespace());
     Scan scan =
         AssetLedgerUtility.getScanFrom(filter)
             .withConsistency(Consistency.LINEARIZABLE)

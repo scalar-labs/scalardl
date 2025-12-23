@@ -15,7 +15,6 @@ import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.MutableDatabase;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
@@ -142,7 +141,7 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
         assetKeys.forEach(
             (key, age) -> {
               AssetFilter filter =
-                  new NamespaceAwareAssetFilter(key.namespace(), key.assetId())
+                  new AssetFilter(key.namespace(), key.assetId())
                       .withStartAge(age, true)
                       .withEndAge(age + 1, false);
               transaction.getLedger().scan(filter);

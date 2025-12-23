@@ -189,7 +189,7 @@ public class LedgerValidationServiceTest {
       verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(1));
     }
     AssetFilter filter =
-        new AssetFilter(ID)
+        new AssetFilter(DEFAULT_NAMESPACE, ID)
             .withStartAge(0, true)
             .withEndAge(Integer.MAX_VALUE, true)
             .withAgeOrder(AgeOrder.ASC);
@@ -417,7 +417,7 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     AssetFilter filter =
-        new AssetFilter(ID)
+        new AssetFilter(DEFAULT_NAMESPACE, ID)
             .withStartAge(age, true)
             .withEndAge(age, true)
             .withAgeOrder(AssetFilter.AgeOrder.ASC);

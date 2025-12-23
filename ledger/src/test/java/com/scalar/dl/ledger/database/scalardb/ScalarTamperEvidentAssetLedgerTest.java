@@ -35,7 +35,6 @@ import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.AssetRecord;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.database.scalardb.ScalarTamperEvidentAssetLedger.AssetMetadata;
@@ -476,10 +475,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
   }
 
   @Test
-  public void scan_NamespaceAwareAssetFilterGiven_ShouldScanWithSpecifiedNamespace()
+  public void scan_AssetFilterWithNamespaceGiven_ShouldScanWithSpecifiedNamespace()
       throws CrudException {
     // Arrange
-    NamespaceAwareAssetFilter filter = new NamespaceAwareAssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
     when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
     configureMetaResult(metaResult);
     configureResult(result);

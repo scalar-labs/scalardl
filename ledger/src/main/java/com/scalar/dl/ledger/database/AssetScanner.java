@@ -9,9 +9,7 @@ public interface AssetScanner {
 
   default InternalAsset doGet(String namespace, String assetId, int age) {
     AssetFilter filter =
-        new NamespaceAwareAssetFilter(namespace, assetId)
-            .withStartAge(age, true)
-            .withEndAge(age, true);
+        new AssetFilter(namespace, assetId).withStartAge(age, true).withEndAge(age, true);
     List<InternalAsset> assets = doScan(filter);
     if (assets.isEmpty()) {
       return null;
