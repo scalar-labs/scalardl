@@ -31,7 +31,8 @@ public class ScalarNamespaceResolver {
   }
 
   /**
-   * Resolves a logical namespace name to a physical ScalarDB namespace name.
+   * Resolves a logical namespace name to a physical ScalarDB namespace name. If it's the default
+   * namespace, we use the base namespace in a special case, for backward compatibility.
    *
    * @param logicalNamespace the logical namespace name
    * @return the physical ScalarDB namespace name
