@@ -2,15 +2,17 @@ package com.scalar.dl.ledger.database;
 
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * An condition used to scan and filter asset entries.
+ * A condition used to scan and filter asset entries.
  *
  * @author Hiroyuki Yamada
  */
 @ThreadSafe
 public class AssetFilter {
+  @Nullable private final String namespace;
   private final String id;
   private Optional<Integer> startAge;
   private boolean startInclusive;
@@ -25,11 +27,31 @@ public class AssetFilter {
    * @param id an asset ID
    */
   public AssetFilter(String id) {
+    this(null, id);
+  }
+
+  /**
+   * Constructs a {@code AssetFilter} with the specified namespace and ID.
+   *
+   * @param namespace a namespace
+   * @param id an asset ID
+   */
+  public AssetFilter(String namespace, String id) {
+    this.namespace = namespace;
     this.id = id;
     startAge = Optional.empty();
     endAge = Optional.empty();
     ageOrder = Optional.empty();
     limit = 0;
+  }
+
+  /**
+   * Returns the namespace.
+   *
+   * @return the namespace
+   */
+  public Optional<String> getNamespace() {
+    return Optional.ofNullable(namespace);
   }
 
   /**
@@ -158,7 +180,8 @@ public class AssetFilter {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(id, startAge, startInclusive, endAge, endInclusive, ageOrder, limit);
+    return Objects.hash(
+        namespace, id, startAge, startInclusive, endAge, endInclusive, ageOrder, limit);
   }
 
   @Override
@@ -170,7 +193,8 @@ public class AssetFilter {
       return false;
     }
     AssetFilter other = (AssetFilter) o;
-    return this.id.equals(other.id)
+    return Objects.equals(this.namespace, other.namespace)
+        && this.id.equals(other.id)
         && this.startAge.equals(other.startAge)
         && this.startInclusive == other.startInclusive
         && this.endAge.equals(other.endAge)

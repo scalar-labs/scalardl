@@ -35,11 +35,11 @@ public class PaymentWithJackson extends JacksonBasedContract {
     ledger.put(
         fromId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) fromData))
-            .put("balance", fromBalance - amount));
+            .put(Constants.BALANCE_ATTRIBUTE_NAME, fromBalance - amount));
     ledger.put(
         toId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) toData))
-            .put("balance", toBalance + amount));
+            .put(Constants.BALANCE_ATTRIBUTE_NAME, toBalance + amount));
 
     return null;
   }

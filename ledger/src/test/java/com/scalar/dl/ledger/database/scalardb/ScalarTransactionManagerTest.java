@@ -20,7 +20,6 @@ import com.scalar.db.transaction.jdbc.JdbcTransactionManager;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionState;
@@ -274,7 +273,7 @@ public class ScalarTransactionManagerTest {
 
     // Assert
     AssetFilter filter =
-        new NamespaceAwareAssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
+        new AssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
             .withStartAge(SOME_ASSET_AGE, true)
             .withEndAge(SOME_ASSET_AGE + 1, false);
     verify(ledger).scan(filter);

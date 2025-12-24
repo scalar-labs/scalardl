@@ -36,7 +36,6 @@ import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.AssetRecord;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.database.scalardb.ScalarTamperEvidentAssetLedger.AssetMetadata;
@@ -335,6 +334,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withAgeOrder(AssetFilter.AgeOrder.ASC);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -347,6 +352,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -354,6 +360,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withAgeOrder(AssetFilter.AgeOrder.DESC);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -366,6 +378,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -373,6 +386,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withStartAge(ANY_AGE_START, false);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -386,6 +405,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -393,6 +413,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withEndAge(ANY_AGE_END, false);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -406,6 +432,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -413,6 +440,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withLimit(ANY_LIMIT);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -426,6 +459,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -443,11 +477,17 @@ public class ScalarTamperEvidentAssetLedgerTest {
   }
 
   @Test
-  public void scan_NamespaceAwareAssetFilterGiven_ShouldScanWithSpecifiedNamespace()
+  public void scan_AssetFilterWithNamespaceGiven_ShouldScanWithSpecifiedNamespace()
       throws CrudException {
     // Arrange
-    NamespaceAwareAssetFilter filter = new NamespaceAwareAssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
     when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -462,6 +502,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .consistency(Consistency.LINEARIZABLE)
             .build();
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(AssetKey.of(CUSTOM_NAMESPACE, ANY_ID));
   }
 
   @Test
@@ -1009,10 +1050,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void
-      scan_NamespaceAwareAssetFilterGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+      scan_AwareAssetFilterWithNamespaceGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
           throws CrudException {
     // Arrange
-    NamespaceAwareAssetFilter filter = new NamespaceAwareAssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
     IllegalArgumentException toThrow =
         new IllegalArgumentException(
             CoreError.TABLE_NOT_FOUND.buildMessage(RESOLVED_CUSTOM_NAMESPACE + ".asset"));

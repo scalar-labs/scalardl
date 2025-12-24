@@ -10,6 +10,7 @@ import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("StringSplitter")
 public class NamespaceAwarePayment extends JacksonBasedContract {
 
   @Nullable
@@ -40,12 +41,12 @@ public class NamespaceAwarePayment extends JacksonBasedContract {
         fromNamespace,
         fromAssetId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) fromData))
-            .put("balance", fromBalance - amount));
+            .put(Constants.BALANCE_ATTRIBUTE_NAME, fromBalance - amount));
     ledger.put(
         toNamespace,
         toAssetId,
         ((ObjectNode) getObjectMapper().createObjectNode().setAll((ObjectNode) toData))
-            .put("balance", toBalance + amount));
+            .put(Constants.BALANCE_ATTRIBUTE_NAME, toBalance + amount));
 
     return null;
   }

@@ -6,6 +6,7 @@ import com.scalar.dl.ledger.service.Constants;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nullable;
 
+@SuppressWarnings("StringSplitter")
 public class NamespaceAwareCreate extends JacksonBasedContract {
 
   @Nullable

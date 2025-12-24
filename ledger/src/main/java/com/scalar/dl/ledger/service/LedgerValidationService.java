@@ -8,7 +8,6 @@ import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
-import com.scalar.dl.ledger.database.NamespaceAwareAssetFilter;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.error.LedgerError;
@@ -168,7 +167,7 @@ public class LedgerValidationService extends ValidationService {
     Transaction transaction = transactionManager.startWith();
 
     AssetFilter filter =
-        new NamespaceAwareAssetFilter(namespace, assetId)
+        new AssetFilter(namespace, assetId)
             .withStartAge(startAge, true)
             .withEndAge(endAge, true)
             .withAgeOrder(AssetFilter.AgeOrder.ASC);
