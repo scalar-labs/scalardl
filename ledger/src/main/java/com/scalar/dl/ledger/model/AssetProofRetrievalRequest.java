@@ -10,22 +10,40 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class AssetProofRetrievalRequest extends AbstractRequest {
+  @Nullable private final String namespace;
   private final String assetId;
   private final int age;
   private final byte[] signature;
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public AssetProofRetrievalRequest(
-      String assetId, int age, String entityId, int keyVersion, byte[] signature) {
+      @Nullable String namespace,
+      String assetId,
+      int age,
+      String entityId,
+      int keyVersion,
+      byte[] signature) {
     super(entityId, keyVersion);
+    this.namespace = namespace;
     checkArgument(assetId != null);
     this.assetId = assetId;
     this.age = age;
     this.signature = signature;
+  }
+
+  /**
+   * Returns the namespace of the asset.
+   *
+   * @return the namespace of the asset
+   */
+  @Nullable
+  public String getNamespace() {
+    return namespace;
   }
 
   /**
@@ -63,7 +81,7 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(assetId, age, Arrays.hashCode(signature));
+    return Objects.hash(namespace, assetId, age, Arrays.hashCode(signature));
   }
 
   @Override
@@ -78,7 +96,8 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
       return false;
     }
     AssetProofRetrievalRequest other = (AssetProofRetrievalRequest) o;
-    return this.assetId.equals(other.assetId)
+    return Objects.equals(namespace, other.namespace)
+        && this.assetId.equals(other.assetId)
         && this.age == other.age
         && Arrays.equals(this.signature, other.signature);
   }
@@ -92,23 +111,31 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
   @Override
   public void validateWith(SignatureValidator validator) {
     // age is not used for creating a signature on purpose
-    byte[] bytes = serialize(assetId, age, getEntityId(), getKeyVersion());
+    byte[] bytes = serialize(namespace, assetId, age, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(LedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
     }
   }
 
-  public static byte[] serialize(String assetId, int age, String entityId, int keyVersion) {
+  public static byte[] serialize(
+      @Nullable String namespace, String assetId, int age, String entityId, int keyVersion) {
+    byte[] namespaceBytes =
+        namespace != null ? namespace.getBytes(StandardCharsets.UTF_8) : new byte[0];
+    byte[] assetIdBytes = assetId.getBytes(StandardCharsets.UTF_8);
+    byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            assetId.getBytes(StandardCharsets.UTF_8).length
+            namespaceBytes.length
+                + assetIdBytes.length
                 + Integer.BYTES
-                + entityId.getBytes(StandardCharsets.UTF_8).length
+                + entityIdBytes.length
                 + Integer.BYTES);
-    buffer.put(assetId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(namespaceBytes);
+    buffer.put(assetIdBytes);
     buffer.putInt(age);
-    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
     return buffer.array();

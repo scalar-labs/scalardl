@@ -21,12 +21,22 @@ public class DeprecatedLedger implements Ledger<JsonObject>, DeprecatedLedgerRet
   }
 
   @Override
+  public Optional<Asset<JsonObject>> get(String namespace, String assetId) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public List<Asset<JsonObject>> scan(AssetFilter filter) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public void put(String assetId, JsonObject data) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void put(String namespace, String assetId, JsonObject data) {
     throw new UnsupportedOperationException();
   }
 

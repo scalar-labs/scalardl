@@ -98,6 +98,11 @@ CREATE TABLE IF NOT EXISTS scalar.tx_state (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS scalar.namespace (
+    name text,
+    PRIMARY KEY (name)
+);
+
 CREATE TABLE IF NOT EXISTS coordinator.state (
     tx_id text,
     tx_state int,

@@ -13,6 +13,7 @@ import com.scalar.db.service.StorageFactory;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.LedgerConfig;
+import com.scalar.dl.ledger.config.ServerConfig;
 import com.scalar.dl.ledger.config.ServersHmacAuthenticatable;
 import com.scalar.dl.ledger.contract.ContractLoader;
 import com.scalar.dl.ledger.contract.ContractManager;
@@ -36,6 +37,7 @@ import com.scalar.dl.ledger.database.scalardb.LedgerNamespaceRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarCertificateRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarContractRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarFunctionRegistry;
+import com.scalar.dl.ledger.database.scalardb.ScalarNamespaceResolver;
 import com.scalar.dl.ledger.database.scalardb.ScalarSecretRegistry;
 import com.scalar.dl.ledger.database.scalardb.ScalarTransactionManager;
 import com.scalar.dl.ledger.database.scalardb.TableMetadataProvider;
@@ -84,6 +86,7 @@ public class LedgerModule extends AbstractModule {
     bind(AuditorKeyValidator.class).in(Singleton.class);
     bind(NamespaceManager.class).in(Singleton.class);
     bind(NamespaceRegistry.class).to(LedgerNamespaceRegistry.class).in(Singleton.class);
+    bind(ScalarNamespaceResolver.class).in(Singleton.class);
 
     // to manage the list of transaction and storage tables for a namespace in Ledger
     Multibinder<TableMetadataProvider> binder =
@@ -98,6 +101,11 @@ public class LedgerModule extends AbstractModule {
   @Provides
   DatabaseConfig provideDatabaseConfig() {
     return databaseConfig;
+  }
+
+  @Provides
+  ServerConfig provideServerConfig() {
+    return config;
   }
 
   @Provides

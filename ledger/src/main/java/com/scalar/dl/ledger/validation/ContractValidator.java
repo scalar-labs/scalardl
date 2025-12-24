@@ -11,6 +11,7 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import javax.annotation.Nonnull;
 
 /**
  * A validator which will determine whether the signature of a {@link ContractExecutionRequest} is
@@ -24,7 +25,8 @@ public class ContractValidator implements LedgerValidator {
   }
 
   @Override
-  public StatusCode validate(Ledger<?> ledger, ContractMachine contract, InternalAsset record) {
+  public StatusCode validate(
+      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
     ClientIdentityKey clientIdentityKey = contract.getClientIdentityKey();
     SignatureValidator validator =
         clientKeyValidator.getValidator(
