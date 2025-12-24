@@ -10,6 +10,7 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scan.Ordering.Order;
 import com.scalar.db.api.TableMetadata;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CommitException;
@@ -29,6 +30,7 @@ import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
@@ -125,11 +127,21 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     }
 
     Optional<Result> result;
-    if (config.isDirectAssetAccessEnabled()) {
-      result = getLatestWithScan(namespace, assetId);
-    } else {
-      result = getLatestWithTwoLookups(namespace, assetId);
+    try {
+      if (config.isDirectAssetAccessEnabled()) {
+        result = getLatestWithScan(namespace, assetId);
+      } else {
+        result = getLatestWithTwoLookups(namespace, assetId);
+      }
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+        throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+      } else {
+        throw e;
+      }
     }
+
     if (!result.isPresent()) {
       return Optional.empty();
     }
@@ -150,12 +162,21 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
             .forTable(TABLE);
 
     List<InternalAsset> records = new ArrayList<>();
-    scan(scan)
-        .forEach(
-            r -> {
-              AssetRecord record = AssetLedgerUtility.getAssetRecordFrom(r);
-              records.add(record);
-            });
+    try {
+      scan(scan)
+          .forEach(
+              r -> {
+                AssetRecord record = AssetLedgerUtility.getAssetRecordFrom(r);
+                records.add(record);
+              });
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+        throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+      } else {
+        throw e;
+      }
+    }
 
     // add the asset ID to the snapshot to create a proof
     get(namespace, filter.getId());
