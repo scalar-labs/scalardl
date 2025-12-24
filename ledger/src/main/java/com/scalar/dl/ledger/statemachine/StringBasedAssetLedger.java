@@ -23,6 +23,11 @@ public class StringBasedAssetLedger implements Ledger<String> {
   }
 
   @Override
+  public Optional<Asset<String>> get(String namespace, String assetId) {
+    return ledger.get(namespace, assetId).map(this::createAsset);
+  }
+
+  @Override
   public List<Asset<String>> scan(AssetFilter filter) {
     return ledger.scan(filter).stream().map(this::createAsset).collect(Collectors.toList());
   }
@@ -30,6 +35,11 @@ public class StringBasedAssetLedger implements Ledger<String> {
   @Override
   public void put(String assetId, String data) {
     ledger.put(assetId, data);
+  }
+
+  @Override
+  public void put(String namespace, String assetId, String data) {
+    ledger.put(namespace, assetId, data);
   }
 
   private Asset<String> createAsset(InternalAsset asset) {

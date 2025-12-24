@@ -7,6 +7,8 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.statemachine.Asset;
 import com.scalar.dl.ledger.statemachine.AssetInput;
+import com.scalar.dl.ledger.statemachine.AssetKey;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.MetadataComprisedAsset;
 import com.scalar.dl.ledger.util.JsonpSerDe;
@@ -20,7 +22,8 @@ public class JsonpBasedLedgerTracer extends LedgerTracerBase<JsonObject> {
   private static final JsonpSerDe serde = new JsonpSerDe();
   private final AssetScanner scanner;
 
-  public JsonpBasedLedgerTracer(AssetScanner scanner) {
+  public JsonpBasedLedgerTracer(Context context, AssetScanner scanner) {
+    super(context);
     this.scanner = scanner;
   }
 
@@ -29,31 +32,35 @@ public class JsonpBasedLedgerTracer extends LedgerTracerBase<JsonObject> {
     AssetInput assetInput = new AssetInput(input);
     assetInput.forEach(
         eachInput -> {
-          InternalAsset asset = scanner.doGet(eachInput.id(), eachInput.age());
+          String inputNamespace =
+              eachInput.namespace() == null ? context.getNamespace() : eachInput.namespace();
+          InternalAsset asset = scanner.doGet(inputNamespace, eachInput.id(), eachInput.age());
           if (asset == null) {
             throw new ValidationException(LedgerError.INCONSISTENT_INPUT_DEPENDENCIES);
           }
-          inputs.put(eachInput.id(), new MetadataComprisedAsset<>(asset, serde::deserialize));
+          inputs.put(
+              AssetKey.of(inputNamespace, eachInput.id()),
+              new MetadataComprisedAsset<>(asset, serde::deserialize));
         });
   }
 
   @Override
-  public void setInput(String assetId, InternalAsset asset) {
+  public void setInput(AssetKey key, InternalAsset asset) {
     if (asset == null) {
       return;
     }
-    inputs.put(assetId, new MetadataComprisedAsset<>(asset, serde::deserialize));
+    inputs.put(key, new MetadataComprisedAsset<>(asset, serde::deserialize));
   }
 
   @Override
-  public String getOutput(String assetId) {
-    return serde.serialize(outputs.get(assetId));
+  public String getOutput(AssetKey key) {
+    return serde.serialize(outputs.get(key));
   }
 
   @Override
-  public Map<String, String> getOutputs() {
-    Map<String, String> result = new HashMap<>();
-    outputs.forEach((assetId, output) -> result.put(assetId, serde.serialize(output)));
+  public Map<AssetKey, String> getOutputs() {
+    Map<AssetKey, String> result = new HashMap<>();
+    outputs.forEach((key, output) -> result.put(key, serde.serialize(output)));
     return result;
   }
 
@@ -65,7 +72,7 @@ public class JsonpBasedLedgerTracer extends LedgerTracerBase<JsonObject> {
   }
 
   @VisibleForTesting
-  Map<String, Asset<JsonObject>> getInputs() {
+  Map<AssetKey, Asset<JsonObject>> getInputs() {
     return inputs;
   }
 }

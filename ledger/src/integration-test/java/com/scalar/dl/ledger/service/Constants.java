@@ -8,6 +8,7 @@ public class Constants {
   public static final String CONTRACT_ID_ATTRIBUTE_NAME = "contract_id";
   public static final String EXECUTE_NESTED_ATTRIBUTE_NAME = "execute_nested";
   public static final String NAMESPACE_ATTRIBUTE_NAME = "namespace";
+  public static final String ASSET_ID_SEPARATOR = ":";
   public static final String CREATE_CONTRACT_ID1 = "Create";
   public static final String CREATE_CONTRACT_ID2 = "CreateWithJsonp";
   public static final String CREATE_CONTRACT_ID3 = "CreateWithJackson";
@@ -25,6 +26,10 @@ public class Constants {
   public static final String GET_BALANCE_CONTRACT_ID2 = "GetBalanceWithJsonp";
   public static final String GET_BALANCE_CONTRACT_ID3 = "GetBalanceWithJackson";
   public static final String GET_BALANCE_CONTRACT_ID4 = "GetBalanceWithString";
+  public static final String NAMESPACE_AWARE_CREATE_ID = "NamespaceAwareCreate";
+  public static final String NAMESPACE_AWARE_PAYMENT_ID = "NamespaceAwarePayment";
+  public static final String NAMESPACE_AWARE_GET_BALANCE_ID = "NamespaceAwareGetBalance";
+  public static final String NAMESPACE_AWARE_GET_HISTORY_ID = "NamespaceAwareGetHistory";
 
   public static final String FUNCTION_NAMESPACE = "test";
   public static final String FUNCTION_TABLE = "function_test";

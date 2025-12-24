@@ -17,27 +17,36 @@ public class AssetProofComposer {
     this.signer = signer;
   }
 
-  public AssetProof create(InternalAsset asset) {
-    return create(asset, null);
+  public AssetProof create(String namespace, InternalAsset asset) {
+    return create(namespace, asset, null);
   }
 
-  public AssetProof create(InternalAsset asset, String nonce) {
+  public AssetProof create(String namespace, InternalAsset asset, String nonce) {
     if (signer == null) {
       return null;
     }
     if (nonce == null) {
       nonce = Argument.getNonce(asset.argument());
     }
-    return create(asset.id(), asset.age(), nonce, asset.input(), asset.hash(), asset.prevHash());
+    return create(
+        namespace, asset.id(), asset.age(), nonce, asset.input(), asset.hash(), asset.prevHash());
   }
 
   public AssetProof create(
-      String id, int age, String nonce, String input, byte[] hash, byte[] prevHash) {
+      String namespace,
+      String id,
+      int age,
+      String nonce,
+      String input,
+      byte[] hash,
+      byte[] prevHash) {
     if (signer == null) {
       return null;
     }
-    byte[] signature = signer.sign(AssetProof.serialize(id, age, nonce, input, hash, prevHash));
+    byte[] signature =
+        signer.sign(AssetProof.serialize(namespace, id, age, nonce, input, hash, prevHash));
     return AssetProof.newBuilder()
+        .namespace(namespace)
         .id(id)
         .age(age)
         .nonce(nonce)

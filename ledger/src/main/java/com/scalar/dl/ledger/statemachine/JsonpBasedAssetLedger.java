@@ -26,6 +26,11 @@ public class JsonpBasedAssetLedger implements Ledger<JsonObject> {
   }
 
   @Override
+  public Optional<Asset<JsonObject>> get(String namespace, String assetId) {
+    return ledger.get(namespace, assetId).map(this::createAsset);
+  }
+
+  @Override
   public List<Asset<JsonObject>> scan(AssetFilter filter) {
     return ledger.scan(filter).stream().map(this::createAsset).collect(Collectors.toList());
   }
@@ -33,6 +38,11 @@ public class JsonpBasedAssetLedger implements Ledger<JsonObject> {
   @Override
   public void put(String assetId, JsonObject data) {
     ledger.put(assetId, serde.serialize(data));
+  }
+
+  @Override
+  public void put(String namespace, String assetId, JsonObject data) {
+    ledger.put(namespace, assetId, serde.serialize(data));
   }
 
   private Asset<JsonObject> createAsset(InternalAsset asset) {

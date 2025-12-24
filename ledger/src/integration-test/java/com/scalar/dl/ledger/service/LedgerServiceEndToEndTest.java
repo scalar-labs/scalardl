@@ -79,6 +79,7 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.function.CreateFunction;
 import com.scalar.dl.ledger.service.function.CreateFunctionWithJackson;
@@ -595,9 +596,9 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
   private static LedgerValidationRequest prepareValidationRequest(
       String assetId, int startAge, int endAge, String entityId, SignatureSigner signer) {
     byte[] serialized =
-        LedgerValidationRequest.serialize(assetId, startAge, endAge, entityId, KEY_VERSION);
+        LedgerValidationRequest.serialize(null, assetId, startAge, endAge, entityId, KEY_VERSION);
     return new LedgerValidationRequest(
-        assetId, startAge, endAge, entityId, KEY_VERSION, signer.sign(serialized));
+        null, assetId, startAge, endAge, entityId, KEY_VERSION, signer.sign(serialized));
   }
 
   private void createAssets(Optional<UUID> nonce, DeserializationType type, boolean isV2Argument) {
@@ -2144,6 +2145,7 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     AssetProof proof = result.getLedgerProofs().get(0);
     byte[] toBeValidated =
         AssetProof.serialize(
+            NamespaceManager.DEFAULT_NAMESPACE,
             proof.getId(),
             proof.getAge(),
             proof.getNonce(),

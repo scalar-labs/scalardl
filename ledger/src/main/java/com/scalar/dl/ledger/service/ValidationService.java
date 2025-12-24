@@ -9,6 +9,7 @@ import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.util.Argument;
@@ -55,16 +56,17 @@ public abstract class ValidationService {
     return validators;
   }
 
-  protected StatusCode validateEach(List<LedgerValidator> validators, InternalAsset asset) {
+  protected StatusCode validateEach(
+      Context context, List<LedgerValidator> validators, String namespace, InternalAsset asset) {
     ContractEntry entry = contractManager.get(ContractEntry.Key.deserialize(asset.contractId()));
     ContractMachine contract = contractManager.getInstance(entry);
-    LedgerTracerBase<?> tracer = getLedgerTracerBase(contract.getDeserializationType());
+    LedgerTracerBase<?> tracer = getLedgerTracerBase(context, contract.getDeserializationType());
     tracer.setInput(asset.input());
     String contractArgument = Argument.getContractArgument(asset.argument());
     contract.invoke(tracer, contractArgument, entry.getProperties().orElse(null));
 
     for (LedgerValidator validator : validators) {
-      StatusCode code = validator.validate(tracer, contract, asset);
+      StatusCode code = validator.validate(tracer, contract, namespace, asset);
       if (code != StatusCode.OK) {
         return code;
       }
@@ -73,9 +75,9 @@ public abstract class ValidationService {
   }
 
   @VisibleForTesting
-  LedgerTracerBase<?> getLedgerTracerBase(DeserializationType type) {
+  LedgerTracerBase<?> getLedgerTracerBase(Context context, DeserializationType type) {
     LedgerTracerManager tracerManager =
         new TransactionScannableLedgerTracerManager(transactionManager);
-    return tracerManager.start(type);
+    return tracerManager.start(context, type);
   }
 }

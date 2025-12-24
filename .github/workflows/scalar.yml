@@ -86,6 +86,7 @@ jobs:
           cd ledger
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceIntegrationTest
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
 
   integration-test-with-mysql-jdbc-transaction:
     name: Integration test with JDBC transaction manager on MySQL
@@ -121,6 +122,7 @@ jobs:
         run: |
           cd ledger
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
 
   integration-test-for-generic-contracts:
     name: Integration test for generic contracts

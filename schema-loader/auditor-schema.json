@@ -122,5 +122,17 @@
       "registered_at": "BIGINT"
     },
     "compaction-strategy": "STCS"
+  },
+  "auditor.namespace": {
+    "transaction": false,
+    "partition-key": [
+      "name"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "name": "TEXT"
+    },
+    "compaction-strategy": "STCS"
   }
 }
