@@ -83,6 +83,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
                     e -> {
                       LOGGER.warn("Namespace creation failed");
                       return e instanceof IllegalArgumentException
+                          && e.getMessage() != null
                           && (e.getMessage().startsWith(CoreError.NAMESPACE_NOT_FOUND.buildCode())
                               || e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode()));
                     })

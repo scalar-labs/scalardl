@@ -21,6 +21,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scan.Ordering.Order;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CommitException;
@@ -40,6 +41,7 @@ import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.database.scalardb.ScalarTamperEvidentAssetLedger.AssetMetadata;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
@@ -958,5 +960,125 @@ public class ScalarTamperEvidentAssetLedgerTest {
     // Assert
     verify(transaction).abort();
     verify(stateManager, never()).putAbort(ANY_NONCE);
+  }
+
+  @Test
+  public void get_TableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+      throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      get_TableNotFoundExceptionThrownAndDirectAssetAccessEnabled_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(true);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      get_NamespaceAndAssetIdGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.TABLE_NOT_FOUND.buildMessage(RESOLVED_CUSTOM_NAMESPACE + ".asset"));
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(CUSTOM_NAMESPACE, ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void get_OtherIllegalArgumentExceptionThrown_ShouldRethrowException()
+      throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow = new IllegalArgumentException("some other error");
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> ledger.get(ANY_ID))
+        .isInstanceOf(IllegalArgumentException.class)
+        .isSameAs(toThrow);
+  }
+
+  @Test
+  public void scan_TableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+      throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(ANY_ID);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.scan(filter));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      scan_AwareAssetFilterWithNamespaceGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.TABLE_NOT_FOUND.buildMessage(RESOLVED_CUSTOM_NAMESPACE + ".asset"));
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.scan(filter));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void scan_OtherIllegalArgumentExceptionThrown_ShouldRethrowException()
+      throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(ANY_ID);
+    IllegalArgumentException toThrow = new IllegalArgumentException("some other error");
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act Assert
+    assertThatThrownBy(() -> ledger.scan(filter))
+        .isInstanceOf(IllegalArgumentException.class)
+        .isSameAs(toThrow);
   }
 }

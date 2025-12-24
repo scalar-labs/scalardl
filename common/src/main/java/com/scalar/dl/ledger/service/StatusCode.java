@@ -132,6 +132,9 @@ public enum StatusCode {
   /** StatusCode: 416. This indicates that the given namespace already exists. */
   NAMESPACE_ALREADY_EXISTS(416),
 
+  /** StatusCode: 417. This indicates that the given namespace is not found. */
+  NAMESPACE_NOT_FOUND(417),
+
   /**
    * StatusCode: 500. This indicates that the system encountered a database error such as IO error.
    */
