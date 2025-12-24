@@ -135,6 +135,7 @@ message LedgerValidationRequest {
     string entity_id = 4;
     uint32 key_version = 5;
     bytes signature = 6;
+    string namespace = 7;
 }
 
 message AssetProofRetrievalRequest {
@@ -143,6 +144,7 @@ message AssetProofRetrievalRequest {
     string entity_id = 3;
     uint32 key_version = 4;
     bytes signature = 5;
+    string namespace = 6;
 }
 
 message ExecutionAbortRequest {
@@ -193,6 +195,7 @@ message AssetProof {
     bytes hash = 5;
     bytes prev_hash = 6;
     bytes signature = 7;
+    string namespace = 8;
 }
 
 enum TransactionState {

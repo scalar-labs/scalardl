@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ContractValidatorTest {
+  private static final String NAMESPACE = "namespace";
   private static final String ENTITY_ID = "entity_id";
   private static final int CERT_VERSION = 1;
   private static final String CONTRACT_ID = "contract_id";
@@ -71,7 +72,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act
-    StatusCode result = validator.validate(ledger, contract, asset);
+    StatusCode result = validator.validate(ledger, contract, NAMESPACE, asset);
 
     // Assert
     assertThat(result).isEqualTo(StatusCode.OK);
@@ -93,7 +94,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(tamperedContractId, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
+    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -116,7 +117,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, tampered, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
+    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -139,7 +140,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, tampered);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
+    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -162,7 +163,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, asset))
+    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")

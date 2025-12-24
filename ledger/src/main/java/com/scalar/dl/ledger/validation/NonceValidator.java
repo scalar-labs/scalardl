@@ -9,6 +9,7 @@ import com.scalar.dl.ledger.statemachine.Ledger;
 import com.scalar.dl.ledger.util.Argument;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /** A validator to determine whether a nonce is used more than once. */
@@ -26,7 +27,8 @@ public class NonceValidator implements LedgerValidator {
   }
 
   @Override
-  public StatusCode validate(Ledger<?> ledger, ContractMachine contract, InternalAsset record) {
+  public StatusCode validate(
+      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
     String nonce = Argument.getNonce(record.argument());
 
     if (seenNonces.contains(nonce)) {

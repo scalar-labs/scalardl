@@ -42,6 +42,7 @@ public class LedgerServiceTest {
   private static final String SOME_FUNCTION_ID = "function_id";
   private static final String SOME_FUNCTION_ARGUMENT = "function_argument";
   private static final String SOME_FUNCTION_RESULT = "{\"result\":\"function_result\"}";
+  private static final String SOME_NAMESPACE = "namespace";
   private static final String SOME_ASSET_ID = "asset_id";
   private static final int SOME_ASSET_AGE = 1;
   private static final byte[] SOME_HASH = "hash".getBytes(StandardCharsets.UTF_8);
@@ -69,6 +70,7 @@ public class LedgerServiceTest {
 
   private AssetProof createAssetProof() {
     return AssetProof.newBuilder()
+        .namespace(SOME_NAMESPACE)
         .id(SOME_ASSET_ID)
         .age(SOME_ASSET_AGE)
         .input(SOME_INPUT)

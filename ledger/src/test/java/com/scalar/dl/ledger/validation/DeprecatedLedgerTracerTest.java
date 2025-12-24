@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetScanner;
 import com.scalar.dl.ledger.statemachine.Asset;
+import com.scalar.dl.ledger.statemachine.AssetKey;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -25,6 +27,7 @@ import org.mockito.MockitoAnnotations;
 
 public class DeprecatedLedgerTracerTest {
   private static final JsonpSerDe serde = new JsonpSerDe();
+  private static final String SOME_NAMESPACE = "some_namespace";
   private static final String SOME_ASSET_ID = "some_asset_id";
   private static final int SOME_AGE = 10;
   private static final String SOME_JSON_STRING =
@@ -46,7 +49,7 @@ public class DeprecatedLedgerTracerTest {
     ledger.setInput(SOME_JSON_STRING);
 
     // Assert
-    verify(tracer).setInput(serde.deserialize(SOME_JSON_STRING));
+    verify(tracer).setInput(SOME_JSON_STRING);
   }
 
   @Test
@@ -55,23 +58,24 @@ public class DeprecatedLedgerTracerTest {
     InternalAsset asset = mock(InternalAsset.class);
 
     // Act
-    ledger.setInput(SOME_ASSET_ID, asset);
+    ledger.setInput(AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID), asset);
 
     // Assert
-    verify(tracer).setInput(SOME_ASSET_ID, asset);
+    verify(tracer).setInput(AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID), asset);
   }
 
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
   @Test
   public void getOutput_AssetIdGiven_ShouldDelegateToTracerProperly() {
     // Arrange
-    when(tracer.getOutput(SOME_ASSET_ID)).thenReturn(serde.deserialize(SOME_JSON_STRING));
+    when(tracer.getOutput(AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID)))
+        .thenReturn(serde.deserialize(SOME_JSON_STRING));
 
     // Act
-    String actual = ledger.getOutput(SOME_ASSET_ID);
+    String actual = ledger.getOutput(AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID));
 
     // Assert
-    verify(tracer).getOutput(SOME_ASSET_ID);
+    verify(tracer).getOutput(AssetKey.of(SOME_NAMESPACE, SOME_ASSET_ID));
     assertThat(actual).isEqualTo(SOME_JSON_STRING);
   }
 
@@ -104,7 +108,7 @@ public class DeprecatedLedgerTracerTest {
     when(asset.data()).thenReturn(SOME_JSON_STRING);
     AssetScanner scanner = mock(AssetScanner.class);
     when(scanner.doScan(any(AssetFilter.class))).thenReturn(Collections.singletonList(asset));
-    tracer = spy(new LedgerTracer(scanner));
+    tracer = spy(new LedgerTracer(Context.withNamespace(SOME_NAMESPACE), scanner));
     ledger = new DeprecatedLedgerTracer(tracer);
 
     // Act

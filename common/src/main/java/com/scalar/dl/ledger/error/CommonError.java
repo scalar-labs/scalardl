@@ -215,6 +215,12 @@ public enum CommonError implements ScalarDlError {
       ""),
   INVALID_NAMESPACE_NAME(
       StatusCode.INVALID_ARGUMENT, "019", "The namespace name is invalid. Name: %s", "", ""),
+  NAMESPACE_NOT_SUPPORTED_IN_DEPRECATED_CONTRACT(
+      StatusCode.INVALID_ARGUMENT,
+      "020",
+      "Namespace-aware interfaces are not supported in deprecated contracts.",
+      "",
+      ""),
 
   //
   // Errors for SECRET_NOT_FOUND(415)

@@ -21,6 +21,16 @@ public interface Ledger<T> {
   Optional<Asset<T>> get(String assetId);
 
   /**
+   * Retrieves the latest {@link Asset} entry (an asset entry with the largest age) from the ledger
+   * with the specified asset ID and namespace.
+   *
+   * @param namespace a namespace
+   * @param assetId an asset ID
+   * @return an {@code Optional} with the returned asset
+   */
+  Optional<Asset<T>> get(String namespace, String assetId);
+
+  /**
    * Retrieves a list of {@link Asset} entries from the ledger with the specified {@link
    * AssetFilter}.
    *
@@ -37,4 +47,14 @@ public interface Ledger<T> {
    * @param data asset data
    */
   void put(String assetId, T data);
+
+  /**
+   * Creates/Appends an {@link Asset} entry to the ledger. The initial entry is marked as age 0 and
+   * new entry is appended with an incremented age.
+   *
+   * @param namespace a namespace to create/append an asset
+   * @param assetId an asset ID to create/append
+   * @param data asset data
+   */
+  void put(String namespace, String assetId, T data);
 }
