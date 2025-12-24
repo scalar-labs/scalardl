@@ -28,7 +28,7 @@ public class TableStoreClientServiceFactoryTest {
   }
 
   @Test
-  public void create_ClientConfigGivenAndAutoRegistrationDisabled_ShouldCreateClientService() {
+  public void create_ClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
     // Arrange
     when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
 
@@ -41,8 +41,7 @@ public class TableStoreClientServiceFactoryTest {
   }
 
   @Test
-  public void
-      create_ClientConfigAndAutoRegistrationEnabled_ShouldCreateClientServiceWithBootstrap() {
+  public void create_ClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
     when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
 
@@ -55,9 +54,9 @@ public class TableStoreClientServiceFactoryTest {
   }
 
   @Test
-  public void
-      create_ClientConfigWithDigitalSignatureGivenAndAutoRegistrationNotSpecified_ShouldCreateClientServiceWithBootstrap() {
+  public void create_ClientConfigWithAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
     when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
 
     // Act
@@ -70,7 +69,21 @@ public class TableStoreClientServiceFactoryTest {
 
   @Test
   public void
-      create_GatewayClientConfigGivenAndAutoRegistrationDisabled_ShouldCreateClientService() {
+      create_ClientConfigWithAutoBootstrapDisabled_ShouldCreateClientServiceWithoutBootstrap() {
+    // Arrange
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+
+    // Act
+    factory.create(config);
+
+    // Assert
+    verify(clientServiceFactory).create(config);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void create_GatewayClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
     // Arrange
     when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
 
@@ -84,9 +97,24 @@ public class TableStoreClientServiceFactoryTest {
 
   @Test
   public void
-      create_GatewayClientConfigAndAutoRegistrationNotSpecified_ShouldCreateClientServiceWithBootstrap() {
+      create_GatewayClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
+    // Arrange
+    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+
+    // Act
+    factory.create(gatewayClientConfig, true);
+
+    // Assert
+    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      create_GatewayClientConfigWithAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
     when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
 
     // Act
@@ -95,5 +123,21 @@ public class TableStoreClientServiceFactoryTest {
     // Assert
     verify(clientServiceFactory).create(gatewayClientConfig);
     verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      create_GatewayClientConfigWithAutoBootstrapDisabled_ShouldCreateClientServiceWithoutBootstrap() {
+    // Arrange
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+
+    // Act
+    factory.create(gatewayClientConfig);
+
+    // Assert
+    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientService, never()).bootstrap();
   }
 }

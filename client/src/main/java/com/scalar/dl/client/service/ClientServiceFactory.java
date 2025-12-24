@@ -60,6 +60,18 @@ public class ClientServiceFactory {
    * @return a {@link ClientService} instance
    */
   public ClientService create(ClientConfig config) {
+    return create(config, config.isAutoBootstrapEnabled());
+  }
+
+  /**
+   * Returns a {@link ClientService} instance.
+   *
+   * @param config a client config
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
+   * @return a {@link ClientService} instance
+   */
+  public ClientService create(ClientConfig config, boolean autoBootstrapEnabled) {
     // LedgerClient is reused if the specified target is the same
     AbstractLedgerClient ledgerClient =
         ledgerClients.computeIfAbsent(config.getLedgerTargetConfig(), this::createLedgerClient);
@@ -73,7 +85,7 @@ public class ClientServiceFactory {
     }
     ClientServiceHandler handler = new DefaultClientServiceHandler(ledgerClient, auditorClient);
 
-    return createClientService(config, handler);
+    return createClientService(config, handler, autoBootstrapEnabled);
   }
 
   /**
@@ -83,12 +95,24 @@ public class ClientServiceFactory {
    * @return a {@link ClientService} instance
    */
   public ClientService create(GatewayClientConfig config) {
+    return create(config, config.getClientConfig().isAutoBootstrapEnabled());
+  }
+
+  /**
+   * Returns a {@link ClientService} instance.
+   *
+   * @param config a gateway client config
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
+   * @return a {@link ClientService} instance
+   */
+  public ClientService create(GatewayClientConfig config, boolean autoBootstrapEnabled) {
     // GatewayClient is reused if the specified target is the same
     AbstractGatewayClient gatewayClient =
         gatewayClients.computeIfAbsent(config.getGatewayTargetConfig(), this::createGatewayClient);
     ClientServiceHandler handler = new GatewayClientServiceHandler(gatewayClient);
 
-    return createClientService(config.getClientConfig(), handler);
+    return createClientService(config.getClientConfig(), handler, autoBootstrapEnabled);
   }
 
   /**
@@ -121,7 +145,8 @@ public class ClientServiceFactory {
     gatewayClients.values().forEach(Client::shutdown);
   }
 
-  private ClientService createClientService(ClientConfig config, ClientServiceHandler handler) {
+  private ClientService createClientService(
+      ClientConfig config, ClientServiceHandler handler, boolean autoBootstrapEnabled) {
     // RequestSigner is reused if the specified identity is the same
     RequestSigner signer = null;
     if (config.getDigitalSignatureIdentityConfig() != null) {
@@ -135,6 +160,16 @@ public class ClientServiceFactory {
       assert config.getClientMode().equals(ClientMode.INTERMEDIARY);
     }
 
+    ClientService clientService = createClientService(config, handler, signer);
+    if (autoBootstrapEnabled) {
+      clientService.bootstrap();
+    }
+    return clientService;
+  }
+
+  @VisibleForTesting
+  ClientService createClientService(
+      ClientConfig config, ClientServiceHandler handler, RequestSigner signer) {
     return new ClientService(config, handler, signer);
   }
 

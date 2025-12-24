@@ -24,10 +24,12 @@ import org.mockito.MockitoAnnotations;
 public class ClientServiceFactoryTest {
   @Mock private ClientConfig config;
   @Mock private GatewayClientConfig gatewayClientConfig;
+  @Mock private DigitalSignatureIdentityConfig digitalSignatureIdentityConfig;
   @Mock private LedgerClient ledgerClient;
   @Mock private AuditorClient auditorClient;
   @Mock private GatewayClient gatewayClient;
   @Mock private RequestSigner requestSigner;
+  @Mock private ClientService clientService;
   private ClientServiceFactory factory;
 
   @BeforeEach
@@ -46,6 +48,7 @@ public class ClientServiceFactoryTest {
     when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
     when(config.isAuditorEnabled()).thenReturn(false);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     doReturn(ledgerClient).when(factory).createLedgerClient(any());
     doReturn(requestSigner)
         .when(factory)
@@ -75,6 +78,7 @@ public class ClientServiceFactoryTest {
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
     when(config.getHmacIdentityConfig()).thenReturn(hmacIdentityConfig);
     when(config.isAuditorEnabled()).thenReturn(false);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     doReturn(ledgerClient).when(factory).createLedgerClient(any());
     doReturn(requestSigner).when(factory).createRequestSigner(any(HmacIdentityConfig.class));
 
@@ -104,6 +108,7 @@ public class ClientServiceFactoryTest {
     when(config.getAuditorTargetConfig()).thenReturn(auditorTargetConfig);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     doReturn(ledgerClient).when(factory).createLedgerClient(any());
     doReturn(auditorClient).when(factory).createAuditorClient(any());
     doReturn(requestSigner)
@@ -137,6 +142,7 @@ public class ClientServiceFactoryTest {
     when(config.getAuditorTargetConfig()).thenReturn(auditorTargetConfig);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     doReturn(ledgerClient).when(factory).createLedgerClient(any());
     doReturn(auditorClient).when(factory).createAuditorClient(any());
     doReturn(requestSigner)
@@ -188,6 +194,8 @@ public class ClientServiceFactoryTest {
     when(config2.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig2);
     when(config.isAuditorEnabled()).thenReturn(true);
     when(config2.isAuditorEnabled()).thenReturn(true);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config2.isAutoBootstrapEnabled()).thenReturn(false);
     doReturn(ledgerClient).when(factory).createLedgerClient(ledgerTargetConfig1);
     doReturn(auditorClient).when(factory).createAuditorClient(auditorTargetConfig1);
     doReturn(requestSigner).when(factory).createRequestSigner(digitalSignatureIdentityConfig1);
@@ -264,6 +272,7 @@ public class ClientServiceFactoryTest {
     DigitalSignatureIdentityConfig digitalSignatureIdentityConfig =
         mock(DigitalSignatureIdentityConfig.class);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
     doReturn(gatewayClient).when(factory).createGatewayClient(any());
@@ -291,6 +300,7 @@ public class ClientServiceFactoryTest {
     HmacIdentityConfig hmacIdentityConfig = mock(HmacIdentityConfig.class);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
     when(config.getHmacIdentityConfig()).thenReturn(hmacIdentityConfig);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
     doReturn(gatewayClient).when(factory).createGatewayClient(any());
@@ -316,6 +326,7 @@ public class ClientServiceFactoryTest {
     when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(null);
     when(config.getHmacIdentityConfig()).thenReturn(null);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
     doReturn(gatewayClient).when(factory).createGatewayClient(any());
@@ -340,6 +351,7 @@ public class ClientServiceFactoryTest {
     DigitalSignatureIdentityConfig digitalSignatureIdentityConfig =
         mock(DigitalSignatureIdentityConfig.class);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
     doReturn(gatewayClient).when(factory).createGatewayClient(any());
@@ -380,6 +392,8 @@ public class ClientServiceFactoryTest {
         mock(DigitalSignatureIdentityConfig.class);
     when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig1);
     when(config2.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig2);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config2.isAutoBootstrapEnabled()).thenReturn(false);
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(gatewayClientConfig2.getClientConfig()).thenReturn(config2);
     when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig1);
@@ -410,5 +424,121 @@ public class ClientServiceFactoryTest {
     verify(factory).createRequestSigner(digitalSignatureIdentityConfig1);
     verify(factory).createGatewayClient(gatewayTargetConfig2);
     verify(factory).createRequestSigner(digitalSignatureIdentityConfig2);
+  }
+
+  @Test
+  public void create_ClientConfigWithoutAutoBootstrapConfigurationGiven_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    doReturn(clientService)
+        .when(factory)
+        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+
+    // Act
+    factory.create(config);
+
+    // Assert
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void create_ClientConfigGivenAndAutoBootstrapDisabledOverride_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    doReturn(clientService)
+        .when(factory)
+        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+
+    // Act
+    factory.create(config, false);
+
+    // Assert
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void create_ClientConfigGivenAndAutoBootstrapEnabledOverride_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    doReturn(clientService)
+        .when(factory)
+        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+
+    // Act
+    factory.create(config, true);
+
+    // Assert
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      create_GatewayClientConfigGivenAndAutoBootstrapDisabledOverride_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    doReturn(clientService)
+        .when(factory)
+        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+
+    // Act
+    factory.create(gatewayClientConfig, false);
+
+    // Assert
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void create_GatewayClientConfigGivenAndAutoBootstrapEnabledOverride_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    doReturn(clientService)
+        .when(factory)
+        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+
+    // Act
+    factory.create(gatewayClientConfig, true);
+
+    // Assert
+    verify(clientService).bootstrap();
   }
 }
