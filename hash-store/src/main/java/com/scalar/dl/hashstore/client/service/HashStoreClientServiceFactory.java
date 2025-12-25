@@ -46,7 +46,7 @@ public class HashStoreClientServiceFactory {
    */
   public HashStoreClientService create(ClientConfig config, boolean autoBootstrapEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config));
+        new HashStoreClientService(clientServiceFactory.create(config, false));
     if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }
@@ -73,7 +73,7 @@ public class HashStoreClientServiceFactory {
    */
   public HashStoreClientService create(GatewayClientConfig config, boolean autoBootstrapEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config));
+        new HashStoreClientService(clientServiceFactory.create(config, false));
     if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }

@@ -438,14 +438,15 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner)
         .when(factory)
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(clientService)
-        .when(factory)
-        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
 
     // Act
-    factory.create(config);
+    ClientService service = factory.create(config);
 
     // Assert
+    assertThat(service).isEqualTo(clientService);
     verify(clientService).bootstrap();
   }
 
@@ -461,14 +462,15 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner)
         .when(factory)
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(clientService)
-        .when(factory)
-        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
 
     // Act
-    factory.create(config, false);
+    ClientService service = factory.create(config, false);
 
     // Assert
+    assertThat(service).isEqualTo(clientService);
     verify(clientService, never()).bootstrap();
   }
 
@@ -484,14 +486,15 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner)
         .when(factory)
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(clientService)
-        .when(factory)
-        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
 
     // Act
-    factory.create(config, true);
+    ClientService service = factory.create(config, true);
 
     // Assert
+    assertThat(service).isEqualTo(clientService);
     verify(clientService).bootstrap();
   }
 
@@ -508,14 +511,15 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner)
         .when(factory)
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(clientService)
-        .when(factory)
-        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
 
     // Act
-    factory.create(gatewayClientConfig, false);
+    ClientService service = factory.create(gatewayClientConfig, false);
 
     // Assert
+    assertThat(service).isEqualTo(clientService);
     verify(clientService, never()).bootstrap();
   }
 
@@ -531,14 +535,15 @@ public class ClientServiceFactoryTest {
     doReturn(requestSigner)
         .when(factory)
         .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
-    doReturn(clientService)
-        .when(factory)
-        .createClientService(any(ClientConfig.class), any(ClientServiceHandler.class), any());
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
 
     // Act
-    factory.create(gatewayClientConfig, true);
+    ClientService service = factory.create(gatewayClientConfig, true);
 
     // Assert
+    assertThat(service).isEqualTo(clientService);
     verify(clientService).bootstrap();
   }
 }

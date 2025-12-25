@@ -1,6 +1,7 @@
 package com.scalar.dl.hashstore.client.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,26 +31,26 @@ public class HashStoreClientServiceFactoryTest {
   @Test
   public void create_ClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
     // Arrange
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config, false);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService, never()).bootstrap();
   }
 
   @Test
   public void create_ClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config, true);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService).bootstrap();
   }
 
@@ -57,13 +58,13 @@ public class HashStoreClientServiceFactoryTest {
   public void create_ClientConfigWithAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
     when(config.isAutoBootstrapEnabled()).thenReturn(true);
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService).bootstrap();
   }
 
@@ -72,26 +73,27 @@ public class HashStoreClientServiceFactoryTest {
       create_ClientConfigWithAutoBootstrapDisabled_ShouldCreateClientServiceWithoutBootstrap() {
     // Arrange
     when(config.isAutoBootstrapEnabled()).thenReturn(false);
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService, never()).bootstrap();
   }
 
   @Test
   public void create_GatewayClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
     // Arrange
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig, false);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService, never()).bootstrap();
   }
 
@@ -99,13 +101,14 @@ public class HashStoreClientServiceFactoryTest {
   public void
       create_GatewayClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig, true);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService).bootstrap();
   }
 
@@ -115,13 +118,14 @@ public class HashStoreClientServiceFactoryTest {
     // Arrange
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(config.isAutoBootstrapEnabled()).thenReturn(true);
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService).bootstrap();
   }
 
@@ -131,13 +135,14 @@ public class HashStoreClientServiceFactoryTest {
     // Arrange
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
     when(config.isAutoBootstrapEnabled()).thenReturn(false);
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService, never()).bootstrap();
   }
 }
