@@ -122,7 +122,20 @@ public class ClientServiceFactory {
    * @return a {@link GenericContractClientService} instance
    */
   public GenericContractClientService createForGenericContract(ClientConfig config) {
-    return new GenericContractClientService(create(config));
+    return createForGenericContract(config, config.isAutoBootstrapEnabled());
+  }
+
+  /**
+   * Returns a {@link GenericContractClientService} instance.
+   *
+   * @param config a client config
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
+   * @return a {@link GenericContractClientService} instance
+   */
+  public GenericContractClientService createForGenericContract(
+      ClientConfig config, boolean autoBootstrapEnabled) {
+    return new GenericContractClientService(create(config, autoBootstrapEnabled));
   }
 
   /**
@@ -132,7 +145,20 @@ public class ClientServiceFactory {
    * @return a {@link GenericContractClientService} instance
    */
   public GenericContractClientService createForGenericContract(GatewayClientConfig config) {
-    return new GenericContractClientService(create(config));
+    return createForGenericContract(config, config.getClientConfig().isAutoBootstrapEnabled());
+  }
+
+  /**
+   * Returns a {@link GenericContractClientService} instance.
+   *
+   * @param config a gateway client config
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
+   * @return a {@link GenericContractClientService} instance
+   */
+  public GenericContractClientService createForGenericContract(
+      GatewayClientConfig config, boolean autoBootstrapEnabled) {
+    return new GenericContractClientService(create(config, autoBootstrapEnabled));
   }
 
   /**

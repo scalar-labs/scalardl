@@ -546,4 +546,205 @@ public class ClientServiceFactoryTest {
     assertThat(service).isEqualTo(clientService);
     verify(clientService).bootstrap();
   }
+
+  @Test
+  public void createForGenericContract_ClientConfigWithAutoBootstrapEnabled_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(config);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_ClientConfigWithAutoBootstrapDisabled_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(config);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_ClientConfigGivenAndAutoBootstrapDisabledOverride_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(config, false);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_ClientConfigGivenAndAutoBootstrapEnabledOverride_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig ledgerTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getLedgerTargetConfig()).thenReturn(ledgerTargetConfig);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(config.isAuditorEnabled()).thenReturn(false);
+    doReturn(ledgerClient).when(factory).createLedgerClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(config, true);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_GatewayClientConfigWithAutoBootstrapEnabled_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(gatewayClientConfig);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_GatewayClientConfigWithAutoBootstrapDisabled_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service = factory.createForGenericContract(gatewayClientConfig);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_GatewayClientConfigGivenAndAutoBootstrapDisabledOverride_ShouldNotCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service =
+        factory.createForGenericContract(gatewayClientConfig, false);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void
+      createForGenericContract_GatewayClientConfigGivenAndAutoBootstrapEnabledOverride_ShouldCallBootstrap() {
+    // Arrange
+    TargetConfig gatewayTargetConfig = mock(TargetConfig.class);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(config.getDigitalSignatureIdentityConfig()).thenReturn(digitalSignatureIdentityConfig);
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(gatewayClientConfig.getGatewayTargetConfig()).thenReturn(gatewayTargetConfig);
+    doReturn(gatewayClient).when(factory).createGatewayClient(any());
+    doReturn(requestSigner)
+        .when(factory)
+        .createRequestSigner(any(DigitalSignatureIdentityConfig.class));
+    when(factory.createClientService(
+            any(ClientConfig.class), any(ClientServiceHandler.class), any()))
+        .thenReturn(clientService);
+
+    // Act
+    GenericContractClientService service =
+        factory.createForGenericContract(gatewayClientConfig, true);
+
+    // Assert
+    assertThat(service.getClientService()).isEqualTo(clientService);
+    verify(clientService).bootstrap();
+  }
 }
