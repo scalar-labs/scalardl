@@ -2,6 +2,7 @@ package com.scalar.dl.client.tool;
 
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.scalar.dl.client.config.ClientConfig;
@@ -89,14 +90,14 @@ public class LedgerValidationTest {
           LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
           when(serviceMock.validateLedger("ASSET_ID_1")).thenReturn(result);
 
-          doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class));
+          doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class), eq(false));
 
           // Act
           command.call(factory);
 
           // Verify
-          verify(factory).create(any(GatewayClientConfig.class));
-          verify(factory, never()).create(any(ClientConfig.class));
+          verify(factory).create(any(GatewayClientConfig.class), eq(false));
+          verify(factory, never()).create(any(ClientConfig.class), eq(false));
         }
       }
 
@@ -122,14 +123,14 @@ public class LedgerValidationTest {
           LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, null, null);
           when(serviceMock.validateLedger("ASSET_ID_1")).thenReturn(result);
 
-          doReturn(serviceMock).when(factory).create(any(ClientConfig.class));
+          doReturn(serviceMock).when(factory).create(any(ClientConfig.class), eq(false));
 
           // Act
           command.call(factory);
 
           // Verify
-          verify(factory).create(any(ClientConfig.class));
-          verify(factory, never()).create(any(GatewayClientConfig.class));
+          verify(factory).create(any(ClientConfig.class), eq(false));
+          verify(factory, never()).create(any(GatewayClientConfig.class), eq(false));
         }
       }
 
@@ -152,7 +153,7 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
               .validateLedger("ASSET_ID_1", 0, 1);
@@ -188,7 +189,7 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
 
           // Act
           int exitCode = command.call(factoryMock);
@@ -222,7 +223,7 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
 
           // Act
           int exitCode = command.call(factoryMock);
@@ -256,7 +257,7 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
 
           // Act
           int exitCode = command.call(factoryMock);
@@ -322,7 +323,7 @@ public class LedgerValidationTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
           doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
               .when(serviceMock)
               .validateLedger("ASSET_ID_1");
@@ -339,11 +340,99 @@ public class LedgerValidationTest {
         }
       }
     }
+
+    @Nested
+    @DisplayName("where --namespace option is set")
+    class whereNamespaceOptionIsSet {
+      @Nested
+      @DisplayName("where age is set in --asset-id option")
+      class whereAgeIsSetInAssetIdOption {
+        @Test
+        @DisplayName("returns 0 as exit code")
+        void returns0AsExitCode() throws ClientException {
+          // Arrange
+          String[] args =
+              new String[] {
+                // Set the required options.
+                "--properties=PROPERTIES_FILE",
+                "--namespace=my_namespace",
+                "--asset-id=ASSET_ID_1,0,1", // startAge = 0 & endAge = 1.
+                "--asset-id=ASSET_ID_2,2,3", // startAge = 2 & endAge = 3.
+              };
+          LedgerValidation command = parseArgs(args);
+          // Mock service that returns ContractExecutionResult.
+          ClientService serviceMock = mock(ClientService.class);
+
+          LedgerValidationResult result1 = new LedgerValidationResult(StatusCode.OK, null, null);
+          when(serviceMock.validateLedger("my_namespace", "ASSET_ID_1", 0, 1)).thenReturn(result1);
+          LedgerValidationResult result2 = new LedgerValidationResult(StatusCode.OK, null, null);
+          when(serviceMock.validateLedger("my_namespace", "ASSET_ID_2", 2, 3)).thenReturn(result2);
+
+          // Act
+          int exitCode = command.execute(serviceMock);
+
+          // Assert
+          assertThat(exitCode).isEqualTo(0);
+
+          verify(serviceMock).validateLedger("my_namespace", "ASSET_ID_1", 0, 1);
+          verify(serviceMock).validateLedger("my_namespace", "ASSET_ID_2", 2, 3);
+        }
+      }
+
+      @Nested
+      @DisplayName("where age is NOT set in --asset-id option")
+      class whereAgeIsNotSetInAssetIdOption {
+        @Test
+        @DisplayName("returns 0 as exit code")
+        void returns0AsExitCode() throws ClientException {
+          // Arrange
+          String[] args =
+              new String[] {
+                // Set the required options.
+                "--properties=PROPERTIES_FILE",
+                "--namespace=my_namespace",
+                "--asset-id=ASSET_ID_1",
+                "--asset-id=ASSET_ID_2",
+              };
+          LedgerValidation command = parseArgs(args);
+          // Mock service that returns ContractExecutionResult.
+          ClientService serviceMock = mock(ClientService.class);
+
+          LedgerValidationResult result1 = new LedgerValidationResult(StatusCode.OK, null, null);
+          when(serviceMock.validateLedger("my_namespace", "ASSET_ID_1")).thenReturn(result1);
+          LedgerValidationResult result2 = new LedgerValidationResult(StatusCode.OK, null, null);
+          when(serviceMock.validateLedger("my_namespace", "ASSET_ID_2")).thenReturn(result2);
+
+          // Act
+          int exitCode = command.execute(serviceMock);
+
+          // Assert
+          assertThat(exitCode).isEqualTo(0);
+
+          verify(serviceMock).validateLedger("my_namespace", "ASSET_ID_1");
+          verify(serviceMock).validateLedger("my_namespace", "ASSET_ID_2");
+        }
+      }
+    }
   }
 
   @Nested
   @DisplayName("@Option annotation")
   class OptionAnnotation {
+    @Nested
+    @DisplayName("--namespace")
+    class namespace {
+      @Test
+      @DisplayName("member values are properly set")
+      void memberValuesAreProperlySet() throws Exception {
+        CommandLine.Option option = getOption("namespace");
+
+        assertThat(option.required()).isFalse();
+        assertThat(option.paramLabel()).isEqualTo("NAMESPACE");
+        assertThat(option.names()).isEqualTo(new String[] {"--namespace"});
+      }
+    }
+
     @Nested
     @DisplayName("--asset-id")
     class assetId {

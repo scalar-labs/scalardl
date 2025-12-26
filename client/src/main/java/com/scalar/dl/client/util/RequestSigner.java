@@ -79,18 +79,24 @@ public class RequestSigner {
   }
 
   public LedgerValidationRequest.Builder sign(LedgerValidationRequest.Builder builder) {
+    byte[] namespaceBytes = builder.getNamespace().getBytes(StandardCharsets.UTF_8);
+    byte[] assetIdBytes = builder.getAssetId().getBytes(StandardCharsets.UTF_8);
+    byte[] entityIdBytes = builder.getEntityId().getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            builder.getAssetId().getBytes(StandardCharsets.UTF_8).length
+            namespaceBytes.length
+                + assetIdBytes.length
                 + Integer.BYTES
                 + Integer.BYTES
-                + builder.getEntityId().getBytes(StandardCharsets.UTF_8).length
+                + entityIdBytes.length
                 + Integer.BYTES);
 
-    buffer.put(builder.getAssetId().getBytes(StandardCharsets.UTF_8));
+    buffer.put(namespaceBytes);
+    buffer.put(assetIdBytes);
     buffer.putInt(builder.getStartAge());
     buffer.putInt(builder.getEndAge());
-    buffer.put(builder.getEntityId().getBytes(StandardCharsets.UTF_8));
+    buffer.put(entityIdBytes);
     buffer.putInt(builder.getKeyVersion());
     buffer.rewind();
 
@@ -99,16 +105,22 @@ public class RequestSigner {
   }
 
   public AssetProofRetrievalRequest.Builder sign(AssetProofRetrievalRequest.Builder builder) {
+    byte[] namespaceBytes = builder.getNamespace().getBytes(StandardCharsets.UTF_8);
+    byte[] assetIdBytes = builder.getAssetId().getBytes(StandardCharsets.UTF_8);
+    byte[] entityIdBytes = builder.getEntityId().getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            builder.getAssetId().getBytes(StandardCharsets.UTF_8).length
+            namespaceBytes.length
+                + assetIdBytes.length
                 + Integer.BYTES
-                + builder.getEntityId().getBytes(StandardCharsets.UTF_8).length
+                + entityIdBytes.length
                 + Integer.BYTES);
 
-    buffer.put(builder.getAssetId().getBytes(StandardCharsets.UTF_8));
+    buffer.put(namespaceBytes);
+    buffer.put(assetIdBytes);
     buffer.putInt(builder.getAge());
-    buffer.put(builder.getEntityId().getBytes(StandardCharsets.UTF_8));
+    buffer.put(entityIdBytes);
     buffer.putInt(builder.getKeyVersion());
     buffer.rewind();
 

@@ -159,14 +159,14 @@ public class ContractExecutionTest {
         when(serviceMock.executeContract(
                 eq("CONTRACT_ID"), any(JsonNode.class), eq("FUNCTION_ID"), any(ArrayNode.class)))
             .thenReturn(result);
-        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class));
+        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class), eq(false));
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(GatewayClientConfig.class));
-        verify(factory, never()).create(any(ClientConfig.class));
+        verify(factory).create(any(GatewayClientConfig.class), eq(false));
+        verify(factory, never()).create(any(ClientConfig.class), eq(false));
       }
     }
 
@@ -199,14 +199,14 @@ public class ContractExecutionTest {
         when(serviceMock.executeContract(
                 eq("CONTRACT_ID"), any(JsonNode.class), eq("FUNCTION_ID"), any(ArrayNode.class)))
             .thenReturn(result);
-        doReturn(serviceMock).when(factory).create(any(ClientConfig.class));
+        doReturn(serviceMock).when(factory).create(any(ClientConfig.class), eq(false));
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(ClientConfig.class));
-        verify(factory, never()).create(any(GatewayClientConfig.class));
+        verify(factory).create(any(ClientConfig.class), eq(false));
+        verify(factory, never()).create(any(GatewayClientConfig.class), eq(false));
       }
     }
 
@@ -233,7 +233,7 @@ public class ContractExecutionTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
           when(serviceMock.executeContract(
                   eq("CONTRACT_ID"), any(JsonNode.class), isNull(), isNull()))
               .thenThrow(new ClientException("", StatusCode.RUNTIME_ERROR));
@@ -268,7 +268,7 @@ public class ContractExecutionTest {
           // Mock service that throws an exception.
           ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
           ClientService serviceMock = mock(ClientService.class);
-          when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+          when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
           when(serviceMock.executeContract(
                   eq("CONTRACT_ID"),
                   eq("CONTRACT_ARGUMENT"),

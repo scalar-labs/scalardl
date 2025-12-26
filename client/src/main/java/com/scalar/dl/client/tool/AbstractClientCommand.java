@@ -19,10 +19,11 @@ public abstract class AbstractClientCommand extends CommonOptions implements Cal
   @VisibleForTesting
   public final Integer call(ClientServiceFactory factory) throws Exception {
     try {
+      // Disable auto bootstrap as command-line tools don't need it for each invocation
       ClientService service =
           useGateway
-              ? factory.create(new GatewayClientConfig(new File(properties)))
-              : factory.create(new ClientConfig(new File(properties)));
+              ? factory.create(new GatewayClientConfig(new File(properties)), false)
+              : factory.create(new ClientConfig(new File(properties)), false);
       return execute(service);
     } catch (ClientException e) {
       Common.printError(e);

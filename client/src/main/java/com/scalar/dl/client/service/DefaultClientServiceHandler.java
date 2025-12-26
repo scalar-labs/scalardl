@@ -8,6 +8,7 @@ import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.rpc.AssetProof;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
@@ -229,13 +230,16 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
       throwError.run();
     }
 
-    Map<String, AssetProof> map = new HashMap<>();
-    ledgerResponse.getProofsList().forEach(p -> map.put(p.getAssetId(), p));
+    Map<AssetKey, AssetProof> map = new HashMap<>();
+    ledgerResponse
+        .getProofsList()
+        .forEach(p -> map.put(AssetKey.of(p.getNamespace(), p.getAssetId()), p));
     auditorResponse
         .getProofsList()
         .forEach(
             p2 -> {
-              AssetProof p1 = map.get(p2.getAssetId());
+              AssetKey assetKey = AssetKey.of(p2.getNamespace(), p2.getAssetId());
+              AssetProof p1 = map.get(assetKey);
               if (p1 == null || p1.getAge() != p2.getAge() || !p1.getHash().equals(p2.getHash())) {
                 throwError.run();
               }

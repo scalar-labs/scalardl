@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ValidateLedgerTest {
+  private static final String SOME_NAMESPACE = "some_namespace";
   private static final String SOME_ASSET_ID = "some_asset_id";
   private static final int SOME_AGE = 2;
   private static final int SOME_START_AGE = 1;
@@ -143,5 +144,93 @@ public class ValidateLedgerTest {
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(ContractContextException.class);
+  }
+
+  @Test
+  public void invoke_NamespaceAndAgeGiven_ShouldReturnOneSpecifiedAssetWithNamespaceAwareFilter() {
+    // Arrange
+    JsonNode argument =
+        JsonNodeFactory.instance
+            .objectNode()
+            .put(ValidateLedger.NAMESPACE_KEY, SOME_NAMESPACE)
+            .put(ValidateLedger.ASSET_ID_KEY, SOME_ASSET_ID)
+            .put(ValidateLedger.AGE_KEY, SOME_AGE);
+    JsonNode properties = JsonNodeFactory.instance.objectNode();
+
+    List<Asset<JsonNode>> assets = createMockAssets(SOME_ASSET_ID, SOME_AGE, SOME_AGE);
+    when(ledger.scan(any(AssetFilter.class))).thenReturn(assets);
+
+    // Act
+    JsonNode result = validateLedger.invoke(ledger, argument, properties);
+
+    // Assert
+    AssetFilter expected =
+        new AssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
+            .withStartAge(SOME_AGE, true)
+            .withEndAge(SOME_AGE, true)
+            .withAgeOrder(AgeOrder.ASC);
+    verify(ledger).scan(expected);
+    assertThat(result.get(SOME_ASSET_ID).size()).isEqualTo(1);
+    assertThat(result.get(SOME_ASSET_ID).get(0).get(ValidateLedger.AGE_KEY).asInt())
+        .isEqualTo(assets.get(0).age());
+  }
+
+  @Test
+  public void
+      invoke_NamespaceAndStartAgeEndAgeGiven_ShouldReturnSpecifiedAssetsWithNamespaceAwareFilter() {
+    // Arrange
+    JsonNode argument =
+        JsonNodeFactory.instance
+            .objectNode()
+            .put(ValidateLedger.NAMESPACE_KEY, SOME_NAMESPACE)
+            .put(ValidateLedger.ASSET_ID_KEY, SOME_ASSET_ID)
+            .put(ValidateLedger.START_AGE_KEY, SOME_START_AGE)
+            .put(ValidateLedger.END_AGE_KEY, SOME_END_AGE);
+    JsonNode properties = JsonNodeFactory.instance.objectNode();
+
+    List<Asset<JsonNode>> assets = createMockAssets(SOME_ASSET_ID, SOME_START_AGE, SOME_END_AGE);
+    when(ledger.scan(any(AssetFilter.class))).thenReturn(assets);
+
+    // Act
+    JsonNode result = validateLedger.invoke(ledger, argument, properties);
+
+    // Assert
+    AssetFilter expected =
+        new AssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
+            .withStartAge(SOME_START_AGE, true)
+            .withEndAge(SOME_END_AGE, true)
+            .withAgeOrder(AgeOrder.ASC);
+    verify(ledger).scan(expected);
+    assertThat(result.get(SOME_ASSET_ID).size()).isEqualTo(assets.size());
+    for (int i = 0; i < assets.size(); i++) {
+      assertThat(result.get(SOME_ASSET_ID).get(i).get(ValidateLedger.AGE_KEY).asInt())
+          .isEqualTo(assets.get(i).age());
+    }
+  }
+
+  @Test
+  public void invoke_NamespaceAndOnlyAssetIdGiven_ShouldReturnAllAssetsWithNamespaceAwareFilter() {
+    // Arrange
+    JsonNode argument =
+        JsonNodeFactory.instance
+            .objectNode()
+            .put(ValidateLedger.NAMESPACE_KEY, SOME_NAMESPACE)
+            .put(ValidateLedger.ASSET_ID_KEY, SOME_ASSET_ID);
+    JsonNode properties = JsonNodeFactory.instance.objectNode();
+
+    // create some asset but it's not used for verification since the range is open
+    List<Asset<JsonNode>> assets = createMockAssets(SOME_ASSET_ID, 0, 0);
+    when(ledger.scan(any(AssetFilter.class))).thenReturn(assets);
+
+    // Act
+    validateLedger.invoke(ledger, argument, properties);
+
+    // Assert
+    AssetFilter expected =
+        new AssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
+            .withStartAge(0, true)
+            .withEndAge(Integer.MAX_VALUE, true)
+            .withAgeOrder(AgeOrder.ASC);
+    verify(ledger).scan(expected);
   }
 }

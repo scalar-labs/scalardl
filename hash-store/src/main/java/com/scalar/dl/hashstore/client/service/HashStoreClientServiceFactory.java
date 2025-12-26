@@ -33,20 +33,21 @@ public class HashStoreClientServiceFactory {
    * @return a {@link HashStoreClientService} instance
    */
   public HashStoreClientService create(ClientConfig config) {
-    return create(config, true);
+    return create(config, config.isAutoBootstrapEnabled());
   }
 
   /**
    * Returns a {@link HashStoreClientService} instance.
    *
    * @param config a client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
    * @return a {@link HashStoreClientService} instance
    */
-  public HashStoreClientService create(ClientConfig config, boolean autoRegistrationEnabled) {
+  public HashStoreClientService create(ClientConfig config, boolean autoBootstrapEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config));
-    if (autoRegistrationEnabled) {
+        new HashStoreClientService(clientServiceFactory.create(config, false));
+    if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }
     return clientService;
@@ -59,21 +60,21 @@ public class HashStoreClientServiceFactory {
    * @return a {@link HashStoreClientService} instance
    */
   public HashStoreClientService create(GatewayClientConfig config) {
-    return create(config, true);
+    return create(config, config.getClientConfig().isAutoBootstrapEnabled());
   }
 
   /**
    * Returns a {@link HashStoreClientService} instance.
    *
    * @param config a gateway client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
    * @return a {@link HashStoreClientService} instance
    */
-  public HashStoreClientService create(
-      GatewayClientConfig config, boolean autoRegistrationEnabled) {
+  public HashStoreClientService create(GatewayClientConfig config, boolean autoBootstrapEnabled) {
     HashStoreClientService clientService =
-        new HashStoreClientService(clientServiceFactory.create(config));
-    if (autoRegistrationEnabled) {
+        new HashStoreClientService(clientServiceFactory.create(config, false));
+    if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }
     return clientService;

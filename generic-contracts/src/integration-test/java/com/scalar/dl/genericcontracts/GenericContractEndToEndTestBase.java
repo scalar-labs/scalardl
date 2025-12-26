@@ -124,12 +124,10 @@ public abstract class GenericContractEndToEndTestBase {
     createServer(new LedgerConfig(props));
 
     clientService = createClientService(SOME_ENTITY_1);
-    clientService.registerCertificate();
     registerContracts(clientService, getContractsMap(), getContractPropertiesMap());
     registerFunction(clientService, getFunctionsMap());
 
     anotherClientService = createClientService(SOME_ENTITY_2);
-    anotherClientService.registerCertificate();
     registerContracts(anotherClientService, getContractsMap(), getAnotherContractPropertiesMap());
   }
 

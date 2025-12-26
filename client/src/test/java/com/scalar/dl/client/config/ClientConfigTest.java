@@ -93,6 +93,7 @@ public class ClientConfigTest {
     props.put(
         ClientConfig.AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID,
         SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+    props.put(ClientConfig.AUTO_BOOTSTRAP, "false");
 
     // Act
     ClientConfig config = new ClientConfig(props);
@@ -135,6 +136,7 @@ public class ClientConfigTest {
         .isEqualTo(SOME_AUDITOR_TLS_CA_ROOT_CERT_PEM);
     assertThat(config.getAuditorLinearizableValidationContractId())
         .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+    assertThat(config.isAutoBootstrapEnabled()).isFalse();
   }
 
   @Test
@@ -263,6 +265,7 @@ public class ClientConfigTest {
     assertThat(digitalSignatureIdentityConfig.getCert()).isEqualTo(SOME_CERT_PEM);
     assertThat(digitalSignatureIdentityConfig.getPrivateKey()).isEqualTo(SOME_PRIVATE_KEY_PEM);
     assertThat(config.isAuditorEnabled()).isEqualTo(ClientConfig.DEFAULT_AUDITOR_ENABLED);
+    assertThat(config.isAutoBootstrapEnabled()).isEqualTo(ClientConfig.DEFAULT_AUTO_BOOTSTRAP);
   }
 
   @Test

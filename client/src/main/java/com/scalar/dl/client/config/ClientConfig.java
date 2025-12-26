@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.error.ClientError;
+import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ConfigUtils;
 import com.scalar.dl.ledger.config.GrpcClientConfig;
@@ -35,13 +36,15 @@ public class ClientConfig {
   @VisibleForTesting static final int DEFAULT_AUDITOR_PORT = 40051;
   @VisibleForTesting static final int DEFAULT_AUDITOR_PRIVILEGED_PORT = 40052;
   @VisibleForTesting static final boolean DEFAULT_AUDITOR_TLS_ENABLED = false;
+  @VisibleForTesting static final boolean DEFAULT_AUTO_BOOTSTRAP = true;
 
   @VisibleForTesting
   static final AuthenticationMethod DEFAULT_AUTHENTICATION_METHOD =
       AuthenticationMethod.DIGITAL_SIGNATURE;
 
   @VisibleForTesting
-  static final String DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID = "validate-ledger";
+  static final String DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID =
+      "validate-ledger-" + getValidateLedgerContractVersion();
 
   private static final String PREFIX = "scalar.dl.client.";
   /**
@@ -289,6 +292,12 @@ public class ClientConfig {
    */
   public static final String AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID =
       PREFIX + "auditor.linearizable_validation.contract_id";
+  /**
+   * <code>scalar.dl.client.auto_bootstrap</code> (Optional)<br>
+   * A flag to enable auto bootstrap (true by default). If this flag is enabled, the client identity
+   * and system contracts are automatically registered when creating {@code ClientService}.
+   */
+  public static final String AUTO_BOOTSTRAP = PREFIX + "auto_bootstrap";
 
   private final Properties props;
   private String serverHost;
@@ -316,6 +325,7 @@ public class ClientConfig {
   private String auditorTlsOverrideAuthority;
   private String auditorAuthorizationCredential;
   private String auditorLinearizableValidationContractId;
+  private boolean isAutoBootstrapEnabled;
   private DigitalSignatureIdentityConfig digitalSignatureIdentityConfig;
   private HmacIdentityConfig hmacIdentityConfig;
   private TargetConfig ledgerTargetConfig;
@@ -388,6 +398,10 @@ public class ClientConfig {
     return grpcClientConfig;
   }
 
+  public boolean isAutoBootstrapEnabled() {
+    return isAutoBootstrapEnabled;
+  }
+
   private void load() {
     serverHost = ConfigUtils.getString(props, SERVER_HOST, DEFAULT_SERVER_HOST);
     serverPort = ConfigUtils.getInt(props, SERVER_PORT, DEFAULT_SERVER_PORT);
@@ -446,6 +460,9 @@ public class ClientConfig {
         throw new IllegalArgumentException(
             ClientError.CONFIG_INVALID_AUTHENTICATION_METHOD_FOR_CLIENT_MODE.buildMessage());
       }
+
+      isAutoBootstrapEnabled =
+          ConfigUtils.getBoolean(props, AUTO_BOOTSTRAP, DEFAULT_AUTO_BOOTSTRAP);
     } else {
       // for intermediary mode
       authenticationMethod = getAuthenticationMethod(AuthenticationMethod.PASS_THROUGH);
@@ -516,6 +533,12 @@ public class ClientConfig {
       throw new IllegalArgumentException(
           ClientError.CONFIG_SECRET_KEY_REQUIRED_FOR_HMAC.buildMessage());
     }
+  }
+
+  private static String getValidateLedgerContractVersion() {
+    String packageName = ValidateLedger.class.getPackage().getName();
+    int lastDot = packageName.lastIndexOf('.');
+    return lastDot >= 0 ? packageName.substring(lastDot + 1) : packageName;
   }
 
   @Nonnull
