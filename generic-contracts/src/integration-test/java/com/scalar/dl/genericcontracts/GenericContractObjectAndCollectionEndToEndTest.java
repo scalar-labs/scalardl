@@ -82,7 +82,6 @@ import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -736,9 +735,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
                 clientService.executeContract(
                     CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(
-            LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.buildMessage(
-                CoreError.TABLE_NOT_FOUND.buildMessage(getFunctionNamespace() + ".foo")))
+        .hasMessageContaining(
+            CoreError.TABLE_NOT_FOUND.buildMessage(getFunctionNamespace() + ".foo"))
         .extracting("code")
         .isEqualTo(StatusCode.INVALID_FUNCTION);
   }
@@ -782,9 +780,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
                 clientService.executeContract(
                     CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessageStartingWith(
-            LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.buildMessage(
-                CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildCode()))
+        .hasMessageContaining(CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildCode())
         .extracting("code")
         .isEqualTo(StatusCode.CONFLICT);
   }

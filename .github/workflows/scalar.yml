@@ -148,6 +148,34 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Get the project version
+        id: set-version
+        run: |
+          VERSION=$(./gradlew :common:properties -q | grep "version:" | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker images
+        run: |
+          ./gradlew :ledger:docker
+
+      - name: Start Ledger server
+        run: |
+          docker run -d \
+            --name scalardl-ledger \
+            --network host \
+            -e SCALAR_DB_STORAGE=jdbc \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_USERNAME=root \
+            -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
+            -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
+
+      - name: Wait for Ledger server to be ready
+        run: |
+          timeout 60 bash -c 'until docker exec scalardl-ledger grpc_health_probe -addr=:50051; do sleep 1; done'
+
       - name: Run integration tests
         run:  ./gradlew :generic-contracts:integrationTest
 
@@ -161,14 +189,6 @@ jobs:
   integration-test-for-hashstore:
     name: Integration test for HashStore
     runs-on: ubuntu-latest
-
-    env:
-      LEDGER_PROOF_PRIVATE_KEY_PEM: |
-        -----BEGIN EC PRIVATE KEY-----
-        MHcCAQEEIF4SjQxTArRcZaROSFjlBP2rR8fAKtL8y+kmGiSlM5hEoAoGCCqGSM49
-        AwEHoUQDQgAEY0i/iAFxIBS3etbjoSC1/aUKQV66+wiawL4bZqklu86ObIc7wrif
-        HExPmVhKFSklOyZqGoOiVZA0zf0LZeFaPA==
-        -----END EC PRIVATE KEY-----
 
     services:
       mysql:
@@ -209,8 +229,9 @@ jobs:
             -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
             -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
-            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="$LEDGER_PROOF_PRIVATE_KEY_PEM" \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
             ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
 
       - name: Wait for Ledger server to be ready
@@ -231,14 +252,6 @@ jobs:
     name: Integration test for TableStore
     runs-on: ubuntu-latest
 
-    env:
-      LEDGER_PROOF_PRIVATE_KEY_PEM: |
-        -----BEGIN EC PRIVATE KEY-----
-        MHcCAQEEIF4SjQxTArRcZaROSFjlBP2rR8fAKtL8y+kmGiSlM5hEoAoGCCqGSM49
-        AwEHoUQDQgAEY0i/iAFxIBS3etbjoSC1/aUKQV66+wiawL4bZqklu86ObIc7wrif
-        HExPmVhKFSklOyZqGoOiVZA0zf0LZeFaPA==
-        -----END EC PRIVATE KEY-----
-
     services:
       mysql:
         image: mysql:8.1
@@ -278,8 +291,9 @@ jobs:
             -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
             -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
-            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="$LEDGER_PROOF_PRIVATE_KEY_PEM" \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
             ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
 
       - name: Wait for Ledger server to be ready
