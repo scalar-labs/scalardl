@@ -298,11 +298,13 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
-      assertThat(results.get(0).getTimestampTZ(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMPTZ_VALUE);
+      assertThat(results.get(0).getTimestampTZ(SOME_COLUMN_NAME_4))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
-      assertThat(results.get(1).getTimestampTZ(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMPTZ_VALUE);
+      assertThat(results.get(1).getTimestampTZ(SOME_COLUMN_NAME_4))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
