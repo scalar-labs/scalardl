@@ -53,8 +53,6 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,8 +85,7 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
-  private static final Instant SOME_TIMESTAMPTZ_VALUE =
-      LocalDateTime.of(2021, 2, 3, 5, 45).atZone(ZoneId.systemDefault()).toInstant();
+  private static final Instant SOME_TIMESTAMPTZ_VALUE = Instant.now();
   private static final String SOME_COLLECTION_ID = "set";
   private static final ImmutableList<String> SOME_DEFAULT_OBJECT_IDS =
       ImmutableList.of("object1", "object2", "object3", "object4");
