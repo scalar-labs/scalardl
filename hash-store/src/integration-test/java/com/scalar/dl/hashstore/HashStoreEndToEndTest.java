@@ -85,7 +85,7 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
-  private static final Instant SOME_TIMESTAMPTZ_VALUE = Instant.now();
+  private static final Instant SOME_TIMESTAMPTZ_VALUE = Instant.parse("2021-02-03T05:45:00Z");
   private static final String SOME_COLLECTION_ID = "set";
   private static final ImmutableList<String> SOME_DEFAULT_OBJECT_IDS =
       ImmutableList.of("object1", "object2", "object3", "object4");
