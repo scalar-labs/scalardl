@@ -52,7 +52,9 @@ import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -85,7 +87,8 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
   private static final String SOME_COLUMN_NAME_2 = "version";
   private static final String SOME_COLUMN_NAME_3 = "status";
   private static final String SOME_COLUMN_NAME_4 = "registered_at";
-  private static final LocalDateTime SOME_TIMESTAMP_VALUE = LocalDateTime.of(2021, 2, 3, 5, 45);
+  private static final Instant SOME_TIMESTAMPTZ_VALUE =
+      LocalDateTime.of(2021, 2, 3, 5, 45).atZone(ZoneId.systemDefault()).toInstant();
   private static final String SOME_COLLECTION_ID = "set";
   private static final ImmutableList<String> SOME_DEFAULT_OBJECT_IDS =
       ImmutableList.of("object1", "object2", "object3", "object4");
@@ -129,7 +132,7 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
         .partitionKey(Key.ofText(SOME_COLUMN_NAME_1, objectId))
         .clusteringKey(Key.ofText(SOME_COLUMN_NAME_2, version))
         .intValue(SOME_COLUMN_NAME_3, status)
-        .timestampValue(SOME_COLUMN_NAME_4, SOME_TIMESTAMP_VALUE)
+        .timestampTZValue(SOME_COLUMN_NAME_4, SOME_TIMESTAMPTZ_VALUE)
         .build();
   }
 
@@ -298,11 +301,11 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
-      assertThat(results.get(0).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(0).getTimestampTZ(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMPTZ_VALUE);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
-      assertThat(results.get(1).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(1).getTimestampTZ(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMPTZ_VALUE);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

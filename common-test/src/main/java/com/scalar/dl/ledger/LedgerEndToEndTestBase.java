@@ -1,8 +1,6 @@
 package com.scalar.dl.ledger;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.config.DatabaseConfig;
@@ -13,11 +11,6 @@ import com.scalar.db.service.StorageFactory;
 import com.scalar.db.storage.dynamo.DynamoAdmin;
 import com.scalar.db.storage.dynamo.DynamoConfig;
 import com.scalar.dl.client.config.ClientConfig;
-import com.scalar.dl.ledger.config.LedgerConfig;
-import com.scalar.dl.ledger.server.AdminService;
-import com.scalar.dl.ledger.server.BaseServer;
-import com.scalar.dl.ledger.server.LedgerPrivilegedService;
-import com.scalar.dl.ledger.server.LedgerServerModule;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,7 +34,6 @@ public abstract class LedgerEndToEndTestBase {
   private static final String FUNCTION_NAMESPACE = "test";
   private static final String FUNCTION_TABLE = "objects";
 
-  private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
   private static final String PROP_USERNAME = "scalardb.username";
@@ -79,7 +71,6 @@ public abstract class LedgerEndToEndTestBase {
           + "-----END CERTIFICATE-----";
   private static final int SOME_KEY_VERSION = 1;
 
-  private BaseServer ledgerServer;
   private Properties props;
   private Map<String, String> creationOptions = new HashMap<>();
   private Path ledgerSchemaPath;
@@ -89,7 +80,7 @@ public abstract class LedgerEndToEndTestBase {
 
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
-    props = createLedgerProperties();
+    props = createStorageProperties();
     StorageFactory factory = StorageFactory.create(props);
     storage = factory.getStorage();
     storageAdmin = factory.getStorageAdmin();
@@ -97,12 +88,10 @@ public abstract class LedgerEndToEndTestBase {
     databaseSchemaPath = Paths.get(System.getProperty("user.dir") + FUNCTION_DB_SCHEMA_PATH);
     SchemaLoader.load(props, ledgerSchemaPath, creationOptions, true);
     SchemaLoader.load(props, databaseSchemaPath, creationOptions, true);
-    createServer(new LedgerConfig(props));
   }
 
   @AfterAll
-  public void tearDownAfterClass() throws SchemaLoaderException, InterruptedException {
-    ledgerServer.stop();
+  public void tearDownAfterClass() throws SchemaLoaderException {
     storage.close();
     storageAdmin.close();
     SchemaLoader.unload(props, ledgerSchemaPath, true);
@@ -119,7 +108,7 @@ public abstract class LedgerEndToEndTestBase {
     storageAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
   }
 
-  private Properties createLedgerProperties() {
+  private Properties createStorageProperties() {
     String storage = System.getProperty(PROP_STORAGE, DEFAULT_STORAGE);
     String contactPoints = System.getProperty(PROP_CONTACT_POINTS, DEFAULT_CONTACT_POINTS);
     String username = System.getProperty(PROP_USERNAME, DEFAULT_USERNAME);
@@ -135,11 +124,6 @@ public abstract class LedgerEndToEndTestBase {
     props.put(DatabaseConfig.USERNAME, username);
     props.put(DatabaseConfig.PASSWORD, password);
     props.put(DatabaseConfig.TRANSACTION_MANAGER, transactionManager);
-    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
-      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
-    }
-    props.put(LedgerConfig.PROOF_ENABLED, "true");
-    props.put(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
 
     if (storage.equals(DynamoConfig.STORAGE_NAME)) {
       props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
@@ -150,15 +134,6 @@ public abstract class LedgerEndToEndTestBase {
     }
 
     return props;
-  }
-
-  private void createServer(LedgerConfig config) throws IOException, InterruptedException {
-    Injector injector = Guice.createInjector(new LedgerServerModule(config));
-    ledgerServer = new BaseServer(injector, config);
-
-    ledgerServer.start(com.scalar.dl.ledger.server.LedgerService.class);
-    ledgerServer.startPrivileged(LedgerPrivilegedService.class);
-    ledgerServer.startAdmin(AdminService.class);
   }
 
   protected ClientConfig createClientConfig(String entity) throws IOException {
