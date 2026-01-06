@@ -215,7 +215,7 @@ public class LedgerModule extends AbstractModule {
     }
     // For ScalarDB on Cloud Storage
     if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("cloud-storage")) {
-      permissionCollection.add(new SocketPermission("*", "resolve,connect"));
+      permissionCollection.add(new SocketPermission("*", "connect,resolve"));
     }
     return new ProtectionDomain(null, permissionCollection);
   }
