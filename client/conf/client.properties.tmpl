@@ -8,7 +8,7 @@ scalar.dl.client.server.port={{ default .Env.SCALAR_DL_CLIENT_SERVER_PORT "" }}
 # Optional. A port number of the server for privileged services. Use 50052 by default if not specified.
 scalar.dl.client.server.privileged_port={{ default .Env.SCALAR_DL_CLIENT_SERVER_PRIVILEGED_PORT "" }}
 
-# This will be deleted in release 5.0.0. Use scalar.dl.client.entity_id instead.
+# This will be deleted in release 5.0.0. Use scalar.dl.client.entity.id instead.
 scalar.dl.client.cert_holder_id={{ default .Env.SCALAR_DL_CLIENT_CERT_HOLDER_ID "" }}
 
 # This will be deleted in release 5.0.0. Use scalar.dl.client.entity.identity.digital_signature.cert_version instead.
@@ -27,7 +27,7 @@ scalar.dl.client.private_key_path={{ default .Env.SCALAR_DL_CLIENT_PRIVATE_KEY_P
 scalar.dl.client.private_key_pem={{ default .Env.SCALAR_DL_CLIENT_PRIVATE_KEY_PEM "" }}
 
 # A unique ID of a requester (e.g., a user or a device).
-scalar.dl.client.entity_id={{ default .Env.SCALAR_DL_CLIENT_ENTITY_ID "" }}
+scalar.dl.client.entity.id={{ default .Env.SCALAR_DL_CLIENT_ENTITY_ID "" }}
 
 # A secret key for HMAC, which is required if HMAC is used for authentication.
 scalar.dl.client.entity.identity.hmac.secret_key={{ default .Env.SCALAR_DL_CLIENT_ENTITY_IDENTITY_HMAC_SECRET_KEY "" }}
