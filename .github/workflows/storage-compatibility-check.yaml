@@ -13,7 +13,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
   S3_REGION: us-east-1
-  S3_BUCKET_NAME: scalardl-test-bucket
+  S3_BUCKET_NAME: s3-scalardl-test-bucket
   CLOUD_STORAGE_PROJECT_ID: ${{ secrets.CLOUD_STORAGE_PROJECT_ID }}
   CLOUD_STORAGE_SERVICE_ACCOUNT_KEY: ${{ secrets.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}
   CLOUD_STORAGE_BUCKET_NAME: scalardl-test-bucket
