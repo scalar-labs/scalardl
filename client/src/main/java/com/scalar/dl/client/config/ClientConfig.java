@@ -62,11 +62,11 @@ public class ClientConfig {
   public static final String SERVER_PRIVILEGED_PORT = PREFIX + "server.privileged_port";
   /**
    * <code>scalar.dl.client.cert_holder_id</code><br>
-   * If both {@code scalar.dl.client.cert_holder_id} and {@code scalar.dl.client.entity_id} are
-   * specified, {@code scalar.dl.client.entity_id} will be used.
+   * If both {@code scalar.dl.client.cert_holder_id} and {@code scalar.dl.client.entity.id} are
+   * specified, {@code scalar.dl.client.entity.id} will be used.
    *
    * @deprecated This variable will be deleted in release 5.0.0. Use {@code
-   *     scalar.dl.client.entity_id} instead.
+   *     scalar.dl.client.entity.id} instead.
    */
   @Deprecated public static final String CERT_HOLDER_ID = PREFIX + "cert_holder_id";
   /**
