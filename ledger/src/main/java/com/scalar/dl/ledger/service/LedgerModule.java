@@ -200,18 +200,22 @@ public class LedgerModule extends AbstractModule {
     // (null, null) means that it denies all if java.security.manager is enabled
     PermissionCollection permissionCollection = new Permissions();
     permissionCollection.add(new RuntimePermission("createClassLoader"));
-    // For Scalar DB on Cosmos DB
+    // For ScalarDB on Cosmos DB
     permissionCollection.add(new RuntimePermission("getenv.*"));
     permissionCollection.add(new PropertyPermission("log4j2.flowMessageFactory", "read"));
     permissionCollection.add(new PropertyPermission("org.jooq.settings", "read"));
     permissionCollection.add(new PropertyPermission("org.jooq.no-logo", "read"));
     permissionCollection.add(new PropertyPermission("COSMOS.*", "read"));
     permissionCollection.add(new PropertyPermission("line.separator", "read"));
-    // For Scalar DB on DynamoDB
+    // For ScalarDB on DynamoDB
     permissionCollection.add(new PropertyPermission("aws.executionEnvironment", "read"));
     permissionCollection.add(new PropertyPermission("com.amazonaws.xray.traceHeader", "read"));
     if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("dynamo")) {
       permissionCollection.add(new SocketPermission("*", "connect,resolve"));
+    }
+    // For ScalarDB on Cloud Storage
+    if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("cloud-storage")) {
+      permissionCollection.add(new SocketPermission("*", "resolve,connect"));
     }
     return new ProtectionDomain(null, permissionCollection);
   }
