@@ -13,6 +13,12 @@ import picocli.CommandLine.Command;
 public class LedgerValidation extends AbstractClientCommand {
 
   @CommandLine.Option(
+      names = {"--namespace"},
+      paramLabel = "NAMESPACE",
+      description = "The namespace of the asset.")
+  private String namespace;
+
+  @CommandLine.Option(
       names = {"--asset-id"},
       required = true,
       paramLabel = "ASSET_ID",
@@ -33,10 +39,11 @@ public class LedgerValidation extends AbstractClientCommand {
             LedgerValidationResult result;
             List<String> idAndAges = Splitter.on(',').splitToList(assetId);
             if (idAndAges.size() == 1) {
-              result = service.validateLedger(idAndAges.get(0));
+              result = validateLedger(service, idAndAges.get(0));
             } else if (idAndAges.size() == 3) {
               result =
-                  service.validateLedger(
+                  validateLedger(
+                      service,
                       idAndAges.get(0),
                       Integer.parseInt(idAndAges.get(1)),
                       Integer.parseInt(idAndAges.get(2)));
@@ -51,5 +58,20 @@ public class LedgerValidation extends AbstractClientCommand {
     } catch (IndexOutOfBoundsException e) {
       throw new ClientException(ClientError.OPTION_ASSET_ID_IS_MALFORMED, e);
     }
+  }
+
+  private LedgerValidationResult validateLedger(ClientService service, String assetId) {
+    if (namespace != null) {
+      return service.validateLedger(namespace, assetId);
+    }
+    return service.validateLedger(assetId);
+  }
+
+  private LedgerValidationResult validateLedger(
+      ClientService service, String assetId, int startAge, int endAge) {
+    if (namespace != null) {
+      return service.validateLedger(namespace, assetId, startAge, endAge);
+    }
+    return service.validateLedger(assetId, startAge, endAge);
   }
 }

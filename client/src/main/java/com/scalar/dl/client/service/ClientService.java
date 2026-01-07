@@ -2,6 +2,10 @@ package com.scalar.dl.client.service;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.ASSET_ID_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.END_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.NAMESPACE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.START_AGE_KEY;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,9 +72,6 @@ import javax.json.JsonObjectBuilder;
 @Immutable
 public class ClientService implements AutoCloseable {
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
-  static final String VALIDATE_LEDGER_ASSET_ID_KEY = "asset_id";
-  static final String VALIDATE_LEDGER_START_AGE_KEY = "start_age";
-  static final String VALIDATE_LEDGER_END_AGE_KEY = "end_age";
   private final ClientConfig config;
   private final ClientServiceHandler handler;
   private final RequestSigner signer;
@@ -929,6 +930,18 @@ public class ClientService implements AutoCloseable {
   }
 
   /**
+   * Validates the specified asset in the specified namespace of the ledger.
+   *
+   * @param namespace a namespace
+   * @param assetId an asset ID
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateLedger(String namespace, String assetId) {
+    return validateLedger(namespace, assetId, 0, Integer.MAX_VALUE);
+  }
+
+  /**
    * Validates the specified asset between the specified ages in the ledger.
    *
    * @param assetId an asset ID
@@ -938,13 +951,29 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public LedgerValidationResult validateLedger(String assetId, int startAge, int endAge) {
+    return validateLedger(null, assetId, startAge, endAge);
+  }
+
+  /**
+   * Validates the specified asset between the specified ages in the specified namespace of the
+   * ledger.
+   *
+   * @param namespace a namespace
+   * @param assetId an asset ID
+   * @param startAge an age to be validated from (inclusive)
+   * @param endAge an age to be validated to (inclusive)
+   * @return {@link LedgerValidationResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  public LedgerValidationResult validateLedger(
+      @Nullable String namespace, String assetId, int startAge, int endAge) {
     checkClientMode(ClientMode.CLIENT);
     checkArgument(assetId != null, ClientError.SERVICE_ASSET_ID_CANNOT_BE_NULL.buildMessage());
     checkArgument(
         endAge >= startAge && startAge >= 0, ClientError.SERVICE_INVALID_ASSET_AGES.buildMessage());
 
     if (config.isAuditorEnabled()) {
-      return validateLedgerWithContractExecution(assetId, startAge, endAge);
+      return validateLedgerWithContractExecution(namespace, assetId, startAge, endAge);
     } else {
       LedgerValidationRequest.Builder builder =
           LedgerValidationRequest.newBuilder()
@@ -953,6 +982,9 @@ public class ClientService implements AutoCloseable {
               .setAssetId(assetId)
               .setStartAge(startAge)
               .setEndAge(endAge);
+      if (namespace != null) {
+        builder.setNamespace(namespace);
+      }
       LedgerValidationRequest request = signer.sign(builder).build();
 
       return handler.validateLedger(request);
@@ -1061,11 +1093,14 @@ public class ClientService implements AutoCloseable {
   }
 
   private LedgerValidationResult validateLedgerWithContractExecution(
-      String assetId, int startAge, int endAge) {
-    JsonObjectBuilder argumentBuilder =
-        Json.createObjectBuilder().add(VALIDATE_LEDGER_ASSET_ID_KEY, assetId);
-    argumentBuilder.add(VALIDATE_LEDGER_START_AGE_KEY, startAge);
-    argumentBuilder.add(VALIDATE_LEDGER_END_AGE_KEY, endAge);
+      @Nullable String namespace, String assetId, int startAge, int endAge) {
+    JsonObjectBuilder argumentBuilder = Json.createObjectBuilder().add(ASSET_ID_KEY, assetId);
+    argumentBuilder.add(START_AGE_KEY, startAge);
+    argumentBuilder.add(END_AGE_KEY, endAge);
+
+    if (namespace != null) {
+      argumentBuilder.add(NAMESPACE_KEY, namespace);
+    }
 
     ContractExecutionResult result =
         executeContract(
