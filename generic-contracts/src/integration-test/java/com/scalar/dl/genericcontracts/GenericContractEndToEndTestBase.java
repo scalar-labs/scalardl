@@ -102,7 +102,7 @@ public abstract class GenericContractEndToEndTestBase {
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
     executorService = Executors.newFixedThreadPool(getThreadNum());
-    props = createLedgerProperties();
+    props = createStorageProperties();
     StorageFactory factory = StorageFactory.create(props);
     storage = factory.getStorage();
     storageAdmin = factory.getStorageAdmin();
@@ -212,7 +212,7 @@ public abstract class GenericContractEndToEndTestBase {
     }
   }
 
-  private Properties createLedgerProperties() {
+  private Properties createStorageProperties() {
     String storage = System.getProperty(PROP_STORAGE, DEFAULT_STORAGE);
     String contactPoints = System.getProperty(PROP_CONTACT_POINTS, DEFAULT_CONTACT_POINTS);
     String username = System.getProperty(PROP_USERNAME, DEFAULT_USERNAME);
