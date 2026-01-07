@@ -100,7 +100,7 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(assetId, startAge, endAge, Arrays.hashCode(signature));
+    return Objects.hash(namespace, assetId, startAge, endAge, Arrays.hashCode(signature));
   }
 
   /**

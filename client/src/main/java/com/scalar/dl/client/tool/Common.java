@@ -39,6 +39,7 @@ public class Common {
 
     return mapper
         .createObjectNode()
+        .put("namespace", proof.getNamespace())
         .put("id", proof.getId())
         .put("age", proof.getAge())
         .put("nonce", proof.getNonce())
