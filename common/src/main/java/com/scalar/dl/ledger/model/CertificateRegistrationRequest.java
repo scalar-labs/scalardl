@@ -1,9 +1,8 @@
 package com.scalar.dl.ledger.model;
 
-import com.scalar.dl.ledger.crypto.SignatureValidator;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.scalar.dl.ledger.crypto.SignatureValidator;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 

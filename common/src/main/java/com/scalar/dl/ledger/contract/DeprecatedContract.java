@@ -26,7 +26,7 @@ class DeprecatedContract extends ContractBase<JsonObject> {
   }
 
   @Override
-  JsonObject deserialize(@Nullable String string) {
+  JsonObject deserialize(String string) {
     return serde.deserialize(string);
   }
 
