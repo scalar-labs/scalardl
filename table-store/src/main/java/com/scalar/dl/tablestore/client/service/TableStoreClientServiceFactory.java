@@ -33,20 +33,21 @@ public class TableStoreClientServiceFactory {
    * @return a {@link TableStoreClientService} instance
    */
   public TableStoreClientService create(ClientConfig config) {
-    return create(config, true);
+    return create(config, config.isAutoBootstrapEnabled());
   }
 
   /**
    * Returns a {@link TableStoreClientService} instance.
    *
    * @param config a client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
    * @return a {@link TableStoreClientService} instance
    */
-  public TableStoreClientService create(ClientConfig config, boolean autoRegistrationEnabled) {
+  public TableStoreClientService create(ClientConfig config, boolean autoBootstrapEnabled) {
     TableStoreClientService clientService =
-        new TableStoreClientService(clientServiceFactory.create(config));
-    if (autoRegistrationEnabled) {
+        new TableStoreClientService(clientServiceFactory.create(config, false));
+    if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }
     return clientService;
@@ -59,21 +60,21 @@ public class TableStoreClientServiceFactory {
    * @return a {@link TableStoreClientService} instance
    */
   public TableStoreClientService create(GatewayClientConfig config) {
-    return create(config, true);
+    return create(config, config.getClientConfig().isAutoBootstrapEnabled());
   }
 
   /**
    * Returns a {@link TableStoreClientService} instance.
    *
    * @param config a gateway client config
-   * @param autoRegistrationEnabled a boolean flag whether it performs auto registration
+   * @param autoBootstrapEnabled a boolean flag whether it performs auto bootstrap. This overrides
+   *     {@link ClientConfig#isAutoBootstrapEnabled()}.
    * @return a {@link TableStoreClientService} instance
    */
-  public TableStoreClientService create(
-      GatewayClientConfig config, boolean autoRegistrationEnabled) {
+  public TableStoreClientService create(GatewayClientConfig config, boolean autoBootstrapEnabled) {
     TableStoreClientService clientService =
-        new TableStoreClientService(clientServiceFactory.create(config));
-    if (autoRegistrationEnabled) {
+        new TableStoreClientService(clientServiceFactory.create(config, false));
+    if (autoBootstrapEnabled) {
       clientService.bootstrap();
     }
     return clientService;

@@ -12,10 +12,11 @@ import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.List;
 
 public class ValidateLedger extends JacksonBasedContract {
-  static final String ASSET_ID_KEY = "asset_id";
-  static final String AGE_KEY = "age";
-  static final String START_AGE_KEY = "start_age";
-  static final String END_AGE_KEY = "end_age";
+  public static final String NAMESPACE_KEY = "namespace";
+  public static final String ASSET_ID_KEY = "asset_id";
+  public static final String AGE_KEY = "age";
+  public static final String START_AGE_KEY = "start_age";
+  public static final String END_AGE_KEY = "end_age";
   static final String DATA_KEY = "data";
 
   @Override
@@ -41,8 +42,9 @@ public class ValidateLedger extends JacksonBasedContract {
       }
     }
 
+    String namespace = argument.path(NAMESPACE_KEY).textValue();
     AssetFilter filter =
-        new AssetFilter(assetId)
+        (namespace != null ? new AssetFilter(namespace, assetId) : new AssetFilter(assetId))
             .withStartAge(startAge, true)
             .withEndAge(endAge, true)
             .withAgeOrder(AgeOrder.ASC);

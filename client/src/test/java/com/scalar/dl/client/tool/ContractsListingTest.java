@@ -95,7 +95,7 @@ public class ContractsListingTest {
         ContractsListing command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class));
+        doReturn(serviceMock).when(factory).create(any(GatewayClientConfig.class), eq(false));
         JsonObject jsonObject = Json.createObjectBuilder().build();
         when(serviceMock.listContracts(eq("CONTRACT_ID"))).thenReturn(jsonObject);
 
@@ -103,8 +103,8 @@ public class ContractsListingTest {
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(GatewayClientConfig.class));
-        verify(factory, never()).create(any(ClientConfig.class));
+        verify(factory).create(any(GatewayClientConfig.class), eq(false));
+        verify(factory, never()).create(any(ClientConfig.class), eq(false));
       }
     }
 
@@ -128,7 +128,7 @@ public class ContractsListingTest {
         ContractsListing command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        doReturn(serviceMock).when(factory).create(any(ClientConfig.class));
+        doReturn(serviceMock).when(factory).create(any(ClientConfig.class), eq(false));
         JsonObject jsonObject = Json.createObjectBuilder().build();
         when(serviceMock.listContracts(eq("CONTRACT_ID"))).thenReturn(jsonObject);
 
@@ -136,8 +136,8 @@ public class ContractsListingTest {
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(ClientConfig.class));
-        verify(factory, never()).create(any(GatewayClientConfig.class));
+        verify(factory).create(any(ClientConfig.class), eq(false));
+        verify(factory, never()).create(any(GatewayClientConfig.class), eq(false));
       }
     }
 
@@ -160,7 +160,7 @@ public class ContractsListingTest {
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+        when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
         when(serviceMock.listContracts(eq("CONTRACT_ID")))
             .thenThrow(new ClientException("", StatusCode.RUNTIME_ERROR));
 

@@ -1,6 +1,7 @@
 package com.scalar.dl.hashstore.client.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,72 +29,120 @@ public class HashStoreClientServiceFactoryTest {
   }
 
   @Test
-  public void create_ClientConfigGivenAndAutoRegistrationDisabled_ShouldCreateClientService() {
+  public void create_ClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
     // Arrange
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config, false);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService, never()).bootstrap();
   }
 
   @Test
-  public void
-      create_ClientConfigAndAutoRegistrationEnabled_ShouldCreateClientServiceWithBootstrap() {
+  public void create_ClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config, true);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService).bootstrap();
   }
 
   @Test
-  public void
-      create_ClientConfigWithDigitalSignatureGivenAndAutoRegistrationNotSpecified_ShouldCreateClientServiceWithBootstrap() {
+  public void create_ClientConfigWithAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
-    when(clientServiceFactory.create(any(ClientConfig.class))).thenReturn(clientService);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
 
     // Act
     factory.create(config);
 
     // Assert
-    verify(clientServiceFactory).create(config);
+    verify(clientServiceFactory).create(config, false);
     verify(clientService).bootstrap();
   }
 
   @Test
   public void
-      create_GatewayClientConfigGivenAndAutoRegistrationDisabled_ShouldCreateClientService() {
+      create_ClientConfigWithAutoBootstrapDisabled_ShouldCreateClientServiceWithoutBootstrap() {
     // Arrange
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(clientServiceFactory.create(any(ClientConfig.class), eq(false))).thenReturn(clientService);
+
+    // Act
+    factory.create(config);
+
+    // Assert
+    verify(clientServiceFactory).create(config, false);
+    verify(clientService, never()).bootstrap();
+  }
+
+  @Test
+  public void create_GatewayClientConfigGivenAndAutoBootstrapDisabled_ShouldCreateClientService() {
+    // Arrange
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig, false);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService, never()).bootstrap();
   }
 
   @Test
   public void
-      create_GatewayClientConfigAndAutoRegistrationNotSpecified_ShouldCreateClientServiceWithBootstrap() {
+      create_GatewayClientConfigAndAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
+    // Arrange
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
+
+    // Act
+    factory.create(gatewayClientConfig, true);
+
+    // Assert
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
+    verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      create_GatewayClientConfigWithAutoBootstrapEnabled_ShouldCreateClientServiceWithBootstrap() {
     // Arrange
     when(gatewayClientConfig.getClientConfig()).thenReturn(config);
-    when(clientServiceFactory.create(any(GatewayClientConfig.class))).thenReturn(clientService);
+    when(config.isAutoBootstrapEnabled()).thenReturn(true);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
 
     // Act
     factory.create(gatewayClientConfig);
 
     // Assert
-    verify(clientServiceFactory).create(gatewayClientConfig);
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
     verify(clientService).bootstrap();
+  }
+
+  @Test
+  public void
+      create_GatewayClientConfigWithAutoBootstrapDisabled_ShouldCreateClientServiceWithoutBootstrap() {
+    // Arrange
+    when(gatewayClientConfig.getClientConfig()).thenReturn(config);
+    when(config.isAutoBootstrapEnabled()).thenReturn(false);
+    when(clientServiceFactory.create(any(GatewayClientConfig.class), eq(false)))
+        .thenReturn(clientService);
+
+    // Act
+    factory.create(gatewayClientConfig);
+
+    // Assert
+    verify(clientServiceFactory).create(gatewayClientConfig, false);
+    verify(clientService, never()).bootstrap();
   }
 }

@@ -1,5 +1,9 @@
 package com.scalar.dl.client.service;
 
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.ASSET_ID_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.END_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.NAMESPACE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.START_AGE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +51,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,6 +73,7 @@ public class ClientServiceTest {
   private static final String ANY_CONTRACT_ARGUMENT = "{\"asset_id\":\"asset_id\"}";
   private static final String ANY_CONTRACT_RESULT = "{\"result\":\"contract_result\"}";
   private static final String ANY_ASSET_ID = "asset_id";
+  private static final String ANY_NAMESPACE = "test_namespace";
   private static final String ANY_FUNCTION_ID = "id";
   private static final String ANY_FUNCTION_NAME = "name";
   private static final String ANY_FUNCTION_RESULT = "{\"result\":\"function_result\"}";
@@ -581,9 +587,13 @@ public class ClientServiceTest {
     verify(digitalSignatureIdentityConfig).getCertVersion();
     verify(hmacIdentityConfig, never()).getEntityId();
     verify(hmacIdentityConfig, never()).getSecretKeyVersion();
-    // the reason why it does not verify the result of sign() is that
-    // the internal sign method uses random number and the produced signature changes every time.
-    verify(client).validate(any(LedgerValidationRequest.class));
+    ArgumentCaptor<LedgerValidationRequest> captor =
+        ArgumentCaptor.forClass(LedgerValidationRequest.class);
+    verify(client).validate(captor.capture());
+    LedgerValidationRequest capturedRequest = captor.getValue();
+    // Verify empty namespace is used when namespace is not specified
+    assertThat(capturedRequest.getNamespace()).isEmpty();
+    assertThat(capturedRequest.getAssetId()).isEqualTo(ANY_ASSET_ID);
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
     assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
     assertThat(actual.getAuditorProof().isPresent()).isFalse();
@@ -606,9 +616,13 @@ public class ClientServiceTest {
     verify(hmacIdentityConfig).getSecretKeyVersion();
     verify(digitalSignatureIdentityConfig, never()).getEntityId();
     verify(digitalSignatureIdentityConfig, never()).getCertVersion();
-    // the reason why it does not verify the result of sign() is that
-    // the internal sign method uses random number and the produced signature changes every time.
-    verify(client).validate(any(LedgerValidationRequest.class));
+    ArgumentCaptor<LedgerValidationRequest> captor =
+        ArgumentCaptor.forClass(LedgerValidationRequest.class);
+    verify(client).validate(captor.capture());
+    LedgerValidationRequest capturedRequest = captor.getValue();
+    // Verify empty namespace is used when namespace is not specified
+    assertThat(capturedRequest.getNamespace()).isEmpty();
+    assertThat(capturedRequest.getAssetId()).isEqualTo(ANY_ASSET_ID);
     assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
     assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
     assertThat(actual.getAuditorProof().isPresent()).isFalse();
@@ -641,9 +655,9 @@ public class ClientServiceTest {
         .executeContract(
             contractId,
             Json.createObjectBuilder()
-                .add(ClientService.VALIDATE_LEDGER_ASSET_ID_KEY, ANY_ASSET_ID)
-                .add(ClientService.VALIDATE_LEDGER_START_AGE_KEY, 0)
-                .add(ClientService.VALIDATE_LEDGER_END_AGE_KEY, Integer.MAX_VALUE)
+                .add(ASSET_ID_KEY, ANY_ASSET_ID)
+                .add(START_AGE_KEY, 0)
+                .add(END_AGE_KEY, Integer.MAX_VALUE)
                 .build());
     verify(client, never()).validate(any(LedgerValidationRequest.class));
     assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
@@ -681,9 +695,90 @@ public class ClientServiceTest {
         .executeContract(
             contractId,
             Json.createObjectBuilder()
-                .add(ClientService.VALIDATE_LEDGER_ASSET_ID_KEY, ANY_ASSET_ID)
-                .add(ClientService.VALIDATE_LEDGER_START_AGE_KEY, startAge)
-                .add(ClientService.VALIDATE_LEDGER_END_AGE_KEY, endAge)
+                .add(ASSET_ID_KEY, ANY_ASSET_ID)
+                .add(START_AGE_KEY, startAge)
+                .add(END_AGE_KEY, endAge)
+                .build());
+    verify(client, never()).validate(any(LedgerValidationRequest.class));
+    assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
+    assertThat(actual.getAuditorProof()).isEqualTo(Optional.of(auditorProof));
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+  }
+
+  @Test
+  public void
+      validateLedger_AuditorEnabledAndNamespaceGiven_ShouldValidateWithExecuteContractWithNamespace() {
+    // Arrange
+    String contractId = "my-validate-ledger";
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(contractId);
+    AssetProof ledgerProof = mock(AssetProof.class);
+    AssetProof auditorProof = mock(AssetProof.class);
+    when(ledgerProof.getHash()).thenReturn(ANY_HASH);
+    when(auditorProof.getHash()).thenReturn(ANY_HASH);
+    ContractExecutionResult result =
+        new ContractExecutionResult(
+            null,
+            null,
+            Collections.singletonList(ledgerProof),
+            Collections.singletonList(auditorProof));
+    doReturn(result).when(service).executeContract(anyString(), any(JsonObject.class));
+
+    // Act
+    LedgerValidationResult actual = service.validateLedger(ANY_NAMESPACE, ANY_ASSET_ID);
+
+    // Assert
+    verify(service)
+        .executeContract(
+            contractId,
+            Json.createObjectBuilder()
+                .add(ASSET_ID_KEY, ANY_ASSET_ID)
+                .add(START_AGE_KEY, 0)
+                .add(END_AGE_KEY, Integer.MAX_VALUE)
+                .add(NAMESPACE_KEY, ANY_NAMESPACE)
+                .build());
+    verify(client, never()).validate(any(LedgerValidationRequest.class));
+    assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
+    assertThat(actual.getAuditorProof()).isEqualTo(Optional.of(auditorProof));
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+  }
+
+  @Test
+  public void
+      validateLedger_AuditorEnabledAndNamespaceAndAgeRangeGiven_ShouldValidateWithExecuteContractWithNamespaceAndRange() {
+    // Arrange
+    String contractId = "my-validate-ledger";
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.getAuditorLinearizableValidationContractId()).thenReturn(contractId);
+    AssetProof ledgerProof = mock(AssetProof.class);
+    AssetProof auditorProof = mock(AssetProof.class);
+    when(ledgerProof.getHash()).thenReturn(ANY_HASH);
+    when(auditorProof.getHash()).thenReturn(ANY_HASH);
+    ContractExecutionResult result =
+        new ContractExecutionResult(
+            null,
+            null,
+            Collections.singletonList(ledgerProof),
+            Collections.singletonList(auditorProof));
+    doReturn(result).when(service).executeContract(anyString(), any(JsonObject.class));
+    int startAge = 10;
+    int endAge = 20;
+
+    // Act
+    LedgerValidationResult actual =
+        service.validateLedger(ANY_NAMESPACE, ANY_ASSET_ID, startAge, endAge);
+
+    // Assert
+    verify(service)
+        .executeContract(
+            contractId,
+            Json.createObjectBuilder()
+                .add(ASSET_ID_KEY, ANY_ASSET_ID)
+                .add(START_AGE_KEY, startAge)
+                .add(END_AGE_KEY, endAge)
+                .add(NAMESPACE_KEY, ANY_NAMESPACE)
                 .build());
     verify(client, never()).validate(any(LedgerValidationRequest.class));
     assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
@@ -723,6 +818,59 @@ public class ClientServiceTest {
     verify(config, never()).getDigitalSignatureIdentityConfig();
     verify(config, never()).getHmacIdentityConfig();
     verify(signer, never()).sign(any(LedgerValidationRequest.Builder.class));
+  }
+
+  @Test
+  public void validateLedger_NamespaceAndAssetIdGiven_ShouldValidateProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    AssetProof ledgerProof = mock(AssetProof.class);
+    LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, ledgerProof, null);
+    when(client.validate(any(LedgerValidationRequest.class))).thenReturn(result);
+
+    // Act
+    LedgerValidationResult actual = service.validateLedger(ANY_NAMESPACE, ANY_ASSET_ID);
+
+    // Assert
+    ArgumentCaptor<LedgerValidationRequest> captor =
+        ArgumentCaptor.forClass(LedgerValidationRequest.class);
+    verify(client).validate(captor.capture());
+    LedgerValidationRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getNamespace()).isEqualTo(ANY_NAMESPACE);
+    assertThat(capturedRequest.getAssetId()).isEqualTo(ANY_ASSET_ID);
+    assertThat(capturedRequest.getStartAge()).isEqualTo(0);
+    assertThat(capturedRequest.getEndAge()).isEqualTo(Integer.MAX_VALUE);
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
+  }
+
+  @Test
+  public void validateLedger_NamespaceAndAssetIdAndAgeRangeGiven_ShouldValidateProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    AssetProof ledgerProof = mock(AssetProof.class);
+    LedgerValidationResult result = new LedgerValidationResult(StatusCode.OK, ledgerProof, null);
+    when(client.validate(any(LedgerValidationRequest.class))).thenReturn(result);
+    int startAge = 10;
+    int endAge = 20;
+
+    // Act
+    LedgerValidationResult actual =
+        service.validateLedger(ANY_NAMESPACE, ANY_ASSET_ID, startAge, endAge);
+
+    // Assert
+    ArgumentCaptor<LedgerValidationRequest> captor =
+        ArgumentCaptor.forClass(LedgerValidationRequest.class);
+    verify(client).validate(captor.capture());
+    LedgerValidationRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getNamespace()).isEqualTo(ANY_NAMESPACE);
+    assertThat(capturedRequest.getAssetId()).isEqualTo(ANY_ASSET_ID);
+    assertThat(capturedRequest.getStartAge()).isEqualTo(startAge);
+    assertThat(capturedRequest.getEndAge()).isEqualTo(endAge);
+    assertThat(actual.getCode()).isEqualTo(StatusCode.OK);
+    assertThat(actual.getLedgerProof()).isEqualTo(Optional.of(ledgerProof));
+    assertThat(actual.getAuditorProof().isPresent()).isFalse();
   }
 
   @Test

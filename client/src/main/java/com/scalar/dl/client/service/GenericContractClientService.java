@@ -11,6 +11,7 @@ import static com.scalar.dl.genericcontracts.table.Constants.PREFIX_TABLE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
@@ -786,5 +787,10 @@ public class GenericContractClientService {
     } else {
       return value.asText();
     }
+  }
+
+  @VisibleForTesting
+  ClientService getClientService() {
+    return clientService;
   }
 }

@@ -2,6 +2,7 @@ package com.scalar.dl.client.tool;
 
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.scalar.dl.client.config.ClientConfig;
@@ -69,14 +70,16 @@ public class CertificateRegistrationTest {
             };
         CertificateRegistration command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        doReturn(mock(ClientService.class)).when(factory).create(any(GatewayClientConfig.class));
+        doReturn(mock(ClientService.class))
+            .when(factory)
+            .create(any(GatewayClientConfig.class), eq(false));
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(GatewayClientConfig.class));
-        verify(factory, never()).create(any(ClientConfig.class));
+        verify(factory).create(any(GatewayClientConfig.class), eq(false));
+        verify(factory, never()).create(any(ClientConfig.class), eq(false));
       }
     }
 
@@ -97,14 +100,16 @@ public class CertificateRegistrationTest {
             };
         CertificateRegistration command = parseArgs(args);
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
-        doReturn(mock(ClientService.class)).when(factory).create(any(ClientConfig.class));
+        doReturn(mock(ClientService.class))
+            .when(factory)
+            .create(any(ClientConfig.class), eq(false));
 
         // Act
         command.call(factory);
 
         // Verify
-        verify(factory).create(any(ClientConfig.class));
-        verify(factory, never()).create(any(GatewayClientConfig.class));
+        verify(factory).create(any(ClientConfig.class), eq(false));
+        verify(factory, never()).create(any(GatewayClientConfig.class), eq(false));
       }
     }
 
@@ -125,7 +130,7 @@ public class CertificateRegistrationTest {
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
-        when(factoryMock.create(any(ClientConfig.class))).thenReturn(serviceMock);
+        when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
             .registerCertificate();
