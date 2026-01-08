@@ -137,6 +137,7 @@ public class CommonService {
       case ASSET_NOT_FOUND:
       case FUNCTION_NOT_FOUND:
       case SECRET_NOT_FOUND:
+      case NAMESPACE_NOT_FOUND:
         return io.grpc.Status.NOT_FOUND;
       case CERTIFICATE_ALREADY_REGISTERED:
       case SECRET_ALREADY_REGISTERED:

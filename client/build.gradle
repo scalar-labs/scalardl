@@ -123,9 +123,9 @@ task LedgerValidation(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-task MultiLedgersValidation(type: CreateStartScripts) {
-    mainClass = 'com.scalar.dl.client.tool.MultiLedgersValidation'
-    applicationName = 'validate-ledgers'
+task NamespaceCreation(type: CreateStartScripts) {
+    mainClass = 'com.scalar.dl.client.tool.NamespaceCreation'
+    applicationName = 'create-namespace'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
@@ -168,7 +168,7 @@ applicationDistribution.into('bin') {
     from(ContractsListing)
     from(ContractExecution)
     from(LedgerValidation)
-    from(MultiLedgersValidation)
+    from(NamespaceCreation)
     from(ScalarDl)
     from(ScalarDlGc)
     from(StateUpdaterSimpleBench)

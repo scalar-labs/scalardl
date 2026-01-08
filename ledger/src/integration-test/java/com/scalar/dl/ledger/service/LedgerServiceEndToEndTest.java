@@ -22,7 +22,6 @@ import static com.scalar.dl.ledger.service.Constants.ENTITY_ID_B;
 import static com.scalar.dl.ledger.service.Constants.ENTITY_ID_C;
 import static com.scalar.dl.ledger.service.Constants.ENTITY_ID_D;
 import static com.scalar.dl.ledger.service.Constants.EXECUTE_NESTED_ATTRIBUTE_NAME;
-import static com.scalar.dl.ledger.service.Constants.FUNCTION_NAMESPACE;
 import static com.scalar.dl.ledger.service.Constants.FUNCTION_TABLE;
 import static com.scalar.dl.ledger.service.Constants.GET_BALANCE_CONTRACT_ID1;
 import static com.scalar.dl.ledger.service.Constants.GET_BALANCE_CONTRACT_ID2;
@@ -45,9 +44,7 @@ import static com.scalar.dl.ledger.service.Constants.SOME_ASSET_ID_1;
 import static com.scalar.dl.ledger.service.Constants.SOME_ASSET_ID_2;
 import static com.scalar.dl.ledger.service.Constants.SOME_CIPHER_KEY;
 import static com.scalar.dl.ledger.service.Constants.SOME_ID;
-import static com.scalar.dl.ledger.test.TestConstants.CERTIFICATE_A;
 import static com.scalar.dl.ledger.test.TestConstants.CERTIFICATE_B;
-import static com.scalar.dl.ledger.test.TestConstants.PRIVATE_KEY_A;
 import static com.scalar.dl.ledger.test.TestConstants.PRIVATE_KEY_B;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -57,35 +54,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Delete;
-import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
-import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.Key;
-import com.scalar.db.schemaloader.SchemaLoader;
-import com.scalar.db.schemaloader.SchemaLoaderException;
-import com.scalar.db.service.StorageFactory;
-import com.scalar.db.service.StorageService;
-import com.scalar.db.service.TransactionService;
-import com.scalar.db.storage.cosmos.CosmosAdmin;
-import com.scalar.db.storage.cosmos.CosmosConfig;
-import com.scalar.db.storage.dynamo.DynamoAdmin;
-import com.scalar.db.storage.dynamo.DynamoConfig;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.LedgerConfig;
-import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
-import com.scalar.dl.ledger.crypto.HmacSigner;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureSigner;
 import com.scalar.dl.ledger.database.scalardb.AssetAttribute;
 import com.scalar.dl.ledger.exception.ConflictException;
@@ -94,13 +75,11 @@ import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.MissingSecretException;
 import com.scalar.dl.ledger.exception.SignatureException;
-import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
-import com.scalar.dl.ledger.model.ContractRegistrationRequest;
-import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.function.CreateFunction;
 import com.scalar.dl.ledger.service.function.CreateFunctionWithJackson;
@@ -110,102 +89,32 @@ import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.ledger.util.JsonpSerDe;
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
-import javax.annotation.Nullable;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.condition.EnabledIf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class LedgerServiceEndToEndTest {
-  private static final Logger logger = LoggerFactory.getLogger(LedgerServiceEndToEndTest.class);
-  private static final String NAMESPACE = "scalar";
-  private static final String ASSET_TABLE = "asset";
-  private static final String ASSET_METADATA_TABLE = "asset_metadata";
-  private static final String CONTRACT_PACKAGE_NAME = "com.scalar.dl.ledger.service.contract.";
-  private static final String FUNCTION_PACKAGE_NAME = "com.scalar.dl.ledger.service.function.";
-  private static final String CONTRACT_CLASS_DIR =
-      "build/classes/java/integrationTest/com/scalar/dl/ledger/service/contract/";
-  private static final String FUNCTION_CLASS_DIR =
-      "build/classes/java/integrationTest/com/scalar/dl/ledger/service/function/";
-  private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
-  private static final String PROP_NAMESPACE_SUFFIX = "scalardl.namespace_suffix";
-  private static final String PROP_STORAGE = "scalardb.storage";
-  private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
-  private static final String PROP_USERNAME = "scalardb.username";
-  private static final String PROP_PASSWORD = "scalardb.password";
-  private static final String PROP_TRANSACTION_MANAGER = "scalardb.transaction_manager";
-  private static final String PROP_COSMOS_REQUEST_UNIT = "scalardb.cosmos.ru";
-  private static final String PROP_DYNAMO_ENDPOINT_OVERRIDE = "scalardb.dynamo.endpoint_override";
-  private static final String DEFAULT_STORAGE = "cassandra";
-  private static final String DEFAULT_CONTACT_POINTS = "localhost";
-  private static final String DEFAULT_USERNAME = "cassandra";
-  private static final String DEFAULT_PASSWORD = "cassandra";
-  private static final String DEFAULT_TRANSACTION_MANAGER = "consensus-commit";
-  private static final String DEFAULT_DYNAMO_ENDPOINT_OVERRIDE = "http://localhost:8000";
+public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
-  private static LedgerService ledgerService;
-  private static LedgerValidationService validationService;
-  private static LedgerConfig ledgerConfig;
-  private static StorageService storageService;
-  private static TransactionService transactionService;
-  private static DigitalSignatureSigner dsSigner1;
-  private static DigitalSignatureSigner dsSigner2;
-  private static HmacSigner hmacSigner1;
-  private static HmacSigner hmacSigner2;
-  private static Properties props;
-  private static Path ledgerSchemaPath;
-  private static Path databaseSchemaPath;
-  private static DistributedStorageAdmin storageAdmin;
-  private static Map<String, String> creationOptions = new HashMap<>();
-  private static String namespace;
-  private static String functionNamespace;
 
-  @BeforeAll
-  public static void setUpBeforeClass() throws Exception {
-    ledgerSchemaPath = Paths.get(System.getProperty("user.dir") + "/scripts/create_schema.json");
-    databaseSchemaPath =
-        Paths.get(System.getProperty("user.dir") + "/scripts/create_schema_function.json");
-    String suffix = System.getProperty(PROP_NAMESPACE_SUFFIX, "");
-    namespace = NAMESPACE + suffix;
-    functionNamespace = FUNCTION_NAMESPACE + suffix;
-    props = createProperties();
-    ledgerConfig = new LedgerConfig(props);
-    StorageFactory factory = new StorageFactory(new DatabaseConfig(props));
-    storageAdmin = factory.getAdmin();
-    dsSigner1 = new DigitalSignatureSigner(PRIVATE_KEY_A);
-    dsSigner2 = new DigitalSignatureSigner(PRIVATE_KEY_B);
-    createSchema();
-    createServices(ledgerConfig);
-    registerCertificate();
-
-    Map<String, String> contractMap =
+  @Override
+  protected Map<String, Map<String, String>> getContractsMap() {
+    Map<String, String> contractsMap1 =
         ImmutableMap.<String, String>builder()
             .put(
                 CONTRACT_PACKAGE_NAME + CREATE_CONTRACT_ID1,
@@ -247,7 +156,24 @@ public class LedgerServiceEndToEndTest {
                 CONTRACT_PACKAGE_NAME + HOLDER_CHECKER_CONTRACT_ID,
                 CONTRACT_CLASS_DIR + HOLDER_CHECKER_CONTRACT_ID + ".class")
             .build();
-    Map<String, String> propertiesMap =
+    Map<String, String> contractsMap2 =
+        ImmutableMap.of(
+            CONTRACT_PACKAGE_NAME + HOLDER_CHECKER_CONTRACT_ID,
+            CONTRACT_CLASS_DIR + HOLDER_CHECKER_CONTRACT_ID + ".class");
+    return ImmutableMap.of(
+        ENTITY_ID_A,
+        contractsMap1,
+        ENTITY_ID_B,
+        contractsMap2,
+        ENTITY_ID_C,
+        contractsMap1,
+        ENTITY_ID_D,
+        contractsMap2);
+  }
+
+  @Override
+  protected Map<String, Map<String, String>> getContractPropertiesMap() {
+    Map<String, String> contractProperties =
         ImmutableMap.of(
             CREATE_CONTRACT_ID1,
             Json.createObjectBuilder()
@@ -281,187 +207,33 @@ public class LedgerServiceEndToEndTest {
                     .put(CONTRACT_ID_ATTRIBUTE_NAME, GET_BALANCE_CONTRACT_ID3)),
             GET_BALANCE_CONTRACT_ID4,
             GET_BALANCE_CONTRACT_ID4);
-    registerContracts(ENTITY_ID_A, dsSigner1, contractMap, null, propertiesMap);
-    registerContracts(
+    return ImmutableMap.of(
+        ENTITY_ID_A,
+        contractProperties,
         ENTITY_ID_B,
-        dsSigner2,
-        ImmutableMap.of(
-            CONTRACT_PACKAGE_NAME + HOLDER_CHECKER_CONTRACT_ID,
-            CONTRACT_CLASS_DIR + HOLDER_CHECKER_CONTRACT_ID + ".class"),
-        null,
-        Collections.emptyMap());
-
-    Map<String, String> functionMap =
-        ImmutableMap.of(
-            FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID1,
-            FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID1 + ".class",
-            FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID2,
-            FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID2 + ".class",
-            FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID3,
-            FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID3 + ".class",
-            FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID4,
-            FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID4 + ".class");
-    registerFunction(functionMap);
-
-    // For HMAC
-    Properties props2 = createProperties();
-    props2.put(LedgerConfig.AUTHENTICATION_METHOD, AuthenticationMethod.HMAC.getMethod());
-    props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
-    createServices(new LedgerConfig(props2));
-    registerSecret();
-    hmacSigner1 = new HmacSigner(SECRET_KEY_A);
-    hmacSigner2 = new HmacSigner(SECRET_KEY_B);
-    registerContracts(ENTITY_ID_C, hmacSigner1, contractMap, null, propertiesMap);
-    registerContracts(
+        ImmutableMap.of(),
+        ENTITY_ID_C,
+        contractProperties,
         ENTITY_ID_D,
-        hmacSigner2,
-        ImmutableMap.of(
-            CONTRACT_PACKAGE_NAME + HOLDER_CHECKER_CONTRACT_ID,
-            CONTRACT_CLASS_DIR + HOLDER_CHECKER_CONTRACT_ID + ".class"),
-        null,
-        Collections.emptyMap());
-
-    // Set up the security manager
-    System.setProperty("java.security.manager", "default");
-    System.setProperty("java.security.policy", "src/dist/security.policy");
-    System.setSecurityManager(new SecurityManager());
+        ImmutableMap.of());
   }
 
-  @AfterAll
-  public static void tearDownAfterClass() {
-    storageAdmin.close();
-    try {
-      SchemaLoader.unload(props, ledgerSchemaPath, true);
-      SchemaLoader.unload(props, databaseSchemaPath, true);
-    } catch (Exception e) {
-      logger.warn("Failed to unload table", e);
-    }
-  }
-
-  @BeforeEach
-  public void setUp() {
-    createServices(new LedgerConfig(props));
-  }
-
-  @AfterEach
-  public void tearDown() throws ExecutionException {
-    storageAdmin.truncateTable(namespace, ASSET_TABLE);
-    storageAdmin.truncateTable(namespace, ASSET_METADATA_TABLE);
-    storageAdmin.truncateTable(functionNamespace, FUNCTION_TABLE);
-    storageService.close();
-    transactionService.close();
-  }
-
-  private static Properties createProperties() {
-    String storage = System.getProperty(PROP_STORAGE, DEFAULT_STORAGE);
-    String contactPoints = System.getProperty(PROP_CONTACT_POINTS, DEFAULT_CONTACT_POINTS);
-    String username = System.getProperty(PROP_USERNAME, DEFAULT_USERNAME);
-    String password = System.getProperty(PROP_PASSWORD, DEFAULT_PASSWORD);
-    String transactionManager =
-        System.getProperty(PROP_TRANSACTION_MANAGER, DEFAULT_TRANSACTION_MANAGER);
-    String requestUnit =
-        System.getProperty(PROP_COSMOS_REQUEST_UNIT, CosmosAdmin.DEFAULT_REQUEST_UNIT);
-    String endpointOverride =
-        System.getProperty(PROP_DYNAMO_ENDPOINT_OVERRIDE, DEFAULT_DYNAMO_ENDPOINT_OVERRIDE);
-
-    Properties props = new Properties();
-    props.put(LedgerConfig.NAMESPACE, namespace);
-    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
-      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
-    }
-    props.put(DatabaseConfig.STORAGE, storage);
-    props.put(DatabaseConfig.CONTACT_POINTS, contactPoints);
-    props.put(DatabaseConfig.USERNAME, username);
-    props.put(DatabaseConfig.PASSWORD, password);
-    props.put(DatabaseConfig.TRANSACTION_MANAGER, transactionManager);
-
-    if (storage.equals(CosmosConfig.STORAGE_NAME)) {
-      creationOptions = ImmutableMap.of(CosmosAdmin.REQUEST_UNIT, requestUnit);
-    }
-
-    if (storage.equals(DynamoConfig.STORAGE_NAME)) {
-      props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
-      props.put(
-          DynamoConfig.TABLE_METADATA_NAMESPACE, DatabaseConfig.DEFAULT_SYSTEM_NAMESPACE_NAME);
-      creationOptions =
-          ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
-    }
-
-    return props;
+  @Override
+  protected Map<String, String> getFunctionsMap() {
+    return ImmutableMap.of(
+        FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID1,
+        FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID1 + ".class",
+        FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID2,
+        FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID2 + ".class",
+        FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID3,
+        FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID3 + ".class",
+        FUNCTION_PACKAGE_NAME + CREATE_FUNCTION_ID4,
+        FUNCTION_CLASS_DIR + CREATE_FUNCTION_ID4 + ".class");
   }
 
   @SuppressWarnings("unused")
   private boolean isTxStateManagementEnabled() {
     return ledgerConfig.isTxStateManagementEnabled();
-  }
-
-  private static void createSchema() throws SchemaLoaderException {
-    SchemaLoader.load(props, ledgerSchemaPath, creationOptions, true);
-    SchemaLoader.load(props, databaseSchemaPath, creationOptions, true);
-  }
-
-  private static void createServices(LedgerConfig config) {
-    Injector injector = Guice.createInjector(new LedgerModule(config));
-    ledgerService = injector.getInstance(LedgerService.class);
-    validationService = injector.getInstance(LedgerValidationService.class);
-    storageService = injector.getInstance(StorageService.class);
-    transactionService = injector.getInstance(TransactionService.class);
-  }
-
-  private static void registerCertificate() {
-    ledgerService.register(
-        new CertificateRegistrationRequest(ENTITY_ID_A, KEY_VERSION, CERTIFICATE_A));
-    ledgerService.register(
-        new CertificateRegistrationRequest(ENTITY_ID_B, KEY_VERSION, CERTIFICATE_B));
-    ledgerService.register(
-        new CertificateRegistrationRequest(AUDITOR_ENTITY_ID, KEY_VERSION, CERTIFICATE_B));
-  }
-
-  private static void registerSecret() {
-    ledgerService.register(new SecretEntry(ENTITY_ID_C, KEY_VERSION, SECRET_KEY_A, 1L));
-    ledgerService.register(new SecretEntry(ENTITY_ID_D, KEY_VERSION, SECRET_KEY_B, 1L));
-  }
-
-  private static void registerContracts(
-      String entityId,
-      SignatureSigner signer,
-      Map<String, String> contractMap,
-      @Nullable Map<String, String> nameIdMap,
-      @Nullable Map<String, String> properties)
-      throws IOException {
-    for (Map.Entry<String, String> entry : contractMap.entrySet()) {
-      byte[] bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
-
-      String contractName = entry.getKey();
-      String contractId = contractName.substring(contractName.lastIndexOf('.') + 1);
-      if (nameIdMap != null && nameIdMap.containsKey(contractName)) {
-        contractId = nameIdMap.get(contractName);
-      }
-
-      byte[] serialized =
-          ContractRegistrationRequest.serialize(
-              contractId, contractName, bytes, properties.get(contractId), entityId, KEY_VERSION);
-      ContractRegistrationRequest request =
-          new ContractRegistrationRequest(
-              contractId,
-              contractName,
-              bytes,
-              properties.get(contractId),
-              entityId,
-              KEY_VERSION,
-              signer.sign(serialized));
-
-      ledgerService.register(request);
-    }
-  }
-
-  private static void registerFunction(Map<String, String> functionMap) throws IOException {
-    for (Map.Entry<String, String> entry : functionMap.entrySet()) {
-      byte[] bytes = Files.readAllBytes(new File(entry.getValue()).toPath());
-      FunctionRegistrationRequest request =
-          new FunctionRegistrationRequest(entry.getKey(), entry.getKey(), bytes);
-      ledgerService.register(request);
-    }
   }
 
   private ContractExecutionRequest prepareRequestForCreate(
@@ -797,7 +569,7 @@ public class LedgerServiceEndToEndTest {
   }
 
   private ContractExecutionRequest prepareRequestForHolderChecker(
-      UUID nonce, String entityId, DigitalSignatureSigner signer) {
+      UUID nonce, String entityId, SignatureSigner signer) {
     JsonObject argument =
         Json.createObjectBuilder().add(Argument.NONCE_KEY_NAME, nonce.toString()).build();
 
@@ -817,19 +589,20 @@ public class LedgerServiceEndToEndTest {
   }
 
   private static LedgerValidationRequest prepareValidationRequest(String assetId) {
-    return prepareValidationRequest(assetId, 0, Integer.MAX_VALUE, ENTITY_ID_A, dsSigner1);
+    return prepareValidationRequest(
+        assetId, 0, Integer.MAX_VALUE, ENTITY_ID_A, signers.get(ENTITY_ID_A));
   }
 
   private static LedgerValidationRequest prepareValidationRequest(
       String assetId, int startAge, int endAge, String entityId, SignatureSigner signer) {
     byte[] serialized =
-        LedgerValidationRequest.serialize(assetId, startAge, endAge, entityId, KEY_VERSION);
+        LedgerValidationRequest.serialize(null, assetId, startAge, endAge, entityId, KEY_VERSION);
     return new LedgerValidationRequest(
-        assetId, startAge, endAge, entityId, KEY_VERSION, signer.sign(serialized));
+        null, assetId, startAge, endAge, entityId, KEY_VERSION, signer.sign(serialized));
   }
 
   private void createAssets(Optional<UUID> nonce, DeserializationType type, boolean isV2Argument) {
-    createAssets(nonce, type, isV2Argument, ENTITY_ID_A, dsSigner1);
+    createAssets(nonce, type, isV2Argument, ENTITY_ID_A, signers.get(ENTITY_ID_A));
   }
 
   private void createAssets(
@@ -1191,7 +964,7 @@ public class LedgerServiceEndToEndTest {
     // Act
     LedgerValidationResult resultA =
         validationService.validate(
-            prepareValidationRequest(SOME_ASSET_ID_1, 1, 2, ENTITY_ID_A, dsSigner1));
+            prepareValidationRequest(SOME_ASSET_ID_1, 1, 2, ENTITY_ID_A, signers.get(ENTITY_ID_A)));
 
     // Assert
     assertThat(resultA.getCode()).isEqualTo(StatusCode.INVALID_OUTPUT);
@@ -1214,7 +987,7 @@ public class LedgerServiceEndToEndTest {
     // age 2 is tampered but it is not included in the range
     LedgerValidationResult resultA =
         validationService.validate(
-            prepareValidationRequest(SOME_ASSET_ID_1, 0, 1, ENTITY_ID_A, dsSigner1));
+            prepareValidationRequest(SOME_ASSET_ID_1, 0, 1, ENTITY_ID_A, signers.get(ENTITY_ID_A)));
 
     // Assert
     assertThat(resultA.getCode()).isEqualTo(StatusCode.OK);
@@ -1236,7 +1009,8 @@ public class LedgerServiceEndToEndTest {
         catchThrowable(
             () ->
                 validationService.validate(
-                    prepareValidationRequest(SOME_ASSET_ID_1, 0, 1, ENTITY_ID_A, dsSigner1)));
+                    prepareValidationRequest(
+                        SOME_ASSET_ID_1, 0, 1, ENTITY_ID_A, signers.get(ENTITY_ID_A))));
 
     // Assert
     assertThat(thrown).isInstanceOf(LedgerException.class);
@@ -1247,9 +1021,9 @@ public class LedgerServiceEndToEndTest {
   public void execute_SameContractRegisteredWithDifferentCert_ShouldReturnProperCert() {
     // Arrange
     ContractExecutionRequest requestA =
-        prepareRequestForHolderChecker(UUID.randomUUID(), ENTITY_ID_A, dsSigner1);
+        prepareRequestForHolderChecker(UUID.randomUUID(), ENTITY_ID_A, signers.get(ENTITY_ID_A));
     ContractExecutionRequest requestB =
-        prepareRequestForHolderChecker(UUID.randomUUID(), ENTITY_ID_B, dsSigner2);
+        prepareRequestForHolderChecker(UUID.randomUUID(), ENTITY_ID_B, signers.get(ENTITY_ID_B));
 
     // Act
     ContractExecutionResult resultA = ledgerService.execute(requestA);
@@ -1265,10 +1039,20 @@ public class LedgerServiceEndToEndTest {
     // Arrange
     ContractExecutionRequest requestA =
         prepareRequestForCreateBasedOnDeprecated(
-            SOME_ASSET_ID_1, SOME_AMOUNT_1, UUID.randomUUID(), ENTITY_ID_A, dsSigner1, false);
+            SOME_ASSET_ID_1,
+            SOME_AMOUNT_1,
+            UUID.randomUUID(),
+            ENTITY_ID_A,
+            signers.get(ENTITY_ID_A),
+            false);
     ContractExecutionRequest requestB =
         prepareRequestForCreateBasedOnDeprecated(
-            SOME_ASSET_ID_2, SOME_AMOUNT_1, UUID.randomUUID(), ENTITY_ID_B, dsSigner2, false);
+            SOME_ASSET_ID_2,
+            SOME_AMOUNT_1,
+            UUID.randomUUID(),
+            ENTITY_ID_B,
+            signers.get(ENTITY_ID_B),
+            false);
 
     // Act
     ContractExecutionResult resultA = ledgerService.execute(requestA);
@@ -1284,7 +1068,12 @@ public class LedgerServiceEndToEndTest {
     // Arrange
     ContractExecutionRequest request =
         prepareRequestForCreateBasedOnDeprecated(
-            SOME_ASSET_ID_1, SOME_AMOUNT_1, UUID.randomUUID(), ENTITY_ID_A, dsSigner2, false);
+            SOME_ASSET_ID_1,
+            SOME_AMOUNT_1,
+            UUID.randomUUID(),
+            ENTITY_ID_A,
+            signers.get(ENTITY_ID_B),
+            false);
 
     // Act Assert
     assertThatThrownBy(() -> ledgerService.execute(request)).isInstanceOf(SignatureException.class);
@@ -1313,7 +1102,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1360,7 +1149,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1408,7 +1197,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1455,7 +1244,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1503,7 +1292,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1549,7 +1338,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1592,7 +1381,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1643,7 +1432,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.singletonList(CreateFunction.class.getName()),
             functionArgument.toString(),
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1693,7 +1482,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             functionIds,
             functionArgument.toString(),
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1742,7 +1531,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.singletonList(CreateFunctionWithJsonp.class.getName()),
             functionArgument.toString(),
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1792,7 +1581,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             functionIds,
             functionArgument.toString(),
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1843,7 +1632,7 @@ public class LedgerServiceEndToEndTest {
             contractArgumentString,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             functionArgumentString,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1895,7 +1684,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             functionArgumentString,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1935,7 +1724,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.singletonList(CreateFunctionWithString.class.getName()),
             functionArgument,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -1978,7 +1767,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.singletonList(CreateFunction.class.getName()),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2036,7 +1825,7 @@ public class LedgerServiceEndToEndTest {
             argument1,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             jacksonSerDe.serialize(functionArgument1),
-            dsSigner1.sign(serialized1),
+            signers.get(ENTITY_ID_A).sign(serialized1),
             null);
     ContractExecutionRequest request2 =
         new ContractExecutionRequest(
@@ -2047,7 +1836,7 @@ public class LedgerServiceEndToEndTest {
             argument2,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             jacksonSerDe.serialize(functionArgument2),
-            dsSigner1.sign(serialized2),
+            signers.get(ENTITY_ID_A).sign(serialized2),
             null);
 
     // Act
@@ -2093,7 +1882,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2129,7 +1918,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2166,7 +1955,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2202,7 +1991,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2240,7 +2029,7 @@ public class LedgerServiceEndToEndTest {
             contractArgumentString,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2275,7 +2064,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2306,7 +2095,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2344,7 +2133,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_B);
 
@@ -2356,6 +2145,7 @@ public class LedgerServiceEndToEndTest {
     AssetProof proof = result.getLedgerProofs().get(0);
     byte[] toBeValidated =
         AssetProof.serialize(
+            NamespaceManager.DEFAULT_NAMESPACE,
             proof.getId(),
             proof.getAge(),
             proof.getNonce(),
@@ -2394,8 +2184,8 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
-            dsSigner2.sign(nonce.getBytes(StandardCharsets.UTF_8)));
+            signers.get(ENTITY_ID_A).sign(serialized),
+            signers.get(ENTITY_ID_B).sign(nonce.getBytes(StandardCharsets.UTF_8)));
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
@@ -2434,8 +2224,10 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
-            dsSigner1.sign(nonce.getBytes(StandardCharsets.UTF_8))); // invalid signature
+            signers.get(ENTITY_ID_A).sign(serialized),
+            signers
+                .get(ENTITY_ID_A)
+                .sign(nonce.getBytes(StandardCharsets.UTF_8))); // invalid signature
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
@@ -2472,7 +2264,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            hmacSigner1.sign(serialized),
+            signers.get(ENTITY_ID_C).sign(serialized),
             null);
 
     // Act
@@ -2521,7 +2313,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            hmacSigner2.sign(serialized),
+            signers.get(ENTITY_ID_D).sign(serialized),
             null);
 
     // Act
@@ -2558,7 +2350,7 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized),
+            signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
     // Act
@@ -2597,8 +2389,8 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            hmacSigner1.sign(serialized),
-            hmacSigner2.sign(nonce.getBytes(StandardCharsets.UTF_8)));
+            signers.get(ENTITY_ID_C).sign(serialized),
+            signers.get(ENTITY_ID_D).sign(nonce.getBytes(StandardCharsets.UTF_8)));
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
@@ -2637,8 +2429,10 @@ public class LedgerServiceEndToEndTest {
             argument,
             Collections.emptyList(),
             null,
-            hmacSigner1.sign(serialized),
-            hmacSigner2.sign(nonce.getBytes(StandardCharsets.UTF_8))); // invalid HMAC signature
+            signers.get(ENTITY_ID_C).sign(serialized),
+            signers
+                .get(ENTITY_ID_D)
+                .sign(nonce.getBytes(StandardCharsets.UTF_8))); // invalid HMAC signature
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.execute(request));
@@ -2655,13 +2449,17 @@ public class LedgerServiceEndToEndTest {
     props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
     createServices(new LedgerConfig(props2));
     createAssets(
-        Optional.empty(), DeserializationType.JACKSON_JSON, true, ENTITY_ID_C, hmacSigner1);
+        Optional.empty(),
+        DeserializationType.JACKSON_JSON,
+        true,
+        ENTITY_ID_C,
+        signers.get(ENTITY_ID_C));
 
     // Act
     LedgerValidationResult resultA =
         validationService.validate(
             prepareValidationRequest(
-                SOME_ASSET_ID_1, 0, Integer.MAX_VALUE, ENTITY_ID_C, hmacSigner1));
+                SOME_ASSET_ID_1, 0, Integer.MAX_VALUE, ENTITY_ID_C, signers.get(ENTITY_ID_C)));
 
     // Assert
     assertThat(resultA.getCode()).isEqualTo(StatusCode.OK);
@@ -2675,7 +2473,11 @@ public class LedgerServiceEndToEndTest {
     props2.put(LedgerConfig.AUTHENTICATION_HMAC_CIPHER_KEY, SOME_CIPHER_KEY);
     createServices(new LedgerConfig(props2));
     createAssets(
-        Optional.empty(), DeserializationType.JACKSON_JSON, true, ENTITY_ID_C, hmacSigner1);
+        Optional.empty(),
+        DeserializationType.JACKSON_JSON,
+        true,
+        ENTITY_ID_C,
+        signers.get(ENTITY_ID_C));
 
     // Act
     Throwable thrown =
@@ -2683,7 +2485,11 @@ public class LedgerServiceEndToEndTest {
             () ->
                 validationService.validate(
                     prepareValidationRequest(
-                        SOME_ASSET_ID_1, 0, Integer.MAX_VALUE, ENTITY_ID_C, hmacSigner2)));
+                        SOME_ASSET_ID_1,
+                        0,
+                        Integer.MAX_VALUE,
+                        ENTITY_ID_C,
+                        signers.get(ENTITY_ID_D))));
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(SignatureException.class);
@@ -2724,7 +2530,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument1.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized1),
+            signers.get(ENTITY_ID_A).sign(serialized1),
             null);
     ContractExecutionRequest request2 =
         new ContractExecutionRequest(
@@ -2735,7 +2541,7 @@ public class LedgerServiceEndToEndTest {
             contractArgument2.toString(),
             Collections.emptyList(),
             null,
-            dsSigner1.sign(serialized2),
+            signers.get(ENTITY_ID_A).sign(serialized2),
             null);
 
     JsonNode expected1 = mapper.createObjectNode().put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1);

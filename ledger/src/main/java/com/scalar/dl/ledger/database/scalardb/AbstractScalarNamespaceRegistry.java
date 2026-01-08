@@ -51,6 +51,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
   private final DistributedStorage storage;
   private final DistributedStorageAdmin storageAdmin;
   @Nullable private final DistributedTransactionAdmin transactionAdmin;
+  private final ScalarNamespaceResolver namespaceResolver;
   private final Set<TableMetadataProvider> tableMetadataProviders;
   private final ImmutableMap<String, TableMetadata> storageTables;
   private final ImmutableMap<String, TableMetadata> transactionTables;
@@ -62,11 +63,13 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       DistributedStorage storage,
       DistributedStorageAdmin storageAdmin,
       DistributedTransactionAdmin transactionAdmin,
+      ScalarNamespaceResolver namespaceResolver,
       Set<TableMetadataProvider> tableMetadataProviders) {
     this.config = checkNotNull(config);
     this.storage = checkNotNull(storage);
     this.storageAdmin = checkNotNull(storageAdmin);
     this.transactionAdmin = transactionAdmin;
+    this.namespaceResolver = checkNotNull(namespaceResolver);
     this.tableMetadataProviders = checkNotNull(tableMetadataProviders);
     this.storageTables = collectStorageTables();
     this.transactionTables = collectTransactionTables();
@@ -80,6 +83,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
                     e -> {
                       LOGGER.warn("Namespace creation failed");
                       return e instanceof IllegalArgumentException
+                          && e.getMessage() != null
                           && (e.getMessage().startsWith(CoreError.NAMESPACE_NOT_FOUND.buildCode())
                               || e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode()));
                     })
@@ -90,8 +94,9 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       ServerConfig config,
       DistributedStorage storage,
       DistributedStorageAdmin storageAdmin,
+      ScalarNamespaceResolver namespaceResolver,
       Set<TableMetadataProvider> tableMetadataProviders) {
-    this(config, storage, storageAdmin, null, tableMetadataProviders);
+    this(config, storage, storageAdmin, null, namespaceResolver, tableMetadataProviders);
   }
 
   @Override
@@ -117,7 +122,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
 
   private void createNamespace(String namespace) {
     try {
-      String fullNamespaceName = config.getNamespace() + NAMESPACE_NAME_SEPARATOR + namespace;
+      String fullNamespaceName = namespaceResolver.resolve(namespace);
       storageAdmin.createNamespace(fullNamespaceName, true);
       createStorageTables(fullNamespaceName);
       createTransactionTables(fullNamespaceName);

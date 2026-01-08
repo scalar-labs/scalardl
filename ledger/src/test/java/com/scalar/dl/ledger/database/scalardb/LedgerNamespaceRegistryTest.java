@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class LedgerNamespaceRegistryTest {
-  private static final String SOME_DEFAULT_NAMESPACE = "scalar";
+  private static final String BASE_NAMESPACE = "scalar";
   private static final String SOME_NAMESPACE = "some_namespace";
   private static final String SOME_TABLE_NAME_1 = "some_table_name_1";
   private static final String SOME_TABLE_NAME_2 = "some_table_name_2";
@@ -54,6 +54,7 @@ public class LedgerNamespaceRegistryTest {
   @Mock private TableMetadata tableMetadata2;
   @Mock private TableMetadata tableMetadata3;
   @Mock private TableMetadata tableMetadata4;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
   private LedgerNamespaceRegistry namespaceRegistry;
   private AutoCloseable closeable;
 
@@ -67,12 +68,15 @@ public class LedgerNamespaceRegistryTest {
         .thenReturn(ImmutableMap.of(SOME_TABLE_NAME_3, tableMetadata3));
     when(secretRegistry.getStorageTables())
         .thenReturn(ImmutableMap.of(SOME_TABLE_NAME_4, tableMetadata4));
+    when(namespaceResolver.resolve(SOME_NAMESPACE))
+        .thenReturn(BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE);
     namespaceRegistry =
         new LedgerNamespaceRegistry(
             config,
             storage,
             storageAdmin,
             transactionAdmin,
+            namespaceResolver,
             ImmutableSet.of(transactionManager, certificateRegistry, secretRegistry));
   }
 
@@ -84,15 +88,15 @@ public class LedgerNamespaceRegistryTest {
   @Test
   public void create_NewNamespaceGiven_ShouldCreateProperly() throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
 
     // Act
     namespaceRegistry.create(SOME_NAMESPACE);
@@ -100,7 +104,7 @@ public class LedgerNamespaceRegistryTest {
     // Assert
     verify(storageAdmin).createNamespace(fullNamespace, true);
     verify(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
@@ -111,15 +115,15 @@ public class LedgerNamespaceRegistryTest {
   @Test
   public void create_ExistingNamespaceGiven_ShouldThrowException() throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     NoMutationException toThrow = Mockito.mock(NoMutationException.class);
     doThrow(toThrow).when(storage).put(any(Put.class));
 
@@ -129,7 +133,7 @@ public class LedgerNamespaceRegistryTest {
         .hasMessageContaining(CommonError.NAMESPACE_ALREADY_EXISTS.getMessage());
     verify(storageAdmin).createNamespace(fullNamespace, true);
     verify(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
     verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
@@ -141,11 +145,11 @@ public class LedgerNamespaceRegistryTest {
   public void create_CreateNamespaceManagementTableFailed_ShouldThrowDatabaseException()
       throws ExecutionException {
     // Arrange
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
     doThrow(toThrow)
         .when(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
 
     // Act Assert
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
@@ -153,7 +157,7 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_TABLE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin, never()).createNamespace(any(), anyBoolean());
   }
 
@@ -161,8 +165,8 @@ public class LedgerNamespaceRegistryTest {
   public void create_CreateNamespaceFailed_ShouldThrowDatabaseException()
       throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
     doThrow(toThrow).when(storageAdmin).createNamespace(fullNamespace, true);
 
@@ -172,7 +176,7 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin).createNamespace(fullNamespace, true);
     verify(storage, never()).get(any(Get.class));
     verify(storage, never()).put(any(Put.class));
@@ -182,15 +186,15 @@ public class LedgerNamespaceRegistryTest {
   public void create_AddNamespaceEntryFailed_ShouldThrowDatabaseException()
       throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
     doThrow(toThrow).when(storage).put(expectedPut);
 
@@ -200,7 +204,7 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin).createNamespace(fullNamespace, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
     verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
@@ -213,15 +217,15 @@ public class LedgerNamespaceRegistryTest {
   public void create_AddNamespaceEntryFailedDueToTableNotFound_ShouldRetry()
       throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     IllegalArgumentException toThrow =
         new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
     doThrow(toThrow).doNothing().when(storage).put(expectedPut);
@@ -231,7 +235,7 @@ public class LedgerNamespaceRegistryTest {
 
     // Assert
     verify(storageAdmin, times(2))
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
     verify(transactionAdmin, times(2))
         .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
@@ -248,18 +252,17 @@ public class LedgerNamespaceRegistryTest {
   public void create_AddNamespaceEntryFailedDueToNamespaceNotFound_ShouldRetry()
       throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     IllegalArgumentException toThrow =
-        new IllegalArgumentException(
-            CoreError.NAMESPACE_NOT_FOUND.buildMessage(SOME_DEFAULT_NAMESPACE));
+        new IllegalArgumentException(CoreError.NAMESPACE_NOT_FOUND.buildMessage(BASE_NAMESPACE));
     doThrow(toThrow).doNothing().when(storage).put(expectedPut);
 
     // Act
@@ -267,7 +270,7 @@ public class LedgerNamespaceRegistryTest {
 
     // Assert
     verify(storageAdmin, times(2))
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
     verify(transactionAdmin, times(2))
         .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
@@ -283,15 +286,15 @@ public class LedgerNamespaceRegistryTest {
   @Test
   public void create_MaxAttemptsExceeded_ShouldThrowDatabaseException() throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     IllegalArgumentException toThrow =
         new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
     doThrow(toThrow).when(storage).put(expectedPut);
@@ -301,7 +304,7 @@ public class LedgerNamespaceRegistryTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
     verify(storageAdmin, times(5))
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin, times(5)).createNamespace(fullNamespace, true);
     verify(transactionAdmin, times(5))
         .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
@@ -317,15 +320,15 @@ public class LedgerNamespaceRegistryTest {
   @Test
   public void create_NonRetryableException_ShouldNotRetry() throws ExecutionException {
     // Arrange
-    String fullNamespace = SOME_DEFAULT_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     Put expectedPut =
         Put.newBuilder()
-            .namespace(SOME_DEFAULT_NAMESPACE)
+            .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
-    when(config.getNamespace()).thenReturn(SOME_DEFAULT_NAMESPACE);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     // This is an IllegalArgumentException but with a different error code (not retryable)
     IllegalArgumentException toThrow =
         new IllegalArgumentException("Some other error that should not trigger retry");
@@ -337,7 +340,7 @@ public class LedgerNamespaceRegistryTest {
         .hasMessageContaining("Some other error that should not trigger retry");
     // Should only attempt once (no retry)
     verify(storageAdmin, times(1))
-        .createTable(SOME_DEFAULT_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
     verify(storageAdmin, times(1)).createNamespace(fullNamespace, true);
     verify(transactionAdmin, times(1))
         .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);

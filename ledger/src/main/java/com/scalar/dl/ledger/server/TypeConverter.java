@@ -79,6 +79,7 @@ public class TypeConverter {
   public static com.scalar.dl.ledger.model.LedgerValidationRequest convert(
       LedgerValidationRequest req) {
     return new com.scalar.dl.ledger.model.LedgerValidationRequest(
+        req.getNamespace().isEmpty() ? null : req.getNamespace(),
         req.getAssetId(),
         req.getStartAge(),
         req.getEndAge(),
@@ -90,6 +91,7 @@ public class TypeConverter {
   public static com.scalar.dl.ledger.model.AssetProofRetrievalRequest convert(
       AssetProofRetrievalRequest req) {
     return new com.scalar.dl.ledger.model.AssetProofRetrievalRequest(
+        req.getNamespace().isEmpty() ? null : req.getNamespace(),
         req.getAssetId(),
         req.getAge(),
         req.getEntityId(),

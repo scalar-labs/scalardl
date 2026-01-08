@@ -10,6 +10,7 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scan.Ordering.Order;
 import com.scalar.db.api.TableMetadata;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CommitException;
@@ -29,19 +30,23 @@ import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.proof.AssetProof;
+import com.scalar.dl.ledger.statemachine.AssetKey;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -75,7 +80,9 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
   private final TamperEvidentAssetComposer assetComposer;
   private final AssetProofComposer proofComposer;
   private final TransactionStateManager stateManager;
+  private final ScalarNamespaceResolver namespaceResolver;
   private final LedgerConfig config;
+  private final Context context;
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ScalarTamperEvidentAssetLedger(
@@ -86,6 +93,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       TamperEvidentAssetComposer assetComposer,
       AssetProofComposer proofComposer,
       TransactionStateManager stateManager,
+      ScalarNamespaceResolver namespaceResolver,
       LedgerConfig config) {
     this.transaction = transaction;
     this.metadata = metadata;
@@ -94,7 +102,11 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     this.assetComposer = assetComposer;
     this.proofComposer = proofComposer;
     this.stateManager = stateManager;
+    this.namespaceResolver = namespaceResolver;
     this.config = config;
+    // Although currently a context is statically set to the default namespace, it will be set based
+    // on the context specified in the request when the isolated namespace feature is supported.
+    this.context = Context.withNamespace(NamespaceManager.DEFAULT_NAMESPACE);
   }
 
   static Map<String, TableMetadata> getTransactionTables() {
@@ -103,68 +115,101 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
   @Override
   public Optional<InternalAsset> get(String assetId) {
-    Optional<InternalAsset> recordInSnapshot = snapshot.get(assetId);
+    return get(context.getNamespace(), assetId);
+  }
+
+  @Override
+  public Optional<InternalAsset> get(String namespace, String assetId) {
+    AssetKey key = AssetKey.of(namespace, assetId);
+    Optional<InternalAsset> recordInSnapshot = snapshot.get(key);
     if (recordInSnapshot.isPresent()) {
       return recordInSnapshot;
     }
 
     Optional<Result> result;
-    if (config.isDirectAssetAccessEnabled()) {
-      result = getLatestWithScan(assetId);
-    } else {
-      result = getLatestWithTwoLookups(assetId);
+    try {
+      if (config.isDirectAssetAccessEnabled()) {
+        result = getLatestWithScan(namespace, assetId);
+      } else {
+        result = getLatestWithTwoLookups(namespace, assetId);
+      }
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+        throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+      } else {
+        throw e;
+      }
     }
+
     if (!result.isPresent()) {
       return Optional.empty();
     }
 
     AssetRecord record = AssetLedgerUtility.getAssetRecordFrom(result.get());
-    snapshot.put(assetId, record);
+    snapshot.put(key, record);
 
     return Optional.of(record);
   }
 
   @Override
   public List<InternalAsset> scan(AssetFilter filter) {
+    String namespace = filter.getNamespace().orElse(context.getNamespace());
     Scan scan =
         AssetLedgerUtility.getScanFrom(filter)
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     List<InternalAsset> records = new ArrayList<>();
-    scan(scan)
-        .forEach(
-            r -> {
-              AssetRecord record = AssetLedgerUtility.getAssetRecordFrom(r);
-              records.add(record);
-            });
+    try {
+      scan(scan)
+          .forEach(
+              r -> {
+                AssetRecord record = AssetLedgerUtility.getAssetRecordFrom(r);
+                records.add(record);
+              });
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+        throw new LedgerException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+      } else {
+        throw e;
+      }
+    }
 
     // add the asset ID to the snapshot to create a proof
-    get(filter.getId());
+    get(namespace, filter.getId());
 
     return records;
   }
 
   @Override
   public void put(String assetId, String data) {
-    if (!snapshot.getReadSet().containsKey(assetId)) {
-      get(assetId);
+    put(context.getNamespace(), assetId, data);
+  }
+
+  @Override
+  public void put(String namespace, String assetId, String data) {
+    AssetKey key = AssetKey.of(namespace, assetId);
+    if (!snapshot.getReadSet().containsKey(key)) {
+      get(namespace, assetId);
     }
-    snapshot.put(assetId, data);
+    snapshot.put(key, data);
   }
 
   @Override
   public List<AssetProof> commit() {
-    List<Put> puts = Collections.emptyList();
+    ImmutableMap<AssetKey, Put> puts = ImmutableMap.of();
 
     try {
       if (snapshot.hasWriteSet()) {
-        puts = assetComposer.compose(snapshot, request);
+        puts = ImmutableMap.copyOf(assetComposer.compose(snapshot, request));
 
-        transaction.put(puts);
+        transaction.put(new ArrayList<>(puts.values()));
 
         if (!config.isDirectAssetAccessEnabled()) {
-          metadata.put(snapshot.getWriteSet().values());
+          metadata.put(snapshot.getWriteSet());
         }
       }
 
@@ -181,7 +226,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
           e.getMessage());
     } catch (CommitConflictException e) {
       throw new ConflictException(
-          LedgerError.COMMITTING_ASSET_FAILED_DUE_TO_CONFLICT, e, getAssetIds(), e.getMessage());
+          LedgerError.COMMITTING_ASSET_FAILED_DUE_TO_CONFLICT, e, getAssetKeys(), e.getMessage());
     } catch (com.scalar.db.exception.transaction.UnknownTransactionStatusException e) {
       if (e.getUnknownTransactionId().isPresent()) {
         throw new UnknownTransactionStatusException(
@@ -212,22 +257,22 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     }
   }
 
-  private Map<String, Integer> getAssetIds() {
-    Map<String, Integer> ids = new HashMap<>();
-    snapshot.getWriteSet().forEach((id, uncommitted) -> ids.put(id, uncommitted.age()));
+  private Map<AssetKey, Integer> getAssetKeys() {
+    Map<AssetKey, Integer> ids = new HashMap<>();
+    snapshot.getWriteSet().forEach((key, uncommitted) -> ids.put(key, uncommitted.age()));
     return ids;
   }
 
-  private Optional<Result> getLatestWithTwoLookups(String assetId) {
+  private Optional<Result> getLatestWithTwoLookups(String namespace, String assetId) {
     // Get the latest entry with the following two lookups:
     // 1. Get the latest age from asset_metadata table
     // 2. Get the latest asset entry from asset table with the retrieved age above
-    Optional<AssetMetadata> assetMetadata = metadata.get(assetId);
+    Optional<AssetMetadata> assetMetadata = metadata.get(namespace, assetId);
     if (!assetMetadata.isPresent()) {
       return Optional.empty();
     }
 
-    Optional<Result> result = get(assetId, assetMetadata.get().getAge());
+    Optional<Result> result = get(namespace, assetId, assetMetadata.get().getAge());
     if (!result.isPresent()) {
       throw new ValidationException(LedgerError.INCONSISTENT_ASSET_METADATA);
     }
@@ -235,12 +280,13 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     return result;
   }
 
-  private Optional<Result> get(String assetId, int age) {
+  private Optional<Result> get(String namespace, String assetId, int age) {
     try {
       Get get =
           new Get(
                   new Key(AssetAttribute.toIdValue(assetId)),
                   new Key(AssetAttribute.toAgeValue(age)))
+              .forNamespace(namespaceResolver.resolve(namespace))
               .forTable(TABLE);
       return transaction.get(get);
     } catch (CrudConflictException e) {
@@ -251,12 +297,13 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     }
   }
 
-  private Optional<Result> getLatestWithScan(String assetId) {
+  private Optional<Result> getLatestWithScan(String namespace, String assetId) {
     try {
       Scan scan =
           new Scan(new Key(AssetAttribute.toIdValue(assetId)))
               .withOrdering(new Ordering(AssetRecord.AGE, Order.DESC))
               .withLimit(1)
+              .forNamespace(namespaceResolver.resolve(namespace))
               .forTable(TABLE);
       List<Result> results = transaction.scan(scan);
       if (results.isEmpty()) {
@@ -283,48 +330,54 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
   }
 
   private List<AssetProof> createProofs(
-      List<Put> puts, Map<String, InternalAsset> readSet, String nonce) {
-    Map<String, AssetProof> proofs = new HashMap<>();
+      Map<AssetKey, Put> puts, Map<AssetKey, InternalAsset> readSet, String nonce) {
+    Map<AssetKey, AssetProof> proofs = new HashMap<>();
 
     // For written assets
-    puts.stream()
-        // proofs are created with only asset tables
-        .filter(p -> p.forTable().get().equals(ScalarTamperEvidentAssetLedger.TABLE))
-        .forEach(
-            p -> {
-              AssetProof proof = createProofFrom(p, nonce);
-              proofs.putIfAbsent(proof.getId(), proof);
-            });
+    puts.forEach(
+        (key, put) -> {
+          // proofs are created with only asset tables
+          if (put.forTable().get().equals(ScalarTamperEvidentAssetLedger.TABLE)) {
+            AssetProof proof = createProofFrom(key, put, nonce);
+            proofs.put(key, proof);
+          }
+        });
 
     // For read assets that are not written
-    readSet.forEach((k, v) -> proofs.putIfAbsent(k, proofComposer.create(v)));
+    readSet.forEach((k, v) -> proofs.putIfAbsent(k, proofComposer.create(k.namespace(), v)));
 
     return new ArrayList<>(proofs.values());
   }
 
-  private AssetProof createProofFrom(Put p, String nonce) {
+  private AssetProof createProofFrom(AssetKey key, Put p, String nonce) {
+    String namespace = key.namespace();
     String id = p.getPartitionKey().getColumns().get(0).getTextValue();
     int age = p.getClusteringKey().get().getColumns().get(0).getIntValue();
     String input = p.getTextValue(AssetAttribute.INPUT);
     byte[] hash = p.getBlobValueAsBytes(AssetAttribute.HASH);
     byte[] prevHash = p.getBlobValueAsBytes(AssetAttribute.PREV_HASH);
-    return proofComposer.create(id, age, nonce, input, hash, prevHash);
+    return proofComposer.create(namespace, id, age, nonce, input, hash, prevHash);
   }
 
   static class Metadata {
     private static final String TABLE = "asset_metadata";
     private final DistributedTransaction transaction;
+    private final ScalarNamespaceResolver namespaceResolver;
 
-    protected Metadata(DistributedTransaction transaction) {
+    protected Metadata(DistributedTransaction transaction, ScalarNamespaceResolver resolver) {
       this.transaction = transaction;
+      this.namespaceResolver = resolver;
     }
 
-    public void put(Collection<InternalAsset> assets) {
+    public void put(Map<AssetKey, InternalAsset> writeSet) {
       try {
-        for (InternalAsset asset : assets) {
+        for (Entry<AssetKey, InternalAsset> entry : writeSet.entrySet()) {
+          AssetKey assetKey = entry.getKey();
+          InternalAsset asset = entry.getValue();
           Put put =
               new Put(new Key(AssetMetadata.toIdValue(asset.id())))
                   .withValue(AssetMetadata.toAgeValue(asset.age()))
+                  .forNamespace(namespaceResolver.resolve(assetKey.namespace()))
                   .forTable(TABLE);
           transaction.put(put);
         }
@@ -336,8 +389,11 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       }
     }
 
-    public Optional<AssetMetadata> get(String assetId) {
-      Get get = new Get(new Key(AssetMetadata.ID, assetId)).forTable(TABLE);
+    public Optional<AssetMetadata> get(String namespace, String assetId) {
+      Get get =
+          new Get(new Key(AssetMetadata.ID, assetId))
+              .forNamespace(namespaceResolver.resolve(namespace))
+              .forTable(TABLE);
 
       Optional<Result> result;
       try {

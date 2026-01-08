@@ -9,9 +9,13 @@ public interface TamperEvidentAssetLedger {
 
   Optional<InternalAsset> get(String assetId);
 
+  Optional<InternalAsset> get(String namespace, String assetId);
+
   List<InternalAsset> scan(AssetFilter filter);
 
   void put(String assetId, String data);
+
+  void put(String namespace, String assetId, String data);
 
   List<AssetProof> commit();
 

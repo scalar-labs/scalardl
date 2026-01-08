@@ -7,8 +7,9 @@ public interface AssetScanner {
 
   List<InternalAsset> doScan(AssetFilter filter);
 
-  default InternalAsset doGet(String assetId, int age) {
-    AssetFilter filter = new AssetFilter(assetId).withStartAge(age, true).withEndAge(age, true);
+  default InternalAsset doGet(String namespace, String assetId, int age) {
+    AssetFilter filter =
+        new AssetFilter(namespace, assetId).withStartAge(age, true).withEndAge(age, true);
     List<InternalAsset> assets = doScan(filter);
     if (assets.isEmpty()) {
       return null;

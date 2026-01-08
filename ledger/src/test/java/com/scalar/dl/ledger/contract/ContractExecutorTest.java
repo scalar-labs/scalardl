@@ -27,6 +27,7 @@ import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.proof.AssetProof;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.statemachine.JsonpBasedAssetLedger;
@@ -58,7 +59,9 @@ public class ContractExecutorTest {
   private static final String ANY_FUNCTION_ARGUMENT = "function_argument";
   private static final String ANY_FUNCTION_RESULT1 = "function_result1";
   private static final String ANY_FUNCTION_RESULT2 = "function_result2";
+  private static final String NAMESPACE = "namespace";
   private static final String ANY_ASSET_ID = "asset_id";
+  private static final AssetKey ANY_ASSET_KEY = AssetKey.of(NAMESPACE, ANY_ASSET_ID);
   private static final int ANY_ASSET_AGE = 1;
   @Mock private LedgerConfig config;
   @Mock private TransactionManager transactionManager;
@@ -262,9 +265,9 @@ public class ContractExecutorTest {
         .thenReturn(ANY_CONTRACT_RESULT);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.DEPRECATED);
     when(config.isFunctionEnabled()).thenReturn(false);
-    Map<String, Integer> expectedMap = ImmutableMap.of(ANY_ASSET_ID, ANY_ASSET_AGE);
+    Map<AssetKey, Integer> expectedMap = ImmutableMap.of(ANY_ASSET_KEY, ANY_ASSET_AGE);
     ConflictException toThrow = mock(ConflictException.class);
-    when(toThrow.getIds()).thenReturn(expectedMap);
+    when(toThrow.getKeys()).thenReturn(expectedMap);
     when(transaction.commit()).thenThrow(toThrow);
     doNothing().when(transaction).abort();
 

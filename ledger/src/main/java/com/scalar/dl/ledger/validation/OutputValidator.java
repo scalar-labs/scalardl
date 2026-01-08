@@ -4,8 +4,10 @@ import com.scalar.dl.ledger.contract.ContractMachine;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -16,9 +18,10 @@ import javax.annotation.concurrent.Immutable;
 public class OutputValidator implements LedgerValidator {
 
   @Override
-  public StatusCode validate(Ledger<?> ledger, ContractMachine contract, InternalAsset record) {
+  public StatusCode validate(
+      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
     LedgerTracerBase<?> tracer = (LedgerTracerBase<?>) ledger;
-    String recomputed = tracer.getOutput(record.id());
+    String recomputed = tracer.getOutput(AssetKey.of(namespace, record.id()));
     String stored = record.data();
     if (!recomputed.equals(stored)) {
       throw new ValidationException(LedgerError.VALIDATION_FAILED_FOR_OUTPUT, recomputed, stored);

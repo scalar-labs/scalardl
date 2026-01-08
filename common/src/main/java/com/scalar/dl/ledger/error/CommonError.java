@@ -215,6 +215,12 @@ public enum CommonError implements ScalarDlError {
       ""),
   INVALID_NAMESPACE_NAME(
       StatusCode.INVALID_ARGUMENT, "019", "The namespace name is invalid. Name: %s", "", ""),
+  NAMESPACE_NOT_SUPPORTED_IN_DEPRECATED_CONTRACT(
+      StatusCode.INVALID_ARGUMENT,
+      "020",
+      "Namespace-aware interfaces are not supported in deprecated contracts.",
+      "",
+      ""),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
@@ -229,6 +235,16 @@ public enum CommonError implements ScalarDlError {
       StatusCode.NAMESPACE_ALREADY_EXISTS,
       "001",
       "The specified namespace already exists.",
+      "",
+      ""),
+
+  //
+  // Errors for NAMESPACE_NOT_FOUND(417)
+  //
+  NAMESPACE_NOT_FOUND(
+      StatusCode.NAMESPACE_NOT_FOUND,
+      "001",
+      "The specified namespace is not found. Namespace: %s",
       "",
       ""),
 

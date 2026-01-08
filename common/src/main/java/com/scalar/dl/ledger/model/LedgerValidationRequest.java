@@ -8,8 +8,10 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 public class LedgerValidationRequest extends AbstractRequest {
+  @Nullable private final String namespace;
   private final String assetId;
   private final int startAge;
   private final int endAge;
@@ -19,6 +21,7 @@ public class LedgerValidationRequest extends AbstractRequest {
    * Constructs a {@code LedgerValidationRequest} with the specified asset id, entity ID, key
    * version, signature of the request, and client-side proof.
    *
+   * @param namespace a namespace of an asset
    * @param assetId an id of an asset
    * @param startAge an age to be validated from
    * @param endAge an age to be validated to
@@ -28,12 +31,29 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public LedgerValidationRequest(
-      String assetId, int startAge, int endAge, String entityId, int keyVersion, byte[] signature) {
+      @Nullable String namespace,
+      String assetId,
+      int startAge,
+      int endAge,
+      String entityId,
+      int keyVersion,
+      byte[] signature) {
     super(entityId, keyVersion);
+    this.namespace = namespace;
     this.assetId = assetId;
     this.startAge = startAge;
     this.endAge = endAge;
     this.signature = signature;
+  }
+
+  /**
+   * Returns the namespace of the asset
+   *
+   * @return the namespace of the asset
+   */
+  @Nullable
+  public String getNamespace() {
+    return namespace;
   }
 
   /**
@@ -80,7 +100,7 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(assetId, startAge, endAge, Arrays.hashCode(signature));
+    return Objects.hash(namespace, assetId, startAge, endAge, Arrays.hashCode(signature));
   }
 
   /**
@@ -108,10 +128,11 @@ public class LedgerValidationRequest extends AbstractRequest {
       return false;
     }
     LedgerValidationRequest other = (LedgerValidationRequest) o;
-    return (this.assetId.equals(other.assetId)
+    return Objects.equals(namespace, other.namespace)
+        && this.assetId.equals(other.assetId)
         && this.startAge == other.startAge
         && this.endAge == other.endAge
-        && Arrays.equals(this.signature, other.signature));
+        && Arrays.equals(this.signature, other.signature);
   }
 
   /**
@@ -122,7 +143,7 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @Override
   public void validateWith(SignatureValidator validator) {
-    byte[] bytes = serialize(assetId, startAge, endAge, getEntityId(), getKeyVersion());
+    byte[] bytes = serialize(namespace, assetId, startAge, endAge, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(LedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
@@ -130,18 +151,30 @@ public class LedgerValidationRequest extends AbstractRequest {
   }
 
   public static byte[] serialize(
-      String assetId, int startAge, int endAge, String entityId, int keyVersion) {
+      @Nullable String namespace,
+      String assetId,
+      int startAge,
+      int endAge,
+      String entityId,
+      int keyVersion) {
+    byte[] namespaceBytes =
+        namespace != null ? namespace.getBytes(StandardCharsets.UTF_8) : new byte[0];
+    byte[] assetIdBytes = assetId.getBytes(StandardCharsets.UTF_8);
+    byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            assetId.getBytes(StandardCharsets.UTF_8).length
+            namespaceBytes.length
+                + assetIdBytes.length
                 + Integer.BYTES
                 + Integer.BYTES
-                + entityId.getBytes(StandardCharsets.UTF_8).length
+                + entityIdBytes.length
                 + Integer.BYTES);
-    buffer.put(assetId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(namespaceBytes);
+    buffer.put(assetIdBytes);
     buffer.putInt(startAge);
     buffer.putInt(endAge);
-    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
     return buffer.array();

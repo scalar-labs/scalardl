@@ -15,7 +15,9 @@ public class LedgerNamespaceRegistry extends AbstractScalarNamespaceRegistry {
       DistributedStorage storage,
       DistributedStorageAdmin storageAdmin,
       DistributedTransactionAdmin transactionAdmin,
+      ScalarNamespaceResolver namespaceResolver,
       Set<TableMetadataProvider> tableMetadataProviders) {
-    super(config, storage, storageAdmin, transactionAdmin, tableMetadataProviders);
+    super(
+        config, storage, storageAdmin, transactionAdmin, namespaceResolver, tableMetadataProviders);
   }
 }

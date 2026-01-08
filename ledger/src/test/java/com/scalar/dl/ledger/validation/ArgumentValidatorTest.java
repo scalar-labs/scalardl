@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ArgumentValidatorTest {
+  private static final String NAMESPACE = "namespace";
   private static final String ASSET_ID = "X";
   @Mock private Ledger<?> ledger;
   @Mock private ContractMachine contract;
@@ -65,7 +66,7 @@ public class ArgumentValidatorTest {
     List<StatusCode> results = new ArrayList<>();
 
     // Act
-    assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset)));
+    assets.forEach(asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset)));
 
     // Assert
     assertThat(results).containsOnly(StatusCode.OK);
@@ -80,7 +81,9 @@ public class ArgumentValidatorTest {
 
     // Act Asset
     assertThatThrownBy(
-            () -> assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset))))
+            () ->
+                assets.forEach(
+                    asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset))))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
         .extracting("code")
@@ -94,7 +97,7 @@ public class ArgumentValidatorTest {
     List<StatusCode> results = new ArrayList<>();
 
     // Act
-    assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset)));
+    assets.forEach(asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset)));
 
     // Assert
     assertThat(results).containsOnly(StatusCode.OK);
@@ -109,7 +112,9 @@ public class ArgumentValidatorTest {
 
     // Act Asset
     assertThatThrownBy(
-            () -> assets.forEach(asset -> results.add(validator.validate(ledger, contract, asset))))
+            () ->
+                assets.forEach(
+                    asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset))))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
         .extracting("code")

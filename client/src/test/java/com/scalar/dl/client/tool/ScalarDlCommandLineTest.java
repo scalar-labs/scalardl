@@ -57,6 +57,9 @@ public class ScalarDlCommandLineTest {
               "  execute-contract       Execute a specified contract.",
               "  list-contracts         List registered contracts.",
               "",
+              "manage namespaces",
+              "  create-namespace       Create a namespace.",
+              "",
               "validate ledger",
               "  validate-ledger        Validate a specified asset in a ledger.",
               "",
@@ -97,6 +100,7 @@ public class ScalarDlCommandLineTest {
                 CommandLine.HelpCommand.class,
                 LedgerValidation.class,
                 SecretRegistration.class,
+                NamespaceCreation.class,
               });
     }
   }

@@ -45,7 +45,7 @@ jobs:
         for x in ./*/build/reports/tests; do cp -a --parents $x ./artifacts/${x%%/*}; done
         zip -r artifacts.zip artifacts
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: always()
       with:
         name: artifacts
@@ -86,6 +86,7 @@ jobs:
           cd ledger
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceIntegrationTest
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
 
   integration-test-with-mysql-jdbc-transaction:
     name: Integration test with JDBC transaction manager on MySQL
@@ -121,6 +122,7 @@ jobs:
         run: |
           cd ledger
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
 
   integration-test-for-generic-contracts:
     name: Integration test for generic contracts
@@ -146,12 +148,40 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Get the project version
+        id: set-version
+        run: |
+          VERSION=$(./gradlew :common:properties -q | grep "version:" | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker images
+        run: |
+          ./gradlew :ledger:docker
+
+      - name: Start Ledger server
+        run: |
+          docker run -d \
+            --name scalardl-ledger \
+            --network host \
+            -e SCALAR_DB_STORAGE=jdbc \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_USERNAME=root \
+            -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
+            -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
+
+      - name: Wait for Ledger server to be ready
+        run: |
+          timeout 60 bash -c 'until docker exec scalardl-ledger grpc_health_probe -addr=:50051; do sleep 1; done'
+
       - name: Run integration tests
         run:  ./gradlew :generic-contracts:integrationTest
 
       - name: Upload Gradle test reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: integration_test_reports_for_generic_contracts
           path: generic-contracts/build/reports/tests/integrationTest
@@ -180,12 +210,40 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Get the project version
+        id: set-version
+        run: |
+          VERSION=$(./gradlew :common:properties -q | grep "version:" | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker images
+        run: |
+          ./gradlew :ledger:docker
+
+      - name: Start Ledger server
+        run: |
+          docker run -d \
+            --name scalardl-ledger \
+            --network host \
+            -e SCALAR_DB_STORAGE=jdbc \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_USERNAME=root \
+            -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
+            -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
+
+      - name: Wait for Ledger server to be ready
+        run: |
+          timeout 60 bash -c 'until docker exec scalardl-ledger grpc_health_probe -addr=:50051; do sleep 1; done'
+
       - name: Run integration tests
         run:  ./gradlew :hash-store:integrationTest
 
       - name: Upload Gradle test reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: integration_test_reports_for_hash_store
           path: hash-store/build/reports/tests/integrationTest
@@ -214,12 +272,40 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
+      - name: Get the project version
+        id: set-version
+        run: |
+          VERSION=$(./gradlew :common:properties -q | grep "version:" | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker images
+        run: |
+          ./gradlew :ledger:docker
+
+      - name: Start Ledger server
+        run: |
+          docker run -d \
+            --name scalardl-ledger \
+            --network host \
+            -e SCALAR_DB_STORAGE=jdbc \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_USERNAME=root \
+            -e SCALAR_DB_PASSWORD=mysql \
+            -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
+            -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
+
+      - name: Wait for Ledger server to be ready
+        run: |
+          timeout 60 bash -c 'until docker exec scalardl-ledger grpc_health_probe -addr=:50051; do sleep 1; done'
+
       - name: Run integration tests
         run:  ./gradlew :table-store:integrationTest
 
       - name: Upload Gradle test reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: integration_test_reports_for_table_store
           path: table-store/build/reports/tests/integrationTest

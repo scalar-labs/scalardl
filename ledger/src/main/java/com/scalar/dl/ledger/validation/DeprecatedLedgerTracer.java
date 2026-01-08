@@ -4,6 +4,7 @@ import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.Ledger;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.statemachine.Asset;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.AssetMetadata;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedgerReturnable;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
@@ -23,26 +24,27 @@ public class DeprecatedLedgerTracer extends LedgerTracerBase<JsonObject>
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public DeprecatedLedgerTracer(LedgerTracer tracer) {
+    super(null);
     this.tracer = tracer;
   }
 
   @Override
   public void setInput(String input) {
-    tracer.setInput(serde.deserialize(input));
+    tracer.setInput(input);
   }
 
   @Override
-  public void setInput(String assetId, InternalAsset asset) {
-    tracer.setInput(assetId, asset);
+  public void setInput(AssetKey key, InternalAsset asset) {
+    tracer.setInput(key, asset);
   }
 
   @Override
-  public String getOutput(String assetId) {
-    return serde.serialize(tracer.getOutput(assetId));
+  public String getOutput(AssetKey key) {
+    return serde.serialize(tracer.getOutput(key));
   }
 
   @Override
-  public Map<String, String> getOutputs() {
+  public Map<AssetKey, String> getOutputs() {
     return tracer.getOutputs();
   }
 

@@ -8,6 +8,7 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
 import java.util.Arrays;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -20,7 +21,8 @@ public class HashValidator implements LedgerValidator {
   public HashValidator() {}
 
   @Override
-  public StatusCode validate(Ledger<?> ledger, ContractMachine contract, InternalAsset record) {
+  public StatusCode validate(
+      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
     byte[] hash =
         new AssetHasher.Builder()
             .id(record.id())

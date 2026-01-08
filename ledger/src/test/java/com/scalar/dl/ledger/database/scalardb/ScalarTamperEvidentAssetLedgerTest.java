@@ -21,6 +21,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.Scan.Ordering.Order;
+import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CommitException;
@@ -40,11 +41,13 @@ import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.database.scalardb.ScalarTamperEvidentAssetLedger.AssetMetadata;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.StatusCode;
+import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -59,8 +62,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ScalarTamperEvidentAssetLedgerTest {
+  private static final String NAMESPACE = "scalar";
+  private static final String DEFAULT_NAMESPACE = "default";
+  private static final String CUSTOM_NAMESPACE = "custom_namespace";
+  private static final String RESOLVED_CUSTOM_NAMESPACE = "scalar_custom_namespace";
   private static final String ANY_ID = "id";
   private static final String ANY_ID2 = "id2";
+  private static final AssetKey ANY_ASSET_KEY = AssetKey.of(DEFAULT_NAMESPACE, ANY_ID);
+  private static final AssetKey ANY_ASSET_KEY2 = AssetKey.of(DEFAULT_NAMESPACE, ANY_ID2);
   private static final int ANY_AGE = 1;
   private static final int ANY_AGE_START = 2;
   private static final int ANY_AGE_END = 5;
@@ -74,7 +83,6 @@ public class ScalarTamperEvidentAssetLedgerTest {
   private static final byte[] ANY_HASH = "hash".getBytes(StandardCharsets.UTF_8);
   private static final byte[] ANY_PREV_HASH = "prev_hash".getBytes(StandardCharsets.UTF_8);
   private static final String ANY_NONCE = "nonce";
-  private static final String NAMESPACE = "namespace";
   private static final String ANY_DATA = "data";
   @Mock private TransactionResult result;
   @Mock private TransactionResult metaResult;
@@ -83,6 +91,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
   @Mock private TamperEvidentAssetComposer assetComposer;
   @Mock private AssetProofComposer proofComposer;
   @Mock private TransactionStateManager stateManager;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
   @Mock private InternalAsset asset;
   @Mock private LedgerConfig config;
   private Snapshot snapshot;
@@ -93,15 +102,18 @@ public class ScalarTamperEvidentAssetLedgerTest {
     MockitoAnnotations.openMocks(this);
     snapshot = new Snapshot();
     when(config.isProofEnabled()).thenReturn(false);
+    when(config.getNamespace()).thenReturn(NAMESPACE);
+    when(namespaceResolver.resolve(DEFAULT_NAMESPACE)).thenReturn(NAMESPACE);
     ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
-            new ScalarTamperEvidentAssetLedger.Metadata(transaction),
+            new ScalarTamperEvidentAssetLedger.Metadata(transaction, namespaceResolver),
             snapshot,
             request,
             assetComposer,
             proofComposer,
             stateManager,
+            namespaceResolver,
             config);
   }
 
@@ -144,7 +156,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
   public void get_RecordInSnapShot_ShouldReturnCorrectAsset() throws CrudException {
     // Arrange
     Optional<InternalAsset> expected = Optional.of(asset);
-    snapshot.put(ANY_ID, asset);
+    snapshot.put(ANY_ASSET_KEY, asset);
 
     // Act
     Optional<InternalAsset> actual = ledger.get(ANY_ID);
@@ -172,7 +184,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
     // Assert
     assertThat(actual).isEqualTo(expected);
-    assertThat(snapshot.getReadSet()).containsOnly(entry(ANY_ID, expected.get()));
+    assertThat(snapshot.getReadSet()).containsOnly(entry(ANY_ASSET_KEY, expected.get()));
     ArgumentCaptor<Get> getCaptor = ArgumentCaptor.forClass(Get.class);
     verify(transaction, times(2)).get(getCaptor.capture());
     List<Get> captured = getCaptor.getAllValues();
@@ -200,7 +212,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
     // Assert
     assertThat(actual).isEqualTo(expected);
-    assertThat(snapshot.getReadSet()).containsOnly(entry(ANY_ID, expected.get()));
+    assertThat(snapshot.getReadSet()).containsOnly(entry(ANY_ASSET_KEY, expected.get()));
     verify(transaction, never()).get(any(Get.class));
     ArgumentCaptor<Scan> scanCaptor = ArgumentCaptor.forClass(Scan.class);
     verify(transaction).scan(scanCaptor.capture());
@@ -322,6 +334,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withAgeOrder(AssetFilter.AgeOrder.ASC);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -331,8 +349,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
         new Scan(new Key(AssetAttribute.ID, ANY_ID))
             .withOrdering(new Scan.Ordering(AssetAttribute.AGE, Scan.Ordering.Order.ASC))
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -340,6 +360,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withAgeOrder(AssetFilter.AgeOrder.DESC);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -349,8 +375,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
         new Scan(new Key(AssetAttribute.ID, ANY_ID))
             .withOrdering(new Scan.Ordering(AssetAttribute.AGE, Scan.Ordering.Order.DESC))
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -358,6 +386,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withStartAge(ANY_AGE_START, false);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -368,8 +402,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .withStart(new Key(AssetAttribute.AGE, ANY_AGE_START), false)
             .withOrdering(new Scan.Ordering(AssetAttribute.AGE, Scan.Ordering.Order.DESC))
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -377,6 +413,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withEndAge(ANY_AGE_END, false);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -387,8 +429,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .withEnd(new Key(AssetAttribute.AGE, ANY_AGE_END), false)
             .withOrdering(new Scan.Ordering(AssetAttribute.AGE, Scan.Ordering.Order.DESC))
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -396,6 +440,12 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CrudException {
     // Arrange
     AssetFilter filter = new AssetFilter(ANY_ID).withLimit(ANY_LIMIT);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
     // Act
     ledger.scan(filter);
@@ -406,8 +456,10 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .withLimit(ANY_LIMIT)
             .withOrdering(new Scan.Ordering(AssetAttribute.AGE, Scan.Ordering.Order.DESC))
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
     verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(ANY_ASSET_KEY);
   }
 
   @Test
@@ -421,7 +473,78 @@ public class ScalarTamperEvidentAssetLedgerTest {
     InternalAsset expected = createAsset(ANY_ID, 0, ANY_DATA);
     assertThat(snapshot.getWriteSet().size()).isEqualTo(1);
     // equals is only implemented in the asset in this class
-    assertThat(expected).isEqualTo(snapshot.getWriteSet().get(ANY_ID));
+    assertThat(expected).isEqualTo(snapshot.getWriteSet().get(ANY_ASSET_KEY));
+  }
+
+  @Test
+  public void scan_AssetFilterWithNamespaceGiven_ShouldScanWithSpecifiedNamespace()
+      throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act
+    ledger.scan(filter);
+
+    // Assert
+    Scan expected =
+        Scan.newBuilder()
+            .namespace(RESOLVED_CUSTOM_NAMESPACE)
+            .table(ScalarTamperEvidentAssetLedger.TABLE)
+            .partitionKey(Key.ofText(AssetAttribute.ID, ANY_ID))
+            .ordering(Scan.Ordering.desc(AssetAttribute.AGE))
+            .consistency(Consistency.LINEARIZABLE)
+            .build();
+    verify(transaction).scan(expected);
+    assertThat(snapshot.getReadSet()).containsOnlyKeys(AssetKey.of(CUSTOM_NAMESPACE, ANY_ID));
+  }
+
+  @Test
+  public void get_NamespaceAndAssetIdGiven_ShouldReturnCorrectAssetFromSpecifiedNamespace()
+      throws CrudException {
+    // Arrange
+    configureMetaResult(metaResult);
+    configureResult(result);
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    when(transaction.get(any(Get.class)))
+        .thenReturn(Optional.of(metaResult))
+        .thenReturn(Optional.of(result));
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    AssetKey expectedKey = AssetKey.of(CUSTOM_NAMESPACE, ANY_ID);
+
+    // Act
+    Optional<InternalAsset> actual = ledger.get(CUSTOM_NAMESPACE, ANY_ID);
+
+    // Assert
+    assertThat(actual).isPresent();
+    assertThat(snapshot.getReadSet()).containsKey(expectedKey);
+    ArgumentCaptor<Get> getCaptor = ArgumentCaptor.forClass(Get.class);
+    verify(transaction, times(2)).get(getCaptor.capture());
+    List<Get> captured = getCaptor.getAllValues();
+    // Verify the namespace is resolved and used for the DB access
+    assertThat(captured.get(0).forNamespace()).isEqualTo(Optional.of(RESOLVED_CUSTOM_NAMESPACE));
+    assertThat(captured.get(1).forNamespace()).isEqualTo(Optional.of(RESOLVED_CUSTOM_NAMESPACE));
+  }
+
+  @Test
+  public void put_NamespaceAndAssetIdAndJsonGiven_ShouldStoreToWriteSetWithCorrectKey() {
+    // Arrange
+    AssetKey expectedKey = AssetKey.of(CUSTOM_NAMESPACE, ANY_ID);
+
+    // Act
+    ledger.put(CUSTOM_NAMESPACE, ANY_ID, ANY_DATA);
+
+    // Assert
+    InternalAsset expected = createAsset(ANY_ID, 0, ANY_DATA);
+    assertThat(snapshot.getWriteSet().size()).isEqualTo(1);
+    assertThat(snapshot.getWriteSet()).containsKey(expectedKey);
+    assertThat(expected).isEqualTo(snapshot.getWriteSet().get(expectedKey));
   }
 
   @Test
@@ -429,8 +552,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
@@ -449,8 +572,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     when(config.isDirectAssetAccessEnabled()).thenReturn(true);
 
@@ -503,8 +626,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
           throws CommitException,
               com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     CommitConflictException toThrow = mock(CommitConflictException.class);
@@ -527,8 +650,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     CommitException toThrow = mock(CommitException.class);
@@ -552,8 +675,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
           throws CommitException,
               com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     com.scalar.db.exception.transaction.UnknownTransactionStatusException toThrow =
@@ -579,8 +702,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     com.scalar.db.exception.transaction.UnknownTransactionStatusException toThrow =
@@ -604,8 +727,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
       throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     CommitException toThrow = mock(CommitException.class);
     doThrow(toThrow).when(transaction).commit();
@@ -628,8 +751,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
           throws CommitException,
               com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
     // Arrange
-    snapshot.put(ANY_ID, ANY_DATA);
-    snapshot.put(ANY_ID2, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY2, asset);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     Put put =
@@ -641,7 +764,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .withValue(AssetAttribute.toInputValue(ANY_INPUT))
             .forNamespace(NAMESPACE)
             .forTable(ScalarTamperEvidentAssetLedger.TABLE);
-    when(assetComposer.compose(any(), any())).thenReturn(Collections.singletonList(put));
+    when(assetComposer.compose(any(), any()))
+        .thenReturn(Collections.singletonMap(ANY_ASSET_KEY, put));
     when(request.getNonce()).thenReturn(ANY_NONCE);
     when(asset.id()).thenReturn(ANY_ID2);
     when(asset.age()).thenReturn(ANY_AGE);
@@ -657,12 +781,13 @@ public class ScalarTamperEvidentAssetLedgerTest {
     ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
-            new ScalarTamperEvidentAssetLedger.Metadata(transaction),
+            new ScalarTamperEvidentAssetLedger.Metadata(transaction, namespaceResolver),
             snapshot,
             request,
             assetComposer,
             proofComposer,
             stateManager,
+            namespaceResolver,
             config);
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
@@ -675,6 +800,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
     verify(transaction).commit();
     AssetProof proof1 =
         AssetProof.newBuilder()
+            .namespace(DEFAULT_NAMESPACE)
             .id(ANY_ID)
             .age(ANY_AGE)
             .input(ANY_INPUT)
@@ -685,6 +811,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
             .build();
     AssetProof proof2 =
         AssetProof.newBuilder()
+            .namespace(DEFAULT_NAMESPACE)
             .id(ANY_ID2)
             .age(ANY_AGE)
             .input(ANY_INPUT)
@@ -702,7 +829,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
           throws CommitException,
               com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
     // Arrange
-    snapshot.put(ANY_ID, asset);
+    snapshot.put(ANY_ASSET_KEY, asset);
     when(asset.id()).thenReturn(ANY_ID2);
     when(asset.age()).thenReturn(ANY_AGE);
     when(asset.hash()).thenReturn(ANY_HASH);
@@ -717,12 +844,13 @@ public class ScalarTamperEvidentAssetLedgerTest {
     ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
-            new ScalarTamperEvidentAssetLedger.Metadata(transaction),
+            new ScalarTamperEvidentAssetLedger.Metadata(transaction, namespaceResolver),
             snapshot,
             request,
             assetComposer,
             proofComposer,
             stateManager,
+            namespaceResolver,
             config);
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
 
@@ -735,6 +863,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
     verify(transaction).commit();
     AssetProof proof =
         AssetProof.newBuilder()
+            .namespace(DEFAULT_NAMESPACE)
             .id(ANY_ID2)
             .age(ANY_AGE)
             .input(ANY_INPUT)
@@ -754,8 +883,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
           com.scalar.db.exception.transaction.UnknownTransactionStatusException {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(txStateManagementEnabled);
-    snapshot.put(ANY_ID, asset);
-    snapshot.put(ANY_ID, ANY_DATA);
+    snapshot.put(ANY_ASSET_KEY, asset);
+    snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     doNothing().when(transaction).put(any(List.class));
     doNothing().when(transaction).put(any(Put.class));
     when(transaction.getId()).thenReturn(ANY_NONCE);
@@ -786,7 +915,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
     when(transaction.getId()).thenReturn(ANY_NONCE);
     doNothing().when(stateManager).putCommit(any(DistributedTransaction.class), anyString());
-    snapshot.put(ANY_ID, asset);
+    snapshot.put(ANY_ASSET_KEY, asset);
 
     // Act
     ledger.commit();
@@ -831,5 +960,125 @@ public class ScalarTamperEvidentAssetLedgerTest {
     // Assert
     verify(transaction).abort();
     verify(stateManager, never()).putAbort(ANY_NONCE);
+  }
+
+  @Test
+  public void get_TableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+      throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      get_TableNotFoundExceptionThrownAndDirectAssetAccessEnabled_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(true);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      get_NamespaceAndAssetIdGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.TABLE_NOT_FOUND.buildMessage(RESOLVED_CUSTOM_NAMESPACE + ".asset"));
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.get(CUSTOM_NAMESPACE, ANY_ID));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void get_OtherIllegalArgumentExceptionThrown_ShouldRethrowException()
+      throws CrudException {
+    // Arrange
+    IllegalArgumentException toThrow = new IllegalArgumentException("some other error");
+    when(transaction.get(any(Get.class))).thenThrow(toThrow);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> ledger.get(ANY_ID))
+        .isInstanceOf(IllegalArgumentException.class)
+        .isSameAs(toThrow);
+  }
+
+  @Test
+  public void scan_TableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+      throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(ANY_ID);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE + ".asset"));
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.scan(filter));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void
+      scan_AwareAssetFilterWithNamespaceGivenAndTableNotFoundExceptionThrown_ShouldThrowLedgerExceptionWithNamespaceNotFound()
+          throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(CUSTOM_NAMESPACE, ANY_ID);
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.TABLE_NOT_FOUND.buildMessage(RESOLVED_CUSTOM_NAMESPACE + ".asset"));
+    when(namespaceResolver.resolve(CUSTOM_NAMESPACE)).thenReturn(RESOLVED_CUSTOM_NAMESPACE);
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledger.scan(filter));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.NAMESPACE_NOT_FOUND);
+  }
+
+  @Test
+  public void scan_OtherIllegalArgumentExceptionThrown_ShouldRethrowException()
+      throws CrudException {
+    // Arrange
+    AssetFilter filter = new AssetFilter(ANY_ID);
+    IllegalArgumentException toThrow = new IllegalArgumentException("some other error");
+    when(transaction.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act Assert
+    assertThatThrownBy(() -> ledger.scan(filter))
+        .isInstanceOf(IllegalArgumentException.class)
+        .isSameAs(toThrow);
   }
 }
