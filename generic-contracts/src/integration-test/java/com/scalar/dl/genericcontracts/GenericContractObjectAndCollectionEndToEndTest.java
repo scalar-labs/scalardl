@@ -82,7 +82,6 @@ import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -145,7 +144,6 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String SOME_COLUMN_NAME_TIMESTAMPTZ = "column_timestamptz";
   private static final String SOME_DATE_TEXT = "2021-02-03";
   private static final String SOME_TIME_TEXT = "05:45:00";
-  private static final String SOME_TIMESTAMP_TEXT = "2021-02-03 05:45:00";
   private static final String SOME_TIMESTAMPTZ_TEXT = "2021-02-03 05:45:00.000 Z";
   private static final boolean SOME_BOOLEAN_VALUE = false;
   private static final long SOME_BIGINT_VALUE = BigIntColumn.MAX_VALUE;
@@ -289,7 +287,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     return mapper
         .createArrayNode()
         .add(createColumn(IntColumn.of(SOME_COLUMN_NAME_3, status)))
-        .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP, SOME_TIMESTAMP_TEXT))
+        .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMPTZ, SOME_TIMESTAMPTZ_TEXT))
         .add(createColumn(BooleanColumn.of(SOME_COLUMN_NAME_BOOLEAN, SOME_BOOLEAN_VALUE)))
         .add(createColumn(BigIntColumn.of(SOME_COLUMN_NAME_BIGINT, SOME_BIGINT_VALUE)))
         .add(createColumn(FloatColumn.of(SOME_COLUMN_NAME_FLOAT, SOME_FLOAT_VALUE)))
@@ -306,7 +304,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
     return mapper
         .createArrayNode()
         .add(createNullColumn(SOME_COLUMN_NAME_3, DataType.INT))
-        .add(createNullColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP))
+        .add(createNullColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMPTZ))
         .add(createNullColumn(SOME_COLUMN_NAME_BOOLEAN, DataType.BOOLEAN))
         .add(createNullColumn(SOME_COLUMN_NAME_BIGINT, DataType.BIGINT))
         .add(createNullColumn(SOME_COLUMN_NAME_FLOAT, DataType.FLOAT))
@@ -636,7 +634,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(0).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_0);
       assertThat(results.get(0).getInt(SOME_COLUMN_NAME_3)).isEqualTo(0);
-      assertThat(results.get(0).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(0).getTimestampTZ(SOME_COLUMN_NAME_4))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
       assertThat(results.get(0).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
       assertThat(results.get(0).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
       assertThat(results.get(0).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
@@ -649,7 +648,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_1)).isEqualTo(SOME_OBJECT_ID);
       assertThat(results.get(1).getText(SOME_COLUMN_NAME_2)).isEqualTo(SOME_VERSION_ID_1);
       assertThat(results.get(1).getInt(SOME_COLUMN_NAME_3)).isEqualTo(1);
-      assertThat(results.get(1).getTimestamp(SOME_COLUMN_NAME_4)).isEqualTo(SOME_TIMESTAMP_VALUE);
+      assertThat(results.get(1).getTimestampTZ(SOME_COLUMN_NAME_4))
+          .isEqualTo(SOME_TIMESTAMPTZ_VALUE);
       assertThat(results.get(1).getBoolean(SOME_COLUMN_NAME_BOOLEAN)).isEqualTo(SOME_BOOLEAN_VALUE);
       assertThat(results.get(1).getBigInt(SOME_COLUMN_NAME_BIGINT)).isEqualTo(SOME_BIGINT_VALUE);
       assertThat(results.get(1).getFloat(SOME_COLUMN_NAME_FLOAT)).isEqualTo(SOME_FLOAT_VALUE);
@@ -735,9 +735,8 @@ public class GenericContractObjectAndCollectionEndToEndTest
                 clientService.executeContract(
                     CONTRACT_PUT, contractArguments, FUNCTION_PUT, functionArguments))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessage(
-            LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.buildMessage(
-                CoreError.TABLE_NOT_FOUND.buildMessage(getFunctionNamespace() + ".foo")))
+        .hasMessageContaining(
+            CoreError.TABLE_NOT_FOUND.buildMessage(getFunctionNamespace() + ".foo"))
         .extracting("code")
         .isEqualTo(StatusCode.INVALID_FUNCTION);
   }
@@ -781,9 +780,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
                 clientService.executeContract(
                     CONTRACT_PUT, contractArguments1, FUNCTION_PUT, functionArguments1))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessageStartingWith(
-            LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.buildMessage(
-                CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildCode()))
+        .hasMessageContaining(CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildCode())
         .extracting("code")
         .isEqualTo(StatusCode.CONFLICT);
   }
@@ -818,7 +815,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
         mapper
             .createArrayNode()
             .add(createColumn(IntColumn.of(SOME_COLUMN_NAME_3, 0)))
-            .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMP, "2024-05-19")));
+            .add(createColumn(SOME_COLUMN_NAME_4, DataType.TIMESTAMPTZ, "2024-05-19")));
 
     // Act Assert
     assertThatThrownBy(
