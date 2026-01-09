@@ -126,11 +126,13 @@
   "auditor.namespace": {
     "transaction": false,
     "partition-key": [
-      "name"
+      "partition_id"
     ],
     "clustering-key": [
+      "name"
     ],
     "columns": {
+      "partition_id": "INT",
       "name": "TEXT"
     },
     "compaction-strategy": "STCS"

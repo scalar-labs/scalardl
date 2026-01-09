@@ -1,9 +1,12 @@
 package com.scalar.dl.ledger.database.scalardb;
 
-import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.NAMESPACE_COLUMN_NAME;
+import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.COLUMN_NAME;
+import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.COLUMN_PARTITION_ID;
+import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.DEFAULT_PARTITION_ID;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.NAMESPACE_NAME_SEPARATOR;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.NAMESPACE_TABLE_METADATA;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.NAMESPACE_TABLE_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -22,6 +25,9 @@ import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Result;
+import com.scalar.db.api.Scan;
+import com.scalar.db.api.Scanner;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
@@ -30,6 +36,9 @@ import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,7 +102,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -120,7 +130,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -191,7 +202,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -222,7 +234,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -257,7 +270,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -291,7 +305,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -325,7 +340,8 @@ public class LedgerNamespaceRegistryTest {
         Put.newBuilder()
             .namespace(BASE_NAMESPACE)
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, SOME_NAMESPACE))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
@@ -351,5 +367,152 @@ public class LedgerNamespaceRegistryTest {
     verify(storageAdmin, times(1))
         .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
     verify(storage, times(1)).put(expectedPut);
+  }
+
+  @Test
+  public void scan_EmptyPatternAndNamespacesExist_ShouldReturnNamespacesFromRegistry()
+      throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    Result result1 = Mockito.mock(Result.class);
+    Result result2 = Mockito.mock(Result.class);
+    when(result1.getText(COLUMN_NAME)).thenReturn("ns1");
+    when(result2.getText(COLUMN_NAME)).thenReturn("ns2");
+    List<Result> results = Arrays.asList(result1, result2);
+    when(scanner.spliterator()).thenReturn(results.spliterator());
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("");
+
+    // Assert
+    // Registry only returns namespaces from the database.
+    // "default" is added by NamespaceManager, not by the registry.
+    assertThat(result).containsExactly("ns1", "ns2");
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage).scan(any(Scan.class));
+  }
+
+  @Test
+  public void scan_EmptyPatternAndNoNamespacesExist_ShouldReturnEmptyList()
+      throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    List<Result> emptyResults = Collections.emptyList();
+    when(scanner.spliterator()).thenReturn(emptyResults.spliterator());
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("");
+
+    // Assert
+    // Registry returns empty list. "default" is added by NamespaceManager, not by the registry.
+    assertThat(result).isEmpty();
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage).scan(any(Scan.class));
+  }
+
+  @Test
+  public void scan_NamespaceTableNotExists_ShouldReturnEmptyList() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(false);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("");
+
+    // Assert
+    // When namespace table doesn't exist (e.g., old ScalarDL versions), return empty list
+    assertThat(result).isEmpty();
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage, never()).scan(any(Scan.class));
+  }
+
+  @Test
+  public void scan_ScanFailed_ShouldThrowDatabaseException() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    ExecutionException toThrow = new ExecutionException("details");
+    when(storage.scan(any(Scan.class))).thenThrow(toThrow);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.scan(""))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessageContaining(CommonError.SCANNING_NAMESPACES_FAILED.buildMessage("details"));
+  }
+
+  @Test
+  public void scan_PatternGiven_ShouldReturnMatchingNamespacesFromRegistry()
+      throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    Result result1 = Mockito.mock(Result.class);
+    Result result2 = Mockito.mock(Result.class);
+    when(result1.getText(COLUMN_NAME)).thenReturn("abc");
+    when(result2.getText(COLUMN_NAME)).thenReturn("def");
+    List<Result> results = Arrays.asList(result1, result2);
+    when(scanner.spliterator()).thenReturn(results.spliterator());
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("e");
+
+    // Assert
+    // Registry returns matching namespaces from database. "default" is not added by registry.
+    assertThat(result).containsExactly("abc", "def");
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage).scan(any(Scan.class));
+  }
+
+  @Test
+  public void scan_PatternGiven_ShouldReturnOnlyMatchingNamespaces() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    Result result1 = Mockito.mock(Result.class);
+    when(result1.getText(COLUMN_NAME)).thenReturn("xyz");
+    List<Result> results = Arrays.asList(result1);
+    when(scanner.spliterator()).thenReturn(results.spliterator());
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("xyz");
+
+    // Assert
+    assertThat(result).containsExactly("xyz");
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage).scan(any(Scan.class));
+  }
+
+  @Test
+  public void scan_MultipleNamespacesExist_ShouldReturnInOrder() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    Result result1 = Mockito.mock(Result.class);
+    Result result2 = Mockito.mock(Result.class);
+    when(result1.getText(COLUMN_NAME)).thenReturn("aaa");
+    when(result2.getText(COLUMN_NAME)).thenReturn("zzz");
+    List<Result> results = Arrays.asList(result1, result2);
+    when(scanner.spliterator()).thenReturn(results.spliterator());
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    List<String> result = namespaceRegistry.scan("");
+
+    // Assert
+    assertThat(result).containsExactly("aaa", "zzz");
+    verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storage).scan(any(Scan.class));
   }
 }

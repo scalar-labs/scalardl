@@ -6,6 +6,9 @@ import com.google.inject.Inject;
 import com.scalar.dl.ledger.database.NamespaceRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.LedgerException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
@@ -40,10 +43,31 @@ public class NamespaceManager {
     if (!isValidNamespaceName(namespace)) {
       throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
     }
+    if (namespace.equals(DEFAULT_NAMESPACE)) {
+      throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
+    }
     registry.create(namespace);
   }
 
   private boolean isValidNamespaceName(@Nonnull String namespace) {
     return NAMESPACE_NAME_PATTERN.matcher(namespace).matches();
+  }
+
+  /**
+   * Scans namespaces. If the pattern is empty, returns all namespaces. If the pattern is specified,
+   * only returns namespaces that contain the pattern.
+   *
+   * @param pattern a string pattern. If empty, returns all namespaces.
+   * @return a list of namespace names
+   */
+  public List<String> scan(@Nonnull String pattern) {
+    List<String> namespaces = new ArrayList<>(registry.scan(pattern));
+    if (DEFAULT_NAMESPACE.contains(pattern)) {
+      int index = Collections.binarySearch(namespaces, DEFAULT_NAMESPACE);
+      if (index < 0) {
+        namespaces.add(-index - 1, DEFAULT_NAMESPACE);
+      }
+    }
+    return namespaces;
   }
 }

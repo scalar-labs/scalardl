@@ -221,6 +221,12 @@ public enum CommonError implements ScalarDlError {
       "Namespace-aware interfaces are not supported in deprecated contracts.",
       "",
       ""),
+  RESERVED_NAMESPACE(
+      StatusCode.INVALID_ARGUMENT,
+      "021",
+      "The specified namespace is reserved and cannot be created or deleted. Name: %s",
+      "",
+      ""),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
@@ -273,6 +279,8 @@ public enum CommonError implements ScalarDlError {
       StatusCode.DATABASE_ERROR, "010", "Creating the namespace table failed. Details: %s", "", ""),
   CREATING_NAMESPACE_FAILED(
       StatusCode.DATABASE_ERROR, "011", "Creating the namespace failed. Details: %s", "", ""),
+  SCANNING_NAMESPACES_FAILED(
+      StatusCode.DATABASE_ERROR, "012", "Scanning the namespaces failed. Details: %s", "", ""),
 
   //
   // Errors for RUNTIME_ERROR(502)

@@ -39,6 +39,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
@@ -962,5 +963,103 @@ public class ClientServiceTest {
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
     verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_NoFilterGiven_ShouldListAllNamespaces() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String expectedJson = "{\"namespaces\":[\"ns1\",\"ns2\"]}";
+    when(handler.listNamespaces(any(NamespacesListingRequest.class))).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces();
+
+    // Assert
+    ArgumentCaptor<NamespacesListingRequest> captor =
+        ArgumentCaptor.forClass(NamespacesListingRequest.class);
+    verify(handler).listNamespaces(captor.capture());
+    NamespacesListingRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getPattern()).isEmpty();
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void listNamespaces_PatternFilterGiven_ShouldListMatchingNamespaces() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String expectedJson = "{\"namespaces\":[\"test_namespace\"]}";
+    when(handler.listNamespaces(any(NamespacesListingRequest.class))).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces(ANY_NAMESPACE);
+
+    // Assert
+    ArgumentCaptor<NamespacesListingRequest> captor =
+        ArgumentCaptor.forClass(NamespacesListingRequest.class);
+    verify(handler).listNamespaces(captor.capture());
+    NamespacesListingRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getPattern()).isEqualTo(ANY_NAMESPACE);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void listNamespaces_SerializedBinaryGiven_ShouldListNamespacesProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    NamespacesListingRequest expected =
+        NamespacesListingRequest.newBuilder().setPattern(ANY_NAMESPACE).build();
+    String expectedJson = "{\"namespaces\":[\"test_namespace\"]}";
+    when(handler.listNamespaces(expected)).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces(expected.toByteArray());
+
+    // Assert
+    verify(handler).listNamespaces(expected);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void
+      listNamespaces_PatternWithIntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(ANY_NAMESPACE));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_SerializedBinaryClientModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    NamespacesListingRequest request =
+        NamespacesListingRequest.newBuilder().setPattern(ANY_NAMESPACE).build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(request.toByteArray()));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_InvalidSerializedBinaryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    byte[] invalidBinary = "invalid".getBytes(StandardCharsets.UTF_8);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(invalidBinary));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
   }
 }
