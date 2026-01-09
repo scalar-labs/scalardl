@@ -13,7 +13,8 @@ public class NamespacesListingRequest {
   /**
    * Constructs a {@code NamespacesListingRequest} with the specified namespace filter.
    *
-   * @param pattern a namespace name to filter (exact match). If empty, returns all namespaces.
+   * @param pattern a pattern string to filter namespaces (partial match). If empty, returns all
+   *     namespaces.
    */
   public NamespacesListingRequest(String pattern) {
     this.pattern = checkNotNull(pattern);
