@@ -161,7 +161,6 @@ jobs:
       - name: Write private key to file
         run: |
           echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
-          chmod 600 /tmp/ledger-key.pem
 
       - name: Start Ledger server
         run: |
@@ -229,7 +228,6 @@ jobs:
       - name: Write private key to file
         run: |
           echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
-          chmod 600 /tmp/ledger-key.pem
 
       - name: Start Ledger server
         run: |
@@ -297,7 +295,6 @@ jobs:
       - name: Write private key to file
         run: |
           echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
-          chmod 600 /tmp/ledger-key.pem
 
       - name: Start Ledger server
         run: |
