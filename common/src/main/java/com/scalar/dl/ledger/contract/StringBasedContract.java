@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 public abstract class StringBasedContract extends ContractBase<String> {
 
   @Override
-  String deserialize(@Nullable String string) {
+  String deserialize(String string) {
     return string;
   }
 
