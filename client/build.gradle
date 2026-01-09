@@ -188,6 +188,7 @@ javadoc {
     title = "ScalarDL Java Client SDK ${version}"
     source += sourceSets.main.java
     include "com/scalar/dl/client/**"
+    options.links = ["https://javadoc.io/doc/com.scalar-labs/scalardl-common/${version}/".toString()]
 }
 
 task testJar(type: Jar) {
