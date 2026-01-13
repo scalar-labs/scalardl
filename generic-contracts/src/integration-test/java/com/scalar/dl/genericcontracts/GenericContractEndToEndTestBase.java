@@ -2,8 +2,6 @@ package com.scalar.dl.genericcontracts;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.config.DatabaseConfig;
@@ -16,11 +14,6 @@ import com.scalar.db.storage.dynamo.DynamoConfig;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.service.GenericContractClientService;
-import com.scalar.dl.ledger.config.LedgerConfig;
-import com.scalar.dl.ledger.server.AdminService;
-import com.scalar.dl.ledger.server.BaseServer;
-import com.scalar.dl.ledger.server.LedgerPrivilegedService;
-import com.scalar.dl.ledger.server.LedgerServerModule;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,7 +46,6 @@ public abstract class GenericContractEndToEndTestBase {
   private static final String FUNCTION_NAMESPACE = "test";
   private static final String FUNCTION_TABLE = "objects";
 
-  private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
   private static final String PROP_USERNAME = "scalardb.username";
@@ -93,7 +85,6 @@ public abstract class GenericContractEndToEndTestBase {
           + "-----END CERTIFICATE-----";
   private static final int SOME_KEY_VERSION = 1;
 
-  private BaseServer ledgerServer;
   private ExecutorService executorService;
   private Properties props;
   private Map<String, String> creationOptions = new HashMap<>();
@@ -111,7 +102,7 @@ public abstract class GenericContractEndToEndTestBase {
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
     executorService = Executors.newFixedThreadPool(getThreadNum());
-    props = createLedgerProperties();
+    props = createStorageProperties();
     StorageFactory factory = StorageFactory.create(props);
     storage = factory.getStorage();
     storageAdmin = factory.getStorageAdmin();
@@ -120,8 +111,6 @@ public abstract class GenericContractEndToEndTestBase {
     functionNamespace = getFunctionNamespace();
     functionTable = getFunctionTable();
     createSchema();
-
-    createServer(new LedgerConfig(props));
 
     clientService = createClientService(SOME_ENTITY_1);
     registerContracts(clientService, getContractsMap(), getContractPropertiesMap());
@@ -132,8 +121,7 @@ public abstract class GenericContractEndToEndTestBase {
   }
 
   @AfterAll
-  public void tearDownAfterClass() throws SchemaLoaderException, InterruptedException {
-    ledgerServer.stop();
+  public void tearDownAfterClass() throws SchemaLoaderException {
     storage.close();
     storageAdmin.close();
     SchemaLoader.unload(props, ledgerSchemaPath, true);
@@ -222,7 +210,7 @@ public abstract class GenericContractEndToEndTestBase {
     }
   }
 
-  private Properties createLedgerProperties() {
+  private Properties createStorageProperties() {
     String storage = System.getProperty(PROP_STORAGE, DEFAULT_STORAGE);
     String contactPoints = System.getProperty(PROP_CONTACT_POINTS, DEFAULT_CONTACT_POINTS);
     String username = System.getProperty(PROP_USERNAME, DEFAULT_USERNAME);
@@ -238,11 +226,6 @@ public abstract class GenericContractEndToEndTestBase {
     props.put(DatabaseConfig.USERNAME, username);
     props.put(DatabaseConfig.PASSWORD, password);
     props.put(DatabaseConfig.TRANSACTION_MANAGER, transactionManager);
-    if (transactionManager.equals(JDBC_TRANSACTION_MANAGER)) {
-      props.put(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
-    }
-    props.put(LedgerConfig.PROOF_ENABLED, "true");
-    props.put(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PRIVATE_KEY);
 
     if (storage.equals(DynamoConfig.STORAGE_NAME)) {
       props.put(DynamoConfig.ENDPOINT_OVERRIDE, endpointOverride);
@@ -258,15 +241,6 @@ public abstract class GenericContractEndToEndTestBase {
   private void createSchema() throws SchemaLoaderException {
     SchemaLoader.load(props, ledgerSchemaPath, creationOptions, true);
     SchemaLoader.load(props, databaseSchemaPath, creationOptions, true);
-  }
-
-  private void createServer(LedgerConfig config) throws IOException, InterruptedException {
-    Injector injector = Guice.createInjector(new LedgerServerModule(config));
-    ledgerServer = new BaseServer(injector, config);
-
-    ledgerServer.start(com.scalar.dl.ledger.server.LedgerService.class);
-    ledgerServer.startPrivileged(LedgerPrivilegedService.class);
-    ledgerServer.startAdmin(AdminService.class);
   }
 
   private GenericContractClientService createClientService(String entity) throws IOException {

@@ -11,7 +11,7 @@
       "object_id": "TEXT",
       "version": "TEXT",
       "status": "INT",
-      "registered_at": "TIMESTAMP",
+      "registered_at": "TIMESTAMPTZ",
       "column_boolean": "BOOLEAN",
       "column_bigint": "BIGINT",
       "column_float": "FLOAT",
