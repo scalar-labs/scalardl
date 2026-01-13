@@ -7,8 +7,9 @@ import com.scalar.dl.ledger.database.NamespaceRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.LedgerException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 
@@ -58,16 +59,13 @@ public class NamespaceManager {
    * only returns namespaces that contain the pattern.
    *
    * @param pattern a string pattern. If empty, returns all namespaces.
-   * @return a list of namespace names
+   * @return a list of namespace names in ascending order
    */
   public List<String> scan(@Nonnull String pattern) {
-    List<String> namespaces = new ArrayList<>(registry.scan(pattern));
+    Set<String> namespaces = new TreeSet<>(registry.scan(pattern));
     if (DEFAULT_NAMESPACE.contains(pattern)) {
-      int index = Collections.binarySearch(namespaces, DEFAULT_NAMESPACE);
-      if (index < 0) {
-        namespaces.add(-index - 1, DEFAULT_NAMESPACE);
-      }
+      namespaces.add(DEFAULT_NAMESPACE);
     }
-    return namespaces;
+    return new ArrayList<>(namespaces);
   }
 }

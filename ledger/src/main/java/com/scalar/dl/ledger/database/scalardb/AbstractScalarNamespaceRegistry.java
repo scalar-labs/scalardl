@@ -201,6 +201,8 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
 
   @Override
   public List<String> scan(@Nonnull String pattern) {
+    // Use a single partition to manage all namespaces to avoid cross-partition scans because we can
+    // assume the number of namespaces won't be huge.
     BuildableScanWithPartitionKey scanBuilder =
         Scan.newBuilder()
             .namespace(config.getNamespace())
