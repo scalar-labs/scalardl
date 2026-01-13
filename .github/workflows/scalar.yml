@@ -158,18 +158,23 @@ jobs:
         run: |
           ./gradlew :ledger:docker
 
+      - name: Write private key to file
+        run: |
+          echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
+
       - name: Start Ledger server
         run: |
           docker run -d \
             --name scalardl-ledger \
             --network host \
+            -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
             -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
             -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
-            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PATH=/keys/ledger-key.pem \
             ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
 
       - name: Wait for Ledger server to be ready
@@ -220,18 +225,23 @@ jobs:
         run: |
           ./gradlew :ledger:docker
 
+      - name: Write private key to file
+        run: |
+          echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
+
       - name: Start Ledger server
         run: |
           docker run -d \
             --name scalardl-ledger \
             --network host \
+            -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
             -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
             -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
-            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PATH=/keys/ledger-key.pem \
             ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
 
       - name: Wait for Ledger server to be ready
@@ -282,18 +292,23 @@ jobs:
         run: |
           ./gradlew :ledger:docker
 
+      - name: Write private key to file
+        run: |
+          echo "${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" > /tmp/ledger-key.pem
+
       - name: Start Ledger server
         run: |
           docker run -d \
             --name scalardl-ledger \
             --network host \
+            -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
             -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
             -e SCALAR_DL_LEDGER_PROOF_ENABLED=true \
-            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PEM="${{ secrets.LEDGER_PROOF_PRIVATE_KEY_PEM }}" \
+            -e SCALAR_DL_LEDGER_PROOF_PRIVATE_KEY_PATH=/keys/ledger-key.pem \
             ghcr.io/scalar-labs/scalardl-ledger:${{ steps.set-version.outputs.version }}
 
       - name: Wait for Ledger server to be ready
