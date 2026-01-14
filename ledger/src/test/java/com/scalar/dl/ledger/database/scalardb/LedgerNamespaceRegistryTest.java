@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.scalar.db.api.ConditionBuilder;
+import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -514,5 +515,128 @@ public class LedgerNamespaceRegistryTest {
     assertThat(result).containsExactly("aaa", "zzz");
     verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
     verify(storage).scan(any(Scan.class));
+  }
+
+  @Test
+  public void drop_ExistingNamespaceGiven_ShouldDropProperly() throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Delete expectedDelete =
+        Delete.newBuilder()
+            .namespace(BASE_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.deleteIfExists())
+            .build();
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+
+    // Act
+    namespaceRegistry.drop(SOME_NAMESPACE);
+
+    // Assert
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_4, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_1, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_2, true);
+    verify(storageAdmin).dropNamespace(fullNamespace, true);
+    verify(storage).delete(expectedDelete);
+  }
+
+  @Test
+  public void drop_NonExistingNamespaceGiven_ShouldThrowException() throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Delete expectedDelete =
+        Delete.newBuilder()
+            .namespace(BASE_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.deleteIfExists())
+            .build();
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    NoMutationException toThrow = Mockito.mock(NoMutationException.class);
+    doThrow(toThrow).when(storage).delete(any(Delete.class));
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.drop(SOME_NAMESPACE))
+        .isInstanceOf(DatabaseException.class)
+        .hasMessageContaining(CommonError.NAMESPACE_NOT_FOUND.buildMessage(SOME_NAMESPACE));
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_4, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_1, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_2, true);
+    verify(storageAdmin).dropNamespace(fullNamespace, true);
+    verify(storage).delete(expectedDelete);
+  }
+
+  @Test
+  public void drop_DropNamespaceFailed_ShouldThrowDatabaseException() throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    ExecutionException toThrow = new ExecutionException("details");
+    doThrow(toThrow).when(storageAdmin).dropNamespace(fullNamespace, true);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.drop(SOME_NAMESPACE))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessageContaining(CommonError.DROPPING_NAMESPACE_FAILED.buildMessage("details"));
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_4, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_1, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_2, true);
+    verify(storageAdmin).dropNamespace(fullNamespace, true);
+    verify(storage, never()).delete(any(Delete.class));
+  }
+
+  @Test
+  public void drop_DropTableFailed_ShouldThrowDatabaseException() throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    ExecutionException toThrow = new ExecutionException("details");
+    doThrow(toThrow).when(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.drop(SOME_NAMESPACE))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessageContaining(CommonError.DROPPING_NAMESPACE_FAILED.buildMessage("details"));
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+    verify(storageAdmin, never()).dropNamespace(any(), anyBoolean());
+    verify(storage, never()).delete(any(Delete.class));
+  }
+
+  @Test
+  public void drop_DeleteNamespaceEntryFailed_ShouldThrowDatabaseException()
+      throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Delete expectedDelete =
+        Delete.newBuilder()
+            .namespace(BASE_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
+            .condition(ConditionBuilder.deleteIfExists())
+            .build();
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    ExecutionException toThrow = new ExecutionException("details");
+    doThrow(toThrow).when(storage).delete(expectedDelete);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.drop(SOME_NAMESPACE))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessageContaining(CommonError.DROPPING_NAMESPACE_FAILED.buildMessage("details"));
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_3, true);
+    verify(storageAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_4, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_1, true);
+    verify(transactionAdmin).dropTable(fullNamespace, SOME_TABLE_NAME_2, true);
+    verify(storageAdmin).dropNamespace(fullNamespace, true);
+    verify(storage).delete(expectedDelete);
   }
 }

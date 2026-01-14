@@ -10,6 +10,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import javax.json.JsonObject;
@@ -77,7 +78,21 @@ public interface ClientServiceHandler {
    */
   LedgerValidationResult validateLedger(LedgerValidationRequest request);
 
+  /**
+   * Creates a namespace with the specified {@code NamespaceCreationRequest}.
+   *
+   * @param request a {@code NamespaceCreationRequest}.
+   * @throws ClientException if a request fails for some reason
+   */
   void createNamespace(NamespaceCreationRequest request);
+
+  /**
+   * Drops a namespace with the specified {@code NamespaceDroppingRequest}.
+   *
+   * @param request a {@code NamespaceDroppingRequest}.
+   * @throws ClientException if a request fails for some reason
+   */
+  void dropNamespace(NamespaceDroppingRequest request);
 
   /**
    * Retrieves a list of namespaces with the specified {@code NamespacesListingRequest}.

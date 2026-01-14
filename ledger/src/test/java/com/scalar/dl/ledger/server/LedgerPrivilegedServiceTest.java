@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
@@ -11,9 +12,14 @@ import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.service.LedgerService;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
+import com.scalar.dl.rpc.NamespacesListingResponse;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.stub.StreamObserver;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -106,5 +112,58 @@ public class LedgerPrivilegedServiceTest {
             SOME_FUNCTION_ID, SOME_FUNCTION_BINARY_NAME, SOME_FUNCTION_BYTE_CODE);
 
     verify(ledger).register(expected);
+  }
+
+  @Test
+  public void createNamespace_NamespaceCreationRequestGiven_ShouldCallCreate() {
+    // Arrange
+    String namespace = "test_namespace";
+    NamespaceCreationRequest request =
+        NamespaceCreationRequest.newBuilder().setNamespace(namespace).build();
+    StreamObserver<Empty> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.createNamespace(request, observer);
+
+    // Assert
+    com.scalar.dl.ledger.model.NamespaceCreationRequest expected =
+        new com.scalar.dl.ledger.model.NamespaceCreationRequest(namespace);
+    verify(ledger).create(expected);
+  }
+
+  @Test
+  public void dropNamespace_NamespaceDroppingRequestGiven_ShouldCallDrop() {
+    // Arrange
+    String namespace = "test_namespace";
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace(namespace).build();
+    StreamObserver<Empty> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.dropNamespace(request, observer);
+
+    // Assert
+    com.scalar.dl.ledger.model.NamespaceDroppingRequest expected =
+        new com.scalar.dl.ledger.model.NamespaceDroppingRequest(namespace);
+    verify(ledger).drop(expected);
+  }
+
+  @Test
+  public void listNamespaces_NamespacesListingRequestGiven_ShouldCallList() {
+    // Arrange
+    String pattern = "test";
+    NamespacesListingRequest request =
+        NamespacesListingRequest.newBuilder().setPattern(pattern).build();
+    when(ledger.list(new com.scalar.dl.ledger.model.NamespacesListingRequest(pattern)))
+        .thenReturn(Arrays.asList("test_namespace1", "test_namespace2"));
+    StreamObserver<NamespacesListingResponse> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.listNamespaces(request, observer);
+
+    // Assert
+    com.scalar.dl.ledger.model.NamespacesListingRequest expected =
+        new com.scalar.dl.ledger.model.NamespacesListingRequest(pattern);
+    verify(ledger).list(expected);
   }
 }

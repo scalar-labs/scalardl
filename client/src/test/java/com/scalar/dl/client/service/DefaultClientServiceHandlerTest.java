@@ -17,6 +17,7 @@ import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
@@ -491,5 +492,18 @@ public class DefaultClientServiceHandlerTest {
     // Assert
     verify(ledgerClient).list(request);
     assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void dropNamespace_ProperRequestGiven_ShouldDropNamespace() {
+    // Arrange
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    handler.dropNamespace(request);
+
+    // Assert
+    verify(ledgerClient).drop(request);
   }
 }

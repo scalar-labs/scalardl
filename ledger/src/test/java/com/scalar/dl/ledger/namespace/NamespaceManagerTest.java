@@ -253,4 +253,42 @@ public class NamespaceManagerTest {
     // "default" is already in the list, so should not be duplicated
     assertThat(result).containsExactly("abc", "default", "zzz");
   }
+
+  @Test
+  public void drop_ValidNamespaceNameGiven_ShouldDropNamespace() {
+    // Arrange
+    String namespace = "valid_namespace";
+
+    // Act
+    assertThatCode(() -> manager.drop(namespace)).doesNotThrowAnyException();
+
+    // Assert
+    verify(registry).drop(namespace);
+  }
+
+  @Test
+  public void drop_InvalidNamespaceName_ShouldThrowLedgerException() {
+    // Arrange
+    String namespace = "1invalid";
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.drop(namespace))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
+
+    verify(registry, never()).drop(namespace);
+  }
+
+  @Test
+  public void drop_DefaultNamespaceGiven_ShouldThrowLedgerException() {
+    // Arrange
+    String namespace = NamespaceManager.DEFAULT_NAMESPACE;
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.drop(namespace))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(CommonError.RESERVED_NAMESPACE.buildMessage(namespace));
+
+    verify(registry, never()).drop(namespace);
+  }
 }
