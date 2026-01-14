@@ -9,6 +9,15 @@ on:
         type: string
         default: 'master'
 
+env:
+  AWS_ACCESS_KEY_ID: AKIA4ANSBD3UR5JBJIHH
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+  S3_REGION: us-east-1
+  S3_BUCKET_NAME: s3-scalardl-test-bucket
+  CLOUD_STORAGE_PROJECT_ID: ${{ secrets.CLOUD_STORAGE_PROJECT_ID }}
+  CLOUD_STORAGE_SERVICE_ACCOUNT_KEY: ${{ secrets.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}
+  CLOUD_STORAGE_BUCKET_NAME: scalardl-test-bucket
+
 jobs:
   integration-test-with-cassandra:
     name: Integration testing with the Consensus Commit transaction manager on Cassandra
@@ -147,4 +156,123 @@ jobs:
         run: |
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
           -Dscalardb.storage=dynamo \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+
+  integration-test-with-s3:
+    name: Integration testing with the Consensus Commit transaction manager on S3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          -Dscalardb.storage=s3 \
+          -Dscalardb.contact_points=${{ env.S3_REGION }}/${{ env.S3_BUCKET_NAME }} \
+          -Dscalardb.username='${{ env.AWS_ACCESS_KEY_ID }}' \
+          -Dscalardb.password='${{ env.AWS_SECRET_ACCESS_KEY }}' \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+
+  integration-test-with-blob-storage:
+    name: Integration testing with the Consensus Commit transaction manager on Blob Storage
+    runs-on: ubuntu-latest
+
+    services:
+      blob-storage:
+        image: mcr.microsoft.com/azure-storage/azurite
+        env:
+          AZURITE_ACCOUNTS: "test:test"
+        ports:
+          - 10000:10000
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      - name: Create Blob Storage container
+        run: |
+          az storage container create \
+            --name test-container \
+            --connection-string "DefaultEndpointsProtocol=http;AccountName=test;AccountKey=test;BlobEndpoint=http://localhost:10000/test;"
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          -Dscalardb.storage=blob-storage \
+          -Dscalardb.contact_points=http://localhost:10000/test/test-container \
+          -Dscalardb.username=test \
+          -Dscalardb.password=test \
+          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+
+  integration-test-with-cloud-storage:
+    name: Integration testing with the Consensus Commit transaction manager on Cloud Storage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the target repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build
+        run: |
+          ./gradlew assemble
+          ./gradlew testJar
+
+      # due to a gradle bug we must run the integration test separately
+      - name: Run integration tests
+        working-directory: ledger
+        run: |
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
+          -Dscalardb.storage=cloud-storage \
+          -Dscalardb.contact_points=${{ env.CLOUD_STORAGE_BUCKET_NAME }} \
+          -Dscalardb.username='${{ env.CLOUD_STORAGE_PROJECT_ID }}' \
+          -Dscalardb.password='${{ env.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}' \
           org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
