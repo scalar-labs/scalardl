@@ -46,7 +46,7 @@ import com.scalar.dl.hashstore.client.model.Version;
 import com.scalar.dl.hashstore.client.service.HashStoreClientService;
 import com.scalar.dl.hashstore.client.service.HashStoreClientServiceFactory;
 import com.scalar.dl.ledger.LedgerEndToEndTestBase;
-import com.scalar.dl.ledger.error.LedgerError;
+import com.scalar.dl.ledger.error.CommonLedgerError;
 import com.scalar.dl.ledger.model.ExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -325,7 +325,7 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
     assertThatThrownBy(
             () -> clientService.putObject(SOME_OBJECT_ID, SOME_HASH_VALUE_0, SOME_METADATA_0, put))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessageContaining(LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.getId())
+        .hasMessageContaining(CommonLedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT.getId())
         .hasMessageContaining(CoreError.TABLE_NOT_FOUND.getId())
         .extracting("code")
         .isEqualTo(StatusCode.INVALID_FUNCTION);
@@ -355,7 +355,7 @@ public class HashStoreEndToEndTest extends LedgerEndToEndTestBase {
     assertThatThrownBy(
             () -> clientService.putObject(SOME_OBJECT_ID, SOME_HASH_VALUE_1, SOME_METADATA_1, put1))
         .isExactlyInstanceOf(ClientException.class)
-        .hasMessageContaining(LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.getId())
+        .hasMessageContaining(CommonLedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.getId())
         .hasMessageContaining(CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.getId())
         .extracting("code")
         .isEqualTo(StatusCode.CONFLICT);

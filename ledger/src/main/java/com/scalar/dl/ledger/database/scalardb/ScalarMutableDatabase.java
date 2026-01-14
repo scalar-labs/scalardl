@@ -10,6 +10,7 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.CrudException;
 import com.scalar.dl.ledger.database.MutableDatabase;
+import com.scalar.dl.ledger.error.CommonLedgerError;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
@@ -41,9 +42,10 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
       return transaction.get(get);
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
-          LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
     } catch (CrudConflictException e) {
-      throw new ConflictException(LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException(
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
     } catch (CrudException e) {
       throw new DatabaseException(
           LedgerError.OPERATION_FAILED_DUE_TO_DATABASE_ERROR, e, e.getMessage());
@@ -57,9 +59,10 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
       return transaction.scan(scan);
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
-          LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
     } catch (CrudConflictException e) {
-      throw new ConflictException(LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException(
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
     } catch (CrudException e) {
       throw new DatabaseException(
           LedgerError.OPERATION_FAILED_DUE_TO_DATABASE_ERROR, e, e.getMessage());
@@ -74,9 +77,10 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
       transaction.put(Put.newBuilder(put).implicitPreReadEnabled(true).build());
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
-          LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
     } catch (CrudConflictException e) {
-      throw new ConflictException(LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException(
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
     } catch (CrudException e) {
       throw new DatabaseException(
           LedgerError.OPERATION_FAILED_DUE_TO_DATABASE_ERROR, e, e.getMessage());
@@ -90,9 +94,10 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
       transaction.delete(delete);
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
-          LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
     } catch (CrudConflictException e) {
-      throw new ConflictException(LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
+      throw new ConflictException(
+          CommonLedgerError.OPERATION_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
     } catch (CrudException e) {
       throw new DatabaseException(
           LedgerError.OPERATION_FAILED_DUE_TO_DATABASE_ERROR, e, e.getMessage());
