@@ -1,9 +1,7 @@
 package com.scalar.dl.ledger.model;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.LedgerError;
+import com.scalar.dl.ledger.error.CommonLedgerError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.ByteBuffer;
@@ -11,33 +9,45 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 
-@Immutable
-public class AssetProofRetrievalRequest extends AbstractRequest {
+public class LedgerValidationRequest extends AbstractRequest {
   @Nullable private final String namespace;
   private final String assetId;
-  private final int age;
+  private final int startAge;
+  private final int endAge;
   private final byte[] signature;
 
+  /**
+   * Constructs a {@code LedgerValidationRequest} with the specified asset id, entity ID, key
+   * version, signature of the request, and client-side proof.
+   *
+   * @param namespace a namespace of an asset
+   * @param assetId an id of an asset
+   * @param startAge an age to be validated from
+   * @param endAge an age to be validated to
+   * @param entityId an entity ID
+   * @param keyVersion the version of a digital signature certificate or a HMAC secret key.
+   * @param signature a signature of the request
+   */
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public AssetProofRetrievalRequest(
+  public LedgerValidationRequest(
       @Nullable String namespace,
       String assetId,
-      int age,
+      int startAge,
+      int endAge,
       String entityId,
       int keyVersion,
       byte[] signature) {
     super(entityId, keyVersion);
     this.namespace = namespace;
-    checkArgument(assetId != null);
     this.assetId = assetId;
-    this.age = age;
+    this.startAge = startAge;
+    this.endAge = endAge;
     this.signature = signature;
   }
 
   /**
-   * Returns the namespace of the asset.
+   * Returns the namespace of the asset
    *
    * @return the namespace of the asset
    */
@@ -56,12 +66,21 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
   }
 
   /**
-   * Returns the age of the asset.
+   * Returns the age of the asset to be validated from.
    *
-   * @return the age of the asset
+   * @return the age of the asset to be validated from
    */
-  public int getAge() {
-    return age;
+  public int getStartAge() {
+    return startAge;
+  }
+
+  /**
+   * Returns the age of the asset to be validated to.
+   *
+   * @return the age of the asset to be validated to
+   */
+  public int getEndAge() {
+    return endAge;
   }
 
   /**
@@ -81,9 +100,22 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(namespace, assetId, age, Arrays.hashCode(signature));
+    return Objects.hash(namespace, assetId, startAge, endAge, Arrays.hashCode(signature));
   }
 
+  /**
+   * Indicates whether some other object is "equal to" this object. The other object is considered
+   * equal if it is the same instance or if:
+   *
+   * <ul>
+   *   <li>both super class instances are equal and
+   *   <li>it is also an {@code LedgerValidationRequest} and
+   *   <li>both instances have the same asset id, signature and proof.
+   * </ul>
+   *
+   * @param o an object to be tested for equality
+   * @return {@code true} if the other object is "equal to" this object otherwise {@code false}
+   */
   @Override
   public boolean equals(Object o) {
     if (!super.equals(o)) {
@@ -92,13 +124,14 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
     if (o == this) {
       return true;
     }
-    if (!(o instanceof AssetProofRetrievalRequest)) {
+    if (!(o instanceof LedgerValidationRequest)) {
       return false;
     }
-    AssetProofRetrievalRequest other = (AssetProofRetrievalRequest) o;
+    LedgerValidationRequest other = (LedgerValidationRequest) o;
     return Objects.equals(namespace, other.namespace)
         && this.assetId.equals(other.assetId)
-        && this.age == other.age
+        && this.startAge == other.startAge
+        && this.endAge == other.endAge
         && Arrays.equals(this.signature, other.signature);
   }
 
@@ -110,16 +143,20 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
    */
   @Override
   public void validateWith(SignatureValidator validator) {
-    // age is not used for creating a signature on purpose
-    byte[] bytes = serialize(namespace, assetId, age, getEntityId(), getKeyVersion());
+    byte[] bytes = serialize(namespace, assetId, startAge, endAge, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(LedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException(CommonLedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
     }
   }
 
   public static byte[] serialize(
-      @Nullable String namespace, String assetId, int age, String entityId, int keyVersion) {
+      @Nullable String namespace,
+      String assetId,
+      int startAge,
+      int endAge,
+      String entityId,
+      int keyVersion) {
     byte[] namespaceBytes =
         namespace != null ? namespace.getBytes(StandardCharsets.UTF_8) : new byte[0];
     byte[] assetIdBytes = assetId.getBytes(StandardCharsets.UTF_8);
@@ -130,11 +167,13 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
             namespaceBytes.length
                 + assetIdBytes.length
                 + Integer.BYTES
+                + Integer.BYTES
                 + entityIdBytes.length
                 + Integer.BYTES);
     buffer.put(namespaceBytes);
     buffer.put(assetIdBytes);
-    buffer.putInt(age);
+    buffer.putInt(startAge);
+    buffer.putInt(endAge);
     buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
