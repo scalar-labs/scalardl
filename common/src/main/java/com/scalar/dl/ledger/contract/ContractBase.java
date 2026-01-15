@@ -21,7 +21,7 @@ abstract class ContractBase<T> {
     this.isRoot = false;
   }
 
-  abstract T deserialize(@Nullable String string);
+  abstract T deserialize(String string);
 
   void setRoot(boolean isRoot) {
     this.isRoot = isRoot;

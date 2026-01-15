@@ -26,7 +26,6 @@ configurations {
 dependencies {
     implementation project(':client')
     implementation project(':generic-contracts')
-    implementation project(':ledger') // to use JacksonBasedContract
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
     implementation group: 'org.partiql', name: 'partiql-parser', version: "${partiqlVersion}"
 
