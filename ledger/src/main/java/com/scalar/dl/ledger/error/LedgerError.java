@@ -96,6 +96,12 @@ public enum LedgerError implements ScalarDlError {
       "The function is not allowed to access the specified namespace.",
       "",
       ""),
+  OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT(
+      StatusCode.INVALID_FUNCTION,
+      "002",
+      "The database operation in the function failed. Details: %s",
+      "",
+      ""),
 
   //
   // Errors for INVALID_ARGUMENT(414)
@@ -226,6 +232,12 @@ public enum LedgerError implements ScalarDlError {
       StatusCode.CONFLICT,
       "006",
       "Putting the asset metadata failed due to a conflict. Details: %s",
+      "",
+      ""),
+  OPERATION_FAILED_DUE_TO_CONFLICT(
+      StatusCode.CONFLICT,
+      "007",
+      "The database operation in the function failed due to a conflict. Details: %s",
       "",
       ""),
   ;

@@ -29,30 +29,10 @@ public enum CommonLedgerError implements ScalarDlError {
       StatusCode.UNLOADABLE_FUNCTION, "001", "Loading the function failed. Details: %s", "", ""),
 
   //
-  // Errors for INVALID_FUNCTION(412)
-  //
-  OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT(
-      StatusCode.INVALID_FUNCTION,
-      "002",
-      "The database operation in the function failed. Details: %s",
-      "",
-      ""),
-
-  //
   // Errors for RUNTIME_ERROR(502)
   //
   UNSUPPORTED_FUNCTION(
       StatusCode.RUNTIME_ERROR, "001", "The function type or instance is not supported.", "", ""),
-
-  //
-  // Errors for CONFLICT(504)
-  //
-  OPERATION_FAILED_DUE_TO_CONFLICT(
-      StatusCode.CONFLICT,
-      "007",
-      "The database operation in the function failed due to a conflict. Details: %s",
-      "",
-      ""),
   ;
 
   private static final String COMPONENT_NAME = "DL-LEDGER";
