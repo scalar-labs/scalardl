@@ -14,6 +14,7 @@ import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -67,5 +68,9 @@ public class BaseService {
 
   public void create(NamespaceCreationRequest request) {
     namespaceManager.create(request.getNamespace());
+  }
+
+  public List<String> list(NamespacesListingRequest request) {
+    return namespaceManager.scan(request.getPattern());
   }
 }

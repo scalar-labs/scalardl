@@ -25,6 +25,7 @@ import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -209,5 +210,35 @@ public class BaseServiceTest {
 
     // Assert
     verify(namespaceManager).create(SOME_NAMESPACE);
+  }
+
+  @Test
+  public void list_ProperNamespacesListingRequestGiven_ShouldListNamespaces() {
+    // Arrange
+    NamespacesListingRequest request = new NamespacesListingRequest(SOME_NAMESPACE);
+    List<String> namespaces = Arrays.asList(SOME_NAMESPACE);
+    when(namespaceManager.scan(SOME_NAMESPACE)).thenReturn(namespaces);
+
+    // Act
+    List<String> result = service.list(request);
+
+    // Assert
+    verify(namespaceManager).scan(SOME_NAMESPACE);
+    assertThat(result).containsExactly(SOME_NAMESPACE);
+  }
+
+  @Test
+  public void list_EmptyNamespaceFilterGiven_ShouldListAllNamespaces() {
+    // Arrange
+    NamespacesListingRequest request = new NamespacesListingRequest("");
+    List<String> namespaces = Arrays.asList("ns1", "ns2", "ns3");
+    when(namespaceManager.scan("")).thenReturn(namespaces);
+
+    // Act
+    List<String> result = service.list(request);
+
+    // Assert
+    verify(namespaceManager).scan("");
+    assertThat(result).containsExactly("ns1", "ns2", "ns3");
   }
 }
