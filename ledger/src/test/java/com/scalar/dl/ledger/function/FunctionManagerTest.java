@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.database.FunctionRegistry;
-import com.scalar.dl.ledger.error.LedgerError;
+import com.scalar.dl.ledger.error.CommonLedgerError;
 import com.scalar.dl.ledger.exception.MissingFunctionException;
 import com.scalar.dl.ledger.exception.UnloadableFunctionException;
 import java.util.Optional;
@@ -171,7 +171,7 @@ public class FunctionManagerTest {
     // Act
     assertThatThrownBy(() -> manager.getInstance(ANY_FUNCTION_ID))
         .isInstanceOf(UnloadableFunctionException.class)
-        .hasMessage(LedgerError.LOADING_FUNCTION_FAILED.buildMessage("details"));
+        .hasMessage(CommonLedgerError.LOADING_FUNCTION_FAILED.buildMessage("details"));
 
     // Assert
     verify(manager).defineClass(ANY_FUNCTION_ID);

@@ -17,7 +17,7 @@ public abstract class JsonpBasedContract extends ContractBase<JsonObject> {
   private static final JsonpSerDe serde = new JsonpSerDe();
 
   @Override
-  JsonObject deserialize(@Nullable String string) {
+  JsonObject deserialize(String string) {
     return serde.deserialize(string);
   }
 

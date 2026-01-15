@@ -1,7 +1,7 @@
 package com.scalar.dl.ledger.model;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
-import com.scalar.dl.ledger.error.LedgerError;
+import com.scalar.dl.ledger.error.CommonLedgerError;
 import com.scalar.dl.ledger.exception.SignatureException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.ByteBuffer;
@@ -64,7 +64,7 @@ public class ExecutionAbortRequest extends AbstractRequest {
     byte[] bytes = serialize(nonce, getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
-      throw new SignatureException(LedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+      throw new SignatureException(CommonLedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
     }
   }
 
