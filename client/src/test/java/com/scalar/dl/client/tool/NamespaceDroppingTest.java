@@ -3,6 +3,7 @@ package com.scalar.dl.client.tool;
 import static com.scalar.dl.client.tool.CommandLineTestUtils.createDefaultClientPropertiesFile;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -121,6 +122,31 @@ public class NamespaceDroppingTest {
         // Verify
         verify(factory).create(any(ClientConfig.class), eq(false));
         verify(factory, never()).create(any(GatewayClientConfig.class), eq(false));
+      }
+    }
+
+    @Nested
+    @DisplayName("where confirmation fails")
+    class whereConfirmationFails {
+      @Test
+      @DisplayName("returns 1 as exit code and does not call dropNamespace")
+      void returns1AsExitCodeAndDoesNotCallDropNamespace() throws ClientException {
+        // Arrange
+        String[] args =
+            new String[] {
+              // Set the required options.
+              "--properties=PROPERTIES_FILE", "--namespace=test_namespace",
+            };
+        NamespaceDropping command = spy(parseArgs(args));
+        doReturn(false).when(command).confirmDropping();
+        ClientService serviceMock = mock(ClientService.class);
+
+        // Act
+        int exitCode = command.execute(serviceMock);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(1);
+        verify(serviceMock, never()).dropNamespace(anyString());
       }
     }
 
