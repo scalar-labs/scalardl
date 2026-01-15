@@ -269,11 +269,17 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
             .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
             .ordering(Ordering.asc(COLUMN_NAME));
 
-    if (!pattern.isEmpty()) {
-      scanBuilder.where(ConditionBuilder.column(COLUMN_NAME).isLikeText("%" + pattern + "%"));
+    Scan scan;
+    if (pattern.isEmpty()) {
+      scan = scanBuilder.build();
+    } else {
+      scan =
+          scanBuilder
+              .where(ConditionBuilder.column(COLUMN_NAME).isLikeText("%" + pattern + "%"))
+              .build();
     }
 
-    return scan(scanBuilder.build());
+    return scan(scan);
   }
 
   private List<String> scan(Scan scan) {

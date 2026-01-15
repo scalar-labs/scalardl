@@ -719,12 +719,12 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
   @Test
   public void list_WithNamespaceFilter_ShouldReturnAllNamespaces() {
     // Arrange
-    NamespacesListingRequest request = new NamespacesListingRequest("ns");
+    NamespacesListingRequest request = new NamespacesListingRequest(SOME_NAMESPACE1);
 
     // Act
     List<String> actual = ledgerService.list(request);
 
     // Assert
-    assertThat(actual).containsExactly(SOME_NAMESPACE1, SOME_NAMESPACE2);
+    assertThat(actual).containsExactly(SOME_NAMESPACE1);
   }
 }
