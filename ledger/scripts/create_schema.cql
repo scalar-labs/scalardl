@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS scalar.tx_state (
 );
 
 CREATE TABLE IF NOT EXISTS scalar.namespace (
+    partition_id int,
     name text,
     PRIMARY KEY (name)
 );

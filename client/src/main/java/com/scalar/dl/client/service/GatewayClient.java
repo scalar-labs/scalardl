@@ -23,6 +23,7 @@ import com.scalar.dl.rpc.GatewayPrivilegedGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -193,6 +194,17 @@ public class GatewayClient extends AbstractGatewayClient {
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
+  }
+
+  @Override
+  public String list(NamespacesListingRequest request) {
+    try {
+      return getGatewayPrivilegedStub().listNamespaces(request).getJson();
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    return "";
   }
 
   private GatewayGrpc.GatewayBlockingStub getGatewayStub() {

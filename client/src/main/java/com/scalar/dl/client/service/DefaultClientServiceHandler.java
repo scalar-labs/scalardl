@@ -20,6 +20,7 @@ import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -134,6 +135,11 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
   public void createNamespace(NamespaceCreationRequest request) {
     createAtAuditor(request);
     client.create(request);
+  }
+
+  @Override
+  public String listNamespaces(NamespacesListingRequest request) {
+    return client.list(request);
   }
 
   private void registerToAuditor(CertificateRegistrationRequest request) {
