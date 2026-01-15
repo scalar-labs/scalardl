@@ -20,6 +20,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.scalar.db.api.ConditionBuilder;
+import com.scalar.db.api.ConditionalExpression;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -42,6 +43,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -382,7 +384,8 @@ public class LedgerNamespaceRegistryTest {
     when(result2.getText(COLUMN_NAME)).thenReturn("ns2");
     List<Result> results = Arrays.asList(result1, result2);
     when(scanner.spliterator()).thenReturn(results.spliterator());
-    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+    ArgumentCaptor<Scan> scanCaptor = ArgumentCaptor.forClass(Scan.class);
+    when(storage.scan(scanCaptor.capture())).thenReturn(scanner);
 
     // Act
     List<String> result = namespaceRegistry.scan("");
@@ -392,7 +395,9 @@ public class LedgerNamespaceRegistryTest {
     // "default" is added by NamespaceManager, not by the registry.
     assertThat(result).containsExactly("ns1", "ns2");
     verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
-    verify(storage).scan(any(Scan.class));
+    // Verify that the Scan object has no where clause when pattern is empty
+    Scan capturedScan = scanCaptor.getValue();
+    assertThat(capturedScan.getConjunctions()).isEmpty();
   }
 
   @Test
@@ -460,7 +465,8 @@ public class LedgerNamespaceRegistryTest {
     when(result2.getText(COLUMN_NAME)).thenReturn("def");
     List<Result> results = Arrays.asList(result1, result2);
     when(scanner.spliterator()).thenReturn(results.spliterator());
-    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+    ArgumentCaptor<Scan> scanCaptor = ArgumentCaptor.forClass(Scan.class);
+    when(storage.scan(scanCaptor.capture())).thenReturn(scanner);
 
     // Act
     List<String> result = namespaceRegistry.scan("e");
@@ -469,7 +475,13 @@ public class LedgerNamespaceRegistryTest {
     // Registry returns matching namespaces from database. "default" is not added by registry.
     assertThat(result).containsExactly("abc", "def");
     verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
-    verify(storage).scan(any(Scan.class));
+    // Verify that the Scan object has the correct LIKE condition
+    Scan capturedScan = scanCaptor.getValue();
+    assertThat(capturedScan.getConjunctions()).hasSize(1);
+    ConditionalExpression condition =
+        capturedScan.getConjunctions().iterator().next().getConditions().iterator().next();
+    assertThat(condition.getOperator()).isEqualTo(ConditionalExpression.Operator.LIKE);
+    assertThat(condition.getTextValue()).isEqualTo("%e%");
   }
 
   @Test
@@ -482,7 +494,8 @@ public class LedgerNamespaceRegistryTest {
     when(result1.getText(COLUMN_NAME)).thenReturn("xyz");
     List<Result> results = Arrays.asList(result1);
     when(scanner.spliterator()).thenReturn(results.spliterator());
-    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+    ArgumentCaptor<Scan> scanCaptor = ArgumentCaptor.forClass(Scan.class);
+    when(storage.scan(scanCaptor.capture())).thenReturn(scanner);
 
     // Act
     List<String> result = namespaceRegistry.scan("xyz");
@@ -490,7 +503,13 @@ public class LedgerNamespaceRegistryTest {
     // Assert
     assertThat(result).containsExactly("xyz");
     verify(storageAdmin).tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
-    verify(storage).scan(any(Scan.class));
+    // Verify that the Scan object has the correct LIKE condition
+    Scan capturedScan = scanCaptor.getValue();
+    assertThat(capturedScan.getConjunctions()).hasSize(1);
+    ConditionalExpression condition =
+        capturedScan.getConjunctions().iterator().next().getConditions().iterator().next();
+    assertThat(condition.getOperator()).isEqualTo(ConditionalExpression.Operator.LIKE);
+    assertThat(condition.getTextValue()).isEqualTo("%xyz%");
   }
 
   @Test
