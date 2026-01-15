@@ -26,10 +26,8 @@ configurations {
 
 dependencies {
     api project(':common')
-    implementation project(':ledger') // to bundle ValidateLedger contract
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
-    api group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
     api group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
     api group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
@@ -179,103 +177,17 @@ applicationDistribution.into('bin') {
     fileMode = 0755
 }
 
-jar {
-    from(project(':ledger').sourceSets.main.output) {
-        include "com/scalar/dl/ledger/asset/Asset.class"
-        include "com/scalar/dl/ledger/asset/AssetMetadata.class"
-        include "com/scalar/dl/ledger/contract/Contract.class"
-        include "com/scalar/dl/ledger/contract/ContractBase.class"
-        include "com/scalar/dl/ledger/contract/ContractManager.class"
-        include "com/scalar/dl/ledger/contract/JacksonBasedContract.class"
-        include "com/scalar/dl/ledger/contract/JsonpBasedContract.class"
-        include "com/scalar/dl/ledger/contract/StringBasedContract.class"
-        include "com/scalar/dl/ledger/crypto/CertificateEntry*.class"
-        include "com/scalar/dl/ledger/crypto/ClientIdentityKey.class"
-        include "com/scalar/dl/ledger/database/AssetFilter*.class"
-        include "com/scalar/dl/ledger/database/Database.class"
-        include "com/scalar/dl/ledger/database/Ledger.class"
-        include "com/scalar/dl/ledger/exception/ContractContextException.class"
-        include "com/scalar/dl/ledger/exception/ContractException.class"
-        include "com/scalar/dl/ledger/exception/LedgerException.class"
-        include "com/scalar/dl/ledger/function/Function.class"
-        include "com/scalar/dl/ledger/function/FunctionBase.class"
-        include "com/scalar/dl/ledger/function/FunctionManager.class"
-        include "com/scalar/dl/ledger/function/JacksonBasedFunction.class"
-        include "com/scalar/dl/ledger/function/JsonpBasedFunction.class"
-        include "com/scalar/dl/ledger/function/StringBasedFunction.class"
-        include "com/scalar/dl/ledger/model/AbstractRequest.class"
-        include "com/scalar/dl/ledger/statemachine/Asset.class"
-        include "com/scalar/dl/ledger/statemachine/AssetMetadata.class"
-        include "com/scalar/dl/ledger/statemachine/Ledger.class"
-    }
-}
-
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
-    from(project(':ledger').sourceSets.main.java) {
-        include "com/scalar/dl/ledger/asset/Asset.java"
-        include "com/scalar/dl/ledger/asset/AssetMetadata.java"
-        include "com/scalar/dl/ledger/contract/Contract.java"
-        include "com/scalar/dl/ledger/contract/ContractBase.java"
-        include "com/scalar/dl/ledger/contract/ContractManager.java"
-        include "com/scalar/dl/ledger/contract/JacksonBasedContract.java"
-        include "com/scalar/dl/ledger/contract/JsonpBasedContract.java"
-        include "com/scalar/dl/ledger/contract/StringBasedContract.java"
-        include "com/scalar/dl/ledger/crypto/CertificateEntry*.java"
-        include "com/scalar/dl/ledger/crypto/ClientIdentityKey.java"
-        include "com/scalar/dl/ledger/database/AssetFilter*.java"
-        include "com/scalar/dl/ledger/database/Database.java"
-        include "com/scalar/dl/ledger/database/Ledger.java"
-        include "com/scalar/dl/ledger/exception/ContractContextException.java"
-        include "com/scalar/dl/ledger/exception/ContractException.java"
-        include "com/scalar/dl/ledger/exception/LedgerException.java"
-        include "com/scalar/dl/ledger/function/Function.java"
-        include "com/scalar/dl/ledger/function/FunctionBase.java"
-        include "com/scalar/dl/ledger/function/FunctionManager.java"
-        include "com/scalar/dl/ledger/function/JacksonBasedFunction.java"
-        include "com/scalar/dl/ledger/function/JsonpBasedFunction.java"
-        include "com/scalar/dl/ledger/function/StringBasedFunction.java"
-        include "com/scalar/dl/ledger/model/AbstractRequest.java"
-        include "com/scalar/dl/ledger/statemachine/Asset.java"
-        include "com/scalar/dl/ledger/statemachine/AssetMetadata.java"
-        include "com/scalar/dl/ledger/statemachine/Ledger.java"
-    }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 javadoc {
     title = "ScalarDL Java Client SDK ${version}"
     source += sourceSets.main.java
-    source += project(':ledger').sourceSets.main.java
     include "com/scalar/dl/client/**"
-    include "com/scalar/dl/ledger/asset/Asset.java"
-    include "com/scalar/dl/ledger/asset/AssetMetadata.java"
-    include "com/scalar/dl/ledger/contract/Contract.java"
-    include "com/scalar/dl/ledger/contract/ContractBase.java"
-    include "com/scalar/dl/ledger/contract/ContractEntry.java"
-    include "com/scalar/dl/ledger/contract/ContractMachine.java"
-    include "com/scalar/dl/ledger/contract/ContractManager.java"
-    include "com/scalar/dl/ledger/contract/JacksonBasedContract.java"
-    include "com/scalar/dl/ledger/contract/JsonpBasedContract.java"
-    include "com/scalar/dl/ledger/contract/StringBasedContract.java"
-    include "com/scalar/dl/ledger/crypto/CertificateEntry*.java"
-    include "com/scalar/dl/ledger/crypto/ClientIdentityKey.java"
-    include "com/scalar/dl/ledger/database/AssetFilter*.java"
-    include "com/scalar/dl/ledger/database/ContractRegistry.java"
-    include "com/scalar/dl/ledger/database/Database.java"
-    include "com/scalar/dl/ledger/database/Ledger.java"
-    include "com/scalar/dl/ledger/exception/*.java"
-    include "com/scalar/dl/ledger/function/Function.java"
-    include "com/scalar/dl/ledger/function/FunctionBase.java"
-    include "com/scalar/dl/ledger/function/FunctionManager.java"
-    include "com/scalar/dl/ledger/function/JacksonBasedFunction.java"
-    include "com/scalar/dl/ledger/function/JsonpBasedFunction.java"
-    include "com/scalar/dl/ledger/function/StringBasedFunction.java"
-    include "com/scalar/dl/ledger/model/*.java"
-    include "com/scalar/dl/ledger/statemachine/Asset.java"
-    include "com/scalar/dl/ledger/statemachine/AssetMetadata.java"
-    include "com/scalar/dl/ledger/statemachine/Ledger.java"
+    options.links = ["https://javadoc.io/doc/com.scalar-labs/scalardl-common/${version}/".toString()]
 }
 
 task testJar(type: Jar) {

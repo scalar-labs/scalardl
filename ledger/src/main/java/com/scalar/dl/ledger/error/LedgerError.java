@@ -59,18 +59,6 @@ public enum LedgerError implements ScalarDlError {
       ""),
 
   //
-  // Errors for INVALID_SIGNATURE(400)
-  //
-  REQUEST_SIGNATURE_VALIDATION_FAILED(
-      StatusCode.INVALID_SIGNATURE, "001", "The request signature can't be validated.", "", ""),
-  AUDITOR_SIGNATURE_VALIDATION_FAILED(
-      StatusCode.INVALID_SIGNATURE,
-      "002",
-      "The request signature from Auditor can't be validated.",
-      "",
-      ""),
-
-  //
   // Errors for INVALID_REQUEST(407)
   //
   CONTRACT_IS_NOT_ALLOWED_TO_BE_EXECUTED(
@@ -98,18 +86,6 @@ public enum LedgerError implements ScalarDlError {
   // Errors for ASSET_NOT_FOUND(409)
   //
   ASSET_NOT_FOUND(StatusCode.ASSET_NOT_FOUND, "001", "The specified asset is not found.", "", ""),
-
-  //
-  // Errors for FUNCTION_NOT_FOUND(410)
-  //
-  FUNCTION_NOT_FOUND(
-      StatusCode.FUNCTION_NOT_FOUND, "001", "The specified function is not found.", "", ""),
-
-  //
-  // Errors for UNLOADABLE_FUNCTION(411)
-  //
-  LOADING_FUNCTION_FAILED(
-      StatusCode.UNLOADABLE_FUNCTION, "001", "Loading the function failed. Details: %s", "", ""),
 
   //
   // Errors for INVALID_FUNCTION(412)
@@ -222,12 +198,6 @@ public enum LedgerError implements ScalarDlError {
       "The asset status is unknown. Details: %s",
       "",
       ""),
-
-  //
-  // Errors for RUNTIME_ERROR(502)
-  //
-  UNSUPPORTED_FUNCTION(
-      StatusCode.RUNTIME_ERROR, "001", "The function type or instance is not supported.", "", ""),
 
   //
   // Errors for CONFLICT(504)

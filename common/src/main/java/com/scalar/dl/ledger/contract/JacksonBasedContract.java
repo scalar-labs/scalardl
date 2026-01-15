@@ -17,7 +17,7 @@ public abstract class JacksonBasedContract extends ContractBase<JsonNode> {
   private static final JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
 
   @Override
-  JsonNode deserialize(@Nullable String string) {
+  JsonNode deserialize(String string) {
     return serde.deserialize(string);
   }
 
