@@ -101,13 +101,11 @@ docker {
 }
 
 task integrationTestCassandra(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
     jvmArgs '-Djava.security.manager=allow'
     options {
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
@@ -115,66 +113,47 @@ task integrationTestCassandra(type: Test) {
 }
 
 task integrationTestDynamo(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with Consensus Commit transaction manager on DynamoDB.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
     jvmArgs '-Djava.security.manager=allow'
     options {
-        systemProperty('scalardb.storage', 'dynamo')
-        systemProperty('scalardb.transaction_manager', 'consensus-commit')
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
 }
 
 task integrationTestMysql(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with JDBC transaction manager on MySQL.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
     jvmArgs '-Djava.security.manager=allow'
     options {
-        systemProperty('scalardb.storage', 'jdbc')
-        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
-        systemProperty('scalardb.username', 'root')
-        systemProperty('scalardb.password', 'mysql')
-        systemProperty('scalardb.transaction_manager', 'jdbc')
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
 }
 
 task integrationTestMysqlConsensusCommit(type: Test) {
-    useJUnitPlatform()
     description 'Runs the integration tests with Consensus Commit transaction manager on MySQL.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
     jvmArgs '-Djava.security.manager=allow'
     options {
-        systemProperty('scalardb.storage', 'jdbc')
-        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
-        systemProperty('scalardb.username', 'root')
-        systemProperty('scalardb.password', 'mysql')
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
 }
 
 task permissionTest(type: Test) {
-    useJUnitPlatform()
     description 'Runs the permission tests.'
     group 'verification'
     testClassesDirs = sourceSets.permissionTest.output.classesDirs
     classpath = sourceSets.permissionTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures permission tests are run every time when called
-    shouldRunAfter test
     jvmArgs '-Djava.security.manager=allow'
 }
 

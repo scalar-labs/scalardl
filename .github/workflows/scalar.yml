@@ -76,7 +76,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Run integration tests
-        run: ./gradlew :ledger:integrationTestMysqlConsensusCommit
+        run: >-
+          ./gradlew :ledger:integrationTestMysqlConsensusCommit
+          -Dscalardb.storage=jdbc
+          -Dscalardb.contact_points=jdbc:mysql://localhost/
+          -Dscalardb.username=root
+          -Dscalardb.password=mysql
 
   integration-test-with-mysql-jdbc-transaction:
     name: Integration test with JDBC transaction manager on MySQL
@@ -103,7 +108,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Run integration tests
-        run: ./gradlew :ledger:integrationTestMysql
+        run: >-
+          ./gradlew :ledger:integrationTestMysql
+          -Dscalardb.storage=jdbc
+          -Dscalardb.contact_points=jdbc:mysql://localhost/
+          -Dscalardb.username=root
+          -Dscalardb.password=mysql
+          -Dscalardb.transaction_manager=jdbc
 
   integration-test-for-generic-contracts:
     name: Integration test for generic contracts
