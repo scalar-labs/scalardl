@@ -41,6 +41,7 @@ configurations {
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
     integrationTestCompileOnly.extendsFrom testCompileOnly
     permissionTestImplementation.extendsFrom testImplementation
+    permissionTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 dependencies {
