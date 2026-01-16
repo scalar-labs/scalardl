@@ -107,6 +107,7 @@ task integrationTestCassandra(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
     shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
@@ -120,6 +121,7 @@ task integrationTestDynamo(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
     shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
         systemProperty('scalardb.storage', 'dynamo')
         systemProperty('scalardb.transaction_manager', 'consensus-commit')
@@ -135,6 +137,7 @@ task integrationTestMysql(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
     shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
         systemProperty('scalardb.storage', 'jdbc')
         systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
@@ -153,6 +156,7 @@ task integrationTestMysqlConsensusCommit(type: Test) {
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
     shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
         systemProperty('scalardb.storage', 'jdbc')
         systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
@@ -170,6 +174,7 @@ task permissionTest(type: Test) {
     classpath = sourceSets.permissionTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures permission tests are run every time when called
     shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
 }
 
 task integrationTest(type: Test) {
