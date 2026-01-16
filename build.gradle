@@ -22,6 +22,10 @@ subprojects {
     group = projectGroup
     project.version = projectVersion
 
+    jacoco {
+        toolVersion = '0.8.12'
+    }
+
     ext {
         grpcVersion = '1.78.0'
         protocVersion = '3.25.8'
