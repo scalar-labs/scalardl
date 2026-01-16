@@ -4,6 +4,12 @@ plugins {
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 apply plugin:'application'
 startScripts.enabled = false
 
