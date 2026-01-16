@@ -75,18 +75,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        run: |
-          cd ledger
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceIntegrationTest
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
+        run: ./gradlew :ledger:integrationTestMysqlConsensusCommit
 
   integration-test-with-mysql-jdbc-transaction:
     name: Integration test with JDBC transaction manager on MySQL
@@ -112,17 +102,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        run: |
-          cd ledger
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceNamespaceEndToEndTest
+        run: ./gradlew :ledger:integrationTestMysql
 
   integration-test-for-generic-contracts:
     name: Integration test for generic contracts
@@ -344,13 +325,5 @@ jobs:
       - name: Prepare
         run: sudo mkdir -m 777 /var/log/scalar
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the permission test separately
       - name: Run permission tests
-        run: |
-          cd ledger
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/permissionTest" org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServicePermissionTest
+        run: ./gradlew :ledger:permissionTest
