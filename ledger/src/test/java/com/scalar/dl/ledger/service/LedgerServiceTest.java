@@ -30,6 +30,7 @@ import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -364,5 +365,17 @@ public class LedgerServiceTest {
     // Assert
     verify(base).list(request);
     assertThat(result).containsExactly("ns1", "ns2", "ns3");
+  }
+
+  @Test
+  public void drop_ProperNamespaceDroppingRequestGiven_ShouldDropNamespace() {
+    // Arrange
+    NamespaceDroppingRequest request = new NamespaceDroppingRequest("test_namespace");
+
+    // Act
+    service.drop(request);
+
+    // Assert
+    verify(base).drop(request);
   }
 }
