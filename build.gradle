@@ -88,7 +88,7 @@ subprojects {
         testImplementation group: 'org.mockito', name: 'mockito-inline', version: "${mockitoVersion}"
     }
 
-    test {
+    tasks.withType(Test) {
         maxHeapSize "512m"
         testLogging.showStandardStreams = true
 

@@ -100,44 +100,8 @@ docker {
     files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
 }
 
-task integrationTestCassandra(type: Test) {
-    description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    jvmArgs '-Djava.security.manager=allow'
-    options {
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
-    }
-}
-
-task integrationTestDynamo(type: Test) {
-    description 'Runs the integration tests with Consensus Commit transaction manager on DynamoDB.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    jvmArgs '-Djava.security.manager=allow'
-    options {
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
-    }
-}
-
-task integrationTestMysql(type: Test) {
-    description 'Runs the integration tests with JDBC transaction manager on MySQL.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    jvmArgs '-Djava.security.manager=allow'
-    options {
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
-    }
-}
-
-task integrationTestMysqlConsensusCommit(type: Test) {
-    description 'Runs the integration tests with Consensus Commit transaction manager on MySQL.'
+task integrationTest(type: Test) {
+    description 'Runs the integration tests.'
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
@@ -155,12 +119,6 @@ task permissionTest(type: Test) {
     classpath = sourceSets.permissionTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures permission tests are run every time when called
     jvmArgs '-Djava.security.manager=allow'
-}
-
-task integrationTest(type: Test) {
-    dependsOn integrationTestCassandra
-    dependsOn integrationTestDynamo
-    dependsOn integrationTestMysql
 }
 
 spotless {
