@@ -17,6 +17,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -147,6 +148,17 @@ public class AuditorClient extends AbstractAuditorClient {
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
+  }
+
+  @Override
+  public String list(NamespacesListingRequest request) {
+    try {
+      return getAuditorPrivilegedStub().listNamespaces(request).getJson();
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    return "";
   }
 
   private AuditorGrpc.AuditorBlockingStub getAuditorStub() {
