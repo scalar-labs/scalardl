@@ -4,6 +4,11 @@ on:
   schedule:
     # UTC
     - cron: '0 10 * * SUN'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/scheduled-storage-compatibility-check.yaml'
 
 jobs:
   call-storage-compatibility-check:
