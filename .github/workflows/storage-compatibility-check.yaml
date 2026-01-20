@@ -62,6 +62,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
+      # The ledger module uses Java 21 (configured via Gradle toolchain), so the
+      # Cosmos DB emulator certificate must be imported to JDK 21's cacerts.
+      - name: Set up JDK 21 to import certificate to its cacerts
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -87,7 +95,7 @@ jobs:
           Export-Certificate @params
           certutil -encode $home/tmp-cert.cer $home/cosmosdbcert.cer
           Remove-Item $home/tmp-cert.cer
-          $keystore = "-keystore", "${env:JAVA_HOME}/lib/security/cacerts"
+          $keystore = "-keystore", "${env:JAVA_HOME_21_X64}/lib/security/cacerts"
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -importcert -noprompt -alias cosmos_emulator -file $home/cosmosdbcert.cer
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -list -alias cosmos_emulator
 
