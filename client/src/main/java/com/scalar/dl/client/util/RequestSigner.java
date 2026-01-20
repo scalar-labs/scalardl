@@ -9,7 +9,6 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
-import java.util.Optional;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
@@ -22,14 +21,12 @@ public class RequestSigner {
   }
 
   public ContractRegistrationRequest.Builder sign(ContractRegistrationRequest.Builder builder) {
-    String contractProperties =
-        builder.getContractProperties().isEmpty() ? null : builder.getContractProperties();
     byte[] bytes =
         com.scalar.dl.ledger.model.ContractRegistrationRequest.serialize(
             builder.getContractId(),
             builder.getContractBinaryName(),
             builder.getContractByteCode().toByteArray(),
-            contractProperties,
+            builder.getContractProperties(),
             builder.getEntityId(),
             builder.getKeyVersion());
 
@@ -38,11 +35,9 @@ public class RequestSigner {
   }
 
   public ContractsListingRequest.Builder sign(ContractsListingRequest.Builder builder) {
-    Optional<String> contractId =
-        builder.getContractId().isEmpty() ? Optional.empty() : Optional.of(builder.getContractId());
     byte[] bytes =
         com.scalar.dl.ledger.model.ContractsListingRequest.serialize(
-            contractId, builder.getEntityId(), builder.getKeyVersion());
+            builder.getContractId(), builder.getEntityId(), builder.getKeyVersion());
 
     byte[] signature = signer.sign(bytes);
     return builder.setSignature(ByteString.copyFrom(signature));
@@ -61,10 +56,9 @@ public class RequestSigner {
   }
 
   public LedgerValidationRequest.Builder sign(LedgerValidationRequest.Builder builder) {
-    String namespace = builder.getNamespace().isEmpty() ? null : builder.getNamespace();
     byte[] bytes =
         com.scalar.dl.ledger.model.LedgerValidationRequest.serialize(
-            namespace,
+            builder.getNamespace(),
             builder.getAssetId(),
             builder.getStartAge(),
             builder.getEndAge(),
@@ -76,10 +70,9 @@ public class RequestSigner {
   }
 
   public AssetProofRetrievalRequest.Builder sign(AssetProofRetrievalRequest.Builder builder) {
-    String namespace = builder.getNamespace().isEmpty() ? null : builder.getNamespace();
     byte[] bytes =
         com.scalar.dl.ledger.model.AssetProofRetrievalRequest.serialize(
-            namespace,
+            builder.getNamespace(),
             builder.getAssetId(),
             builder.getAge(),
             builder.getEntityId(),
