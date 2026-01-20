@@ -95,12 +95,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Run integration tests
-        run: >-
-          ./gradlew.bat :ledger:integrationTestCosmos
-          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
-          -Dscalardb.storage=cosmos
-          -Dscalardb.contact_points=https://localhost:8081/
-          -Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
+        run: |
+          ./gradlew.bat :ledger:integrationTestCosmos `
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest `
+          "-Dscalardb.storage=cosmos" `
+          "-Dscalardb.contact_points=https://localhost:8081/" `
+          "-Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
   integration-test-with-dynamo:
     name: Integration testing with the Consensus Commit transaction manager on DynamoDB
@@ -158,8 +158,8 @@ jobs:
           --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
           -Dscalardb.storage=s3
           -Dscalardb.contact_points=${{ env.S3_REGION }}/${{ env.S3_BUCKET_NAME }}
-          -Dscalardb.username=${{ env.AWS_ACCESS_KEY_ID }}
-          -Dscalardb.password=${{ env.AWS_SECRET_ACCESS_KEY }}
+          -Dscalardb.username='${{ env.AWS_ACCESS_KEY_ID }}'
+          -Dscalardb.password='${{ env.AWS_SECRET_ACCESS_KEY }}'
 
   integration-test-with-blob-storage:
     name: Integration testing with the Consensus Commit transaction manager on Blob Storage
@@ -228,5 +228,5 @@ jobs:
           --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
           -Dscalardb.storage=cloud-storage
           -Dscalardb.contact_points=${{ env.CLOUD_STORAGE_BUCKET_NAME }}
-          -Dscalardb.username=${{ env.CLOUD_STORAGE_PROJECT_ID }}
-          -Dscalardb.password=${{ env.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}
+          -Dscalardb.username='${{ env.CLOUD_STORAGE_PROJECT_ID }}'
+          -Dscalardb.password='${{ env.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}'
