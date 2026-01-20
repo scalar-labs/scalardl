@@ -87,7 +87,7 @@ jobs:
           Export-Certificate @params
           certutil -encode $home/tmp-cert.cer $home/cosmosdbcert.cer
           Remove-Item $home/tmp-cert.cer
-          $keystore = "-keystore", "${env:JAVA_HOME}/jre/lib/security/cacerts"
+          $keystore = "-keystore", "${env:JAVA_HOME}/lib/security/cacerts"
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -importcert -noprompt -alias cosmos_emulator -file $home/cosmosdbcert.cer
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -list -alias cosmos_emulator
 
