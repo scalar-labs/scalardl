@@ -215,18 +215,38 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void registerSecret() {
-    checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getHmacIdentityConfig() != null,
         ClientError.CONFIG_HMAC_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
+    registerSecret(
+        config.getContextNamespace(),
+        config.getHmacIdentityConfig().getEntityId(),
+        config.getHmacIdentityConfig().getSecretKeyVersion(),
+        config.getHmacIdentityConfig().getSecretKey());
+  }
+
+  /**
+   * Registers a secret key to the specified namespace for HMAC authentication.
+   *
+   * @param namespace a namespace
+   * @param entityId an entity ID
+   * @param version a version of the certificate
+   * @param key a secret key
+   * @throws ClientException if a request fails for some reason
+   */
+  public void registerSecret(@Nullable String namespace, String entityId, int version, String key) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(entityId != null, ClientError.SERVICE_ENTITY_ID_CANNOT_BE_NULL.buildMessage());
+    checkArgument(key != null, ClientError.SERVICE_SECRET_KEY_CANNOT_BE_NULL.buildMessage());
+
     SecretRegistrationRequest.Builder builder =
         SecretRegistrationRequest.newBuilder()
-            .setEntityId(config.getHmacIdentityConfig().getEntityId())
-            .setKeyVersion(config.getHmacIdentityConfig().getSecretKeyVersion())
-            .setSecretKey(config.getHmacIdentityConfig().getSecretKey());
+            .setEntityId(entityId)
+            .setKeyVersion(version)
+            .setSecretKey(key);
 
-    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
-      builder.setContextNamespace(config.getContextNamespace());
+    if (namespace != null && !namespace.equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(namespace);
     }
 
     handler.registerSecret(builder.build());

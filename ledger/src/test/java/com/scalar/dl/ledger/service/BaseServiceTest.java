@@ -133,13 +133,13 @@ public class BaseServiceTest {
   public void register_ProperSecretGiven_ShouldRegisterSecret() {
     // Arrange
     configureSecretRegistrationRequest(secretRegistrationRequest);
-    doNothing().when(secretManager).register(any(SecretEntry.class));
+    doNothing().when(secretManager).register(anyString(), any(SecretEntry.class));
 
     // Act
     service.register(secretRegistrationRequest);
 
     // Assert
-    verify(secretManager).register(any(SecretEntry.class));
+    verify(secretManager).register(anyString(), any(SecretEntry.class));
   }
 
   @Test
