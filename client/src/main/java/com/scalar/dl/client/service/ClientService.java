@@ -103,16 +103,22 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void bootstrap() {
-    try {
-      if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
-        registerCertificate();
-      } else {
-        registerSecret();
-      }
-    } catch (ClientException e) {
-      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
-          && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
-        throw e;
+    checkClientMode(ClientMode.CLIENT);
+
+    // Skip identity registration for the non-default context namespace because the privileged port
+    // is assumed to be not accessible from clients for the isolated namespace.
+    if (config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      try {
+        if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
+          registerCertificate();
+        } else {
+          registerSecret();
+        }
+      } catch (ClientException e) {
+        if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
+            && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
+          throw e;
+        }
       }
     }
 
@@ -144,18 +150,39 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void registerCertificate() {
-    checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getDigitalSignatureIdentityConfig() != null,
         ClientError.CONFIG_DIGITAL_SIGNATURE_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
+    registerCertificate(
+        config.getContextNamespace(),
+        config.getDigitalSignatureIdentityConfig().getEntityId(),
+        config.getDigitalSignatureIdentityConfig().getCertVersion(),
+        config.getDigitalSignatureIdentityConfig().getCert());
+  }
+
+  /**
+   * Registers a certificate to the specified namespace for digital signature authentication.
+   *
+   * @param namespace a namespace
+   * @param entityId an entity ID
+   * @param version a version of the certificate
+   * @param pem a certificate in PEM format
+   * @throws ClientException if a request fails for some reason
+   */
+  public void registerCertificate(
+      @Nullable String namespace, String entityId, int version, String pem) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(entityId != null, ClientError.SERVICE_ENTITY_ID_CANNOT_BE_NULL.buildMessage());
+    checkArgument(pem != null, ClientError.SERVICE_CERT_PEM_CANNOT_BE_NULL.buildMessage());
+
     CertificateRegistrationRequest.Builder builder =
         CertificateRegistrationRequest.newBuilder()
-            .setEntityId(config.getDigitalSignatureIdentityConfig().getEntityId())
-            .setKeyVersion(config.getDigitalSignatureIdentityConfig().getCertVersion())
-            .setCertPem(config.getDigitalSignatureIdentityConfig().getCert());
+            .setEntityId(entityId)
+            .setKeyVersion(version)
+            .setCertPem(pem);
 
-    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
-      builder.setContextNamespace(config.getContextNamespace());
+    if (namespace != null && !namespace.equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(namespace);
     }
 
     handler.registerCertificate(builder.build());

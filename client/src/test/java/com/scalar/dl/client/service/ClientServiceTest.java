@@ -217,6 +217,7 @@ public class ClientServiceTest {
   public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
     // Arrange
     ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     doThrow(exception).when(service).registerCertificate();
 
@@ -260,6 +261,22 @@ public class ClientServiceTest {
     verify(service).registerCertificate();
     verify(service, never())
         .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_NonDefaultContextNamespaceGiven_ShouldSkipCertificateRegistration() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.getContextNamespace()).thenReturn(ANY_NAMESPACE);
+    when(config.isAuditorEnabled()).thenReturn(false);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service, never()).registerCertificate();
+    verify(service, never()).registerSecret();
   }
 
   @Test
@@ -314,6 +331,44 @@ public class ClientServiceTest {
     InOrder inOrder = inOrder(auditorClient, client);
     inOrder.verify(auditorClient).register(expected);
     inOrder.verify(client).register(expected);
+  }
+
+  @Test
+  public void
+      registerCertificate_WithNamespaceGiven_ShouldRegisterWithContextNamespaceForNonDefaultNamespace() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    service.registerCertificate(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, ANY_CERT);
+
+    // Assert
+    CertificateRegistrationRequest expected =
+        CertificateRegistrationRequest.newBuilder()
+            .setEntityId(ANY_ENTITY_ID)
+            .setKeyVersion(ANY_KEY_VERSION)
+            .setCertPem(ANY_CERT)
+            .setContextNamespace(ANY_NAMESPACE)
+            .build();
+    verify(handler).registerCertificate(expected);
+  }
+
+  @Test
+  public void registerCertificate_WithNullArguments_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act & Assert - entityId is null
+    Throwable thrownForNullEntityId =
+        catchThrowable(
+            () -> service.registerCertificate(ANY_NAMESPACE, null, ANY_KEY_VERSION, ANY_CERT));
+    assertThat(thrownForNullEntityId).isExactlyInstanceOf(IllegalArgumentException.class);
+
+    // Act & Assert - pem is null
+    Throwable thrownForNullPem =
+        catchThrowable(
+            () -> service.registerCertificate(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, null));
+    assertThat(thrownForNullPem).isExactlyInstanceOf(IllegalArgumentException.class);
   }
 
   @Test

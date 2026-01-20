@@ -63,7 +63,7 @@ public class ContractValidatorTest {
     when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
     when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
     when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
-    when(clientKeyValidator.getValidator(anyString(), anyInt()))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     byte[] signature =
         dsSigner.sign(
@@ -84,7 +84,7 @@ public class ContractValidatorTest {
     when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
     when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
     when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
-    when(clientKeyValidator.getValidator(anyString(), anyInt()))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     String tamperedContractId = CONTRACT_ID_IN_ASSET + "x";
     byte[] signature =
@@ -107,7 +107,7 @@ public class ContractValidatorTest {
     when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
     when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
     when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
-    when(clientKeyValidator.getValidator(anyString(), anyInt()))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     byte[] signature =
         dsSigner.sign(
@@ -130,7 +130,7 @@ public class ContractValidatorTest {
     when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
     when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
     when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
-    when(clientKeyValidator.getValidator(anyString(), anyInt()))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     dsSigner = new DigitalSignatureSigner(PRIVATE_KEY_B);
     byte[] tampered =
@@ -154,7 +154,7 @@ public class ContractValidatorTest {
     when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
     when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
     // tampered certificate B
-    when(clientKeyValidator.getValidator(anyString(), anyInt()))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_B));
     byte[] signature =
         dsSigner.sign(

@@ -57,7 +57,7 @@ public class ContractManagerTest {
 
     manager = spy(new ContractManager(registry, loader, clientKeyValidator));
 
-    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyInt());
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
     when(validator.validate(any(), any())).thenReturn(true);
     prepareContractEntry();
   }
@@ -231,7 +231,7 @@ public class ContractManagerTest {
     // Arrange
     ContractEntry entry = createContractEntryWith();
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_A);
-    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyInt());
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
     manager = spy(new ContractManager(registry, loader, clientKeyValidator));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
@@ -255,7 +255,7 @@ public class ContractManagerTest {
     ContractEntry entry = createContractEntryWith();
     // It will happen in case the certificate entry is tampered
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_B);
-    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyInt());
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
     manager = spy(new ContractManager(registry, loader, clientKeyValidator));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
@@ -276,7 +276,7 @@ public class ContractManagerTest {
     // Arrange
     ContractEntry entry = createContractEntryWith();
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_A);
-    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyInt());
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
     manager = spy(new ContractManager(registry, loader, clientKeyValidator));
     SecurityException toThrow = mock(SecurityException.class);
     when(toThrow.getMessage()).thenReturn("details");

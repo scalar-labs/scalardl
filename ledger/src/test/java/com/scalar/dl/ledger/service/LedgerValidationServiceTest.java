@@ -282,7 +282,7 @@ public class LedgerValidationServiceTest {
         LedgerValidationRequest.serialize(
             null, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
@@ -315,7 +315,7 @@ public class LedgerValidationServiceTest {
         LedgerValidationRequest.serialize(
             null, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     service =
         spy(
@@ -350,7 +350,7 @@ public class LedgerValidationServiceTest {
     byte[] serialized =
         LedgerValidationRequest.serialize(null, ID, 0, AGE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     when(config.isAuditorEnabled()).thenReturn(true);
     service =
@@ -388,7 +388,7 @@ public class LedgerValidationServiceTest {
         LedgerValidationRequest.serialize(
             NAMESPACE, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
@@ -568,7 +568,7 @@ public class LedgerValidationServiceTest {
     List<LedgerValidator> validators = createValidators();
     byte[] serialized = AssetProofRetrievalRequest.serialize(null, ID, AGE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     service =
         spy(
@@ -594,7 +594,7 @@ public class LedgerValidationServiceTest {
     // Arrange
     byte[] serialized = AssetProofRetrievalRequest.serialize(null, ID, AGE, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
     service =
         spy(

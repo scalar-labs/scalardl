@@ -114,7 +114,8 @@ public class LedgerServiceTest {
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {
-    when(clientKeyValidator.getValidator(anyString(), anyInt())).thenReturn(signatureValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(signatureValidator);
     if (isValid) {
       doNothing().when(request).validateWith(signatureValidator);
     } else {

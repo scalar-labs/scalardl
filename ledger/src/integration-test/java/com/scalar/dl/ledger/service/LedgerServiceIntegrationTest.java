@@ -39,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -177,7 +178,8 @@ public class LedgerServiceIntegrationTest {
 
     dsSigner = new DigitalSignatureSigner(PRIVATE_KEY_A);
     dsValidator = new DigitalSignatureValidator(CERTIFICATE_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(dsValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(dsValidator);
   }
 
   private String prepareArgumentForCreate(String assetId, int amount, String nonce) {
@@ -412,7 +414,8 @@ public class LedgerServiceIntegrationTest {
         prepareRegistrationRequest(dsSigner, CREATE_CONTRACT_ID1, CREATE_CONTRACT_ID1, contract);
     // simulate wrong cert id is specified (then wrong certificate is returned)
     dsValidator = new DigitalSignatureValidator(CERTIFICATE_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(dsValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(dsValidator);
 
     // Act
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
@@ -426,7 +429,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     byte[] contract = "create".getBytes(StandardCharsets.UTF_8);
     ContractRegistrationRequest request =
@@ -444,7 +448,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     byte[] contract = "create".getBytes(StandardCharsets.UTF_8);
     ContractRegistrationRequest request =
@@ -648,7 +653,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     String argument = prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
@@ -692,7 +698,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractExecutionRequest request =
