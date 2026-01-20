@@ -100,8 +100,7 @@ docker {
     files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
 }
 
-task integrationTest(type: Test) {
-    description 'Runs the integration tests.'
+def integrationTestBase = {
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
@@ -110,6 +109,17 @@ task integrationTest(type: Test) {
     options {
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
+}
+
+task integrationTest(type: Test) {
+    description 'Runs the integration tests.'
+    configure integrationTestBase
+}
+
+task integrationTestCosmos(type: Test) {
+    description 'Runs the integration tests for Cosmos DB.'
+    configure integrationTestBase
+    jvmArgs '-Xmx6g', '-XX:MaxDirectMemorySize=4g'
 }
 
 task permissionTest(type: Test) {
