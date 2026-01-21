@@ -23,6 +23,7 @@ import com.scalar.dl.ledger.model.ExecutionAbortRequest;
 import com.scalar.dl.ledger.model.ExecutionAbortResult;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
@@ -111,6 +112,10 @@ public class LedgerService {
 
   public void create(NamespaceCreationRequest request) {
     base.create(request);
+  }
+
+  public void drop(NamespaceDroppingRequest request) {
+    base.drop(request);
   }
 
   public List<String> list(NamespacesListingRequest request) {

@@ -59,6 +59,7 @@ public class ScalarDlCommandLineTest {
               "",
               "manage namespaces",
               "  create-namespace       Create a namespace.",
+              "  drop-namespace         Drop a namespace.",
               "  list-namespaces        List namespaces.",
               "",
               "validate ledger",
@@ -102,6 +103,7 @@ public class ScalarDlCommandLineTest {
                 LedgerValidation.class,
                 SecretRegistration.class,
                 NamespaceCreation.class,
+                NamespaceDropping.class,
                 NamespacesListing.class,
               });
     }

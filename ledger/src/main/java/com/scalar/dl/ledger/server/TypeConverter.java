@@ -16,6 +16,7 @@ import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.StateRetrievalRequest;
@@ -117,6 +118,11 @@ public class TypeConverter {
   public static com.scalar.dl.ledger.model.NamespaceCreationRequest convert(
       NamespaceCreationRequest req) {
     return new com.scalar.dl.ledger.model.NamespaceCreationRequest(req.getNamespace());
+  }
+
+  public static com.scalar.dl.ledger.model.NamespaceDroppingRequest convert(
+      NamespaceDroppingRequest req) {
+    return new com.scalar.dl.ledger.model.NamespaceDroppingRequest(req.getNamespace());
   }
 
   public static com.scalar.dl.ledger.model.NamespacesListingRequest convert(

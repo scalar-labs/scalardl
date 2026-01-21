@@ -6,6 +6,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
 import com.scalar.db.api.ConditionBuilder;
+import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -125,6 +126,17 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
         .run();
   }
 
+  @Override
+  public void drop(String namespace) {
+    // Drop the namespace first, then delete the entry. This order ensures idempotency:
+    // if the operation partially fails, re-execution will succeed because dropNamespace uses
+    // ifExists=true, and deleteNamespaceEntry will complete the cleanup.
+    // The reverse order would leave orphaned ScalarDB resources if deleteNamespaceEntry
+    // succeeds but dropNamespace fails, as re-execution would fail with NAMESPACE_NOT_FOUND.
+    dropNamespace(namespace);
+    deleteNamespaceEntry(namespace);
+  }
+
   private void createNamespaceManagementTable() {
     try {
       storageAdmin.createTable(
@@ -180,6 +192,53 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       throw new DatabaseException(CommonError.NAMESPACE_ALREADY_EXISTS);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
+    }
+  }
+
+  private void dropNamespace(String namespace) {
+    try {
+      String fullNamespaceName = namespaceResolver.resolve(namespace);
+      dropStorageTables(fullNamespaceName);
+      dropTransactionTables(fullNamespaceName);
+      storageAdmin.dropNamespace(fullNamespaceName, true);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.DROPPING_NAMESPACE_FAILED, e, e.getMessage());
+    }
+  }
+
+  private void dropStorageTables(String fullNamespaceName) throws ExecutionException {
+    for (Map.Entry<String, TableMetadata> entry : storageTables.entrySet()) {
+      String tableName = entry.getKey();
+      storageAdmin.dropTable(fullNamespaceName, tableName, true);
+    }
+  }
+
+  private void dropTransactionTables(String fullNamespaceName) throws ExecutionException {
+    if (transactionAdmin == null || transactionTables.isEmpty()) {
+      return;
+    }
+
+    for (Map.Entry<String, TableMetadata> entry : transactionTables.entrySet()) {
+      String tableName = entry.getKey();
+      transactionAdmin.dropTable(fullNamespaceName, tableName, true);
+    }
+  }
+
+  private void deleteNamespaceEntry(String namespace) {
+    Delete delete =
+        Delete.newBuilder()
+            .namespace(config.getNamespace())
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
+            .condition(ConditionBuilder.deleteIfExists())
+            .build();
+    try {
+      storage.delete(delete);
+    } catch (NoMutationException e) {
+      throw new DatabaseException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.DROPPING_NAMESPACE_FAILED, e, e.getMessage());
     }
   }
 

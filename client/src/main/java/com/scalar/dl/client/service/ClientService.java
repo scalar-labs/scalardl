@@ -32,6 +32,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.Collections;
@@ -1052,6 +1053,41 @@ public class ClientService implements AutoCloseable {
     }
 
     handler.createNamespace(request);
+  }
+
+  /**
+   * Drops the specified namespace.
+   *
+   * @param namespace a namespace name to drop
+   * @throws ClientException if a request fails for some reason
+   */
+  public void dropNamespace(String namespace) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(
+        namespace != null, ClientError.SERVICE_NAMESPACE_NAME_CANNOT_BE_NULL.buildMessage());
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace(namespace).build();
+
+    handler.dropNamespace(request);
+  }
+
+  /**
+   * Drops the namespace specified with the serialized byte array of a {@code
+   * NamespaceDroppingRequest}.
+   *
+   * @param serializedBinary a serialized byte array of {@code NamespaceDroppingRequest}
+   * @throws ClientException if a request fails for some reason
+   */
+  public void dropNamespace(byte[] serializedBinary) {
+    checkClientMode(ClientMode.INTERMEDIARY);
+    NamespaceDroppingRequest request;
+    try {
+      request = NamespaceDroppingRequest.parseFrom(serializedBinary);
+    } catch (InvalidProtocolBufferException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+
+    handler.dropNamespace(request);
   }
 
   /**
