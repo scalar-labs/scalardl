@@ -16,6 +16,8 @@ import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -31,7 +33,7 @@ public class ContractManager {
   private final ContractRegistry registry;
   private final ContractLoader loader;
   private final ClientKeyValidator clientKeyValidator;
-  private final Cache<ContractEntry.Key, Object> recentlyValidated;
+  private final ConcurrentMap<String, Cache<ContractEntry.Key, Object>> recentlyValidatedCaches;
 
   @Inject
   public ContractManager(
@@ -39,11 +41,7 @@ public class ContractManager {
     this.registry = registry;
     this.loader = loader;
     this.clientKeyValidator = clientKeyValidator;
-    this.recentlyValidated =
-        CacheBuilder.newBuilder()
-            .maximumSize(CACHE_SIZE)
-            .expireAfterWrite(VALIDATION_WINDOW_DAYS, TimeUnit.DAYS)
-            .build();
+    this.recentlyValidatedCaches = new ConcurrentHashMap<>();
   }
 
   @VisibleForTesting
@@ -52,11 +50,11 @@ public class ContractManager {
       ContractRegistry registry,
       ContractLoader loader,
       ClientKeyValidator clientKeyValidator,
-      Cache<ContractEntry.Key, Object> recentlyValidated) {
+      ConcurrentMap<String, Cache<ContractEntry.Key, Object>> recentlyValidatedCaches) {
     this.registry = registry;
     this.loader = loader;
     this.clientKeyValidator = clientKeyValidator;
-    this.recentlyValidated = recentlyValidated;
+    this.recentlyValidatedCaches = recentlyValidatedCaches;
   }
 
   /**
@@ -64,15 +62,16 @@ public class ContractManager {
    * ContractEntry} is stored in the {@link ContractRegistry}, and if so, throw a {@link
    * DatabaseException} and fail. Otherwise, it will store it in the {@link ContractRegistry}.
    *
+   * @param namespace a namespace to register the contract
    * @param entry a {@link ContractEntry}
    */
-  public void register(ContractEntry entry) {
+  public void register(String namespace, ContractEntry entry) {
     try {
       // NOTICE: register and get are not linearizable, so get in between successive register
       // operations for the same entry might return inconsistent results.
       // We don't pay much attention to the potential issue since registering the same contract
       // entry multiple times is a wrong usage.
-      get(entry.getKey());
+      get(namespace, entry.getKey());
       // Throw an exception because registering the same contract might cause invalidation of ledger
       // entries
       throw new DatabaseException(CommonError.CONTRACT_ALREADY_REGISTERED);
@@ -81,48 +80,52 @@ public class ContractManager {
     }
 
     // validate the signature of a specified contract.
-    validateContract(entry);
+    validateContract(namespace, entry);
     // verify if a specified contract is loadable.
-    loadContract(entry);
+    loadContract(namespace, entry);
 
-    registry.bind(entry);
+    registry.bind(namespace, entry);
   }
 
   /**
    * Returns a {@link ContractEntry}. It will retrieve it from the {@link ContractRegistry}.
    *
+   * @param namespace a namespace for the contract
    * @param key the key of the {@link ContractEntry} to retrieve
    * @return a {@link ContractEntry}
    */
-  public ContractEntry get(ContractEntry.Key key) {
-    return registry.lookup(key);
+  public ContractEntry get(String namespace, ContractEntry.Key key) {
+    return registry.lookup(namespace, key);
   }
 
   /**
    * Returns a list of all the {@link ContractEntry}s of a specific version registered by a
    * specified entity id.
    *
+   * @param namespace a namespace for the contracts
    * @param entityId an entity ID.
    * @param keyVersion the version of a key (certificate or HMAC secret key)
    * @return a list of {@link ContractEntry}s
    */
-  public List<ContractEntry> scan(String entityId, int keyVersion) {
-    return registry.scan(entityId, keyVersion);
+  public List<ContractEntry> scan(String namespace, String entityId, int keyVersion) {
+    return registry.scan(namespace, entityId, keyVersion);
   }
 
   /**
    * Instantiates a {@link ContractMachine} from the specified contract entry.
    *
+   * @param namespace a namespace where the contract exists
    * @param entry the entry of the {@link ContractMachine} to retrieve
    * @return a {@link ContractMachine}
    */
-  public ContractMachine getInstance(ContractEntry entry) {
-    if (recentlyValidated.getIfPresent(entry.getKey()) == null) {
-      validateContract(entry);
-      recentlyValidated.put(entry.getKey(), new Object());
+  public ContractMachine getInstance(String namespace, ContractEntry entry) {
+    Cache<ContractEntry.Key, Object> cache =
+        recentlyValidatedCaches.computeIfAbsent(namespace, this::createCache);
+    if (cache.getIfPresent(entry.getKey()) == null) {
+      validateContract(namespace, entry);
+      cache.put(entry.getKey(), new Object());
     }
-    ContractMachine contract = loadContract(entry);
-    return contract;
+    return loadContract(namespace, entry);
   }
 
   @VisibleForTesting
@@ -137,10 +140,10 @@ public class ContractManager {
     }
   }
 
-  private ContractMachine loadContract(ContractEntry entry) {
+  private ContractMachine loadContract(String namespace, ContractEntry entry) {
     Class<?> contractClazz = defineClass(entry);
     ContractMachine contract = new ContractMachine(createInstance(contractClazz));
-    contract.initialize(this, entry.getClientIdentityKey());
+    contract.initialize(this, namespace, entry.getClientIdentityKey());
     return contract;
   }
 
@@ -153,11 +156,9 @@ public class ContractManager {
   }
 
   @VisibleForTesting
-  void validateContract(ContractEntry entry) {
-    // TODO: use context namespace
+  void validateContract(String namespace, ContractEntry entry) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(
-            Namespaces.DEFAULT, entry.getEntityId(), entry.getKeyVersion());
+        clientKeyValidator.getValidator(namespace, entry.getEntityId(), entry.getKeyVersion());
 
     byte[] serialized =
         ContractRegistrationRequest.serialize(
@@ -165,7 +166,7 @@ public class ContractManager {
             entry.getBinaryName(),
             entry.getByteCode(),
             entry.getProperties().orElse(null),
-            null, // TODO: use context namespace
+            namespace.equals(Namespaces.DEFAULT) ? null : namespace,
             entry.getEntityId(),
             entry.getKeyVersion());
 
@@ -174,5 +175,12 @@ public class ContractManager {
       // so this validation failure indicates potential malicious behavior.
       throw new ContractValidationException(CommonError.CONTRACT_VALIDATION_FAILED);
     }
+  }
+
+  private Cache<ContractEntry.Key, Object> createCache(String namespace) {
+    return CacheBuilder.newBuilder()
+        .maximumSize(CACHE_SIZE)
+        .expireAfterWrite(VALIDATION_WINDOW_DAYS, TimeUnit.DAYS)
+        .build();
   }
 }

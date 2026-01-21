@@ -32,6 +32,8 @@ import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.UnloadableContractException;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ContractManagerTest {
+  private static final String ANY_NAMESPACE = "test_namespace";
   private static final String ANY_CONTRACT_ID = "MyCreate";
   private static final String ANY_CONTRACT_NAME = "Create";
   private static final byte[] ANY_BYTE_CODE = "byte_code".getBytes(StandardCharsets.UTF_8);
@@ -81,7 +84,7 @@ public class ContractManagerTest {
             ANY_CONTRACT_NAME,
             ANY_BYTE_CODE,
             null,
-            null,
+            ANY_NAMESPACE,
             ANY_ENTITY_ID,
             ANY_CERT_VERSION);
     return new ContractEntry(
@@ -98,58 +101,59 @@ public class ContractManagerTest {
   @Test
   public void register_ContractEntryGiven_ShouldBind() {
     // Arrange
-    when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
+    when(registry.lookup(ANY_NAMESPACE, entry.getKey())).thenThrow(MissingContractException.class);
     doReturn(TestJsonpBasedContract.class).when(loader).defineClass(entry);
 
     // Act
-    manager.register(entry);
+    manager.register(ANY_NAMESPACE, entry);
 
     // Assert
-    verify(registry).lookup(entry.getKey());
+    verify(registry).lookup(ANY_NAMESPACE, entry.getKey());
     verify(validator).validate(any(), any());
     verify(manager).defineClass(entry);
-    verify(registry).bind(entry);
+    verify(registry).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
   public void
       register_ContractEntryForAlreadyRegisteredContractGiven_ShouldThrowDatabaseException() {
     // Arrange
-    when(registry.lookup(entry.getKey())).thenReturn(entry);
+    when(registry.lookup(ANY_NAMESPACE, entry.getKey())).thenReturn(entry);
 
     // Act Assert
-    assertThatThrownBy(() -> manager.register(entry)).isInstanceOf(DatabaseException.class);
+    assertThatThrownBy(() -> manager.register(ANY_NAMESPACE, entry))
+        .isInstanceOf(DatabaseException.class);
 
     verify(validator, never()).validate(any(), any());
     verify(manager, never()).defineClass(entry);
-    verify(registry, never()).bind(entry);
+    verify(registry, never()).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
   public void register_ValidationFailed_ShouldThrowException() {
     // Arrange
-    when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
+    when(registry.lookup(ANY_NAMESPACE, entry.getKey())).thenThrow(MissingContractException.class);
     when(validator.validate(any(), any())).thenReturn(false);
 
     // Act Assert
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
+    Throwable thrown = catchThrowable(() -> manager.register(ANY_NAMESPACE, entry));
 
     assertThat(thrown).isExactlyInstanceOf(ContractValidationException.class);
-    verify(registry, never()).bind(entry);
+    verify(registry, never()).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
   public void register_LoadFailedWithRuntimeException_ShouldThrowException() {
     // Arrange
-    when(registry.lookup(entry.getKey())).thenThrow(MissingContractException.class);
+    when(registry.lookup(ANY_NAMESPACE, entry.getKey())).thenThrow(MissingContractException.class);
     doThrow(RuntimeException.class).when(loader).defineClass(entry);
 
     // Act Assert
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
+    Throwable thrown = catchThrowable(() -> manager.register(ANY_NAMESPACE, entry));
 
     assertThat(thrown).isExactlyInstanceOf(UnloadableContractException.class);
     verify(manager).defineClass(entry);
-    verify(registry, never()).bind(entry);
+    verify(registry, never()).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
@@ -160,11 +164,11 @@ public class ContractManagerTest {
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    ContractMachine contract = manager.getInstance(entry);
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
     verify(loader).defineClass(entry);
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
     assertThat(contract.getClientIdentityKey().getKeyVersion()).isEqualTo(ANY_CERT_VERSION);
@@ -179,11 +183,11 @@ public class ContractManagerTest {
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    ContractMachine contract = manager.getInstance(entry);
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
     verify(loader).defineClass(entry);
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
     assertThat(contract.getClientIdentityKey().getKeyVersion()).isEqualTo(ANY_CERT_VERSION);
@@ -198,31 +202,33 @@ public class ContractManagerTest {
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    manager.getInstance(entry);
-    manager.getInstance(entry);
+    manager.getInstance(ANY_NAMESPACE, entry);
+    manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
     verify(loader, times(2)).defineClass(entry);
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
   }
 
   @Test
   public void getInstance_SameEntryGivenAfterExpired_ShouldReturnContractWithValidation() {
     // Arrange
     // it expires right after put
+    ConcurrentMap<String, Cache<ContractEntry.Key, Object>> caches = new ConcurrentHashMap<>();
     Cache<ContractEntry.Key, Object> cache = CacheBuilder.newBuilder().maximumSize(0).build();
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator, cache));
+    caches.put(ANY_NAMESPACE, cache);
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, caches));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    manager.getInstance(entry);
-    manager.getInstance(entry);
+    manager.getInstance(ANY_NAMESPACE, entry);
+    manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
     verify(loader, times(2)).defineClass(entry);
-    verify(manager, times(2)).validateContract(entry);
+    verify(manager, times(2)).validateContract(ANY_NAMESPACE, entry);
   }
 
   @Test
@@ -238,10 +244,10 @@ public class ContractManagerTest {
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    ContractMachine contract = manager.getInstance(entry);
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
     verify(loader).defineClass(entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
@@ -262,11 +268,11 @@ public class ContractManagerTest {
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    AssertionsForClassTypes.assertThatThrownBy(() -> manager.getInstance(entry))
+    AssertionsForClassTypes.assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
         .isInstanceOf(ContractValidationException.class);
 
     // Assert
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
     verify(loader, never()).defineClass(entry);
   }
 
@@ -283,12 +289,12 @@ public class ContractManagerTest {
     doThrow(toThrow).when(loader).defineClass(entry);
 
     // Act
-    AssertionsForClassTypes.assertThatThrownBy(() -> manager.getInstance(entry))
+    AssertionsForClassTypes.assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
         .isInstanceOf(UnloadableContractException.class)
         .hasMessage(CommonError.LOADING_CONTRACT_FAILED.buildMessage("details"));
 
     // Assert
-    verify(manager).validateContract(entry);
+    verify(manager).validateContract(ANY_NAMESPACE, entry);
     verify(loader).defineClass(entry);
   }
 }

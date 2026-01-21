@@ -57,30 +57,24 @@ public class BaseService {
   }
 
   public void register(ContractRegistrationRequest request) {
+    String namespace =
+        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
     SignatureValidator validator =
-        clientKeyValidator.getValidator(
-            request.getContextNamespace() == null
-                ? Namespaces.DEFAULT
-                : request.getContextNamespace(),
-            request.getEntityId(),
-            request.getKeyVersion());
+        clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
-    contractManager.register(ContractEntry.from(request));
+    contractManager.register(namespace, ContractEntry.from(request));
   }
 
   public List<ContractEntry> list(ContractsListingRequest request) {
+    String namespace =
+        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
     SignatureValidator validator =
-        clientKeyValidator.getValidator(
-            request.getContextNamespace() == null
-                ? Namespaces.DEFAULT
-                : request.getContextNamespace(),
-            request.getEntityId(),
-            request.getKeyVersion());
+        clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     return new ContractScanner(contractManager)
-        .scan(request.getEntityId(), request.getKeyVersion(), request.getContractId());
+        .scan(namespace, request.getEntityId(), request.getKeyVersion(), request.getContractId());
   }
 
   public void create(NamespaceCreationRequest request) {

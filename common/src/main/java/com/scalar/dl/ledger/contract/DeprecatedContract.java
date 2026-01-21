@@ -18,11 +18,12 @@ class DeprecatedContract extends ContractBase<JsonObject> {
   }
 
   @Override
-  final void initialize(ContractManager manager, ClientIdentityKey clientIdentityKey) {
+  final void initialize(
+      ContractManager manager, String namespace, ClientIdentityKey clientIdentityKey) {
     CertificateEntry.Key certificateKey =
         new CertificateEntry.Key(
             clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
-    contract.initialize(manager, certificateKey);
+    contract.initialize(manager, namespace, certificateKey);
   }
 
   @Override

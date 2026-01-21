@@ -71,6 +71,7 @@ public class LedgerServicePermissionTest {
   private static final String NONCE_ATTRIBUTE_NAME = "nonce";
   private static final String ENTITY_ID = "entity_id";
   private static final int KEY_VERSION = 1;
+  private static final String ANY_NAMESPACE = "test_namespace";
   @Mock private TransactionManager transactionManager;
   @Mock private Transaction transaction;
   @Mock private Ledger ledger;
@@ -188,7 +189,7 @@ public class LedgerServicePermissionTest {
     ContractExecutionRequest request =
         prepareExecutionRequest(signer, SIMPLE_CONTRACT_ID, argument);
     ContractEntry.Key key = new ContractEntry.Key(SIMPLE_CONTRACT_ID, certKey);
-    when(registry.lookup(key)).thenReturn(simpleEntry);
+    when(registry.lookup(anyString(), key)).thenReturn(simpleEntry);
     ledger = prepareLedger(request);
     doNothing().when(ledger).put(anyString(), any(JsonObject.class));
 
@@ -206,7 +207,7 @@ public class LedgerServicePermissionTest {
     ContractExecutionRequest request =
         prepareExecutionRequest(signer, BADWRITE_CONTRACT_ID, argument);
     ContractEntry.Key key = new ContractEntry.Key(BADWRITE_CONTRACT_ID, certKey);
-    when(registry.lookup(key)).thenReturn(simpleEntry);
+    when(registry.lookup(anyString(), key)).thenReturn(simpleEntry);
     ledger = prepareLedger(request);
     doNothing().when(ledger).put(anyString(), any(JsonObject.class));
 
@@ -232,8 +233,8 @@ public class LedgerServicePermissionTest {
         prepareExecutionRequest(signer, CALLER_CONTRACT_ID, argument);
     ContractEntry.Key key1 = new ContractEntry.Key(CALLER_CONTRACT_ID, certKey);
     ContractEntry.Key key2 = new ContractEntry.Key(SIMPLE_CONTRACT_ID, certKey);
-    when(registry.lookup(key1)).thenReturn(callerEntry);
-    when(registry.lookup(key2)).thenReturn(simpleEntry);
+    when(registry.lookup(anyString(), key1)).thenReturn(callerEntry);
+    when(registry.lookup(anyString(), key2)).thenReturn(simpleEntry);
     ledger = prepareLedger(request);
     doNothing().when(ledger).put(anyString(), any(JsonObject.class));
 
@@ -254,8 +255,8 @@ public class LedgerServicePermissionTest {
         prepareExecutionRequest(signer, CALLER_CONTRACT_ID, argument);
     ContractEntry.Key key1 = new ContractEntry.Key(CALLER_CONTRACT_ID, certKey);
     ContractEntry.Key key2 = new ContractEntry.Key(BADREAD_CONTRACT_ID, certKey);
-    when(registry.lookup(key1)).thenReturn(callerEntry);
-    when(registry.lookup(key2)).thenReturn(badreadEntry);
+    when(registry.lookup(anyString(), key1)).thenReturn(callerEntry);
+    when(registry.lookup(anyString(), key2)).thenReturn(badreadEntry);
     ledger = prepareLedger(request);
     doNothing().when(ledger).put(anyString(), any(JsonObject.class));
 
@@ -281,8 +282,8 @@ public class LedgerServicePermissionTest {
         prepareExecutionRequest(signer, CALLER_CONTRACT_ID, argument);
     ContractEntry.Key key1 = new ContractEntry.Key(CALLER_CONTRACT_ID, certKey);
     ContractEntry.Key key2 = new ContractEntry.Key(BADWRITE_CONTRACT_ID, certKey);
-    when(registry.lookup(key1)).thenReturn(callerEntry);
-    when(registry.lookup(key2)).thenReturn(badwriteEntry);
+    when(registry.lookup(anyString(), key1)).thenReturn(callerEntry);
+    when(registry.lookup(anyString(), key2)).thenReturn(badwriteEntry);
     ledger = prepareLedger(request);
     doNothing().when(ledger).put(anyString(), any(JsonObject.class));
 

@@ -103,8 +103,8 @@ public class ContractExecutorTest {
       when(request.getFunctionArgument()).thenReturn(Optional.of(ANY_FUNCTION_ARGUMENT));
     }
     ContractEntry entry = mock(ContractEntry.class);
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(functionManager.getInstance(ANY_FUNCTION_ID)).thenReturn(function);
     when(transactionManager.startWith(request)).thenReturn(transaction);

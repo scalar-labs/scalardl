@@ -152,7 +152,7 @@ public class BaseServiceTest {
     service.register(contractRegistrationRequest);
 
     // Assert
-    verify(contractManager).register(any());
+    verify(contractManager).register(anyString(), any());
   }
 
   @Test
@@ -166,7 +166,7 @@ public class BaseServiceTest {
         .isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(any());
+    verify(contractManager, never()).register(anyString(), any());
   }
 
   @Test
@@ -177,14 +177,13 @@ public class BaseServiceTest {
     ContractEntry entry1 = prepareContractEntry(SOME_CONTRACT_ID);
     ContractEntry entry2 = prepareContractEntry(SOME_CONTRACT_ID + "x");
     List<ContractEntry> entries = Arrays.asList(entry1, entry2);
-    when(contractManager.scan(anyString(), anyInt())).thenReturn(entries);
+    when(contractManager.scan(anyString(), anyString(), anyInt())).thenReturn(entries);
 
     // Act
     List<ContractEntry> actual = service.list(contractsListingRequest);
 
     // Assert
-    verify(contractManager)
-        .scan(contractsListingRequest.getEntityId(), contractsListingRequest.getKeyVersion());
+    verify(contractManager).scan(anyString(), anyString(), anyInt());
     assertThat(actual).containsOnly(entry1);
   }
 
@@ -196,14 +195,13 @@ public class BaseServiceTest {
     ContractEntry entry1 = prepareContractEntry(SOME_CONTRACT_ID);
     ContractEntry entry2 = prepareContractEntry(SOME_CONTRACT_ID + "x");
     List<ContractEntry> entries = Arrays.asList(entry1, entry2);
-    when(contractManager.scan(anyString(), anyInt())).thenReturn(entries);
+    when(contractManager.scan(anyString(), anyString(), anyInt())).thenReturn(entries);
 
     // Act
     List<ContractEntry> actual = service.list(contractsListingRequest);
 
     // Assert
-    verify(contractManager)
-        .scan(contractsListingRequest.getEntityId(), contractsListingRequest.getKeyVersion());
+    verify(contractManager).scan(anyString(), anyString(), anyInt());
     assertThat(actual).containsExactly(entry1, entry2);
   }
 
