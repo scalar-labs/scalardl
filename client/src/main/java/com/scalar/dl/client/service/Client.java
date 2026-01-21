@@ -10,6 +10,7 @@ import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.Status;
@@ -32,6 +33,8 @@ public interface Client {
   JsonObject list(ContractsListingRequest request);
 
   void create(NamespaceCreationRequest request);
+
+  void drop(NamespaceDroppingRequest request);
 
   String list(NamespacesListingRequest request);
 

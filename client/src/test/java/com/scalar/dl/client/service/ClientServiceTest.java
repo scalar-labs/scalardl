@@ -39,6 +39,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -1061,5 +1062,91 @@ public class ClientServiceTest {
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
     verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_CorrectInputsGiven_ShouldDropNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String namespace = "test_namespace";
+
+    // Act
+    service.dropNamespace(namespace);
+
+    // Assert
+    NamespaceDroppingRequest expected =
+        NamespaceDroppingRequest.newBuilder().setNamespace(namespace).build();
+    verify(handler).dropNamespace(expected);
+  }
+
+  @Test
+  public void dropNamespace_NullNamespaceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace((String) null));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void
+      dropNamespace_NamespaceNameWithIntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    String namespace = "test_namespace";
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(namespace));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_SerializedBinaryGiven_ShouldDropNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    NamespaceDroppingRequest expected =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    service.dropNamespace(expected.toByteArray());
+
+    // Assert
+    verify(handler).dropNamespace(expected);
+  }
+
+  @Test
+  public void dropNamespace_InvalidSerializedBinaryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    byte[] invalidBinary = "invalid".getBytes(StandardCharsets.UTF_8);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(invalidBinary));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_SerializedBinaryClientModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(request.toByteArray()));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
   }
 }

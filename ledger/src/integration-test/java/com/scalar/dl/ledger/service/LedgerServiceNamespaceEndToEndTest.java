@@ -48,6 +48,7 @@ import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.proof.AssetProof;
@@ -68,6 +69,7 @@ import org.junit.jupiter.api.Test;
 public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTestBase {
   private static final String SOME_NAMESPACE1 = "namespace1";
   private static final String SOME_NAMESPACE2 = "namespace2";
+  private static final String SOME_NAMESPACE3 = "namespace3";
   private static final ImmutableList<String> TABLES =
       ImmutableList.of(
           "asset",
@@ -726,5 +728,32 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
 
     // Assert
     assertThat(actual).containsExactly(SOME_NAMESPACE1);
+  }
+
+  @Test
+  public void drop_NamespaceGiven_ShouldDropNamespace() {
+    // Arrange
+    createNamespace(SOME_NAMESPACE3);
+    NamespaceDroppingRequest request = new NamespaceDroppingRequest(SOME_NAMESPACE3);
+
+    // Act
+    ledgerService.drop(request);
+
+    // Assert
+    assertThat(ledgerService.list(new NamespacesListingRequest(SOME_NAMESPACE3))).isEmpty();
+  }
+
+  @Test
+  public void drop_DefaultNamespaceGiven_ShouldThrowException() {
+    // Arrange
+    NamespaceDroppingRequest request =
+        new NamespaceDroppingRequest(NamespaceManager.DEFAULT_NAMESPACE);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> ledgerService.drop(request));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT);
   }
 }

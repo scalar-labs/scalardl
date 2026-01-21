@@ -28,6 +28,7 @@ import picocli.CommandLine.HelpCommand;
       LedgerValidation.class,
       SecretRegistration.class,
       NamespaceCreation.class,
+      NamespaceDropping.class,
       NamespacesListing.class,
     },
     description = {"These are ScalarDL commands used in various situations:"})
@@ -81,7 +82,8 @@ public class ScalarDlCommandLine {
         Arrays.asList(ContractExecution.class, ContractsListing.class));
     // Section: manage namespaces.
     sections.put(
-        "%nmanage namespaces%n", Arrays.asList(NamespaceCreation.class, NamespacesListing.class));
+        "%nmanage namespaces%n",
+        Arrays.asList(NamespaceCreation.class, NamespaceDropping.class, NamespacesListing.class));
     // Section: validate ledger.
     sections.put("%nvalidate ledger%n", Collections.singletonList(LedgerValidation.class));
     // Section: generic contracts.
