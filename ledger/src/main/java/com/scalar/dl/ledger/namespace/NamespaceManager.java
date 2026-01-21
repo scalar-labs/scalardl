@@ -50,6 +50,22 @@ public class NamespaceManager {
     registry.create(namespace);
   }
 
+  /**
+   * Drops a namespace with the specified name.
+   *
+   * @param namespace a namespace name to drop
+   * @throws LedgerException if the namespace name is invalid or reserved
+   */
+  public void drop(@Nonnull String namespace) {
+    if (!isValidNamespaceName(namespace)) {
+      throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
+    }
+    if (namespace.equals(DEFAULT_NAMESPACE)) {
+      throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
+    }
+    registry.drop(namespace);
+  }
+
   private boolean isValidNamespaceName(@Nonnull String namespace) {
     return NAMESPACE_NAME_PATTERN.matcher(namespace).matches();
   }

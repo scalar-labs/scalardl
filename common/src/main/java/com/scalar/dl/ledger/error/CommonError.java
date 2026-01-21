@@ -281,6 +281,8 @@ public enum CommonError implements ScalarDlError {
       StatusCode.DATABASE_ERROR, "011", "Creating the namespace failed. Details: %s", "", ""),
   SCANNING_NAMESPACES_FAILED(
       StatusCode.DATABASE_ERROR, "012", "Scanning the namespaces failed. Details: %s", "", ""),
+  DROPPING_NAMESPACE_FAILED(
+      StatusCode.DATABASE_ERROR, "013", "Dropping the namespace failed. Details: %s", "", ""),
 
   //
   // Errors for RUNTIME_ERROR(502)
