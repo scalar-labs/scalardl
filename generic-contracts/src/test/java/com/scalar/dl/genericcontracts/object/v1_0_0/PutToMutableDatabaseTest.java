@@ -570,10 +570,7 @@ public class PutToMutableDatabaseTest {
             "BIGINT value with TIMESTAMP data type");
 
     // Act Assert
-    builder
-        .build()
-        .entrySet()
-        .parallelStream()
+    builder.build().entrySet().parallelStream()
         .forEach(
             entry ->
                 invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
@@ -616,10 +613,7 @@ public class PutToMutableDatabaseTest {
             "TIMESTAMPTZ without Z");
 
     // Act Assert
-    builder
-        .build()
-        .entrySet()
-        .parallelStream()
+    builder.build().entrySet().parallelStream()
         .forEach(
             entry ->
                 invoke_ColumnsWithInvalidArguments_ShouldThrowContractContextException(
