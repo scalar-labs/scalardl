@@ -1,5 +1,5 @@
 plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'application'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
@@ -10,17 +10,16 @@ java {
     }
 }
 
-apply plugin:'application'
 startScripts.enabled = false
 
 sourceSets {
     integrationTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 
     // Everything below has been added as there is a bug in Gradle that prevents us from
@@ -28,11 +27,11 @@ sourceSets {
     // test to the unit tests directory and delete everything below.
     permissionTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/permission-test/java')
         }
         resources.srcDir file('src/permission-test/resources')
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -69,7 +68,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -79,7 +78,7 @@ javadoc {
 }
 
 task testJar(type: Jar) {
-    classifier 'tests'
+    archiveClassifier = 'tests'
     from sourceSets.test.output
 }
 
@@ -91,14 +90,37 @@ task LedgerServer(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-applicationDistribution.into('bin') {
-    from(LedgerServer)
-    fileMode = 0755
+distributions {
+    main {
+        contents {
+            into('bin') {
+                from(LedgerServer)
+                filePermissions {
+                    unix('0755')
+                }
+            }
+        }
+    }
 }
 
-docker {
-    name "ghcr.io/scalar-labs/scalardl-ledger:$dockerVersion"
-    files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
+task copyFilesToDockerBuildContextDir(type: Copy) {
+    description = 'Copy files to a temporary folder to build the Docker image'
+    dependsOn distTar
+    from('Dockerfile')
+    from('conf') {
+        include 'ledger.properties.for.docker'
+        include 'log4j2.properties'
+    }
+    from('docker-entrypoint.sh')
+    from(tasks.distTar.archiveFile)
+    into('build/docker')
+}
+
+task docker(type: Exec) {
+    description = 'Build ScalarDL Ledger Docker image'
+    dependsOn copyFilesToDockerBuildContextDir
+    workingDir 'build/docker'
+    commandLine 'docker', 'build', '--tag', "ghcr.io/scalar-labs/scalardl-ledger:${dockerVersion}", '.'
 }
 
 def integrationTestBase = {
@@ -176,7 +198,19 @@ test.dependsOn += copyTestJarsToTestLib
 test.dependsOn += compileIntegrationTestJava
 test.dependsOn += compilePermissionTestJava
 
-archivesBaseName = "scalardl-ledger"
+distZip {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+    mustRunAfter tasks.named('compilePermissionTestJava')
+}
+
+distTar {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+    mustRunAfter tasks.named('compilePermissionTestJava')
+}
+
+base {
+    archivesName = "scalardl-ledger"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&

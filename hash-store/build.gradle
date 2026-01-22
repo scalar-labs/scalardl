@@ -1,19 +1,19 @@
 plugins {
+    id 'application'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
-apply plugin:'application'
 startScripts.enabled = false
 
 sourceSets {
     integrationTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -51,9 +51,17 @@ task HashStore(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-applicationDistribution.into('bin') {
-    from(HashStore)
-    fileMode = 0755
+distributions {
+    main {
+        contents {
+            into('bin') {
+                from(HashStore)
+                filePermissions {
+                    unix('0755')
+                }
+            }
+        }
+    }
 }
 
 task integrationTest(type: Test) {
@@ -74,7 +82,7 @@ spotless {
         target 'src/*/java/**/*.java'
         importOrder()
         removeUnusedImports()
-        googleJavaFormat('1.7')
+        googleJavaFormat(googleJavaFormatVersion)
     }
 }
 
@@ -98,7 +106,7 @@ spotbugsTest.reports {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
 }
 
@@ -114,9 +122,16 @@ javadoc {
 
 distZip {
     archiveFileName = "scalardl-hashstore-java-client-sdk-${project.version}.zip"
+    mustRunAfter tasks.named('compileIntegrationTestJava')
 }
 
-archivesBaseName = "scalardl-hashstore-java-client-sdk"
+distTar {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+}
+
+base {
+    archivesName = "scalardl-hashstore-java-client-sdk"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&

@@ -34,7 +34,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -82,7 +82,9 @@ spotbugsTest.reports {
     html.enabled = true
 }
 
-archivesBaseName = "scalardl-common"
+base {
+    archivesName = "scalardl-common"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&
