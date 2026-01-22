@@ -6,14 +6,12 @@ on:
     - cron: '0 10 * * SUN'
 
 jobs:
-  call-storage-compatibility-check-for-master:
+  call-storage-compatibility-check:
+    strategy:
+      max-parallel: 1
+      matrix:
+        target-ref: [master, 3]
     uses: ./.github/workflows/storage-compatibility-check.yaml
     with:
-      target-ref: master
-    secrets: inherit
-
-  call-storage-compatibility-check-for-3:
-    uses: ./.github/workflows/storage-compatibility-check.yaml
-    with:
-      target-ref: 3
+      target-ref: ${{ matrix.target-ref }}
     secrets: inherit

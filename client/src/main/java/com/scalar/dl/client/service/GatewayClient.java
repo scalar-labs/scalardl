@@ -23,6 +23,7 @@ import com.scalar.dl.rpc.GatewayPrivilegedGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
@@ -189,6 +190,17 @@ public class GatewayClient extends AbstractGatewayClient {
   public void create(NamespaceCreationRequest request) {
     ThrowableConsumer<NamespaceCreationRequest> f =
         r -> getGatewayPrivilegedStub().createNamespace(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+  }
+
+  @Override
+  public void drop(NamespaceDroppingRequest request) {
+    ThrowableConsumer<NamespaceDroppingRequest> f =
+        r -> getGatewayPrivilegedStub().dropNamespace(r);
     try {
       accept(f, request);
     } catch (Exception e) {

@@ -17,6 +17,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
@@ -143,6 +144,17 @@ public class AuditorClient extends AbstractAuditorClient {
   public void create(NamespaceCreationRequest request) {
     ThrowableConsumer<NamespaceCreationRequest> f =
         r -> getAuditorPrivilegedStub().createNamespace(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+  }
+
+  @Override
+  public void drop(NamespaceDroppingRequest request) {
+    ThrowableConsumer<NamespaceDroppingRequest> f =
+        r -> getAuditorPrivilegedStub().dropNamespace(r);
     try {
       accept(f, request);
     } catch (Exception e) {

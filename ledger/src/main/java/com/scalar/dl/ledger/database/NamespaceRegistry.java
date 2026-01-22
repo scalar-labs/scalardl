@@ -6,5 +6,7 @@ public interface NamespaceRegistry {
 
   void create(String namespace);
 
+  void drop(String namespace);
+
   List<String> scan(String pattern);
 }
