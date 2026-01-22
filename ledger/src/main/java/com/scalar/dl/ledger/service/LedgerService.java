@@ -11,6 +11,7 @@ import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.function.FunctionEntry;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
@@ -25,6 +26,7 @@ import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
+import com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
 import com.scalar.dl.ledger.namespace.Namespaces;
@@ -65,7 +67,26 @@ public class LedgerService {
   }
 
   public void register(FunctionRegistrationRequest request) {
-    functionManager.register(FunctionEntry.from(request));
+    functionManager.register(Namespaces.DEFAULT, FunctionEntry.from(request));
+  }
+
+  public void register(SignedFunctionRegistrationRequest request) {
+    if (!config.isNonPrivilegedPortFunctionRegistrationEnabled()) {
+      throw new LedgerException(LedgerError.FUNCTION_REGISTRATION_NOT_ALLOWED);
+    }
+
+    String namespace =
+        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
+    SignatureValidator validator =
+        clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
+    request.validateWith(validator);
+
+    if (!config.isNonPrivilegedPortFunctionOverwriteEnabled()
+        && functionManager.exists(namespace, request.getFunctionId())) {
+      throw new LedgerException(LedgerError.FUNCTION_OVERWRITE_NOT_ALLOWED);
+    }
+
+    functionManager.register(namespace, FunctionEntry.from(request));
   }
 
   public void register(ContractRegistrationRequest request) {

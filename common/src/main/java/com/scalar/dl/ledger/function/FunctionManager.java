@@ -20,16 +20,20 @@ public class FunctionManager {
     this.loader = loader;
   }
 
-  public void register(FunctionEntry entry) {
+  public void register(String namespace, FunctionEntry entry) {
     // verify if a specified function is loadable.
     getInstance(entry);
 
-    registry.bind(entry);
+    registry.bind(namespace, entry);
+  }
+
+  public boolean exists(String namespace, String functionId) {
+    return registry.lookup(namespace, functionId).isPresent();
   }
 
   @VisibleForTesting
-  FunctionEntry get(String id) {
-    Optional<FunctionEntry> entry = registry.lookup(id);
+  FunctionEntry get(String namespace, String id) {
+    Optional<FunctionEntry> entry = registry.lookup(namespace, id);
     return entry.orElseThrow(
         () -> new MissingFunctionException(CommonLedgerError.FUNCTION_NOT_FOUND));
   }
@@ -41,10 +45,10 @@ public class FunctionManager {
     return function;
   }
 
-  public FunctionMachine getInstance(String id) {
-    Class<?> functionClazz = defineClass(id);
+  public FunctionMachine getInstance(String namespace, String id) {
+    Class<?> functionClazz = defineClass(namespace, id);
     FunctionMachine function = new FunctionMachine(createInstance(functionClazz));
-    function.initialize(this);
+    function.initialize(this, namespace);
     return function;
   }
 
@@ -59,9 +63,9 @@ public class FunctionManager {
   }
 
   @VisibleForTesting
-  Class<?> defineClass(String id) {
+  Class<?> defineClass(String namespace, String id) {
     try {
-      return loader.defineClass(get(id));
+      return loader.defineClass(get(namespace, id));
     } catch (MissingFunctionException e) {
       throw e;
     } catch (Exception e) {

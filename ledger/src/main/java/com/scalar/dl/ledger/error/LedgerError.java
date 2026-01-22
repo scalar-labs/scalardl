@@ -81,6 +81,18 @@ public enum LedgerError implements ScalarDlError {
       ""),
   AUDITOR_NOT_CONFIGURED(
       StatusCode.INVALID_REQUEST, "004", "%s must be enabled to make auditing work.", "", ""),
+  FUNCTION_REGISTRATION_NOT_ALLOWED(
+      StatusCode.INVALID_REQUEST,
+      "005",
+      "Function registration via the non-privileged port is not allowed.",
+      "",
+      ""),
+  FUNCTION_OVERWRITE_NOT_ALLOWED(
+      StatusCode.INVALID_REQUEST,
+      "006",
+      "Overwriting an existing function is not allowed.",
+      "",
+      ""),
 
   //
   // Errors for ASSET_NOT_FOUND(409)

@@ -51,6 +51,12 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   static final AuthenticationMethod DEFAULT_AUTHENTICATION_METHOD =
       AuthenticationMethod.DIGITAL_SIGNATURE;
 
+  @VisibleForTesting
+  static final boolean DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED = false;
+
+  @VisibleForTesting
+  static final boolean DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED = false;
+
   private static final String PREFIX = "scalar.dl.ledger.";
   private static final String SERVER_PREFIX = PREFIX + "server.";
 
@@ -185,6 +191,22 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   public static final String FUNCTION_ENABLED = PREFIX + "function.enabled";
 
   /**
+   * <code>scalar.dl.ledger.function.non_privileged_port_registration.enabled</code><br>
+   * A flag to enable function registration via non-privileged port with a signed request (false by
+   * default).
+   */
+  public static final String NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED =
+      PREFIX + "function.non_privileged_port_registration.enabled";
+
+  /**
+   * <code>scalar.dl.ledger.function.non_privileged_port_registration.overwrite.enabled</code><br>
+   * A flag to allow overwriting an existing function when registering via non-privileged port
+   * (false by default).
+   */
+  public static final String NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED =
+      PREFIX + "function.non_privileged_port_registration.overwrite.enabled";
+
+  /**
    * <code>scalar.dl.ledger.auditor.enabled</code><br>
    * A flag to enable Auditor (false by default).
    */
@@ -265,6 +287,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private boolean isProofEnabled;
   private String proofPrivateKey;
   private boolean isFunctionEnabled;
+  private boolean isNonPrivilegedPortFunctionRegistrationEnabled;
+  private boolean isNonPrivilegedPortFunctionOverwriteEnabled;
   private boolean isAuditorEnabled;
   private String serversAuthHmacSecretKey;
   private String auditorCertHolderId;
@@ -389,6 +413,14 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     return isFunctionEnabled;
   }
 
+  public boolean isNonPrivilegedPortFunctionRegistrationEnabled() {
+    return isNonPrivilegedPortFunctionRegistrationEnabled;
+  }
+
+  public boolean isNonPrivilegedPortFunctionOverwriteEnabled() {
+    return isNonPrivilegedPortFunctionOverwriteEnabled;
+  }
+
   public boolean isAuditorEnabled() {
     return isAuditorEnabled;
   }
@@ -466,6 +498,16 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
       }
     }
     isFunctionEnabled = ConfigUtils.getBoolean(props, FUNCTION_ENABLED, DEFAULT_FUNCTION_ENABLED);
+    isNonPrivilegedPortFunctionRegistrationEnabled =
+        ConfigUtils.getBoolean(
+            props,
+            NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED,
+            DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED);
+    isNonPrivilegedPortFunctionOverwriteEnabled =
+        ConfigUtils.getBoolean(
+            props,
+            NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED,
+            DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED);
     isAuditorEnabled = ConfigUtils.getBoolean(props, AUDITOR_ENABLED, DEFAULT_AUDITOR_ENABLED);
     if (isAuditorEnabled) {
       if (!isProofEnabled) {
@@ -571,6 +613,12 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
         .add(SERVER_GRPC_MAX_INBOUND_METADATA_SIZE, grpcServerConfig.getMaxInboundMetadataSize())
         .add(PROOF_ENABLED, isProofEnabled())
         .add(FUNCTION_ENABLED, isFunctionEnabled())
+        .add(
+            NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED,
+            isNonPrivilegedPortFunctionRegistrationEnabled())
+        .add(
+            NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED,
+            isNonPrivilegedPortFunctionOverwriteEnabled())
         .add(AUDITOR_ENABLED, isAuditorEnabled())
         .add(AUDITOR_CERT_HOLDER_ID, getAuditorCertHolderId())
         .add(AUDITOR_CERT_VERSION, getAuditorCertVersion())
