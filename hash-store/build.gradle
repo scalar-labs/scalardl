@@ -12,8 +12,6 @@ sourceSets {
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
-        compileClasspath += sourceSets.main.output + sourceSets.test.output
-        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -31,6 +29,8 @@ dependencies {
 
     // for test
     testImplementation project(':common-test')
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation sourceSets.test.output
     integrationTestImplementation project(':common-test')
     integrationTestImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
 

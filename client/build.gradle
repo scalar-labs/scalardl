@@ -22,11 +22,6 @@ configurations {
 }
 
 dependencies {
-    integrationTestImplementation sourceSets.main.output
-    integrationTestImplementation sourceSets.test.output
-}
-
-dependencies {
     api project(':common')
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
@@ -36,6 +31,8 @@ dependencies {
 
     // for tests
     testImplementation project(':common-test')
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation sourceSets.test.output
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"

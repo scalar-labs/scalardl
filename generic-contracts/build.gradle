@@ -9,8 +9,6 @@ sourceSets {
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
-        compileClasspath += sourceSets.main.output + sourceSets.test.output
-        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -23,6 +21,8 @@ configurations {
 dependencies {
     implementation project(':client')
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation sourceSets.test.output
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
