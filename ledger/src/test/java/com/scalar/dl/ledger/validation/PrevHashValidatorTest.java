@@ -10,7 +10,6 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 public class PrevHashValidatorTest {
   private static final String NAMESPACE = "namespace";
-  @Mock private Ledger<?> ledger;
+  @Mock private LedgerTracerBase<?> tracer;
   @Mock private ContractMachine contract;
   @InjectMocks private PrevHashValidator validator;
 
@@ -38,7 +37,7 @@ public class PrevHashValidatorTest {
     when(asset.prevHash()).thenReturn(prevHash);
 
     // Act
-    StatusCode result = validator.validate(ledger, contract, NAMESPACE, asset);
+    StatusCode result = validator.validate(tracer, contract, NAMESPACE, asset);
 
     // Assert
     assertThat(result).isEqualTo(StatusCode.OK);
@@ -53,7 +52,7 @@ public class PrevHashValidatorTest {
     when(asset.prevHash()).thenReturn("prevHashx".getBytes(StandardCharsets.UTF_8));
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_PREV_HASH.buildMessage())
         .extracting("code")

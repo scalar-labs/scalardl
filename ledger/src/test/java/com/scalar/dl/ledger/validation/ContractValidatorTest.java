@@ -19,9 +19,10 @@ import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
+import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -37,8 +38,9 @@ public class ContractValidatorTest {
   private static final String CONTRACT_ID_IN_ASSET =
       ENTITY_ID + "/" + CERT_VERSION + "/" + CONTRACT_ID;
   @Mock private ContractMachine contract;
-  @Mock private Ledger<?> ledger;
+  @Mock private LedgerTracerBase<?> tracer;
   @Mock private ClientKeyValidator clientKeyValidator;
+  @Mock private Context context;
   @Mock private ClientIdentityKey clientIdentityKey;
   @InjectMocks private ContractValidator validator;
   private DigitalSignatureSigner dsSigner;
@@ -47,6 +49,8 @@ public class ContractValidatorTest {
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     dsSigner = new DigitalSignatureSigner(PRIVATE_KEY_A);
+    when(tracer.getContext()).thenReturn(context);
+    when(context.getNamespace()).thenReturn(Namespaces.DEFAULT);
   }
 
   private InternalAsset createAssetMock(String contractId, String argument, byte[] signature) {
@@ -72,7 +76,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act
-    StatusCode result = validator.validate(ledger, contract, NAMESPACE, asset);
+    StatusCode result = validator.validate(tracer, contract, NAMESPACE, asset);
 
     // Assert
     assertThat(result).isEqualTo(StatusCode.OK);
@@ -94,7 +98,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(tamperedContractId, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -117,7 +121,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, tampered, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -140,7 +144,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, tampered);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")
@@ -163,7 +167,7 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
         .extracting("code")

@@ -34,6 +34,7 @@ import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
+import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
@@ -208,7 +209,7 @@ public class LedgerValidationServiceTest {
     when(validators
             .get(0)
             .validate(
-                any(Ledger.class),
+                any(LedgerTracerBase.class),
                 any(ContractMachine.class),
                 anyString(),
                 any(InternalAsset.class)))
@@ -216,7 +217,7 @@ public class LedgerValidationServiceTest {
     when(validators
             .get(1)
             .validate(
-                any(Ledger.class),
+                any(LedgerTracerBase.class),
                 any(ContractMachine.class),
                 anyString(),
                 any(InternalAsset.class)))
@@ -873,5 +874,108 @@ public class LedgerValidationServiceTest {
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, contractArgument, null);
     verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+  }
+
+  @Test
+  public void validate_NonDefaultContextNamespaceWithSameNamespace_ShouldReturnResultWithOK() {
+    // Arrange
+    String nonDefaultNamespace = "non_default_ns";
+    Context nonDefaultContext = Context.withNamespace(nonDefaultNamespace);
+    List<InternalAsset> assets = createAssetMocks();
+    prepareContractBehaviors(assets);
+    JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
+    doNothing().when(tracer).setInput(anyString());
+    List<LedgerValidator> validators = createValidators();
+    for (LedgerValidator v : validators) {
+      when(v.validate(
+              any(), any(ContractMachine.class), any(String.class), any(InternalAsset.class)))
+          .thenReturn(StatusCode.OK);
+    }
+    service =
+        spy(
+            new LedgerValidationService(
+                config,
+                transactionManager,
+                clientKeyValidator,
+                contractManager,
+                proofComposer,
+                validators));
+    when(service.getLedgerTracerBase(nonDefaultContext, DeserializationType.JSONP_JSON))
+        .thenReturn((LedgerTracerBase) tracer);
+
+    // Act
+    LedgerValidationResult result =
+        service.validate(nonDefaultContext, nonDefaultNamespace, ID, 0, Integer.MAX_VALUE);
+
+    // Assert
+    assertThat(result.getCode()).isEqualTo(StatusCode.OK);
+  }
+
+  @Test
+  public void
+      validate_NonDefaultContextNamespaceWithDifferentNamespace_ShouldThrowLedgerException() {
+    // Arrange
+    String nonDefaultNamespace = "non_default_ns";
+    String differentNamespace = "different_ns";
+    Context nonDefaultContext = Context.withNamespace(nonDefaultNamespace);
+    List<LedgerValidator> validators = createValidators();
+    service =
+        new LedgerValidationService(
+            config,
+            transactionManager,
+            clientKeyValidator,
+            contractManager,
+            proofComposer,
+            validators);
+
+    // Act & Assert
+    assertThatThrownBy(
+            () -> service.validate(nonDefaultContext, differentNamespace, ID, 0, Integer.MAX_VALUE))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(
+            CommonError.ACCESSING_NAMESPACE_NOT_ALLOWED.buildMessage(
+                differentNamespace, nonDefaultNamespace))
+        .extracting("code")
+        .isEqualTo(StatusCode.INVALID_REQUEST);
+  }
+
+  @Test
+  public void validate_DefaultContextNamespaceWithAnyNamespace_ShouldReturnResultWithOK() {
+    // Arrange
+    String anyNamespace = "any_namespace";
+    List<InternalAsset> assets = createAssetMocks();
+    prepareContractBehaviors(assets);
+    JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
+    doNothing().when(tracer).setInput(anyString());
+    List<LedgerValidator> validators = createValidators();
+    for (LedgerValidator v : validators) {
+      when(v.validate(
+              any(), any(ContractMachine.class), any(String.class), any(InternalAsset.class)))
+          .thenReturn(StatusCode.OK);
+    }
+    service =
+        spy(
+            new LedgerValidationService(
+                config,
+                transactionManager,
+                clientKeyValidator,
+                contractManager,
+                proofComposer,
+                validators));
+    when(service.getLedgerTracerBase(context, DeserializationType.JSONP_JSON))
+        .thenReturn((LedgerTracerBase) tracer);
+
+    // Act
+    LedgerValidationResult result =
+        service.validate(context, anyNamespace, ID, 0, Integer.MAX_VALUE);
+
+    // Assert
+    assertThat(result.getCode()).isEqualTo(StatusCode.OK);
+    AssetFilter filter =
+        new AssetFilter(anyNamespace, ID)
+            .withStartAge(0, true)
+            .withEndAge(Integer.MAX_VALUE, true)
+            .withAgeOrder(AgeOrder.ASC);
+    verify(ledger).scan(filter);
   }
 }

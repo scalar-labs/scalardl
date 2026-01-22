@@ -72,7 +72,6 @@ public class LedgerServicePermissionTest {
   private static final String NONCE_ATTRIBUTE_NAME = "nonce";
   private static final String ENTITY_ID = "entity_id";
   private static final int KEY_VERSION = 1;
-  private static final String ANY_NAMESPACE = "test_namespace";
   @Mock private TransactionManager transactionManager;
   @Mock private Transaction transaction;
   @Mock private Ledger ledger;
