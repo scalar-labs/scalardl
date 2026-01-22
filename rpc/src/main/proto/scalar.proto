@@ -96,12 +96,14 @@ message CertificateRegistrationRequest {
     string entity_id = 1;
     uint32 key_version = 2;
     string cert_pem = 3;
+    string context_namespace = 4;
 }
 
 message SecretRegistrationRequest {
     string entity_id = 1;
     uint32 key_version = 2;
     string secret_key = 3;
+    string context_namespace = 4;
 }
 
 message FunctionRegistrationRequest {
@@ -118,6 +120,7 @@ message ContractRegistrationRequest {
     string entity_id = 5;
     uint32 key_version = 6;
     bytes signature = 7;
+    string context_namespace = 8;
 }
 
 message ContractsListingRequest {
@@ -125,6 +128,7 @@ message ContractsListingRequest {
     uint32 key_version = 2;
     string contract_id = 3;
     bytes signature = 4;
+    string context_namespace = 5;
 }
 
 message ContractExecutionRequest {
@@ -138,6 +142,7 @@ message ContractExecutionRequest {
     bool use_function_ids = 8;
     repeated string function_ids = 9;
     string nonce = 10;
+    string context_namespace = 11;
 }
 
 message LedgerValidationRequest {
@@ -148,6 +153,7 @@ message LedgerValidationRequest {
     uint32 key_version = 5;
     bytes signature = 6;
     string namespace = 7;
+    string context_namespace = 8;
 }
 
 message AssetProofRetrievalRequest {

@@ -30,13 +30,14 @@ public class ContractRegistrationRequest extends AbstractRequest {
 
   /**
    * Constructs a {@code ContractRegistrationRequest} with the specified contract id, contract
-   * binary name, contract itself in byte-code format, entity ID, key version and signature of the
-   * request.
+   * binary name, contract itself in byte-code format, context namespace, entity ID, key version and
+   * signature of the request.
    *
    * @param contractId an id of a registered contract to execute
    * @param contractBinaryName a binary name of a registered contract to execute
    * @param contractByteCode a contract itself in byte-code format
    * @param contractProperties properties in json format
+   * @param contextNamespace a namespace to register the contract
    * @param entityId an entity ID
    * @param keyVersion the version of a digital signature certificate or a HMAC secret key
    * @param signature a signature of the request
@@ -47,10 +48,11 @@ public class ContractRegistrationRequest extends AbstractRequest {
       String contractBinaryName,
       byte[] contractByteCode,
       @Nullable String contractProperties,
+      @Nullable String contextNamespace,
       String entityId,
       int keyVersion,
       byte[] signature) {
-    super(entityId, keyVersion);
+    super(contextNamespace, entityId, keyVersion);
     this.contractId = checkNotNull(contractId);
     this.contractBinaryName = checkNotNull(contractBinaryName);
     this.contractByteCode = checkNotNull(contractByteCode);
@@ -114,6 +116,7 @@ public class ContractRegistrationRequest extends AbstractRequest {
   @Override
   public int hashCode() {
     return Objects.hash(
+        super.hashCode(),
         contractId,
         contractBinaryName,
         Arrays.hashCode(contractByteCode),
@@ -168,6 +171,7 @@ public class ContractRegistrationRequest extends AbstractRequest {
             contractBinaryName,
             contractByteCode,
             contractProperties,
+            getContextNamespace(),
             getEntityId(),
             getKeyVersion());
 
@@ -181,6 +185,7 @@ public class ContractRegistrationRequest extends AbstractRequest {
       String contractBinaryName,
       byte[] contractByteCode,
       @Nullable String contractProperties,
+      @Nullable String contextNamespace,
       String entityId,
       int keyVersion) {
     byte[] contractIdBytes = contractId.getBytes(StandardCharsets.UTF_8);
@@ -189,6 +194,7 @@ public class ContractRegistrationRequest extends AbstractRequest {
         contractProperties != null
             ? contractProperties.getBytes(StandardCharsets.UTF_8)
             : new byte[0];
+    byte[] contextNamespaceBytes = serializeContextNamespace(contextNamespace);
     byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
 
     ByteBuffer buffer =
@@ -197,12 +203,14 @@ public class ContractRegistrationRequest extends AbstractRequest {
                 + contractBinaryNameBytes.length
                 + contractByteCode.length
                 + contractPropertiesBytes.length
+                + contextNamespaceBytes.length
                 + entityIdBytes.length
                 + Integer.BYTES);
     buffer.put(contractIdBytes);
     buffer.put(contractBinaryNameBytes);
     buffer.put(contractByteCode);
     buffer.put(contractPropertiesBytes);
+    buffer.put(contextNamespaceBytes);
     buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();

@@ -17,7 +17,7 @@ public class ExecutionAbortRequest extends AbstractRequest {
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ExecutionAbortRequest(String nonce, String entityId, int keyVersion, byte[] signature) {
-    super(entityId, keyVersion);
+    super(null, entityId, keyVersion);
     this.nonce = nonce;
     this.signature = signature;
   }
@@ -38,11 +38,14 @@ public class ExecutionAbortRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(nonce, Arrays.hashCode(signature));
+    return Objects.hash(super.hashCode(), nonce, Arrays.hashCode(signature));
   }
 
   @Override
   public boolean equals(Object o) {
+    if (!super.equals(o)) {
+      return false;
+    }
     if (o == this) {
       return true;
     }
@@ -50,7 +53,7 @@ public class ExecutionAbortRequest extends AbstractRequest {
       return false;
     }
     ExecutionAbortRequest other = (ExecutionAbortRequest) o;
-    return this.nonce.equals(other.nonce);
+    return this.nonce.equals(other.nonce) && Arrays.equals(this.signature, other.signature);
   }
 
   /**

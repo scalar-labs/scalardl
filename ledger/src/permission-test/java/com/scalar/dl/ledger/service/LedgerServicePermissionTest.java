@@ -156,15 +156,16 @@ public class LedgerServicePermissionTest {
   private ContractExecutionRequest prepareExecutionRequest(
       DigitalSignatureSigner signer, String id, JsonObject argument) {
     byte[] serialized =
-        ContractExecutionRequest.serialize(id, argument.toString(), ENTITY_ID, KEY_VERSION);
+        ContractExecutionRequest.serialize(id, argument.toString(), null, ENTITY_ID, KEY_VERSION);
     return new ContractExecutionRequest(
         UUID.randomUUID().toString(),
-        ENTITY_ID,
-        KEY_VERSION,
         id,
         argument.toString(),
         Collections.emptyList(),
         null,
+        null,
+        ENTITY_ID,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }

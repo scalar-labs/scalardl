@@ -2,6 +2,8 @@ package com.scalar.dl.ledger.crypto;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
+import com.scalar.dl.ledger.util.Time;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 
@@ -131,6 +133,20 @@ public class SecretEntry {
         && this.keyVersion == another.keyVersion
         && this.secretKey.equals(another.secretKey)
         && this.registeredAt == another.registeredAt;
+  }
+
+  /**
+   * Creates a {@code SecretEntry} from the specified {@code SecretRegistrationRequest}.
+   *
+   * @param request a {@code SecretRegistrationRequest}
+   * @return a {@code SecretEntry}
+   */
+  public static SecretEntry from(SecretRegistrationRequest request) {
+    return new SecretEntry(
+        request.getEntityId(),
+        request.getKeyVersion(),
+        request.getSecretKey(),
+        Time.getCurrentUtcTimeInMillis());
   }
 
   @Immutable

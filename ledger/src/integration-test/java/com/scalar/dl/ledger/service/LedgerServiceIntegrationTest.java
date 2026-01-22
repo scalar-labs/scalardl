@@ -313,9 +313,10 @@ public class LedgerServiceIntegrationTest {
   private ContractRegistrationRequest prepareRegistrationRequest(
       SignatureSigner signer, String id, String name, byte[] contract) {
     byte[] serialized =
-        ContractRegistrationRequest.serialize(id, name, contract, null, ENTITY_ID_A, KEY_VERSION);
+        ContractRegistrationRequest.serialize(
+            id, name, contract, null, null, ENTITY_ID_A, KEY_VERSION);
     return new ContractRegistrationRequest(
-        id, name, contract, null, ENTITY_ID_A, KEY_VERSION, signer.sign(serialized));
+        id, name, contract, null, null, ENTITY_ID_A, KEY_VERSION, signer.sign(serialized));
   }
 
   private ContractExecutionRequest prepareExecutionRequest(
@@ -341,15 +342,17 @@ public class LedgerServiceIntegrationTest {
       @Nullable String functionArgument,
       @Nullable SignatureSigner auditorSigner) {
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, contractArgument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            contractId, contractArgument, null, ENTITY_ID_A, KEY_VERSION);
     return new ContractExecutionRequest(
         SOME_NONCE,
-        ENTITY_ID_A,
-        KEY_VERSION,
         contractId,
         contractArgument,
         functionIds,
         functionArgument,
+        null,
+        ENTITY_ID_A,
+        KEY_VERSION,
         signer.sign(serialized),
         auditorSigner == null ? null : auditorSigner.sign(serialized));
   }

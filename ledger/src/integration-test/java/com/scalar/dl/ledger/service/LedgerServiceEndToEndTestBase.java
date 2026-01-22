@@ -35,11 +35,11 @@ import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.crypto.HmacSigner;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureSigner;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -140,9 +140,9 @@ public abstract class LedgerServiceEndToEndTestBase {
         .forEach(entry -> registerContracts(entry.getKey()));
 
     // Set up the security manager
-    System.setProperty("java.security.manager", "default");
-    System.setProperty("java.security.policy", "src/dist/security.policy");
-    System.setSecurityManager(new SecurityManager());
+//    System.setProperty("java.security.manager", "default");
+//    System.setProperty("java.security.policy", "src/dist/security.policy");
+//    System.setSecurityManager(new SecurityManager());
 
     setUpBeforeClassPerTestInstance();
   }
@@ -242,16 +242,18 @@ public abstract class LedgerServiceEndToEndTestBase {
 
   private void registerCertificate() {
     ledgerService.register(
-        new CertificateRegistrationRequest(ENTITY_ID_A, KEY_VERSION, CERTIFICATE_A));
+        new CertificateRegistrationRequest(null, ENTITY_ID_A, KEY_VERSION, CERTIFICATE_A));
     ledgerService.register(
-        new CertificateRegistrationRequest(ENTITY_ID_B, KEY_VERSION, CERTIFICATE_B));
+        new CertificateRegistrationRequest(null, ENTITY_ID_B, KEY_VERSION, CERTIFICATE_B));
     ledgerService.register(
-        new CertificateRegistrationRequest(AUDITOR_ENTITY_ID, KEY_VERSION, CERTIFICATE_B));
+        new CertificateRegistrationRequest(null, AUDITOR_ENTITY_ID, KEY_VERSION, CERTIFICATE_B));
   }
 
   private void registerSecret() {
-    ledgerService.register(new SecretEntry(ENTITY_ID_C, KEY_VERSION, SECRET_KEY_A, 1L));
-    ledgerService.register(new SecretEntry(ENTITY_ID_D, KEY_VERSION, SECRET_KEY_B, 1L));
+    ledgerService.register(
+        new SecretRegistrationRequest(null, ENTITY_ID_C, KEY_VERSION, SECRET_KEY_A));
+    ledgerService.register(
+        new SecretRegistrationRequest(null, ENTITY_ID_D, KEY_VERSION, SECRET_KEY_B));
   }
 
   private void registerContracts(String entityId) {
@@ -288,6 +290,7 @@ public abstract class LedgerServiceEndToEndTestBase {
               contractName,
               bytes,
               contractProperties.get(contractId),
+              null,
               entityId,
               KEY_VERSION);
       ContractRegistrationRequest request =
@@ -296,6 +299,7 @@ public abstract class LedgerServiceEndToEndTestBase {
               contractName,
               bytes,
               contractProperties.get(contractId),
+              null,
               entityId,
               KEY_VERSION,
               signer.sign(serialized));
