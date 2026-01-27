@@ -805,7 +805,7 @@ public class ClientConfigTest {
 
   @Test
   public void
-      isDefaultValidationContractIdUsed_DefaultAuditorLinearizableContractIdUsed_ShouldReturnTrue()
+      isDefaultAuditorLinearizableValidationContractIdUsed_DefaultAuditorLinearizableContractIdUsed_ShouldReturnTrue()
           throws IOException {
     // Arrange
     Properties props = new Properties();
