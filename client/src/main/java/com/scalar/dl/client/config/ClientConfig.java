@@ -394,6 +394,11 @@ public class ClientConfig {
     return auditorLinearizableValidationContractId;
   }
 
+  public boolean isDefaultAuditorLinearizableValidationContractIdUsed() {
+    return auditorLinearizableValidationContractId.equals(
+        DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+  }
+
   public GrpcClientConfig getGrpcClientConfig() {
     return grpcClientConfig;
   }
