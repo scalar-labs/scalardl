@@ -1,5 +1,8 @@
 apply plugin: 'maven-publish'
 
+// Check if the version is a feature snapshot (e.g., 4.0.0-feature-xxx-SNAPSHOT)
+def isFeatureSnapshot = project.version.toString().contains('-feature-')
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -40,8 +43,20 @@ publishing {
         }
     }
     repositories {
-        maven {
-            url = layout.buildDirectory.dir('staging-deploy')
+        if (isFeatureSnapshot) {
+            maven {
+                name = 'GitHubPackages'
+                url = uri('https://maven.pkg.github.com/scalar-labs/scalardl')
+                credentials {
+                    username = project.findProperty('gprUsername') ?: System.getenv('GPR_USERNAME')
+                    password = project.findProperty('gprPassword') ?: System.getenv('GPR_PASSWORD')
+                }
+            }
+        } else {
+            maven {
+                name = 'staging'
+                url = layout.buildDirectory.dir('staging-deploy')
+            }
         }
     }
 }
