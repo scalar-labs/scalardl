@@ -119,6 +119,31 @@ subprojects {
         description 'Lint the Dockerfile'
         executable "${rootDir}/scripts/docker/lint.sh"
     }
+
+    // Configure publishing repositories for all subprojects using maven-publish plugin
+    plugins.withType(MavenPublishPlugin).configureEach {
+        def isFeatureSnapshot = (project.version.toString() =~ /^\d+\.\d+\.\d+-feature-.+-SNAPSHOT$/).matches()
+
+        publishing {
+            repositories {
+                if (isFeatureSnapshot) {
+                    maven {
+                        name = 'GitHubPackages'
+                        url = uri('https://maven.pkg.github.com/scalar-labs/scalardl')
+                        credentials {
+                            username = project.findProperty('gprUsername') ?: System.getenv('GPR_USERNAME')
+                            password = project.findProperty('gprPassword') ?: System.getenv('GPR_PASSWORD')
+                        }
+                    }
+                } else {
+                    maven {
+                        name = 'staging'
+                        url = layout.buildDirectory.dir('staging-deploy')
+                    }
+                }
+            }
+        }
+    }
 }
 
 jreleaser {
