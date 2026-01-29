@@ -183,20 +183,27 @@ public class ContractRegistrationRequest extends AbstractRequest {
       @Nullable String contractProperties,
       String entityId,
       int keyVersion) {
-    String propertiesString = contractProperties != null ? contractProperties : "";
+    byte[] contractIdBytes = contractId.getBytes(StandardCharsets.UTF_8);
+    byte[] contractBinaryNameBytes = contractBinaryName.getBytes(StandardCharsets.UTF_8);
+    byte[] contractPropertiesBytes =
+        contractProperties != null
+            ? contractProperties.getBytes(StandardCharsets.UTF_8)
+            : new byte[0];
+    byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            contractId.getBytes(StandardCharsets.UTF_8).length
-                + contractBinaryName.getBytes(StandardCharsets.UTF_8).length
+            contractIdBytes.length
+                + contractBinaryNameBytes.length
                 + contractByteCode.length
-                + propertiesString.getBytes(StandardCharsets.UTF_8).length
-                + entityId.getBytes(StandardCharsets.UTF_8).length
+                + contractPropertiesBytes.length
+                + entityIdBytes.length
                 + Integer.BYTES);
-    buffer.put(contractId.getBytes(StandardCharsets.UTF_8));
-    buffer.put(contractBinaryName.getBytes(StandardCharsets.UTF_8));
+    buffer.put(contractIdBytes);
+    buffer.put(contractBinaryNameBytes);
     buffer.put(contractByteCode);
-    buffer.put(propertiesString.getBytes(StandardCharsets.UTF_8));
-    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(contractPropertiesBytes);
+    buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
     return buffer.array();

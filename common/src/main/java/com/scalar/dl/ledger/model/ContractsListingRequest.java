@@ -11,19 +11,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
 // non-final for mocking
 public class ContractsListingRequest extends AbstractRequest {
-  private final Optional<String> contractId;
+  @Nullable private final String contractId;
   private final byte[] signature;
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ContractsListingRequest(
-      String contractId, String entityId, int keyVersion, byte[] signature) {
+      @Nullable String contractId, String entityId, int keyVersion, byte[] signature) {
     super(entityId, keyVersion);
-    this.contractId = Optional.ofNullable(contractId);
+    this.contractId = contractId;
     this.signature = checkNotNull(signature);
   }
 
@@ -33,7 +34,7 @@ public class ContractsListingRequest extends AbstractRequest {
    * @return the contract id of the request
    */
   public Optional<String> getContractId() {
-    return contractId;
+    return Optional.ofNullable(contractId);
   }
 
   /**
@@ -81,8 +82,8 @@ public class ContractsListingRequest extends AbstractRequest {
       return false;
     }
     ContractsListingRequest other = (ContractsListingRequest) o;
-    return (this.contractId.equals(other.contractId)
-        && Arrays.equals(this.signature, other.signature));
+    return Objects.equals(this.contractId, other.contractId)
+        && Arrays.equals(this.signature, other.signature);
   }
 
   /**
@@ -100,14 +101,15 @@ public class ContractsListingRequest extends AbstractRequest {
     }
   }
 
-  public static byte[] serialize(Optional<String> contractId, String entityId, int keyVersion) {
-    int capacity =
-        contractId.map(c -> c.getBytes(StandardCharsets.UTF_8).length).orElse(0)
-            + entityId.getBytes(StandardCharsets.UTF_8).length
-            + Integer.BYTES;
-    ByteBuffer buffer = ByteBuffer.allocate(capacity);
-    contractId.ifPresent(c -> buffer.put(c.getBytes(StandardCharsets.UTF_8)));
-    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+  public static byte[] serialize(@Nullable String contractId, String entityId, int keyVersion) {
+    byte[] contractIdBytes =
+        contractId != null ? contractId.getBytes(StandardCharsets.UTF_8) : new byte[0];
+    byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
+
+    ByteBuffer buffer =
+        ByteBuffer.allocate(contractIdBytes.length + entityIdBytes.length + Integer.BYTES);
+    buffer.put(contractIdBytes);
+    buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
     return buffer.array();
