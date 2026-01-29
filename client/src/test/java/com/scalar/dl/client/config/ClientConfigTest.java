@@ -802,4 +802,48 @@ public class ClientConfigTest {
     // Act Assert
     assertThatThrownBy(() -> new ClientConfig(props)).isInstanceOf(IllegalArgumentException.class);
   }
+
+  @Test
+  public void
+      isDefaultAuditorLinearizableValidationContractIdUsed_DefaultAuditorLinearizableContractIdUsed_ShouldReturnTrue()
+          throws IOException {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.CERT_HOLDER_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+    props.put(ClientConfig.AUDITOR_ENABLED, "true");
+    // No custom contract ID specified, so default will be used
+
+    // Act
+    ClientConfig config = new ClientConfig(props);
+
+    // Assert
+    assertThat(config.isDefaultAuditorLinearizableValidationContractIdUsed()).isTrue();
+    assertThat(config.getAuditorLinearizableValidationContractId())
+        .isEqualTo(ClientConfig.DEFAULT_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+  }
+
+  @Test
+  public void
+      isDefaultAuditorLinearizableValidationContractIdUsed_CustomContractIdUsed_ShouldReturnFalse()
+          throws IOException {
+    // Arrange
+    Properties props = new Properties();
+    props.put(ClientConfig.CERT_HOLDER_ID, SOME_CERT_HOLDER_ID);
+    props.put(ClientConfig.CERT_PEM, SOME_CERT_PEM);
+    props.put(ClientConfig.PRIVATE_KEY_PEM, SOME_PRIVATE_KEY_PEM);
+    props.put(ClientConfig.AUDITOR_ENABLED, "true");
+    props.put(
+        ClientConfig.AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID,
+        SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+
+    // Act
+    ClientConfig config = new ClientConfig(props);
+
+    // Assert
+    assertThat(config.isDefaultAuditorLinearizableValidationContractIdUsed()).isFalse();
+    assertThat(config.getAuditorLinearizableValidationContractId())
+        .isEqualTo(SOME_AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID);
+  }
 }
