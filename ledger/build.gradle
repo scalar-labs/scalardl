@@ -4,6 +4,12 @@ plugins {
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 apply plugin:'application'
 startScripts.enabled = false
 
@@ -35,6 +41,7 @@ configurations {
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
     integrationTestCompileOnly.extendsFrom testCompileOnly
     permissionTestImplementation.extendsFrom testImplementation
+    permissionTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 dependencies {
@@ -49,6 +56,7 @@ dependencies {
 
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
+    integrationTestImplementation project(':common-test')
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
@@ -93,56 +101,35 @@ docker {
     files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
 }
 
-task integrationTestCassandra(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
+def integrationTestBase = {
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
-    }
-}
-
-task integrationTestDynamo(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with Consensus Commit transaction manager on DynamoDB.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
-    options {
-        systemProperty('scalardb.storage', 'dynamo')
-        systemProperty('scalardb.transaction_manager', 'consensus-commit')
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
-    }
-}
-
-task integrationTestMysql(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with JDBC transaction manager on MySQL.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
-    options {
-        systemProperty('scalardb.storage', 'jdbc')
-        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
-        systemProperty('scalardb.username', 'root')
-        systemProperty('scalardb.password', 'mysql')
-        systemProperty('scalardb.transaction_manager', 'jdbc')
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
 }
 
 task integrationTest(type: Test) {
-    dependsOn integrationTestCassandra
-    dependsOn integrationTestDynamo
-    dependsOn integrationTestMysql
+    description 'Runs the integration tests.'
+    configure integrationTestBase
+}
+
+task integrationTestCosmos(type: Test) {
+    description 'Runs the integration tests for Cosmos DB.'
+    configure integrationTestBase
+    jvmArgs '-Xmx6g', '-XX:MaxDirectMemorySize=4g'
+}
+
+task permissionTest(type: Test) {
+    description 'Runs the permission tests.'
+    group 'verification'
+    testClassesDirs = sourceSets.permissionTest.output.classesDirs
+    classpath = sourceSets.permissionTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures permission tests are run every time when called
+    jvmArgs '-Djava.security.manager=allow'
 }
 
 spotless {
