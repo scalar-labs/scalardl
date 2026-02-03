@@ -47,8 +47,7 @@ public class CipherTest {
 
     // Act
     List<byte[]> encrypted =
-        plainTexts
-            .parallelStream()
+        plainTexts.parallelStream()
             .map(t -> cipher.encrypt(t.getBytes(StandardCharsets.UTF_8), NONCE))
             .collect(Collectors.toList());
     List<byte[]> decrypted =
