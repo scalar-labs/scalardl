@@ -119,7 +119,8 @@ public class ClientService implements AutoCloseable {
   }
 
   private void registerValidateLedgerContract() {
-    if (config.isAuditorEnabled()) {
+    if (config.isAuditorEnabled()
+        && config.isDefaultAuditorLinearizableValidationContractIdUsed()) {
       Class<?> clazz = ValidateLedger.class;
       try {
         registerContract(
