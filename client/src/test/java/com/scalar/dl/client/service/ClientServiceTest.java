@@ -114,6 +114,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
 
     // Act
@@ -132,6 +133,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
 
     // Act
@@ -150,6 +152,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CERTIFICATE_ALREADY_REGISTERED);
@@ -170,6 +173,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.SECRET_ALREADY_REGISTERED);
@@ -190,6 +194,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
@@ -227,7 +232,24 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(false);
-    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service, never())
+        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void
+      bootstrap_AuditorEnabledButCustomValidationContractIdUsed_ShouldNotRegisterContract() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(false);
 
     // Act
     service.bootstrap();
