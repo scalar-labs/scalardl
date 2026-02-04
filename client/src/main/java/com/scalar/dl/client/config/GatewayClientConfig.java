@@ -21,39 +21,46 @@ public class GatewayClientConfig {
   @VisibleForTesting static final boolean DEFAULT_GATEWAY_TLS_ENABLED = false;
 
   private static final String PREFIX = "scalar.dl.client.gateway.";
+
   /**
    * <code>scalar.dl.client.gateway.host</code> (Optional)<br>
    * A hostname or an IP address of the gateway ("localhost" by default). It assumes that there is a
    * single endpoint that is given by DNS or a load balancer.
    */
   public static final String GATEWAY_HOST = PREFIX + "host";
+
   /**
    * <code>scalar.dl.client.gateway.port</code> (Optional)<br>
    * A port number of the gateway (30051 by default).
    */
   public static final String GATEWAY_PORT = PREFIX + "port";
+
   /**
    * <code>scalar.dl.client.gateway.privileged_port</code> (Optional)<br>
    * A port number of the gateway for privileged services (30052 by default).
    */
   public static final String GATEWAY_PRIVILEGED_PORT = PREFIX + "privileged_port";
+
   /**
    * <code>scalar.dl.client.gateway.tls.enabled</code> (Optional)<br>
    * A flag to enable TLS communication for the gateway (false by default).
    */
   public static final String GATEWAY_TLS_ENABLED = PREFIX + "tls.enabled";
+
   /**
    * <code>scalar.dl.client.gateway.tls.ca_root_cert_path</code> (Optional)<br>
    * A custom CA root certificate (file path) for TLS communication for the gateway. If the issuing
    * certificate authority is known to the client, it can be empty.
    */
   public static final String GATEWAY_TLS_CA_ROOT_CERT_PATH = PREFIX + "tls.ca_root_cert_path";
+
   /**
    * <code>scalar.dl.client.gateway.tls.ca_root_cert_pem</code> (Optional)<br>
    * A custom CA root certificate (PEM data) for TLS communication for the gateway. If the issuing
    * certificate authority is known to the client, it can be empty.
    */
   public static final String GATEWAY_TLS_CA_ROOT_CERT_PEM = PREFIX + "tls.ca_root_cert_pem";
+
   /**
    * <code>scalar.dl.client.gateway.tls.override_authority</code> (Optional)<br>
    * A custom authority for TLS communication for Auditor. This doesn't change what the host is
@@ -62,6 +69,7 @@ public class GatewayClientConfig {
    * certificate chain file that you set for `scalar.dl.gateway.server.tls.cert_chain_path`.
    */
   public static final String GATEWAY_TLS_OVERRIDE_AUTHORITY = PREFIX + "tls.override_authority";
+
   /**
    * <code>scalar.dl.client.gateway.authorization.credential</code> (Optional)<br>
    * An authorization credential for the gateway. (e.g. authorization: Bearer token) If this is

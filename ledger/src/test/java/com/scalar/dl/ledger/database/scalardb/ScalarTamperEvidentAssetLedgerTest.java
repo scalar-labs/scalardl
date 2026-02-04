@@ -549,7 +549,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_NonEmptySnapshotGiven_ShouldCommitProperly()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
@@ -569,7 +570,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_NonEmptySnapshotGivenAndDirectAssetAccessEnabled_ShouldCommitProperly()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
@@ -588,7 +590,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_EmptySnapshotGiven_ShouldDoNothing()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     when(config.isDirectAssetAccessEnabled()).thenReturn(false);
@@ -605,7 +608,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_EmptySnapshotGivenAndDirectAssetAccessEnabled_ShouldDoNothing()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     when(config.isDirectAssetAccessEnabled()).thenReturn(true);
@@ -624,7 +628,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   public void
       commit_NonEmptySnapshotGivenAndCommitConflictExceptionThrown_ShouldThrowAssetOverwriteException()
           throws CommitException,
-              com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
+              com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+              CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
     snapshot.put(ANY_ASSET_KEY, ANY_DATA);
@@ -647,7 +652,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_NonEmptySnapshotGivenAndCommitExceptionThrown_ShouldThrowDatabaseException()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
@@ -673,7 +679,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   public void
       commit_NonEmptySnapshotGivenAndUTSExceptionThrownWithUnknownTransactionIdPresent_ShouldThrowUASException()
           throws CommitException,
-              com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
+              com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+              CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
     snapshot.put(ANY_ASSET_KEY, ANY_DATA);
@@ -699,7 +706,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_NonEmptySnapshotGivenAndUTSExceptionThrown_ShouldThrowUASException()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
@@ -724,7 +732,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
 
   @Test
   public void commit_CommitExceptionThrownInCommit_ShouldThrowDatabaseException()
-      throws CommitException, com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+      throws CommitException,
+          com.scalar.db.exception.transaction.UnknownTransactionStatusException,
           CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
@@ -749,7 +758,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   public void
       commit_NonEmptySnapshotGivenWithAssetProofEnabled_ShouldCommitProperlyAndReturnProofs()
           throws CommitException,
-              com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
+              com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+              CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, ANY_DATA);
     snapshot.put(ANY_ASSET_KEY2, asset);
@@ -827,7 +837,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   public void
       commit_ReadSetOnlySnapshotGivenWithAssetProofEnabled_ShouldCommitProperlyAndReturnProofs()
           throws CommitException,
-              com.scalar.db.exception.transaction.UnknownTransactionStatusException, CrudException {
+              com.scalar.db.exception.transaction.UnknownTransactionStatusException,
+              CrudException {
     // Arrange
     snapshot.put(ANY_ASSET_KEY, asset);
     when(asset.id()).thenReturn(ANY_ID2);
@@ -879,7 +890,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   @ValueSource(booleans = {true, false})
   public void commit_WriteTransactionGiven_ShouldPutWithStateManagerAccordingToConfig(
       boolean txStateManagementEnabled)
-      throws CrudException, CommitException,
+      throws CrudException,
+          CommitException,
           com.scalar.db.exception.transaction.UnknownTransactionStatusException {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(txStateManagementEnabled);
@@ -908,7 +920,8 @@ public class ScalarTamperEvidentAssetLedgerTest {
   @ValueSource(booleans = {true, false})
   public void commit_ReadOnlyTransactionGiven_ShouldPutWithStateManagerAccordingToConfig(
       boolean txStateManagementEnabled)
-      throws CrudException, CommitException,
+      throws CrudException,
+          CommitException,
           com.scalar.db.exception.transaction.UnknownTransactionStatusException {
     // Arrange
     when(config.isTxStateManagementEnabled()).thenReturn(txStateManagementEnabled);

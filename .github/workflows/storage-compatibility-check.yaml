@@ -38,26 +38,19 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        run: |
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+        run: >-
+          ./gradlew :ledger:integrationTest
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
 
   integration-test-with-cosmos:
     name: Integration testing with the Consensus Commit transaction manager on Cosmos DB
@@ -69,11 +62,19 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      # The ledger module uses Java 21 (configured via Gradle toolchain), so the
+      # Cosmos DB emulator certificate must be imported to JDK 21's cacerts.
+      - name: Set up JDK 21 to import certificate to its cacerts
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Start Azure Cosmos DB emulator
         run: |
@@ -94,31 +95,20 @@ jobs:
           Export-Certificate @params
           certutil -encode $home/tmp-cert.cer $home/cosmosdbcert.cer
           Remove-Item $home/tmp-cert.cer
-          $keystore = "-keystore", "${env:JAVA_HOME}/jre/lib/security/cacerts"
+          $keystore = "-keystore", "${env:JAVA_HOME_21_X64}/lib/security/cacerts"
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -importcert -noprompt -alias cosmos_emulator -file $home/cosmosdbcert.cer
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -list -alias cosmos_emulator
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew.bat assemble
-          ./gradlew.bat testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        # The heap size (-Xmx6g) and direct memory size (-XX:MaxDirectMemorySize=4g) were chosen
-        # to handle high memory demands of the Cosmos DB emulator during integration tests,
-        # ensuring stability and avoiding out-of-memory errors.
         run: |
-          java -Xmx6g -XX:MaxDirectMemorySize=4g `
-          -cp "build/test-libs/*;build/libs/*;build/classes/java/integrationTest" `
+          ./gradlew.bat :ledger:integrationTestCosmos `
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest `
           "-Dscalardb.storage=cosmos" `
           "-Dscalardb.contact_points=https://localhost:8081/" `
-          "-Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" `
-          org.junit.platform.console.ConsoleLauncher execute "-c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest"
+          "-Dscalardb.password=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
   integration-test-with-dynamo:
     name: Integration testing with the Consensus Commit transaction manager on DynamoDB
@@ -136,27 +126,20 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        run: |
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          -Dscalardb.storage=dynamo \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+        run: >-
+          ./gradlew :ledger:integrationTest
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          -Dscalardb.storage=dynamo
 
   integration-test-with-s3:
     name: Integration testing with the Consensus Commit transaction manager on S3
@@ -168,30 +151,23 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        run: |
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          -Dscalardb.storage=s3 \
-          -Dscalardb.contact_points=${{ env.S3_REGION }}/${{ env.S3_BUCKET_NAME }} \
-          -Dscalardb.username='${{ env.AWS_ACCESS_KEY_ID }}' \
-          -Dscalardb.password='${{ env.AWS_SECRET_ACCESS_KEY }}' \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+        run: >-
+          ./gradlew :ledger:integrationTest
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          -Dscalardb.storage=s3
+          -Dscalardb.contact_points=${{ env.S3_REGION }}/${{ env.S3_BUCKET_NAME }}
+          -Dscalardb.username='${{ env.AWS_ACCESS_KEY_ID }}'
+          -Dscalardb.password='${{ env.AWS_SECRET_ACCESS_KEY }}'
 
   integration-test-with-blob-storage:
     name: Integration testing with the Consensus Commit transaction manager on Blob Storage
@@ -211,19 +187,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
 
       - name: Create Blob Storage container
         run: |
@@ -231,16 +202,14 @@ jobs:
             --name test-container \
             --connection-string "DefaultEndpointsProtocol=http;AccountName=test;AccountKey=test;BlobEndpoint=http://localhost:10000/test;"
 
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        run: |
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          -Dscalardb.storage=blob-storage \
-          -Dscalardb.contact_points=http://localhost:10000/test/test-container \
-          -Dscalardb.username=test \
-          -Dscalardb.password=test \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+        run: >-
+          ./gradlew :ledger:integrationTest
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          -Dscalardb.storage=blob-storage
+          -Dscalardb.contact_points=http://localhost:10000/test/test-container
+          -Dscalardb.username=test
+          -Dscalardb.password=test
 
   integration-test-with-cloud-storage:
     name: Integration testing with the Consensus Commit transaction manager on Cloud Storage
@@ -252,27 +221,20 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '8'
+          java-version: '21'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Build
-        run: |
-          ./gradlew assemble
-          ./gradlew testJar
-
-      # due to a gradle bug we must run the integration test separately
       - name: Run integration tests
-        working-directory: ledger
-        run: |
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" \
-          -Dscalardb.storage=cloud-storage \
-          -Dscalardb.contact_points=${{ env.CLOUD_STORAGE_BUCKET_NAME }} \
-          -Dscalardb.username='${{ env.CLOUD_STORAGE_PROJECT_ID }}' \
-          -Dscalardb.password='${{ env.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}' \
-          org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+        run: >-
+          ./gradlew :ledger:integrationTest
+          --tests com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          -Dscalardb.storage=cloud-storage
+          -Dscalardb.contact_points=${{ env.CLOUD_STORAGE_BUCKET_NAME }}
+          -Dscalardb.username='${{ env.CLOUD_STORAGE_PROJECT_ID }}'
+          -Dscalardb.password='${{ env.CLOUD_STORAGE_SERVICE_ACCOUNT_KEY }}'

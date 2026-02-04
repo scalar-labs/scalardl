@@ -30,7 +30,7 @@ protobuf {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -45,7 +45,9 @@ sourceSets {
     }
 }
 
-archivesBaseName = "scalardl-rpc"
+base {
+    archivesName = "scalardl-rpc"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&

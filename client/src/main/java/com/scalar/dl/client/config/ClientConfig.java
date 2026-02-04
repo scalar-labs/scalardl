@@ -47,22 +47,26 @@ public class ClientConfig {
       "validate-ledger-" + getValidateLedgerContractVersion();
 
   private static final String PREFIX = "scalar.dl.client.";
+
   /**
    * <code>scalar.dl.client.server.host</code> (Optional)<br>
    * A hostname or an IP address of the server ("localhost" by default). It assumes that there is a
    * single endpoint that is given by DNS or a load balancer.
    */
   public static final String SERVER_HOST = PREFIX + "server.host";
+
   /**
    * <code>scalar.dl.client.server.port</code> (Optional)<br>
    * A port number of the server (50051 by default).
    */
   public static final String SERVER_PORT = PREFIX + "server.port";
+
   /**
    * <code>scalar.dl.client.server.privileged_port</code> (Optional)<br>
    * A port number of the server for privileged services (50052 by default).
    */
   public static final String SERVER_PRIVILEGED_PORT = PREFIX + "server.privileged_port";
+
   /**
    * <code>scalar.dl.client.cert_holder_id</code><br>
    * If both {@code scalar.dl.client.cert_holder_id} and {@code scalar.dl.client.entity.id} are
@@ -72,6 +76,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.id} instead.
    */
   @Deprecated public static final String CERT_HOLDER_ID = PREFIX + "cert_holder_id";
+
   /**
    * <code>scalar.dl.client.cert_version</code><br>
    *
@@ -79,6 +84,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.identity.digital_signature.cert_version} instead.
    */
   @Deprecated public static final String CERT_VERSION = PREFIX + "cert_version";
+
   /**
    * <code>scalar.dl.client.cert_path</code><br>
    *
@@ -86,6 +92,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.identity.digital_signature.cert_path} instead.
    */
   @Deprecated public static final String CERT_PATH = PREFIX + "cert_path";
+
   /**
    * <code>scalar.dl.client.cert_pem</code><br>
    *
@@ -93,6 +100,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.identity.digital_signature.cert_pem} instead.
    */
   @Deprecated public static final String CERT_PEM = PREFIX + "cert_pem";
+
   /**
    * <code>scalar.dl.client.private_key_path</code><br>
    *
@@ -100,6 +108,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.identity.digital_signature.private_key_path} instead.
    */
   @Deprecated public static final String PRIVATE_KEY_PATH = PREFIX + "private_key_path";
+
   /**
    * <code>scalar.dl.client.private_key_pem</code><br>
    *
@@ -107,6 +116,7 @@ public class ClientConfig {
    *     scalar.dl.client.entity.identity.digital_signature.private_key_pem} instead.
    */
   @Deprecated public static final String PRIVATE_KEY_PEM = PREFIX + "private_key_pem";
+
   /**
    * <code>scalar.dl.client.entity.id</code><br>
    * A unique ID of a requester (e.g., a user or a device).
@@ -114,11 +124,13 @@ public class ClientConfig {
   public static final String ENTITY_ID = PREFIX + "entity.id";
 
   private static final String HMAC_IDENTITY_PREFIX = PREFIX + "entity.identity.hmac.";
+
   /**
    * <code>scalar.dl.client.entity.identity.hmac.secret_key</code><br>
    * A secret key for HMAC, which is required if HMAC is used for authentication.
    */
   public static final String HMAC_SECRET_KEY = HMAC_IDENTITY_PREFIX + "secret_key";
+
   /**
    * <code>scalar.dl.client.entity.identity.hmac.secret_key_version</code> (Optional)<br>
    * The version of the HMAC key. 1 by default.
@@ -126,23 +138,27 @@ public class ClientConfig {
   public static final String HMAC_SECRET_KEY_VERSION = HMAC_IDENTITY_PREFIX + "secret_key_version";
 
   private static final String DS_IDENTITY_PREFIX = PREFIX + "entity.identity.digital_signature.";
+
   /**
    * <code>scalar.dl.client.entity.identity.digital_signature.cert_path</code><br>
    * PEM-encoded certificate data, which is required if {@code
    * scalar.dl.client.entity.identity.digital_signature.cert_pem} is empty.
    */
   public static final String DS_CERT_PATH = DS_IDENTITY_PREFIX + "cert_path";
+
   /**
    * <code>scalar.dl.client.entity.identity.digital_signature.cert_pem</code><br>
    * The path of a certificate file in PEM format, which is required if {@code
    * scalar.dl.client.entity.identity.digital_signature.cert_path} is empty.
    */
   public static final String DS_CERT_PEM = DS_IDENTITY_PREFIX + "cert_pem";
+
   /**
    * <code>scalar.dl.client.entity.identity.digital_signature.cert_version</code> (Optional)<br>
    * The version of the certificate 1 by default.
    */
   public static final String DS_CERT_VERSION = DS_IDENTITY_PREFIX + "cert_version";
+
   /**
    * <code>scalar.dl.client.entity.identity.digital_signature.private_key_path</code><br>
    * The path of a private key file in PEM format, which corresponds to the specified certificate.
@@ -150,12 +166,14 @@ public class ClientConfig {
    * empty.
    */
   public static final String DS_PRIVATE_KEY_PATH = DS_IDENTITY_PREFIX + "private_key_path";
+
   /**
    * <code>scalar.dl.client.entity.identity.digital_signature.private_key_pem</code><br>
    * PEM-encoded private key data. Required if {@code
    * scalar.dl.client.entity.identity.digital_signature.private_key_path} is empty.
    */
   public static final String DS_PRIVATE_KEY_PEM = DS_IDENTITY_PREFIX + "private_key_pem";
+
   /**
    * <code>scalar.dl.client.authentication_method</code> (Optional)<br>
    * The authentication method for clients and Ledger/Auditor servers. {@code "digital-signature"}
@@ -166,6 +184,7 @@ public class ClientConfig {
    *     scalar.dl.client.authentication.method} instead.
    */
   public static final String DEPRECATED_AUTHENTICATION_METHOD = PREFIX + "authentication_method";
+
   /**
    * <code>scalar.dl.client.authentication.method</code> (Optional)<br>
    * The authentication method for clients and Ledger/Auditor servers. {@code "digital-signature"}
@@ -173,23 +192,27 @@ public class ClientConfig {
    * configuration.
    */
   public static final String AUTHENTICATION_METHOD = PREFIX + "authentication.method";
+
   /**
    * <code>scalar.dl.client.tls.enabled</code> (Optional)<br>
    * A flag to enable TLS communication for Ledger (false by default).
    */
   public static final String TLS_ENABLED = PREFIX + "tls.enabled";
+
   /**
    * <code>scalar.dl.client.tls.ca_root_cert_path</code> (Optional)<br>
    * A custom CA root certificate (file path) for TLS communication for Ledger. If the issuing
    * certificate authority is known to the client, it can be empty.
    */
   public static final String TLS_CA_ROOT_CERT_PATH = PREFIX + "tls.ca_root_cert_path";
+
   /**
    * <code>scalar.dl.client.tls.ca_root_cert_pem</code> (Optional)<br>
    * A custom CA root certificate (PEM data) for TLS communication for Ledger. If the issuing
    * certificate authority is known to the client, it can be empty.
    */
   public static final String TLS_CA_ROOT_CERT_PEM = PREFIX + "tls.ca_root_cert_pem";
+
   /**
    * <code>scalar.dl.client.tls.override_authority</code> (Optional)<br>
    * A custom authority for TLS communication for Ledger. This doesn't change what the host is
@@ -198,18 +221,21 @@ public class ClientConfig {
    * certificate chain file that you set for `scalar.dl.ledger.server.tls.cert_chain_path`.
    */
   public static final String TLS_OVERRIDE_AUTHORITY = PREFIX + "tls.override_authority";
+
   /**
    * <code>scalar.dl.client.authorization.credential</code> (Optional)<br>
    * An authorization credential for Ledger. (e.g. authorization: Bearer token) If this is given,
    * clients will add "authorization: [credential]" http/2 header.
    */
   public static final String AUTHORIZATION_CREDENTIAL = PREFIX + "authorization.credential";
+
   /**
    * <code>scalar.dl.client.grpc.deadline_duration_millis</code> (Optional)<br>
    * A deadline that is after the given duration from now for each request.
    */
   public static final String GRPC_DEADLINE_DURATION_MILLIS =
       PREFIX + "grpc.deadline_duration_millis";
+
   /**
    * <code>scalar.dl.client.grpc.max_inbound_message_size</code> (Optional)<br>
    * The maximum message size allowed for a single gRPC frame. If an inbound message larger than
@@ -218,6 +244,7 @@ public class ClientConfig {
    */
   public static final String GRPC_MAX_INBOUND_MESSAGE_SIZE =
       PREFIX + "grpc.max_inbound_message_size";
+
   /**
    * <code>scalar.dl.client.grpc.max_inbound_metadata_size</code> (Optional)<br>
    * The maximum size of metadata allowed to be received. This is cumulative size of the entries
@@ -226,36 +253,43 @@ public class ClientConfig {
    */
   public static final String GRPC_MAX_INBOUND_METADATA_SIZE =
       PREFIX + "grpc.max_inbound_metadata_size";
+
   /**
    * <code>scalar.dl.client.mode</code> (Optional)<br>
    * A client mode. CLIENT OR INTERMEDIARY. CLIENT by default. In INTERMEDIARY mode, this client
    * receives a signed serialized request from another client, and sends it to a server.
    */
   public static final String MODE = PREFIX + "mode";
+
   /** Optional. A flag to enable auditor (false by default). */
   public static final String AUDITOR_ENABLED = PREFIX + "auditor.enabled";
+
   /**
    * <code>scalar.dl.client.auditor.host</code> (Optional)<br>
    * A hostname or an IP address of the auditor ("localhost" by default). It assumes that there is a
    * single endpoint that is given by DNS or a load balancer.
    */
   public static final String AUDITOR_HOST = PREFIX + "auditor.host";
+
   /**
    * <code>scalar.dl.client.auditor.port</code> (Optional)<br>
    * A hostname or an IP address of the auditor ("localhost" by default). It assumes that Optional.
    * A port number of the auditor (40051 by default).
    */
   public static final String AUDITOR_PORT = PREFIX + "auditor.port";
+
   /**
    * <code>scalar.dl.client.auditor.privileged_port</code> (Optional)<br>
    * A port number of the auditor for privileged services (40052 by default).
    */
   public static final String AUDITOR_PRIVILEGED_PORT = PREFIX + "auditor.privileged_port";
+
   /**
    * <code>scalar.dl.client.auditor.tls.enabled</code> (Optional)<br>
    * A flag to enable TLS communication for Auditor (false by default).
    */
   public static final String AUDITOR_TLS_ENABLED = PREFIX + "auditor.tls.enabled";
+
   /**
    * <code>scalar.dl.client.auditor.tls.ca_root_cert_path</code> (Optional)<br>
    * A custom CA root certificate (file path) for TLS communication for Auditor. If the issuing
@@ -263,12 +297,14 @@ public class ClientConfig {
    */
   public static final String AUDITOR_TLS_CA_ROOT_CERT_PATH =
       PREFIX + "auditor.tls.ca_root_cert_path";
+
   /**
    * <code>scalar.dl.client.auditor.tls.ca_root_cert_pem</code> (Optional)<br>
    * A custom CA root certificate (PEM data) for TLS communication for Auditor. If the issuing
    * certificate authority is known to the client, it can be empty.
    */
   public static final String AUDITOR_TLS_CA_ROOT_CERT_PEM = PREFIX + "auditor.tls.ca_root_cert_pem";
+
   /**
    * <code>scalar.dl.client.auditor.tls.override_authority</code> (Optional)<br>
    * A custom authority for TLS communication for Auditor. This doesn't change what the host is
@@ -278,6 +314,7 @@ public class ClientConfig {
    */
   public static final String AUDITOR_TLS_OVERRIDE_AUTHORITY =
       PREFIX + "auditor.tls.override_authority";
+
   /**
    * <code>scalar.dl.client.auditor.authorization.credential</code> (Optional)<br>
    * An authorization credential for Auditor. (e.g. authorization: Bearer token) If this is given,
@@ -285,6 +322,7 @@ public class ClientConfig {
    */
   public static final String AUDITOR_AUTHORIZATION_CREDENTIAL =
       PREFIX + "auditor.authorization.credential";
+
   /**
    * <code>scalar.dl.client.auditor.linearizable_validation.contract_id</code> (Optional)<br>
    * The ID of ValidateLedger contract ("validate-ledger" by default). It is used for the
@@ -292,6 +330,7 @@ public class ClientConfig {
    */
   public static final String AUDITOR_LINEARIZABLE_VALIDATION_CONTRACT_ID =
       PREFIX + "auditor.linearizable_validation.contract_id";
+
   /**
    * <code>scalar.dl.client.auto_bootstrap</code> (Optional)<br>
    * A flag to enable auto bootstrap (true by default). If this flag is enabled, the client identity
