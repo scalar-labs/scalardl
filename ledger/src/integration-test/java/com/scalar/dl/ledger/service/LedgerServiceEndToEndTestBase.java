@@ -140,9 +140,9 @@ public abstract class LedgerServiceEndToEndTestBase {
         .forEach(entry -> registerContracts(entry.getKey()));
 
     // Set up the security manager
-//    System.setProperty("java.security.manager", "default");
-//    System.setProperty("java.security.policy", "src/dist/security.policy");
-//    System.setSecurityManager(new SecurityManager());
+    System.setProperty("java.security.manager", "default");
+    System.setProperty("java.security.policy", "src/dist/security.policy");
+    System.setSecurityManager(new SecurityManager());
 
     setUpBeforeClassPerTestInstance();
   }
