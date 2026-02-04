@@ -39,6 +39,8 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
@@ -112,6 +114,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
 
     // Act
@@ -130,6 +133,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
 
     // Act
@@ -148,6 +152,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CERTIFICATE_ALREADY_REGISTERED);
@@ -168,6 +173,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.HMAC);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.SECRET_ALREADY_REGISTERED);
@@ -188,6 +194,7 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(true);
     when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
     ClientException exception =
         new ClientException("Already registered", StatusCode.CONTRACT_ALREADY_REGISTERED);
@@ -225,7 +232,24 @@ public class ClientServiceTest {
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     when(config.isAuditorEnabled()).thenReturn(false);
-    when(config.getAuditorLinearizableValidationContractId()).thenReturn(ANY_CONTRACT_ID);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service).registerCertificate();
+    verify(service, never())
+        .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void
+      bootstrap_AuditorEnabledButCustomValidationContractIdUsed_ShouldNotRegisterContract() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.isAuditorEnabled()).thenReturn(true);
+    when(config.isDefaultAuditorLinearizableValidationContractIdUsed()).thenReturn(false);
 
     // Act
     service.bootstrap();
@@ -962,5 +986,189 @@ public class ClientServiceTest {
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
     verify(handler, never()).createNamespace(any(com.scalar.dl.rpc.NamespaceCreationRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_NoFilterGiven_ShouldListAllNamespaces() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String expectedJson = "{\"namespaces\":[\"ns1\",\"ns2\"]}";
+    when(handler.listNamespaces(any(NamespacesListingRequest.class))).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces();
+
+    // Assert
+    ArgumentCaptor<NamespacesListingRequest> captor =
+        ArgumentCaptor.forClass(NamespacesListingRequest.class);
+    verify(handler).listNamespaces(captor.capture());
+    NamespacesListingRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getPattern()).isEmpty();
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void listNamespaces_PatternFilterGiven_ShouldListMatchingNamespaces() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String expectedJson = "{\"namespaces\":[\"test_namespace\"]}";
+    when(handler.listNamespaces(any(NamespacesListingRequest.class))).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces(ANY_NAMESPACE);
+
+    // Assert
+    ArgumentCaptor<NamespacesListingRequest> captor =
+        ArgumentCaptor.forClass(NamespacesListingRequest.class);
+    verify(handler).listNamespaces(captor.capture());
+    NamespacesListingRequest capturedRequest = captor.getValue();
+    assertThat(capturedRequest.getPattern()).isEqualTo(ANY_NAMESPACE);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void listNamespaces_SerializedBinaryGiven_ShouldListNamespacesProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    NamespacesListingRequest expected =
+        NamespacesListingRequest.newBuilder().setPattern(ANY_NAMESPACE).build();
+    String expectedJson = "{\"namespaces\":[\"test_namespace\"]}";
+    when(handler.listNamespaces(expected)).thenReturn(expectedJson);
+
+    // Act
+    String result = service.listNamespaces(expected.toByteArray());
+
+    // Assert
+    verify(handler).listNamespaces(expected);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void
+      listNamespaces_PatternWithIntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(ANY_NAMESPACE));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_SerializedBinaryClientModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    NamespacesListingRequest request =
+        NamespacesListingRequest.newBuilder().setPattern(ANY_NAMESPACE).build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(request.toByteArray()));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void listNamespaces_InvalidSerializedBinaryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    byte[] invalidBinary = "invalid".getBytes(StandardCharsets.UTF_8);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.listNamespaces(invalidBinary));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).listNamespaces(any(NamespacesListingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_CorrectInputsGiven_ShouldDropNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String namespace = "test_namespace";
+
+    // Act
+    service.dropNamespace(namespace);
+
+    // Assert
+    NamespaceDroppingRequest expected =
+        NamespaceDroppingRequest.newBuilder().setNamespace(namespace).build();
+    verify(handler).dropNamespace(expected);
+  }
+
+  @Test
+  public void dropNamespace_NullNamespaceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace((String) null));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void
+      dropNamespace_NamespaceNameWithIntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    String namespace = "test_namespace";
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(namespace));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_SerializedBinaryGiven_ShouldDropNamespaceProperly() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    NamespaceDroppingRequest expected =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    service.dropNamespace(expected.toByteArray());
+
+    // Assert
+    verify(handler).dropNamespace(expected);
+  }
+
+  @Test
+  public void dropNamespace_InvalidSerializedBinaryGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+    byte[] invalidBinary = "invalid".getBytes(StandardCharsets.UTF_8);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(invalidBinary));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void dropNamespace_SerializedBinaryClientModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.dropNamespace(request.toByteArray()));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
   }
 }

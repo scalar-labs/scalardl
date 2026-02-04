@@ -5,7 +5,7 @@ plugins {
 
 ext {
     projectGroup = 'com.scalar-labs'
-    projectVersion = '4.0.0-SNAPSHOT'
+    projectVersion = project.findProperty('projectVersion') ?: '4.0.0-SNAPSHOT'
 }
 
 group = projectGroup
@@ -35,15 +35,15 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.25.3'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.20.1'
+        jacksonVersion = '2.21.0'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.17.1'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
-        dropwizardMetricsVersion = '4.2.37'
+        dropwizardMetricsVersion = '4.2.38'
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.58.v20250814'
-        assertjVersion = '3.27.6'
+        assertjVersion = '3.27.7'
         junitVersion = '5.14.2'
         junitPlatformVersion = '1.14.2'
         mockitoVersion = '4.11.0'
@@ -56,7 +56,7 @@ subprojects {
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.33.0'
         bouncyCastleCryptoVersion = '1.70'
-        partiqlVersion = '1.3.2'
+        partiqlVersion = '1.3.3'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
@@ -124,6 +124,31 @@ subprojects {
     task dockerfileLint(type: Exec) {
         description 'Lint the Dockerfile'
         executable "${rootDir}/scripts/docker/lint.sh"
+    }
+
+    // Configure publishing repositories for all subprojects using maven-publish plugin
+    plugins.withType(MavenPublishPlugin).configureEach {
+        def isFeatureSnapshot = (project.version.toString() =~ /^\d+\.\d+\.\d+-feature-.+-SNAPSHOT$/).matches()
+
+        publishing {
+            repositories {
+                if (isFeatureSnapshot) {
+                    maven {
+                        name = 'GitHubPackages'
+                        url = uri('https://maven.pkg.github.com/scalar-labs/scalardl')
+                        credentials {
+                            username = project.findProperty('gprUsername') ?: System.getenv('GPR_USERNAME')
+                            password = project.findProperty('gprPassword') ?: System.getenv('GPR_PASSWORD')
+                        }
+                    }
+                } else {
+                    maven {
+                        name = 'staging'
+                        url = layout.buildDirectory.dir('staging-deploy')
+                    }
+                }
+            }
+        }
     }
 }
 

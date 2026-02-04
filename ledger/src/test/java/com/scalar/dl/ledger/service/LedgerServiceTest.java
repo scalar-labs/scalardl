@@ -29,7 +29,13 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
+import com.scalar.dl.ledger.model.NamespaceCreationRequest;
+import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
+import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -317,5 +323,59 @@ public class LedgerServiceTest {
     assertThat(thrown).isEqualTo(toThrow);
     verify(contractExecutionRequest).validateWith(signatureValidator);
     verify(contractExecutor, never()).execute(contractExecutionRequest);
+  }
+
+  @Test
+  public void create_ProperNamespaceCreationRequestGiven_ShouldCreateNamespace() {
+    // Arrange
+    NamespaceCreationRequest request = new NamespaceCreationRequest("test_namespace");
+
+    // Act
+    service.create(request);
+
+    // Assert
+    verify(base).create(request);
+  }
+
+  @Test
+  public void list_ProperNamespacesListingRequestGiven_ShouldListNamespaces() {
+    // Arrange
+    NamespacesListingRequest request = new NamespacesListingRequest("test_namespace");
+    List<String> namespaces = Collections.singletonList("test_namespace");
+    when(base.list(request)).thenReturn(namespaces);
+
+    // Act
+    List<String> result = service.list(request);
+
+    // Assert
+    verify(base).list(request);
+    assertThat(result).containsExactly("test_namespace");
+  }
+
+  @Test
+  public void list_EmptyNamespaceFilterGiven_ShouldListAllNamespaces() {
+    // Arrange
+    NamespacesListingRequest request = new NamespacesListingRequest("");
+    List<String> namespaces = Arrays.asList("ns1", "ns2", "ns3");
+    when(base.list(request)).thenReturn(namespaces);
+
+    // Act
+    List<String> result = service.list(request);
+
+    // Assert
+    verify(base).list(request);
+    assertThat(result).containsExactly("ns1", "ns2", "ns3");
+  }
+
+  @Test
+  public void drop_ProperNamespaceDroppingRequestGiven_ShouldDropNamespace() {
+    // Arrange
+    NamespaceDroppingRequest request = new NamespaceDroppingRequest("test_namespace");
+
+    // Act
+    service.drop(request);
+
+    // Assert
+    verify(base).drop(request);
   }
 }

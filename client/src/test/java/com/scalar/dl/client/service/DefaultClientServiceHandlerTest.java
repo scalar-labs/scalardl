@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.protobuf.ByteString;
@@ -15,6 +16,9 @@ import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ExecutionOrderingResponse;
 import com.scalar.dl.rpc.ExecutionValidationRequest;
+import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -444,5 +448,62 @@ public class DefaultClientServiceHandlerTest {
     // Act & Assert
     assertThatThrownBy(() -> handler.executeContract(request))
         .isInstanceOf(ValidationException.class);
+  }
+
+  @Test
+  public void createNamespace_ProperRequestGiven_ShouldCreateNamespace() {
+    // Arrange
+    NamespaceCreationRequest request =
+        NamespaceCreationRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    handler.createNamespace(request);
+
+    // Assert
+    verify(ledgerClient).create(request);
+  }
+
+  @Test
+  public void listNamespaces_ProperRequestGiven_ShouldReturnNamespaces() {
+    // Arrange
+    NamespacesListingRequest request = NamespacesListingRequest.newBuilder().build();
+    String expectedJson = "{\"namespaces\":[\"ns1\",\"ns2\"]}";
+    when(ledgerClient.list(request)).thenReturn(expectedJson);
+
+    // Act
+    String result = handler.listNamespaces(request);
+
+    // Assert
+    verify(ledgerClient).list(request);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void listNamespaces_PatternFilterGiven_ShouldReturnFilteredNamespaces() {
+    // Arrange
+    NamespacesListingRequest request =
+        NamespacesListingRequest.newBuilder().setPattern("test").build();
+    String expectedJson = "{\"namespaces\":[\"test_namespace\"]}";
+    when(ledgerClient.list(request)).thenReturn(expectedJson);
+
+    // Act
+    String result = handler.listNamespaces(request);
+
+    // Assert
+    verify(ledgerClient).list(request);
+    assertThat(result).isEqualTo(expectedJson);
+  }
+
+  @Test
+  public void dropNamespace_ProperRequestGiven_ShouldDropNamespace() {
+    // Arrange
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace("test_namespace").build();
+
+    // Act
+    handler.dropNamespace(request);
+
+    // Assert
+    verify(ledgerClient).drop(request);
   }
 }

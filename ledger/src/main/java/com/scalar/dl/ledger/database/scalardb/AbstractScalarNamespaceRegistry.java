@@ -4,11 +4,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import com.scalar.db.api.ConditionBuilder;
+import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Scan;
+import com.scalar.db.api.Scan.Ordering;
+import com.scalar.db.api.ScanBuilder.BuildableScanWithPartitionKey;
+import com.scalar.db.api.Scanner;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
@@ -23,8 +29,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
@@ -36,15 +47,19 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       LoggerFactory.getLogger(AbstractScalarNamespaceRegistry.class.getName());
   private static final int MAX_ATTEMPTS = 5;
   private static final long SLEEP_BASE_MILLIS = 100L;
+  @VisibleForTesting static final int DEFAULT_PARTITION_ID = 0;
   @VisibleForTesting static final String NAMESPACE_NAME_SEPARATOR = "_";
   @VisibleForTesting static final String NAMESPACE_TABLE_NAME = "namespace";
-  @VisibleForTesting static final String NAMESPACE_COLUMN_NAME = "name";
+  @VisibleForTesting static final String COLUMN_PARTITION_ID = "partition_id";
+  @VisibleForTesting static final String COLUMN_NAME = "name";
 
   @VisibleForTesting
   static final TableMetadata NAMESPACE_TABLE_METADATA =
       TableMetadata.newBuilder()
-          .addColumn(NAMESPACE_COLUMN_NAME, DataType.TEXT)
-          .addPartitionKey(NAMESPACE_COLUMN_NAME)
+          .addColumn(COLUMN_PARTITION_ID, DataType.INT)
+          .addColumn(COLUMN_NAME, DataType.TEXT)
+          .addPartitionKey(COLUMN_PARTITION_ID)
+          .addClusteringKey(COLUMN_NAME)
           .build();
 
   private final ServerConfig config;
@@ -111,6 +126,17 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
         .run();
   }
 
+  @Override
+  public void drop(String namespace) {
+    // Drop the namespace first, then delete the entry. This order ensures idempotency:
+    // if the operation partially fails, re-execution will succeed because dropNamespace uses
+    // ifExists=true, and deleteNamespaceEntry will complete the cleanup.
+    // The reverse order would leave orphaned ScalarDB resources if deleteNamespaceEntry
+    // succeeds but dropNamespace fails, as re-execution would fail with NAMESPACE_NOT_FOUND.
+    dropNamespace(namespace);
+    deleteNamespaceEntry(namespace);
+  }
+
   private void createNamespaceManagementTable() {
     try {
       storageAdmin.createTable(
@@ -156,7 +182,8 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
         Put.newBuilder()
             .namespace(config.getNamespace())
             .table(NAMESPACE_TABLE_NAME)
-            .partitionKey(Key.ofText(NAMESPACE_COLUMN_NAME, namespace))
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
             .condition(ConditionBuilder.putIfNotExists())
             .build();
     try {
@@ -165,6 +192,53 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       throw new DatabaseException(CommonError.NAMESPACE_ALREADY_EXISTS);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
+    }
+  }
+
+  private void dropNamespace(String namespace) {
+    try {
+      String fullNamespaceName = namespaceResolver.resolve(namespace);
+      dropStorageTables(fullNamespaceName);
+      dropTransactionTables(fullNamespaceName);
+      storageAdmin.dropNamespace(fullNamespaceName, true);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.DROPPING_NAMESPACE_FAILED, e, e.getMessage());
+    }
+  }
+
+  private void dropStorageTables(String fullNamespaceName) throws ExecutionException {
+    for (Map.Entry<String, TableMetadata> entry : storageTables.entrySet()) {
+      String tableName = entry.getKey();
+      storageAdmin.dropTable(fullNamespaceName, tableName, true);
+    }
+  }
+
+  private void dropTransactionTables(String fullNamespaceName) throws ExecutionException {
+    if (transactionAdmin == null || transactionTables.isEmpty()) {
+      return;
+    }
+
+    for (Map.Entry<String, TableMetadata> entry : transactionTables.entrySet()) {
+      String tableName = entry.getKey();
+      transactionAdmin.dropTable(fullNamespaceName, tableName, true);
+    }
+  }
+
+  private void deleteNamespaceEntry(String namespace) {
+    Delete delete =
+        Delete.newBuilder()
+            .namespace(config.getNamespace())
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
+            .condition(ConditionBuilder.deleteIfExists())
+            .build();
+    try {
+      storage.delete(delete);
+    } catch (NoMutationException e) {
+      throw new DatabaseException(CommonError.NAMESPACE_NOT_FOUND, namespace);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.DROPPING_NAMESPACE_FAILED, e, e.getMessage());
     }
   }
 
@@ -182,5 +256,55 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
       builder.putAll(provider.getTransactionTables());
     }
     return builder.build();
+  }
+
+  @Override
+  public List<String> scan(@Nonnull String pattern) {
+    // Use a single partition to manage all namespaces to avoid cross-partition scans because we can
+    // assume the number of namespaces won't be huge.
+    BuildableScanWithPartitionKey scanBuilder =
+        Scan.newBuilder()
+            .namespace(config.getNamespace())
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .ordering(Ordering.asc(COLUMN_NAME));
+
+    Scan scan;
+    if (pattern.isEmpty()) {
+      scan = scanBuilder.build();
+    } else {
+      scan =
+          scanBuilder
+              .where(ConditionBuilder.column(COLUMN_NAME).isLikeText("%" + pattern + "%"))
+              .build();
+    }
+
+    return scan(scan);
+  }
+
+  private List<String> scan(Scan scan) {
+    Scanner scanner = null;
+    try {
+      if (!storageAdmin.tableExists(config.getNamespace(), NAMESPACE_TABLE_NAME)) {
+        // Before creating a namespace, the namespace management table may not exist (e.g., when
+        // using old ScalarDL versions).
+        return Collections.emptyList();
+      } else {
+        scanner = storage.scan(scan);
+        return Streams.stream(scanner)
+            .map(result -> result.getText(COLUMN_NAME))
+            .collect(Collectors.toList());
+      }
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.SCANNING_NAMESPACES_FAILED, e, e.getMessage());
+    } finally {
+      if (scanner != null) {
+        try {
+          scanner.close();
+        } catch (IOException e) {
+          LOGGER.warn("failed to close scanner.", e);
+        }
+      }
+    }
   }
 }

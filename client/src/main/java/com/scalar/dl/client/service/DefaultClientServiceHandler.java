@@ -20,6 +20,8 @@ import com.scalar.dl.rpc.ExecutionValidationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -136,6 +138,17 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
     client.create(request);
   }
 
+  @Override
+  public void dropNamespace(NamespaceDroppingRequest request) {
+    dropAtAuditor(request);
+    client.drop(request);
+  }
+
+  @Override
+  public String listNamespaces(NamespacesListingRequest request) {
+    return client.list(request);
+  }
+
   private void registerToAuditor(CertificateRegistrationRequest request) {
     if (auditorClient == null) {
       return;
@@ -183,6 +196,19 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
       auditorClient.create(request);
     } catch (ClientException e) {
       if (!e.getStatusCode().equals(StatusCode.NAMESPACE_ALREADY_EXISTS)) {
+        throw e;
+      }
+    }
+  }
+
+  private void dropAtAuditor(NamespaceDroppingRequest request) {
+    if (auditorClient == null) {
+      return;
+    }
+    try {
+      auditorClient.drop(request);
+    } catch (ClientException e) {
+      if (!e.getStatusCode().equals(StatusCode.NAMESPACE_NOT_FOUND)) {
         throw e;
       }
     }

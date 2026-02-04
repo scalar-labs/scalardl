@@ -29,6 +29,8 @@ import com.scalar.dl.rpc.LedgerPrivilegedGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
@@ -240,6 +242,27 @@ public class LedgerClient extends AbstractLedgerClient {
     } catch (Exception e) {
       throwExceptionWithStatusCode(e);
     }
+  }
+
+  @Override
+  public void drop(NamespaceDroppingRequest request) {
+    ThrowableConsumer<NamespaceDroppingRequest> f = r -> getLedgerPrivilegedStub().dropNamespace(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+  }
+
+  @Override
+  public String list(NamespacesListingRequest request) {
+    try {
+      return getLedgerPrivilegedStub().listNamespaces(request).getJson();
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    return "";
   }
 
   private LedgerGrpc.LedgerBlockingStub getLedgerStub() {

@@ -36,6 +36,10 @@ service LedgerPrivileged {
     }
     rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
+    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    }
+    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    }
 }
 
 service Auditor {
@@ -55,6 +59,10 @@ service AuditorPrivileged {
     rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
     }
     rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    }
+    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
     }
 }
 
@@ -77,6 +85,10 @@ service GatewayPrivileged {
     rpc RegisterFunction (FunctionRegistrationRequest) returns (google.protobuf.Empty) {
     }
     rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    }
+    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    }
+    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
     }
 }
 
@@ -163,12 +175,20 @@ message ExecutionValidationRequest {
     repeated AssetProof proofs = 2;
 }
 
-message ContractsListingResponse {
-    string json = 1;
-}
-
 message NamespaceCreationRequest {
     string namespace = 1;
+}
+
+message NamespaceDroppingRequest {
+    string namespace = 1;
+}
+
+message NamespacesListingRequest {
+    string pattern = 1;
+}
+
+message ContractsListingResponse {
+    string json = 1;
 }
 
 message ContractExecutionResponse {
@@ -222,3 +242,6 @@ message ExecutionOrderingResponse {
     bytes signature = 1;
 }
 
+message NamespacesListingResponse {
+    string json = 1;
+}

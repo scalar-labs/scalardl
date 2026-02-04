@@ -32,6 +32,8 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
+import com.scalar.dl.rpc.NamespaceDroppingRequest;
+import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import java.util.Collections;
 import java.util.List;
@@ -117,7 +119,8 @@ public class ClientService implements AutoCloseable {
   }
 
   private void registerValidateLedgerContract() {
-    if (config.isAuditorEnabled()) {
+    if (config.isAuditorEnabled()
+        && config.isDefaultAuditorLinearizableValidationContractIdUsed()) {
       Class<?> clazz = ValidateLedger.class;
       try {
         registerContract(
@@ -1051,6 +1054,87 @@ public class ClientService implements AutoCloseable {
     }
 
     handler.createNamespace(request);
+  }
+
+  /**
+   * Drops the specified namespace.
+   *
+   * @param namespace a namespace name to drop
+   * @throws ClientException if a request fails for some reason
+   */
+  public void dropNamespace(String namespace) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(
+        namespace != null, ClientError.SERVICE_NAMESPACE_NAME_CANNOT_BE_NULL.buildMessage());
+    NamespaceDroppingRequest request =
+        NamespaceDroppingRequest.newBuilder().setNamespace(namespace).build();
+
+    handler.dropNamespace(request);
+  }
+
+  /**
+   * Drops the namespace specified with the serialized byte array of a {@code
+   * NamespaceDroppingRequest}.
+   *
+   * @param serializedBinary a serialized byte array of {@code NamespaceDroppingRequest}
+   * @throws ClientException if a request fails for some reason
+   */
+  public void dropNamespace(byte[] serializedBinary) {
+    checkClientMode(ClientMode.INTERMEDIARY);
+    NamespaceDroppingRequest request;
+    try {
+      request = NamespaceDroppingRequest.parseFrom(serializedBinary);
+    } catch (InvalidProtocolBufferException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+
+    handler.dropNamespace(request);
+  }
+
+  /**
+   * Retrieves a list of all namespaces.
+   *
+   * @return JSON string containing namespace names
+   * @throws ClientException if a request fails for some reason
+   */
+  public String listNamespaces() {
+    return listNamespaces((String) null);
+  }
+
+  /**
+   * Retrieves namespaces that contain the specified pattern.
+   *
+   * @param pattern a string pattern. If null or empty, returns all namespaces.
+   * @return JSON string containing namespace names
+   * @throws ClientException if a request fails for some reason
+   */
+  public String listNamespaces(@Nullable String pattern) {
+    checkClientMode(ClientMode.CLIENT);
+    NamespacesListingRequest.Builder builder = NamespacesListingRequest.newBuilder();
+    if (pattern != null && !pattern.isEmpty()) {
+      builder.setPattern(pattern);
+    }
+    return handler.listNamespaces(builder.build());
+  }
+
+  /**
+   * Retrieves a list of namespaces with the specified serialized byte array of a {@code
+   * NamespacesListingRequest}.
+   *
+   * @param serializedBinary a serialized byte array of {@code NamespacesListingRequest}
+   * @return JSON string containing namespace names
+   * @throws ClientException if a request fails for some reason
+   */
+  public String listNamespaces(byte[] serializedBinary) {
+    checkClientMode(ClientMode.INTERMEDIARY);
+    NamespacesListingRequest request;
+    try {
+      request = NamespacesListingRequest.parseFrom(serializedBinary);
+    } catch (InvalidProtocolBufferException e) {
+      throw new IllegalArgumentException(e.getMessage(), e);
+    }
+
+    return handler.listNamespaces(request);
   }
 
   /**

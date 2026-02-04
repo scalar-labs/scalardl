@@ -82,7 +82,6 @@ import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.exception.ContractContextException;
 import com.scalar.dl.ledger.exception.DatabaseException;
-import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.exception.UnloadableContractException;
@@ -92,7 +91,6 @@ import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
-import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.service.contract.ContractUsingContext;
 import com.scalar.dl.ledger.service.contract.Create;
@@ -1609,32 +1607,5 @@ public class LedgerServiceIntegrationTest {
 
     // Assert
     assertThat(result.getFunctionResult().orElseThrow(AssertionError::new)).isEqualTo(argument);
-  }
-
-  @Test
-  public void create_ValidNamespaceGiven_ShouldCreateNamespace() {
-    // Arrange
-    String namespace = "test_namespace";
-    NamespaceCreationRequest request = new NamespaceCreationRequest(namespace);
-
-    // Act
-    assertThatCode(() -> service.create(request)).doesNotThrowAnyException();
-
-    // Assert
-    verify(namespaceManager).create(namespace);
-  }
-
-  @Test
-  public void create_InvalidNamespaceGiven_ShouldThrowLedgerException() {
-    // Arrange
-    String invalidNamespace = "1invalid";
-    NamespaceCreationRequest request = new NamespaceCreationRequest(invalidNamespace);
-    doThrow(LedgerException.class).when(namespaceManager).create(invalidNamespace);
-
-    // Act Assert
-    assertThatThrownBy(() -> service.create(request)).isInstanceOf(LedgerException.class);
-
-    // Assert
-    verify(namespaceManager).create(invalidNamespace);
   }
 }
