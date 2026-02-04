@@ -22,6 +22,7 @@ import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.ledger.util.JacksonSerDe;
@@ -147,14 +148,17 @@ public class ClientService implements AutoCloseable {
     checkState(
         config.getDigitalSignatureIdentityConfig() != null,
         ClientError.CONFIG_DIGITAL_SIGNATURE_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
-    CertificateRegistrationRequest request =
+    CertificateRegistrationRequest.Builder builder =
         CertificateRegistrationRequest.newBuilder()
             .setEntityId(config.getDigitalSignatureIdentityConfig().getEntityId())
             .setKeyVersion(config.getDigitalSignatureIdentityConfig().getCertVersion())
-            .setCertPem(config.getDigitalSignatureIdentityConfig().getCert())
-            .build();
+            .setCertPem(config.getDigitalSignatureIdentityConfig().getCert());
 
-    handler.registerCertificate(request);
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
+
+    handler.registerCertificate(builder.build());
   }
 
   /**
@@ -188,14 +192,17 @@ public class ClientService implements AutoCloseable {
     checkState(
         config.getHmacIdentityConfig() != null,
         ClientError.CONFIG_HMAC_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
-    SecretRegistrationRequest request =
+    SecretRegistrationRequest.Builder builder =
         SecretRegistrationRequest.newBuilder()
             .setEntityId(config.getHmacIdentityConfig().getEntityId())
             .setKeyVersion(config.getHmacIdentityConfig().getSecretKeyVersion())
-            .setSecretKey(config.getHmacIdentityConfig().getSecretKey())
-            .build();
+            .setSecretKey(config.getHmacIdentityConfig().getSecretKey());
 
-    handler.registerSecret(request);
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
+
+    handler.registerSecret(builder.build());
   }
 
   /**
@@ -461,6 +468,10 @@ public class ClientService implements AutoCloseable {
             .setContractId(id)
             .setContractBinaryName(name)
             .setContractByteCode(ByteString.copyFrom(contractBytes));
+
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (properties != null) {
       builder.setContractProperties(properties);
     }
@@ -502,6 +513,10 @@ public class ClientService implements AutoCloseable {
         ContractsListingRequest.newBuilder()
             .setEntityId(getEntityId())
             .setKeyVersion(getKeyVersion());
+
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (id != null) {
       builder.setContractId(id);
     }
@@ -890,6 +905,9 @@ public class ClientService implements AutoCloseable {
             .setContractId(contractId)
             .setContractArgument(contractArgument);
 
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (!functionIds.isEmpty()) {
       builder.setUseFunctionIds(true).addAllFunctionIds(functionIds);
     }
@@ -985,6 +1003,10 @@ public class ClientService implements AutoCloseable {
               .setAssetId(assetId)
               .setStartAge(startAge)
               .setEndAge(endAge);
+
+      if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+        builder.setContextNamespace(config.getContextNamespace());
+      }
       if (namespace != null) {
         builder.setNamespace(namespace);
       }

@@ -1,6 +1,5 @@
 package com.scalar.dl.ledger.server;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -8,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Empty;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.service.LedgerService;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
@@ -22,7 +20,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -65,7 +62,7 @@ public class LedgerPrivilegedServiceTest {
     // Assert
     com.scalar.dl.ledger.model.CertificateRegistrationRequest expected =
         new com.scalar.dl.ledger.model.CertificateRegistrationRequest(
-            SOME_ENTITY_ID, SOME_CERT_VERSION, SOME_PUBLIC_KEY);
+            null, SOME_ENTITY_ID, SOME_CERT_VERSION, SOME_PUBLIC_KEY);
     verify(ledger).register(expected);
   }
 
@@ -84,12 +81,10 @@ public class LedgerPrivilegedServiceTest {
     grpc.registerSecret(request, observer);
 
     // Assert
-    ArgumentCaptor<SecretEntry> captor = ArgumentCaptor.forClass(SecretEntry.class);
-    verify(ledger).register(captor.capture());
-    SecretEntry actual = captor.getValue();
-    assertThat(actual.getEntityId()).isEqualTo(SOME_ENTITY_ID);
-    assertThat(actual.getKeyVersion()).isEqualTo(SOME_KEY_VERSION);
-    assertThat(actual.getSecretKey()).isEqualTo(SOME_SECRET_KEY);
+    com.scalar.dl.ledger.model.SecretRegistrationRequest expected =
+        new com.scalar.dl.ledger.model.SecretRegistrationRequest(
+            null, SOME_ENTITY_ID, SOME_KEY_VERSION, SOME_SECRET_KEY);
+    verify(ledger).register(expected);
   }
 
   @Test

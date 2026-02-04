@@ -285,15 +285,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -324,15 +325,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -361,15 +363,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -382,15 +385,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce.toString(), Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -449,15 +453,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -491,15 +496,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -529,15 +535,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             : contractArgument.toString();
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -555,15 +562,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce.toString(), Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -575,15 +583,16 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            HOLDER_CHECKER_CONTRACT_ID, argument.toString(), entityId, KEY_VERSION);
+            HOLDER_CHECKER_CONTRACT_ID, argument.toString(), null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce.toString(),
-        entityId,
-        KEY_VERSION,
         HOLDER_CHECKER_CONTRACT_ID,
         argument.toString(),
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signer.sign(serialized),
         null);
   }
@@ -596,9 +605,10 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
   private static LedgerValidationRequest prepareValidationRequest(
       String assetId, int startAge, int endAge, String entityId, SignatureSigner signer) {
     byte[] serialized =
-        LedgerValidationRequest.serialize(null, assetId, startAge, endAge, entityId, KEY_VERSION);
+        LedgerValidationRequest.serialize(
+            null, assetId, startAge, endAge, null, entityId, KEY_VERSION);
     return new LedgerValidationRequest(
-        null, assetId, startAge, endAge, entityId, KEY_VERSION, signer.sign(serialized));
+        null, assetId, startAge, endAge, null, entityId, KEY_VERSION, signer.sign(serialized));
   }
 
   private void createAssets(Optional<UUID> nonce, DeserializationType type, boolean isV2Argument) {
@@ -1092,16 +1102,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1139,16 +1150,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID1, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID1, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1187,16 +1200,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID2, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID2, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             contractArgument.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1234,16 +1248,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID2, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID2, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1282,16 +1298,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = jacksonSerDe.serialize(contractArgument);
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1328,16 +1346,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1371,16 +1391,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
         Argument.format(SOME_ASSET_ID_1 + "," + SOME_AMOUNT_1, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID4, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID4, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID4,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1422,16 +1444,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument.toString(),
             Collections.singletonList(CreateFunction.class.getName()),
             functionArgument.toString(),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1472,16 +1495,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, functionIds);
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID1, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID1, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             argument,
             functionIds,
             functionArgument.toString(),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1521,16 +1546,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID2, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID2, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             contractArgument.toString(),
             Collections.singletonList(CreateFunctionWithJsonp.class.getName()),
             functionArgument.toString(),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1571,16 +1597,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, functionIds);
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID2, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID2, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             argument,
             functionIds,
             functionArgument.toString(),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1622,16 +1650,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, contractArgumentString, ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID3, contractArgumentString, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             contractArgumentString,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             functionArgumentString,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1674,16 +1703,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, functionIds);
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             functionArgumentString,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1714,16 +1745,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String functionArgument = SOME_ID + "," + SOME_AMOUNT_1 + "," + functionNamespace;
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID4, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID4, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID4,
             argument,
             Collections.singletonList(CreateFunctionWithString.class.getName()),
             functionArgument,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1757,16 +1790,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument.toString(),
             Collections.singletonList(CreateFunction.class.getName()),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1812,30 +1846,32 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument2 = Argument.format(contractArgument2, nonce2, functionIds);
     byte[] serialized1 =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, argument1, ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID3, argument1, null, ENTITY_ID_A, KEY_VERSION);
     byte[] serialized2 =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, argument2, ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID3, argument2, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request1 =
         new ContractExecutionRequest(
             nonce1,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument1,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             jacksonSerDe.serialize(functionArgument1),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized1),
             null);
     ContractExecutionRequest request2 =
         new ContractExecutionRequest(
             nonce2,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument2,
             Collections.singletonList(CreateFunctionWithJackson.class.getName()),
             jacksonSerDe.serialize(functionArgument2),
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized2),
             null);
 
@@ -1872,16 +1908,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1908,16 +1945,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID1, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID1, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1945,16 +1984,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID2, contractArgument.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID2, contractArgument.toString(), null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             contractArgument.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -1981,16 +2021,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID2, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID2, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID2,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -2019,16 +2061,17 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID3, contractArgumentString, ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID3, contractArgumentString, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             contractArgumentString,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -2054,16 +2097,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -2085,16 +2130,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
             SOME_ASSET_ID_1 + "," + SOME_AMOUNT_1 + ",true", nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID4, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID4, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID4,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -2123,16 +2170,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_B);
@@ -2174,16 +2223,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             signers.get(ENTITY_ID_B).sign(nonce.getBytes(StandardCharsets.UTF_8)));
 
@@ -2214,16 +2265,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             signers
                 .get(ENTITY_ID_A)
@@ -2254,16 +2307,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_C,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_C,
+            KEY_VERSION,
             signers.get(ENTITY_ID_C).sign(serialized),
             null);
 
@@ -2303,16 +2358,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_C,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_C,
+            KEY_VERSION,
             signers.get(ENTITY_ID_D).sign(serialized),
             null);
 
@@ -2340,16 +2397,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID1, argument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID1, argument, null, ENTITY_ID_A, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized),
             null);
 
@@ -2379,16 +2438,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_C,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_C,
+            KEY_VERSION,
             signers.get(ENTITY_ID_C).sign(serialized),
             signers.get(ENTITY_ID_D).sign(nonce.getBytes(StandardCharsets.UTF_8)));
 
@@ -2419,16 +2480,18 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(CREATE_CONTRACT_ID3, argument, ENTITY_ID_C, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            CREATE_CONTRACT_ID3, argument, null, ENTITY_ID_C, KEY_VERSION);
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             nonce,
-            ENTITY_ID_C,
-            KEY_VERSION,
             CREATE_CONTRACT_ID3,
             argument,
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_C,
+            KEY_VERSION,
             signers.get(ENTITY_ID_C).sign(serialized),
             signers
                 .get(ENTITY_ID_D)
@@ -2516,31 +2579,33 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     byte[] serialized1 =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument1.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument1.toString(), null, ENTITY_ID_A, KEY_VERSION);
     byte[] serialized2 =
         ContractExecutionRequest.serialize(
-            CREATE_CONTRACT_ID1, contractArgument2.toString(), ENTITY_ID_A, KEY_VERSION);
+            CREATE_CONTRACT_ID1, contractArgument2.toString(), null, ENTITY_ID_A, KEY_VERSION);
 
     ContractExecutionRequest request1 =
         new ContractExecutionRequest(
             nonce1,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument1.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized1),
             null);
     ContractExecutionRequest request2 =
         new ContractExecutionRequest(
             nonce2,
-            ENTITY_ID_A,
-            KEY_VERSION,
             CREATE_CONTRACT_ID1,
             contractArgument2.toString(),
             Collections.emptyList(),
             null,
+            null,
+            ENTITY_ID_A,
+            KEY_VERSION,
             signers.get(ENTITY_ID_A).sign(serialized2),
             null);
 

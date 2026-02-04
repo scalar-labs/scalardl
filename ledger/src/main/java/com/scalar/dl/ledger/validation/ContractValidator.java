@@ -35,6 +35,7 @@ public class ContractValidator implements LedgerValidator {
         ContractExecutionRequest.serialize(
             ContractEntry.Key.deserialize(record.contractId()).getId(),
             record.argument(),
+            null, // TODO: use context namespace
             clientIdentityKey.getEntityId(),
             clientIdentityKey.getKeyVersion());
     if (validator.validate(serialized, record.signature())) {

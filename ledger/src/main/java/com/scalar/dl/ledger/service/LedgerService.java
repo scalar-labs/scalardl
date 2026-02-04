@@ -8,7 +8,6 @@ import com.scalar.dl.ledger.contract.ContractEntry;
 import com.scalar.dl.ledger.contract.ContractExecutor;
 import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
@@ -25,6 +24,7 @@ import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
 import java.util.List;
@@ -59,8 +59,8 @@ public class LedgerService {
     base.register(request);
   }
 
-  public void register(SecretEntry entry) {
-    base.register(entry);
+  public void register(SecretRegistrationRequest request) {
+    base.register(request);
   }
 
   public void register(FunctionRegistrationRequest request) {

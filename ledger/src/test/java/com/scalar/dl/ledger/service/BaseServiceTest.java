@@ -17,7 +17,6 @@ import com.scalar.dl.ledger.contract.ContractManager;
 import com.scalar.dl.ledger.crypto.CertificateManager;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SecretManager;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.model.AbstractRequest;
@@ -26,6 +25,7 @@ import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -44,7 +44,7 @@ public class BaseServiceTest {
   @Mock private ContractManager contractManager;
   @Mock private NamespaceManager namespaceManager;
   @Mock private CertificateRegistrationRequest certRegistrationRequest;
-  @Mock private SecretEntry secretEntry;
+  @Mock private SecretRegistrationRequest secretRegistrationRequest;
   @Mock private ContractRegistrationRequest contractRegistrationRequest;
   @Mock private ContractsListingRequest contractsListingRequest;
   @Mock private NamespaceCreationRequest namespaceCreationRequest;
@@ -58,6 +58,7 @@ public class BaseServiceTest {
   private static final int SOME_KEY_VERSION = 1;
   private static final byte[] SOME_SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
   private static final String SOME_PEM = "pem";
+  private static final String SOME_SECRET_KEY = "secret_key";
   private static final String SOME_NAMESPACE = "test_namespace";
 
   @BeforeEach
@@ -69,6 +70,12 @@ public class BaseServiceTest {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getCertPem()).thenReturn(SOME_PEM);
+  }
+
+  private void configureSecretRegistrationRequest(SecretRegistrationRequest request) {
+    when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
+    when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    when(request.getSecretKey()).thenReturn(SOME_SECRET_KEY);
   }
 
   private void configureContractRegistrationRequest(ContractRegistrationRequest request) {
@@ -125,13 +132,14 @@ public class BaseServiceTest {
   @Test
   public void register_ProperSecretGiven_ShouldRegisterSecret() {
     // Arrange
+    configureSecretRegistrationRequest(secretRegistrationRequest);
     doNothing().when(secretManager).register(any());
 
     // Act
-    service.register(secretEntry);
+    service.register(secretRegistrationRequest);
 
     // Assert
-    verify(secretManager).register(secretEntry);
+    verify(secretManager).register(any());
   }
 
   @Test

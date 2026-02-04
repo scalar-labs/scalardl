@@ -16,6 +16,7 @@ import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -46,8 +47,8 @@ public class BaseService {
     certManager.register(CertificateEntry.from(request));
   }
 
-  public void register(SecretEntry entry) {
-    secretManager.register(entry);
+  public void register(SecretRegistrationRequest request) {
+    secretManager.register(SecretEntry.from(request));
   }
 
   public void register(ContractRegistrationRequest request) {

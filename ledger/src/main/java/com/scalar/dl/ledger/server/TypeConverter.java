@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.scalar.dl.ledger.contract.ContractEntry;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.util.JacksonSerDe;
-import com.scalar.dl.ledger.util.Time;
 import com.scalar.dl.rpc.AssetProofRetrievalRequest;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
@@ -29,15 +27,19 @@ public class TypeConverter {
   public static com.scalar.dl.ledger.model.CertificateRegistrationRequest convert(
       CertificateRegistrationRequest req) {
     return new com.scalar.dl.ledger.model.CertificateRegistrationRequest(
-        req.getEntityId(), req.getKeyVersion(), req.getCertPem());
-  }
-
-  public static SecretEntry convert(SecretRegistrationRequest req) {
-    return new SecretEntry(
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
         req.getEntityId(),
         req.getKeyVersion(),
-        req.getSecretKey(),
-        Time.getCurrentUtcTimeInMillis());
+        req.getCertPem());
+  }
+
+  public static com.scalar.dl.ledger.model.SecretRegistrationRequest convert(
+      SecretRegistrationRequest req) {
+    return new com.scalar.dl.ledger.model.SecretRegistrationRequest(
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
+        req.getEntityId(),
+        req.getKeyVersion(),
+        req.getSecretKey());
   }
 
   public static com.scalar.dl.ledger.model.ContractRegistrationRequest convert(
@@ -47,6 +49,7 @@ public class TypeConverter {
         req.getContractBinaryName(),
         req.getContractByteCode().toByteArray(),
         req.getContractProperties().isEmpty() ? null : req.getContractProperties(),
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
         req.getEntityId(),
         req.getKeyVersion(),
         req.getSignature().toByteArray());
@@ -62,6 +65,7 @@ public class TypeConverter {
       ContractsListingRequest req) {
     return new com.scalar.dl.ledger.model.ContractsListingRequest(
         req.getContractId(),
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
         req.getEntityId(),
         req.getKeyVersion(),
         req.getSignature().toByteArray());
@@ -71,12 +75,13 @@ public class TypeConverter {
       ContractExecutionRequest req) {
     return new com.scalar.dl.ledger.model.ContractExecutionRequest(
         req.getNonce(),
-        req.getEntityId(),
-        req.getKeyVersion(),
         req.getContractId(),
         req.getContractArgument(),
         req.getFunctionIdsList(),
         req.getFunctionArgument().isEmpty() ? null : req.getFunctionArgument(),
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
+        req.getEntityId(),
+        req.getKeyVersion(),
         req.getSignature().toByteArray(),
         req.getAuditorSignature().isEmpty() ? null : req.getAuditorSignature().toByteArray());
   }
@@ -88,6 +93,7 @@ public class TypeConverter {
         req.getAssetId(),
         req.getStartAge(),
         req.getEndAge(),
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
         req.getEntityId(),
         req.getKeyVersion(),
         req.getSignature().toByteArray());
