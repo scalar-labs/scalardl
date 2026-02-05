@@ -1,8 +1,6 @@
 package com.scalar.dl.ledger.database.scalardb;
 
-import static com.scalar.dl.ledger.statemachine.AssetInput.INPUT_FORMAT_VERSION;
 import static com.scalar.dl.ledger.statemachine.AssetInput.KEY_AGE;
-import static com.scalar.dl.ledger.statemachine.AssetInput.KEY_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -116,13 +114,11 @@ public class DefaultTamperEvidentAssetComposerTest {
     // Assert
     assertThat(puts).hasSize(1);
     Put put = puts.get(ASSET_KEY1);
+    // V1 format (flat structure without namespace hierarchy) is used for backward compatibility
+    // when all assets are in the default namespace
     JsonObject expected =
         Json.createObjectBuilder()
-            .add(
-                DEFAULT_NAMESPACE,
-                Json.createObjectBuilder()
-                    .add(ANY_ID1, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE)))
-            .add(KEY_VERSION, INPUT_FORMAT_VERSION)
+            .add(ANY_ID1, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE))
             .build();
     assertThat(put.getValues().get(AssetAttribute.INPUT))
         .isEqualTo(new TextValue(AssetAttribute.INPUT, new JsonpSerDe().serialize(expected)));
@@ -171,14 +167,12 @@ public class DefaultTamperEvidentAssetComposerTest {
 
     // Assert
     assertThat(puts).hasSize(2);
+    // V1 format (flat structure without namespace hierarchy) is used for backward compatibility
+    // when all assets are in the default namespace
     JsonObject expectedInput =
         Json.createObjectBuilder()
-            .add(
-                DEFAULT_NAMESPACE,
-                Json.createObjectBuilder()
-                    .add(ANY_ID1, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE).build())
-                    .add(ANY_ID2, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE).build()))
-            .add(KEY_VERSION, INPUT_FORMAT_VERSION)
+            .add(ANY_ID1, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE).build())
+            .add(ANY_ID2, Json.createObjectBuilder().add(KEY_AGE, ANY_AGE).build())
             .build();
 
     Put put1 = puts.get(ASSET_KEY1);

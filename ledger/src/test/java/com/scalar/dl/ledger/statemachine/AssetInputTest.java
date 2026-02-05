@@ -5,6 +5,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableMap;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
@@ -243,5 +244,84 @@ public class AssetInputTest {
 
     // Assert
     assertThat(assetInput.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void toString_OnlyDefaultNamespaceEntries_ShouldReturnV1Format() {
+    // Arrange
+    Map<AssetKey, InternalAsset> readSet =
+        ImmutableMap.of(
+            AssetKey.of(Namespaces.DEFAULT, SOME_ASSET_ID1),
+            createAsset(SOME_ASSET_ID1, SOME_ASSET_AGE1),
+            AssetKey.of(Namespaces.DEFAULT, SOME_ASSET_ID2),
+            createAsset(SOME_ASSET_ID2, SOME_ASSET_AGE2));
+
+    // Act
+    String actual = new AssetInput(readSet).toString();
+
+    // Assert
+    // V1 format should NOT contain version field or namespace
+    assertThat(actual).doesNotContain("\"_version\"");
+    assertThat(actual).doesNotContain(Namespaces.DEFAULT);
+    // Should contain asset IDs directly
+    assertThat(actual).contains(SOME_ASSET_ID1);
+    assertThat(actual).contains(SOME_ASSET_ID2);
+
+    // Verify by parsing the output (V1 format results in null namespace)
+    AssetInput parsed = new AssetInput(actual);
+    assertThat(parsed.size()).isEqualTo(2);
+    List<AssetInput.AssetInputEntry> entries = new ArrayList<>();
+    parsed.forEach(entries::add);
+    assertThat(entries.stream().allMatch(e -> e.namespace() == null)).isTrue();
+  }
+
+  @Test
+  public void toString_MultipleNamespaces_ShouldReturnV2Format() {
+    // Arrange
+    Map<AssetKey, InternalAsset> readSet =
+        ImmutableMap.of(
+            AssetKey.of(SOME_NAMESPACE1, SOME_ASSET_ID1),
+            createAsset(SOME_ASSET_ID1, SOME_ASSET_AGE1),
+            AssetKey.of(SOME_NAMESPACE2, SOME_ASSET_ID2),
+            createAsset(SOME_ASSET_ID2, SOME_ASSET_AGE2));
+
+    // Act
+    String actual = new AssetInput(readSet).toString();
+
+    // Assert
+    // V2 format should contain version field and namespaces
+    assertThat(actual).contains("\"_version\":2");
+    assertThat(actual).contains(SOME_NAMESPACE1);
+    assertThat(actual).contains(SOME_NAMESPACE2);
+
+    // Verify by parsing the output
+    AssetInput parsed = new AssetInput(actual);
+    assertThat(parsed.size()).isEqualTo(2);
+  }
+
+  @Test
+  public void toString_NonDefaultSingleNamespace_ShouldReturnV2Format() {
+    // Arrange
+    Map<AssetKey, InternalAsset> readSet =
+        ImmutableMap.of(
+            AssetKey.of(SOME_NAMESPACE1, SOME_ASSET_ID1),
+            createAsset(SOME_ASSET_ID1, SOME_ASSET_AGE1),
+            AssetKey.of(SOME_NAMESPACE1, SOME_ASSET_ID2),
+            createAsset(SOME_ASSET_ID2, SOME_ASSET_AGE2));
+
+    // Act
+    String actual = new AssetInput(readSet).toString();
+
+    // Assert
+    // V2 format should contain version field even for single non-default namespace
+    assertThat(actual).contains("\"_version\":2");
+    assertThat(actual).contains(SOME_NAMESPACE1);
+
+    // Verify by parsing the output
+    AssetInput parsed = new AssetInput(actual);
+    assertThat(parsed.size()).isEqualTo(2);
+    List<AssetInput.AssetInputEntry> entries = new ArrayList<>();
+    parsed.forEach(entries::add);
+    assertThat(entries.stream().allMatch(e -> SOME_NAMESPACE1.equals(e.namespace()))).isTrue();
   }
 }
