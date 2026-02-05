@@ -8,6 +8,7 @@ import com.google.common.collect.ComparisonChain;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.SignatureException;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -262,20 +263,25 @@ public class AssetProof {
       String input,
       byte[] hash,
       byte[] prevHash) {
+    // For backward compatibility, the default namespace is not included in the serialization.
+    byte[] namespaceBytes =
+        Namespaces.DEFAULT.equals(namespace)
+            ? new byte[0]
+            : namespace.getBytes(StandardCharsets.UTF_8);
     int prevHashLength = 0;
     if (prevHash != null) {
       prevHashLength = prevHash.length;
     }
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            namespace.getBytes(StandardCharsets.UTF_8).length
+            namespaceBytes.length
                 + id.getBytes(StandardCharsets.UTF_8).length
                 + Integer.BYTES
                 + nonce.getBytes(StandardCharsets.UTF_8).length
                 + input.getBytes(StandardCharsets.UTF_8).length
                 + hash.length
                 + prevHashLength);
-    buffer.put(namespace.getBytes(StandardCharsets.UTF_8));
+    buffer.put(namespaceBytes);
     buffer.put(id.getBytes(StandardCharsets.UTF_8));
     buffer.putInt(age);
     buffer.put(nonce.getBytes(StandardCharsets.UTF_8));

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.statemachine.AssetInput.AssetInputEntry;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import java.util.Iterator;
@@ -98,14 +99,35 @@ public class AssetInput implements Iterable<AssetInputEntry> {
   public String toString() {
     // This method is called only when getting the string representation for putting an asset (lock)
     // record, and in that context, the AssetInput is always initialized with a read set that
-    // includes namespace information. Therefore, we can safely create the V2 format with non-null
-    // namespace names.
+    // includes namespace information. For backward compatibility with old Auditor versions that
+    // don't support namespaces, we return V1 format when all entries are in the default namespace,
+    // and V2 format otherwise.
     ImmutableSetMultimap<String, AssetInputEntry> entriesPerNamespace =
         entries.stream()
             .collect(
                 ImmutableSetMultimap.toImmutableSetMultimap(
                     AssetInputEntry::namespace, entry -> entry));
 
+    if (entriesPerNamespace.keySet().size() == 1
+        && entriesPerNamespace.containsKey(Namespaces.DEFAULT)) {
+      return toV1String(entriesPerNamespace.get(Namespaces.DEFAULT));
+    }
+
+    return toV2String(entriesPerNamespace);
+  }
+
+  private String toV1String(ImmutableSet<AssetInputEntry> assets) {
+    ObjectNode objectNode = mapper.createObjectNode();
+    assets.forEach(
+        asset -> {
+          ObjectNode element = mapper.createObjectNode();
+          element.put(KEY_AGE, asset.age());
+          objectNode.set(asset.id(), element);
+        });
+    return serde.serialize(objectNode);
+  }
+
+  private String toV2String(ImmutableSetMultimap<String, AssetInputEntry> entriesPerNamespace) {
     ObjectNode objectNode = mapper.createObjectNode();
     entriesPerNamespace
         .asMap()
@@ -123,7 +145,6 @@ public class AssetInput implements Iterable<AssetInputEntry> {
     if (!entriesPerNamespace.isEmpty()) {
       objectNode.put(KEY_VERSION, INPUT_FORMAT_VERSION);
     }
-
     return serde.serialize(objectNode);
   }
 
