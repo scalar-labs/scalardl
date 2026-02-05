@@ -221,7 +221,6 @@ public enum CommonError implements ScalarDlError {
       "Namespace-aware interfaces are not supported in deprecated contracts.",
       "",
       "Use the non-namespace-aware interfaces or migrate to the newer contract interfaces that support namespaces."),
-      ""),
   RESERVED_NAMESPACE(
       StatusCode.INVALID_ARGUMENT,
       "021",
