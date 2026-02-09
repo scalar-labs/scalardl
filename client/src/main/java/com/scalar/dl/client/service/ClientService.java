@@ -697,7 +697,7 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce).toString(),
+        Argument.format(contractArgument, nonce, config.getContextNamespace(), functionIds),
         functionIds,
         functionArgument.map(Object::toString).orElse(null));
   }
@@ -752,7 +752,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument != null ? functionArgument.toString() : null);
   }
@@ -843,7 +847,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument != null ? jacksonSerDe.serialize(functionArgument) : null);
   }
@@ -884,7 +892,8 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.emptyList()),
+        Argument.format(
+            contractArgument, nonce, config.getContextNamespace(), Collections.emptyList()),
         Collections.emptyList(),
         null);
   }
@@ -939,7 +948,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument);
   }
