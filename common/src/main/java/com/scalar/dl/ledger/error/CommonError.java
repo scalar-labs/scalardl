@@ -8,7 +8,11 @@ public enum CommonError implements ScalarDlError {
   // Errors for INVALID_CONTRACT(302)
   //
   INVALID_CONTRACT_ID_FORMAT(
-      StatusCode.INVALID_CONTRACT, "001", "The format of the contract ID is invalid.", "", "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
+      StatusCode.INVALID_CONTRACT,
+      "001",
+      "The format of the contract ID is invalid.",
+      "",
+      "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
   CONTRACT_VALIDATION_FAILED(
       StatusCode.INVALID_CONTRACT,
       "002",
@@ -30,25 +34,63 @@ public enum CommonError implements ScalarDlError {
   // Errors for INVALID_SIGNATURE(400)
   //
   SIGNATURE_SIGNING_FAILED(
-      StatusCode.INVALID_SIGNATURE, "001", "Signing failed. Details: %s", "", "Verify that your private key is valid and accessible. Check the error details for specific issues."),
+      StatusCode.INVALID_SIGNATURE,
+      "001",
+      "Signing failed. Details: %s",
+      "",
+      "Verify that your private key is valid and accessible. Check the error details for specific issues."),
   SIGNATURE_VALIDATION_FAILED(
-      StatusCode.INVALID_SIGNATURE, "002", "Validating signature failed. Details: %s", "", "Verify that the certificate matches the private key used for signing and that both are valid."),
+      StatusCode.INVALID_SIGNATURE,
+      "002",
+      "Validating signature failed. Details: %s",
+      "",
+      "Verify that the certificate matches the private key used for signing and that both are valid."),
   REQUEST_SIGNATURE_VALIDATION_FAILED(
-      StatusCode.INVALID_SIGNATURE, "003", "The request signature can't be validated.", "", "Verify that the certificate used for signing the request is registered and matches the private key."),
+      StatusCode.INVALID_SIGNATURE,
+      "003",
+      "The request signature can't be validated.",
+      "",
+      "Verify that the certificate used for signing the request is registered and matches the private key."),
   PROOF_SIGNATURE_VALIDATION_FAILED(
-      StatusCode.INVALID_SIGNATURE, "004", "The proof signature can't be validated.", "", "Verify that the proof configuration is correct and that the certificate used for signing is valid."),
+      StatusCode.INVALID_SIGNATURE,
+      "004",
+      "The proof signature can't be validated.",
+      "",
+      "Verify that the proof configuration is correct and that the certificate used for signing is valid."),
 
   //
   // Errors for UNLOADABLE_KEY(401)
   //
   LOADING_KEY_FAILED(
-      StatusCode.UNLOADABLE_KEY, "001", "Loading the key failed. Details: %s", "", "Verify that the key file exists at the specified path, is readable, and has the correct format."),
+      StatusCode.UNLOADABLE_KEY,
+      "001",
+      "Loading the key failed. Details: %s",
+      "",
+      "Verify that the key file exists at the specified path, is readable, and has the correct format."),
   LOADING_CERTIFICATE_FAILED(
-      StatusCode.UNLOADABLE_KEY, "002", "Loading the certificate failed. Details: %s", "", "Verify that the certificate file exists at the specified path, is readable, and has the correct format."),
+      StatusCode.UNLOADABLE_KEY,
+      "002",
+      "Loading the certificate failed. Details: %s",
+      "",
+      "Verify that the certificate file exists at the specified path, is readable, and has the correct format."),
   CREATING_CIPHER_KEY_FAILED(
-      StatusCode.UNLOADABLE_KEY, "003", "Creating a cipher key failed. Details: %s", "", "Verify that the cipher configuration is correct and that the key material is valid."),
-  INVALID_PRIVATE_KEY(StatusCode.UNLOADABLE_KEY, "004", "Invalid private key. File: %s", "", "Provide a valid private key file in PEM format at the specified path."),
-  INVALID_CERTIFICATE(StatusCode.UNLOADABLE_KEY, "005", "Invalid certificate. File: %s", "", "Provide a valid certificate file in PEM format at the specified path."),
+      StatusCode.UNLOADABLE_KEY,
+      "003",
+      "Creating a cipher key failed. Details: %s",
+      "",
+      "Verify that the cipher configuration is correct and that the key material is valid."),
+  INVALID_PRIVATE_KEY(
+      StatusCode.UNLOADABLE_KEY,
+      "004",
+      "Invalid private key. File: %s",
+      "",
+      "Provide a valid private key file in PEM format at the specified path."),
+  INVALID_CERTIFICATE(
+      StatusCode.UNLOADABLE_KEY,
+      "005",
+      "Invalid certificate. File: %s",
+      "",
+      "Provide a valid certificate file in PEM format at the specified path."),
   READING_PRIVATE_KEY_FAILED(
       StatusCode.UNLOADABLE_KEY,
       "006",
@@ -62,25 +104,41 @@ public enum CommonError implements ScalarDlError {
       "",
       "Verify that the certificate file exists, is readable, and has the correct permissions and format."),
   CREATING_KEY_STORE_FAILED(
-      StatusCode.UNLOADABLE_KEY, "008", "Creating a key store failed. Details: %s", "", "Verify that the key store configuration is correct and that all required files are accessible."),
+      StatusCode.UNLOADABLE_KEY,
+      "008",
+      "Creating a key store failed. Details: %s",
+      "",
+      "Verify that the key store configuration is correct and that all required files are accessible."),
 
   //
   // Errors for UNLOADABLE_CONTRACT(402)
   //
   LOADING_CONTRACT_FAILED(
-      StatusCode.UNLOADABLE_CONTRACT, "001", "Loading the contract failed. Details: %s", "", "Verify that the contract class is valid and all dependencies are available. Check the error details for specific issues."),
+      StatusCode.UNLOADABLE_CONTRACT,
+      "001",
+      "Loading the contract failed. Details: %s",
+      "",
+      "Verify that the contract class is valid and all dependencies are available. Check the error details for specific issues."),
 
   //
   // Errors for CERTIFICATE_NOT_FOUND(403)
   //
   CERTIFICATE_NOT_FOUND(
-      StatusCode.CERTIFICATE_NOT_FOUND, "001", "The specified certificate is not found.", "", "Before using the certificate, register it by using the register-cert command."),
+      StatusCode.CERTIFICATE_NOT_FOUND,
+      "001",
+      "The specified certificate is not found.",
+      "",
+      "Before using the certificate, register it by using the register-cert command."),
 
   //
   // Errors for CONTRACT_NOT_FOUND(404)
   //
   CONTRACT_NOT_FOUND(
-      StatusCode.CONTRACT_NOT_FOUND, "001", "The specified contract is not found.", "", "Before executing the contract, register it by using the register-contract command."),
+      StatusCode.CONTRACT_NOT_FOUND,
+      "001",
+      "The specified contract is not found.",
+      "",
+      "Before executing the contract, register it by using the register-contract command."),
 
   //
   // Errors for CERTIFICATE_ALREADY_REGISTERED(405)
@@ -134,9 +192,17 @@ public enum CommonError implements ScalarDlError {
       "",
       "Set the property to 'true' or 'false' in your configuration."),
   CONFIG_UTILS_READING_FILE_FAILED(
-      StatusCode.INVALID_ARGUMENT, "003", "Reading the file failed. File: %s", "", "Verify that the file exists at the specified path and is readable."),
+      StatusCode.INVALID_ARGUMENT,
+      "003",
+      "Reading the file failed. File: %s",
+      "",
+      "Verify that the file exists at the specified path and is readable."),
   LICENSE_CHECKER_CONFIG_LICENSE_KEY_REQUIRED(
-      StatusCode.INVALID_ARGUMENT, "004", "Please set your license key to %s.", "", "Set your license key to the specified configuration property."),
+      StatusCode.INVALID_ARGUMENT,
+      "004",
+      "Please set your license key to %s.",
+      "",
+      "Set your license key to the specified configuration property."),
   LICENSE_CHECKER_CONFIG_CERTIFICATE_PEM_OR_PATH_REQUIRED(
       StatusCode.INVALID_ARGUMENT,
       "005",
@@ -162,7 +228,11 @@ public enum CommonError implements ScalarDlError {
       "",
       "Set the port and privileged port to valid values (>= 0) in your configuration."),
   PRIVATE_KEY_AND_CERT_REQUIRED(
-      StatusCode.INVALID_ARGUMENT, "009", "The private key and certificate are required.", "", "Provide both the private key and certificate in your configuration."),
+      StatusCode.INVALID_ARGUMENT,
+      "009",
+      "The private key and certificate are required.",
+      "",
+      "Provide both the private key and certificate in your configuration."),
   CERT_VERSION_MUST_BE_GREATER_THAN_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "010",
@@ -206,7 +276,11 @@ public enum CommonError implements ScalarDlError {
       "",
       "Set the authentication method to a valid value (like 'digital-signature' or 'hmac') in your configuration."),
   ILLEGAL_ARGUMENT_FORMAT(
-      StatusCode.INVALID_ARGUMENT, "017", "The argument format is illegal.", "", "Provide the argument in the correct format. Check the documentation for the expected format."),
+      StatusCode.INVALID_ARGUMENT,
+      "017",
+      "The argument format is illegal.",
+      "",
+      "Provide the argument in the correct format. Check the documentation for the expected format."),
   UNSUPPORTED_DESERIALIZATION_TYPE(
       StatusCode.INVALID_ARGUMENT,
       "018",
@@ -214,7 +288,11 @@ public enum CommonError implements ScalarDlError {
       "",
       "Use a supported deserialization type. Check the documentation for valid types."),
   INVALID_NAMESPACE_NAME(
-      StatusCode.INVALID_ARGUMENT, "019", "The namespace name is invalid. Name: %s", "", "Provide a valid namespace name that meets the naming requirements."),
+      StatusCode.INVALID_ARGUMENT,
+      "019",
+      "The namespace name is invalid. Name: %s",
+      "",
+      "Provide a valid namespace name that meets the naming requirements."),
   NAMESPACE_NOT_SUPPORTED_IN_DEPRECATED_CONTRACT(
       StatusCode.INVALID_ARGUMENT,
       "020",
@@ -232,7 +310,11 @@ public enum CommonError implements ScalarDlError {
   // Errors for SECRET_NOT_FOUND(415)
   //
   SECRET_NOT_FOUND(
-      StatusCode.SECRET_NOT_FOUND, "001", "The specified secret is not found.", "", "Before using the secret, register it by using the register-secret command."),
+      StatusCode.SECRET_NOT_FOUND,
+      "001",
+      "The specified secret is not found.",
+      "",
+      "Before using the secret, register it by using the register-secret command."),
 
   //
   // Errors for NAMESPACE_ALREADY_EXISTS(416)
@@ -258,31 +340,83 @@ public enum CommonError implements ScalarDlError {
   // Errors for DATABASE_ERROR(500)
   //
   BINDING_CERTIFICATE_FAILED(
-      StatusCode.DATABASE_ERROR, "001", "Binding the certificate failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "001",
+      "Binding the certificate failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   UNBINDING_CERTIFICATE_FAILED(
-      StatusCode.DATABASE_ERROR, "002", "Unbinding the certificate failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "002",
+      "Unbinding the certificate failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   GETTING_CERTIFICATE_FAILED(
-      StatusCode.DATABASE_ERROR, "003", "Getting the certificate failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "003",
+      "Getting the certificate failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   BINDING_SECRET_KEY_FAILED(
-      StatusCode.DATABASE_ERROR, "004", "Binding the secret key failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "004",
+      "Binding the secret key failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   UNBINDING_SECRET_KEY_FAILED(
-      StatusCode.DATABASE_ERROR, "005", "Unbinding the secret key failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "005",
+      "Unbinding the secret key failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   GETTING_SECRET_KEY_FAILED(
-      StatusCode.DATABASE_ERROR, "006", "Getting the secret key failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "006",
+      "Getting the secret key failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   BINDING_CONTRACT_FAILED(
-      StatusCode.DATABASE_ERROR, "007", "Binding the contract failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "007",
+      "Binding the contract failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   GETTING_CONTRACT_FAILED(
-      StatusCode.DATABASE_ERROR, "008", "Getting the contract failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "008",
+      "Getting the contract failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   SCANNING_CONTRACT_FAILED(
-      StatusCode.DATABASE_ERROR, "009", "Scanning the contracts failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "009",
+      "Scanning the contracts failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   CREATING_NAMESPACE_TABLE_FAILED(
-      StatusCode.DATABASE_ERROR, "010", "Creating the namespace table failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "010",
+      "Creating the namespace table failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   CREATING_NAMESPACE_FAILED(
-      StatusCode.DATABASE_ERROR, "011", "Creating the namespace failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "011",
+      "Creating the namespace failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   SCANNING_NAMESPACES_FAILED(
-      StatusCode.DATABASE_ERROR, "012", "Scanning the namespaces failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "012",
+      "Scanning the namespaces failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   DROPPING_NAMESPACE_FAILED(
-      StatusCode.DATABASE_ERROR, "013", "Dropping the namespace failed. Details: %s", "", "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+      StatusCode.DATABASE_ERROR,
+      "013",
+      "Dropping the namespace failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
 
   //
   // Errors for RUNTIME_ERROR(502)
@@ -300,7 +434,11 @@ public enum CommonError implements ScalarDlError {
       "",
       "Check the error details and verify that the JSON string is valid and well-formed."),
   REQUIRED_FIELDS_ARE_NOT_GIVEN(
-      StatusCode.RUNTIME_ERROR, "003", "The required fields are not specified.", "", "Provide all required fields in your request."),
+      StatusCode.RUNTIME_ERROR,
+      "003",
+      "The required fields are not specified.",
+      "",
+      "Provide all required fields in your request."),
   METADATA_NOT_AVAILABLE(
       StatusCode.RUNTIME_ERROR,
       "004",
@@ -308,9 +446,17 @@ public enum CommonError implements ScalarDlError {
       "",
       "Commit the asset before accessing its metadata."),
   INVALID_TRANSACTION_STATE_SPECIFIED(
-      StatusCode.RUNTIME_ERROR, "005", "The specified transaction state is invalid.", "", "Check the error details in the logs and verify the transaction state."),
+      StatusCode.RUNTIME_ERROR,
+      "005",
+      "The specified transaction state is invalid.",
+      "",
+      "Check the error details in the logs and verify the transaction state."),
   UNSUPPORTED_CONTRACT(
-      StatusCode.RUNTIME_ERROR, "006", "The contract type or instance is not supported.", "", "Check the error details in the logs and verify that the contract type is supported."),
+      StatusCode.RUNTIME_ERROR,
+      "006",
+      "The contract type or instance is not supported.",
+      "",
+      "Check the error details in the logs and verify that the contract type is supported."),
   ;
 
   private static final String COMPONENT_NAME = "DL-COMMON";
