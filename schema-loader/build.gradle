@@ -1,9 +1,16 @@
-plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+task copyFilesToDockerBuildContextDir(type: Copy) {
+    description = 'Copy files to a temporary folder to build the Docker image'
+    from('Dockerfile')
+    from('auditor-schema.json')
+    from('ledger-schema.json')
+    from('entrypoint.sh')
+    from('database.properties.tmpl')
+    into('build/docker')
 }
 
-docker {
-    name "ghcr.io/scalar-labs/scalardl-schema-loader:$dockerVersion"
-    buildArgs([SCALARDB_VERSION: "$scalarDbVersion"])
-    files 'auditor-schema.json', 'ledger-schema.json', 'entrypoint.sh', 'database.properties.tmpl'
+task docker(type: Exec) {
+    description = 'Build ScalarDL Schema Loader Docker image'
+    dependsOn copyFilesToDockerBuildContextDir
+    workingDir 'build/docker'
+    commandLine 'docker', 'build', '--build-arg', "SCALARDB_VERSION=${scalarDbVersion}", '--tag', "ghcr.io/scalar-labs/scalardl-schema-loader:${dockerVersion}", '.'
 }

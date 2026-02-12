@@ -759,8 +759,7 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
 
     // Act Assert
     List<String> assetIds = Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2);
-    assetIds
-        .parallelStream()
+    assetIds.parallelStream()
         .forEach(
             assetId ->
                 AccessController.doPrivileged(

@@ -66,9 +66,9 @@ public abstract class LedgerServiceEndToEndTestBase {
   protected static final String CONTRACT_PACKAGE_NAME = "com.scalar.dl.ledger.service.contract.";
   protected static final String FUNCTION_PACKAGE_NAME = "com.scalar.dl.ledger.service.function.";
   protected static final String CONTRACT_CLASS_DIR =
-      "build/classes/java/integrationTest/com/scalar/dl/ledger/service/contract/";
+      "../common-test/build/classes/java/main/com/scalar/dl/ledger/service/contract/";
   protected static final String FUNCTION_CLASS_DIR =
-      "build/classes/java/integrationTest/com/scalar/dl/ledger/service/function/";
+      "../common-test/build/classes/java/main/com/scalar/dl/ledger/service/function/";
   private static final String JDBC_TRANSACTION_MANAGER = "jdbc";
   private static final String PROP_NAMESPACE_SUFFIX = "scalardl.namespace_suffix";
   private static final String PROP_STORAGE = "scalardb.storage";
