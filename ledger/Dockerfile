@@ -8,7 +8,7 @@ RUN set -x && \
     wget -q -O grpc_health_probe "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" && \
     chmod +x grpc_health_probe
 
-FROM eclipse-temurin:8-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 
 RUN apt-get update && apt-get upgrade -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*

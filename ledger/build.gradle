@@ -1,17 +1,20 @@
 plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'application'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
-apply plugin:'application'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 startScripts.enabled = false
 
 sourceSets {
     integrationTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
@@ -22,8 +25,6 @@ sourceSets {
     // test to the unit tests directory and delete everything below.
     permissionTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/permission-test/java')
         }
         resources.srcDir file('src/permission-test/resources')
@@ -35,6 +36,8 @@ configurations {
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
     integrationTestCompileOnly.extendsFrom testCompileOnly
     permissionTestImplementation.extendsFrom testImplementation
+    permissionTestRuntimeOnly.extendsFrom testRuntimeOnly
+    permissionTestCompileOnly.extendsFrom testCompileOnly
 }
 
 dependencies {
@@ -49,6 +52,11 @@ dependencies {
 
     testImplementation group: 'com.scalar-labs', name: 'scalardb-schema-loader', version: "${scalarDbVersion}"
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: "${junitVersion}"
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation sourceSets.test.output
+    integrationTestImplementation project(':common-test')
+    permissionTestImplementation sourceSets.main.output
+    permissionTestImplementation sourceSets.test.output
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
@@ -61,7 +69,7 @@ dependencies {
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -71,7 +79,7 @@ javadoc {
 }
 
 task testJar(type: Jar) {
-    classifier 'tests'
+    archiveClassifier = 'tests'
     from sourceSets.test.output
 }
 
@@ -83,66 +91,68 @@ task LedgerServer(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-applicationDistribution.into('bin') {
-    from(LedgerServer)
-    fileMode = 0755
-}
-
-docker {
-    name "ghcr.io/scalar-labs/scalardl-ledger:$dockerVersion"
-    files tasks.distTar.outputs, 'conf/ledger.properties.for.docker', 'conf/log4j2.properties', 'docker-entrypoint.sh'
-}
-
-task integrationTestCassandra(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with Consensus Commit transaction manager on Cassandra.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
-    options {
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+distributions {
+    main {
+        contents {
+            into('bin') {
+                from(LedgerServer)
+                filePermissions {
+                    unix('0755')
+                }
+            }
+        }
     }
 }
 
-task integrationTestDynamo(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with Consensus Commit transaction manager on DynamoDB.'
-    group 'verification'
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
-    options {
-        systemProperty('scalardb.storage', 'dynamo')
-        systemProperty('scalardb.transaction_manager', 'consensus-commit')
-        systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
+task copyFilesToDockerBuildContextDir(type: Copy) {
+    description = 'Copy files to a temporary folder to build the Docker image'
+    dependsOn distTar
+    from('Dockerfile')
+    from('conf') {
+        include 'ledger.properties.for.docker'
+        include 'log4j2.properties'
     }
+    from('docker-entrypoint.sh')
+    from(tasks.distTar.archiveFile)
+    into('build/docker')
 }
 
-task integrationTestMysql(type: Test) {
-    useJUnitPlatform()
-    description 'Runs the integration tests with JDBC transaction manager on MySQL.'
+task docker(type: Exec) {
+    description = 'Build ScalarDL Ledger Docker image'
+    dependsOn copyFilesToDockerBuildContextDir
+    workingDir 'build/docker'
+    commandLine 'docker', 'build', '--tag', "ghcr.io/scalar-labs/scalardl-ledger:${dockerVersion}", '.'
+}
+
+def integrationTestBase = {
     group 'verification'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     outputs.upToDateWhen { false } // ensures integration tests are run every time when called
-    shouldRunAfter test
+    jvmArgs '-Djava.security.manager=allow'
     options {
-        systemProperty('scalardb.storage', 'jdbc')
-        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
-        systemProperty('scalardb.username', 'root')
-        systemProperty('scalardb.password', 'mysql')
-        systemProperty('scalardb.transaction_manager', 'jdbc')
         systemProperties(System.getProperties().findAll{it.key.toString().startsWith("scalar")})
     }
 }
 
 task integrationTest(type: Test) {
-    dependsOn integrationTestCassandra
-    dependsOn integrationTestDynamo
-    dependsOn integrationTestMysql
+    description 'Runs the integration tests.'
+    configure integrationTestBase
+}
+
+task integrationTestCosmos(type: Test) {
+    description 'Runs the integration tests for Cosmos DB.'
+    configure integrationTestBase
+    jvmArgs '-Xmx6g', '-XX:MaxDirectMemorySize=4g'
+}
+
+task permissionTest(type: Test) {
+    description 'Runs the permission tests.'
+    group 'verification'
+    testClassesDirs = sourceSets.permissionTest.output.classesDirs
+    classpath = sourceSets.permissionTest.runtimeClasspath
+    outputs.upToDateWhen { false } // ensures permission tests are run every time when called
+    jvmArgs '-Djava.security.manager=allow'
 }
 
 spotless {
@@ -189,7 +199,19 @@ test.dependsOn += copyTestJarsToTestLib
 test.dependsOn += compileIntegrationTestJava
 test.dependsOn += compilePermissionTestJava
 
-archivesBaseName = "scalardl-ledger"
+distZip {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+    mustRunAfter tasks.named('compilePermissionTestJava')
+}
+
+distTar {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+    mustRunAfter tasks.named('compilePermissionTestJava')
+}
+
+base {
+    archivesName = "scalardl-ledger"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&
