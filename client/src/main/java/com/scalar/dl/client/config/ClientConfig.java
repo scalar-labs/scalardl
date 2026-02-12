@@ -300,10 +300,10 @@ public class ClientConfig {
    */
   public static final String AUTO_BOOTSTRAP = PREFIX + "auto_bootstrap";
   /**
-   * <code>scalar.dl.client.context_namespace</code> (Optional)<br>
+   * <code>scalar.dl.client.context.namespace</code> (Optional)<br>
    * A namespace where client requests are executed ("default" by default).
    */
-  public static final String CONTEXT_NAMESPACE = PREFIX + "context_namespace";
+  public static final String CONTEXT_NAMESPACE = PREFIX + "context.namespace";
 
   private final Properties props;
   private String serverHost;
