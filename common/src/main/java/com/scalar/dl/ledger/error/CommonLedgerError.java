@@ -28,7 +28,7 @@ public enum CommonLedgerError implements ScalarDlError {
       "001",
       "The specified function is not found.",
       "",
-      "Register the function first before attempting to execute it."),
+      "Register the function first before executing it."),
 
   //
   // Errors for UNLOADABLE_FUNCTION(411)
