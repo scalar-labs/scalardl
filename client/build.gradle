@@ -1,17 +1,14 @@
 plugins {
-    id 'com.palantir.docker' version "${dockerPluginVersion}"
+    id 'application'
     id 'net.ltgt.errorprone' version "${errorpronePluginVersion}"
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
-apply plugin:'application'
 startScripts.enabled = false
 
 sourceSets {
     integrationTest {
         java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
             srcDir file('src/integration-test/java')
         }
         resources.srcDir file('src/integration-test/resources')
@@ -34,6 +31,8 @@ dependencies {
 
     // for tests
     testImplementation project(':common-test')
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation sourceSets.test.output
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
@@ -157,28 +156,36 @@ task SmallbankLoader(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-applicationDistribution.into('bin') {
-    from(CertificateRegistration)
-    from(SecretRegistration)
-    from(FunctionRegistration)
-    from(FunctionsRegistration)
-    from(ContractRegistration)
-    from(ContractsRegistration)
-    from(ContractsListing)
-    from(ContractExecution)
-    from(LedgerValidation)
-    from(NamespaceCreation)
-    from(ScalarDl)
-    from(ScalarDlGc)
-    from(StateUpdaterSimpleBench)
-    from(StateUpdaterLoader)
-    from(SmallbankBench)
-    from(SmallbankLoader)
-    fileMode = 0755
+distributions {
+    main {
+        contents {
+            into('bin') {
+                from(CertificateRegistration)
+                from(SecretRegistration)
+                from(FunctionRegistration)
+                from(FunctionsRegistration)
+                from(ContractRegistration)
+                from(ContractsRegistration)
+                from(ContractsListing)
+                from(ContractExecution)
+                from(LedgerValidation)
+                from(NamespaceCreation)
+                from(ScalarDl)
+                from(ScalarDlGc)
+                from(StateUpdaterSimpleBench)
+                from(StateUpdaterLoader)
+                from(SmallbankBench)
+                from(SmallbankLoader)
+                filePermissions {
+                    unix('0755')
+                }
+            }
+        }
+    }
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -191,7 +198,7 @@ javadoc {
 }
 
 task testJar(type: Jar) {
-  classifier = 'tests'
+  archiveClassifier = 'tests'
   from sourceSets.test.output
 }
 
@@ -240,16 +247,37 @@ spotbugsIntegrationTest.reports {
 check.dependsOn -= integrationTest  // build should not depend on the integration tests
 
 // For testing only
-docker {
-    name "ghcr.io/scalar-labs/scalardl-client:$dockerVersion"
-    files tasks.distTar.outputs, 'conf/client.properties.tmpl', 'conf/log4j2.properties.tmpl'
+task copyFilesToDockerBuildContextDir(type: Copy) {
+    description = 'Copy files to a temporary folder to build the Docker image'
+    dependsOn distTar
+    from('Dockerfile')
+    from('conf') {
+        include 'client.properties.tmpl'
+        include 'log4j2.properties.tmpl'
+    }
+    from(tasks.distTar.archiveFile)
+    into('build/docker')
+}
+
+task docker(type: Exec) {
+    description = 'Build ScalarDL Client Docker image'
+    dependsOn copyFilesToDockerBuildContextDir
+    workingDir 'build/docker'
+    commandLine 'docker', 'build', '--tag', "ghcr.io/scalar-labs/scalardl-client:${dockerVersion}", '.'
 }
 
 distZip {
     archiveFileName = "scalardl-java-client-sdk-${project.version}.zip"
+    mustRunAfter tasks.named('compileIntegrationTestJava')
 }
 
-archivesBaseName = "scalardl-java-client-sdk"
+distTar {
+    mustRunAfter tasks.named('compileIntegrationTestJava')
+}
+
+base {
+    archivesName = "scalardl-java-client-sdk"
+}
 
 // for archiving and uploading to maven central
 if (!project.gradle.startParameter.taskNames.isEmpty() &&
