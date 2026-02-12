@@ -66,7 +66,7 @@ public enum CommonError implements ScalarDlError {
       "001",
       "Loading the key failed. Details: %s",
       "",
-      "Verify that the key file exists at the specified path, is readable, and has the correct format."),
+      "If using a key file, verify that it exists at the specified path, is readable, and has the correct format. If using a PEM-formatted string, verify that the key has the correct format."),
   LOADING_CERTIFICATE_FAILED(
       StatusCode.UNLOADABLE_KEY,
       "002",
