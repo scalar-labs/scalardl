@@ -66,13 +66,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
-  - package-ecosystem: "github-actions"
-    target-branch: "3.9"
-    groups:
-      actions on branch 3.9:
-        patterns:
-          - "*"
-    directory: "/"
-    schedule:
-      interval: "weekly"
