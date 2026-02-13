@@ -68,7 +68,7 @@ public class ContractValidatorTest {
     byte[] signature =
         dsSigner.sign(
             ContractExecutionRequest.serialize(
-                CONTRACT_ID, CONTRACT_ARGUMENT, ENTITY_ID, CERT_VERSION));
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act
@@ -90,7 +90,7 @@ public class ContractValidatorTest {
     byte[] signature =
         dsSigner.sign(
             ContractExecutionRequest.serialize(
-                CONTRACT_ID, CONTRACT_ARGUMENT, ENTITY_ID, CERT_VERSION));
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
     InternalAsset asset = createAssetMock(tamperedContractId, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
@@ -112,7 +112,7 @@ public class ContractValidatorTest {
     byte[] signature =
         dsSigner.sign(
             ContractExecutionRequest.serialize(
-                CONTRACT_ID, CONTRACT_ARGUMENT, ENTITY_ID, CERT_VERSION));
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
     String tampered = CONTRACT_ARGUMENT + "x";
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, tampered, signature);
 
@@ -136,7 +136,7 @@ public class ContractValidatorTest {
     byte[] tampered =
         dsSigner.sign(
             ContractExecutionRequest.serialize(
-                CONTRACT_ID, CONTRACT_ARGUMENT, ENTITY_ID, CERT_VERSION));
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, tampered);
 
     // Act Asset
@@ -159,7 +159,7 @@ public class ContractValidatorTest {
     byte[] signature =
         dsSigner.sign(
             ContractExecutionRequest.serialize(
-                CONTRACT_ID, CONTRACT_ARGUMENT, ENTITY_ID, CERT_VERSION));
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act Asset

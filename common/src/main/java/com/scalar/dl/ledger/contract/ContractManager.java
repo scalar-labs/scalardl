@@ -162,6 +162,7 @@ public class ContractManager {
             entry.getBinaryName(),
             entry.getByteCode(),
             entry.getProperties().orElse(null),
+            null, // TODO: use context namespace
             entry.getEntityId(),
             entry.getKeyVersion());
 

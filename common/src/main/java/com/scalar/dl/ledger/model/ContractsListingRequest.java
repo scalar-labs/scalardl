@@ -22,8 +22,12 @@ public class ContractsListingRequest extends AbstractRequest {
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ContractsListingRequest(
-      @Nullable String contractId, String entityId, int keyVersion, byte[] signature) {
-    super(entityId, keyVersion);
+      @Nullable String contractId,
+      @Nullable String contextNamespace,
+      String entityId,
+      int keyVersion,
+      byte[] signature) {
+    super(contextNamespace, entityId, keyVersion);
     this.contractId = contractId;
     this.signature = checkNotNull(signature);
   }
@@ -54,7 +58,7 @@ public class ContractsListingRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(contractId, Arrays.hashCode(signature));
+    return Objects.hash(super.hashCode(), contractId, Arrays.hashCode(signature));
   }
 
   /**
@@ -94,21 +98,31 @@ public class ContractsListingRequest extends AbstractRequest {
    */
   @Override
   public void validateWith(SignatureValidator validator) {
-    byte[] bytes = serialize(contractId, getEntityId(), getKeyVersion());
+    byte[] bytes = serialize(contractId, getContextNamespace(), getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(CommonError.REQUEST_SIGNATURE_VALIDATION_FAILED);
     }
   }
 
-  public static byte[] serialize(@Nullable String contractId, String entityId, int keyVersion) {
+  public static byte[] serialize(
+      @Nullable String contractId,
+      @Nullable String contextNamespace,
+      String entityId,
+      int keyVersion) {
     byte[] contractIdBytes =
         contractId != null ? contractId.getBytes(StandardCharsets.UTF_8) : new byte[0];
+    byte[] contextNamespaceBytes = serializeContextNamespace(contextNamespace);
     byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
 
     ByteBuffer buffer =
-        ByteBuffer.allocate(contractIdBytes.length + entityIdBytes.length + Integer.BYTES);
+        ByteBuffer.allocate(
+            contractIdBytes.length
+                + contextNamespaceBytes.length
+                + entityIdBytes.length
+                + Integer.BYTES);
     buffer.put(contractIdBytes);
+    buffer.put(contextNamespaceBytes);
     buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();

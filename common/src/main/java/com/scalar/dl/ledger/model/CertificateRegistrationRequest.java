@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -16,15 +17,17 @@ public class CertificateRegistrationRequest extends AbstractRequest {
   private final String certPem;
 
   /**
-   * Constructs a {@code CertificateRegistrationRequest} with the specified entity id, the version
-   * of a certificate and the certificate in PEM format.
+   * Constructs a {@code CertificateRegistrationRequest} with the specified context namespace,
+   * entity id, the version of a certificate and the certificate in PEM format.
    *
+   * @param contextNamespace a namespace to register the certificate
    * @param entityId an entity id that holds a certificate
    * @param certVersion the version of the certificate
    * @param certPem the certificate in PEM format
    */
-  public CertificateRegistrationRequest(String entityId, int certVersion, String certPem) {
-    super(entityId, certVersion);
+  public CertificateRegistrationRequest(
+      @Nullable String contextNamespace, String entityId, int certVersion, String certPem) {
+    super(contextNamespace, entityId, certVersion);
     this.certPem = checkNotNull(certPem);
   }
 
@@ -49,7 +52,7 @@ public class CertificateRegistrationRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(certPem);
+    return Objects.hash(super.hashCode(), certPem);
   }
 
   /**

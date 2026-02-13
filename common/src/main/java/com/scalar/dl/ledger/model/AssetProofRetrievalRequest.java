@@ -28,7 +28,7 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
       String entityId,
       int keyVersion,
       byte[] signature) {
-    super(entityId, keyVersion);
+    super(null, entityId, keyVersion);
     this.namespace = namespace;
     checkArgument(assetId != null);
     this.assetId = assetId;
@@ -81,7 +81,7 @@ public class AssetProofRetrievalRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(namespace, assetId, age, Arrays.hashCode(signature));
+    return Objects.hash(super.hashCode(), namespace, assetId, age, Arrays.hashCode(signature));
   }
 
   @Override
