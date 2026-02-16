@@ -47,7 +47,7 @@ dependencies {
 task HashStore(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.hashstore.client.tool.HashStoreCommandLine'
     applicationName = 'scalardl-hashstore'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 

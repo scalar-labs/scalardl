@@ -47,112 +47,112 @@ dependencies {
 task ScalarDl(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.ScalarDlCommandLine'
     applicationName = 'scalardl'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task ScalarDlGc(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.GenericContractCommandLine'
     applicationName = 'scalardl-gc'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task CertificateRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.CertificateRegistration'
     applicationName = 'register-cert'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task SecretRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.SecretRegistration'
     applicationName = 'register-secret'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task FunctionRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.FunctionRegistration'
     applicationName = 'register-function'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task FunctionsRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.FunctionsRegistration'
     applicationName = 'register-functions'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task ContractRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.ContractRegistration'
     applicationName = 'register-contract'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task ContractsRegistration(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.ContractsRegistration'
     applicationName = 'register-contracts'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task ContractsListing(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.ContractsListing'
     applicationName = 'list-contracts'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task ContractExecution(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.ContractExecution'
     applicationName = 'execute-contract'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task LedgerValidation(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.LedgerValidation'
     applicationName = 'validate-ledger'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task NamespaceCreation(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.NamespaceCreation'
     applicationName = 'create-namespace'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task StateUpdaterSimpleBench(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.StateUpdaterSimpleBench'
     applicationName = 'state-updater-simple-bench'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task StateUpdaterLoader(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.StateUpdaterLoader'
     applicationName = 'state-updater-loader'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task SmallbankBench(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.SmallbankBench'
     applicationName = 'smallbank-bench'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 task SmallbankLoader(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.SmallbankLoader'
     applicationName = 'smallbank-loader'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
