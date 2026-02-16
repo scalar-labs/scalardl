@@ -23,7 +23,7 @@ public class CommandLineTestUtils {
 
   /**
    * Returns the {@link Option} processor annotation associated with {@code fieldName} defined in
-   * {@link Class<?>}.
+   * {@link Class}.
    *
    * @param clazz class that defines {@code fieldName}.
    * @param fieldName field that is associated with {@link Option}.
