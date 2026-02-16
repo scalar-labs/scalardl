@@ -18,13 +18,11 @@ jobs:
           VERSION=$(echo ${{ github.ref }} | sed -e "s#refs/tags/v##g")
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Set up JDK 8 and 11 (default 8)
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: |
-            11
-            8
+          java-version: '21'
 
       - name: Checkout release note scripts
         uses: actions/checkout@v6
@@ -44,7 +42,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PROJECT_ACCESS_TOKEN }}
         run: |
-          $JAVA_HOME_11_X64/bin/java ReleaseNoteCreation.java ${{ github.repository_owner }} ScalarDL ${{ steps.version.outputs.version }} ${{ github.event.repository.name }} > rnbody.md
+          java ReleaseNoteCreation.java ${{ github.repository_owner }} ScalarDL ${{ steps.version.outputs.version }} ${{ github.event.repository.name }} > rnbody.md
           cat rnbody.md
 
       - name: Create release
