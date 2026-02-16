@@ -87,7 +87,7 @@ task LedgerServer(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.ledger.server.LedgerServer'
     applicationName = 'scalar-ledger'
     defaultJvmOpts = ["-Djava.security.manager", "-Djava.security.policy=security.policy"]
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 

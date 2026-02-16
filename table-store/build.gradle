@@ -46,7 +46,7 @@ dependencies {
 task TableStore(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.tablestore.client.tool.TableStoreCommandLine'
     applicationName = 'scalardl-tablestore'
-    outputDir = new File(project.buildDir, 'tmp')
+    outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
