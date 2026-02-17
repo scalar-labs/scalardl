@@ -338,6 +338,7 @@ public class ClientConfig {
    * and system contracts are automatically registered when creating {@code ClientService}.
    */
   public static final String AUTO_BOOTSTRAP = PREFIX + "auto_bootstrap";
+
   /**
    * <code>scalar.dl.client.context.namespace</code> (Optional)<br>
    * A namespace where client requests are executed ("default" by default).
