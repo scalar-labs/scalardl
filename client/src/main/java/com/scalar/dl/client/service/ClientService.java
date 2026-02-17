@@ -230,7 +230,7 @@ public class ClientService implements AutoCloseable {
    *
    * @param namespace a namespace
    * @param entityId an entity ID
-   * @param version a version of the certificate
+   * @param version a version of the secret key
    * @param key a secret key
    * @throws ClientException if a request fails for some reason
    */
