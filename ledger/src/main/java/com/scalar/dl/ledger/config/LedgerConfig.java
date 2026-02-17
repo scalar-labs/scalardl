@@ -59,17 +59,20 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * Name of ledger ("Scalar Ledger" by default). It is used to identify a ledger.
    */
   public static final String NAME = PREFIX + "name";
+
   /**
    * <code>scalar.dl.ledger.namespace</code> (Optional)<br>
    * Namespace of ledger tables ("scalar" by default)
    */
   public static final String NAMESPACE = PREFIX + "namespace";
+
   /**
    * <code>scalar.dl.ledger.authentication.method</code> (Optional)<br>
    * The authentication method for clients and Ledger servers. {@code "digital-signature"} (default)
    * or {@code "hmac"} can be specified.
    */
   public static final String AUTHENTICATION_METHOD = PREFIX + "authentication.method";
+
   /**
    * <code>scalar.dl.ledger.authentication.hmac.cipher_key</code> (Optional)<br>
    * A cipher key used to encrypt and decrypt the HMAC secret keys of client entities. This variable
@@ -78,21 +81,25 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String AUTHENTICATION_HMAC_CIPHER_KEY =
       PREFIX + "authentication.hmac.cipher_key";
+
   /**
    * <code>scalar.dl.ledger.server.port</code><br>
    * Server port (50051 by default).
    */
   public static final String SERVER_PORT = SERVER_PREFIX + "port";
+
   /**
    * <code>scalar.dl.ledger.server.privileged_port</code><br>
    * Server privileged port (50052 by default).
    */
   public static final String SERVER_PRIVILEGED_PORT = SERVER_PREFIX + "privileged_port";
+
   /**
    * <code>scalar.dl.ledger.server.admin_port</code><br>
    * Server admin port (50053 by default).
    */
   public static final String SERVER_ADMIN_PORT = SERVER_PREFIX + "admin_port";
+
   /**
    * <code>scalar.dl.ledger.server.prometheus_exporter_port</code><br>
    * Prometheus exporter port (8080 by default). Prometheus exporter will not be started if a
@@ -100,6 +107,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String SERVER_PROMETHEUS_EXPORTER_PORT =
       SERVER_PREFIX + "prometheus_exporter_port";
+
   /**
    * <code>scalar.dl.ledger.server.decommissioning_duration_secs</code> (Optional)<br>
    * Decommissioning duration (30 seconds by default) where the servers are running but returning
@@ -107,21 +115,25 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String SERVER_DECOMMISSIONING_DURATION_SECS =
       SERVER_PREFIX + "decommissioning_duration_secs";
+
   /**
    * <code>scalar.dl.ledger.server.tls.enabled</code><br>
    * A flag to enable TLS between clients and servers (false by default).
    */
   public static final String SERVER_TLS_ENABLED = SERVER_PREFIX + "tls.enabled";
+
   /**
    * <code>scalar.dl.ledger.server.tls.cert_chain_path</code><br>
    * Certificate chain file used for TLS communication.
    */
   public static final String SERVER_TLS_CERT_CHAIN_PATH = SERVER_PREFIX + "tls.cert_chain_path";
+
   /**
    * <code>scalar.dl.ledger.server.tls.private_key_path</code><br>
    * Private key file used for TLS communication.
    */
   public static final String SERVER_TLS_PRIVATE_KEY_PATH = SERVER_PREFIX + "tls.private_key_path";
+
   /**
    * <code>scalar.dl.ledger.server.grpc.max_inbound_message_size</code> (Optional)<br>
    * The maximum message size allowed for a single gRPC frame. If an inbound message larger than
@@ -130,6 +142,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String SERVER_GRPC_MAX_INBOUND_MESSAGE_SIZE =
       SERVER_PREFIX + "grpc.max_inbound_message_size";
+
   /**
    * <code>scalar.dl.ledger.server.grpc.max_inbound_metadata_size</code> (Optional)<br>
    * The maximum size of metadata allowed to be received. This is cumulative size of the entries
@@ -138,12 +151,14 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String SERVER_GRPC_MAX_INBOUND_METADATA_SIZE =
       SERVER_PREFIX + "grpc.max_inbound_metadata_size";
+
   /**
    * <code>scalar.dl.ledger.proof.enabled</code><br>
    * A flag to enable asset proof that is used to verify assets (false by default). This feature
    * must be enabled in both client and server.
    */
   public static final String PROOF_ENABLED = PREFIX + "proof.enabled";
+
   /**
    * <code>scalar.dl.ledger.proof.private_key_path</code><br>
    * The path of a private key file in PEM format. Either this or <code>
@@ -153,6 +168,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * scalar.dl.ledger.servers.authentication.hmac.secret_key</code> is empty.
    */
   public static final String PROOF_PRIVATE_KEY_PATH = PREFIX + "proof.private_key_path";
+
   /**
    * <code>scalar.dl.ledger.proof.private_key_pem</code><br>
    * PEM-encoded private key data. Either this or <code>scalar.dl.ledger.proof.private_key_path
@@ -161,16 +177,19 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * scalar.dl.ledger.servers.authentication.hmac.secret_key</code> is empty.
    */
   public static final String PROOF_PRIVATE_KEY_PEM = PREFIX + "proof.private_key_pem";
+
   /**
    * <code>scalar.dl.ledger.function.enabled</code><br>
    * A flag to enable function for mutable database (true by default).
    */
   public static final String FUNCTION_ENABLED = PREFIX + "function.enabled";
+
   /**
    * <code>scalar.dl.ledger.auditor.enabled</code><br>
    * A flag to enable Auditor (false by default).
    */
   public static final String AUDITOR_ENABLED = PREFIX + "auditor.enabled";
+
   /**
    * <code>scalar.dl.ledger.servers.authentication.hmac.secret_key</code><br>
    * A secret key of HMAC for the authentication of messages between (Ledger and Auditor) servers.
@@ -181,6 +200,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String SERVERS_AUTHENTICATION_HMAC_SECRET_KEY =
       PREFIX + "servers.authentication.hmac.secret_key";
+
   /**
    * <code>scalar.dl.ledger.auditor.cert_holder_id</code><br>
    * Auditor certificate holder ID ("auditor" by default).
@@ -189,6 +209,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    *     HMAC only.
    */
   @Deprecated public static final String AUDITOR_CERT_HOLDER_ID = PREFIX + "auditor.cert_holder_id";
+
   /**
    * <code>scalar.dl.ledger.auditor.cert_version</code><br>
    * Auditor certificate version (1 by default).
@@ -197,6 +218,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    *     HMAC only.
    */
   @Deprecated public static final String AUDITOR_CERT_VERSION = PREFIX + "auditor.cert_version";
+
   /**
    * <code>scalar.dl.ledger.executable_contracts</code><br>
    * Binary names of contracts that can be executed. Please use the following format.
@@ -210,6 +232,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * }</pre>
    */
   public static final String EXECUTABLE_CONTRACTS = PREFIX + "executable_contracts";
+
   /**
    * <code>scalar.dl.ledger.direct_asset_access.enabled</code><br>
    * A flag to access asset table directly without going through asset_metadata (false by default).
@@ -217,6 +240,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    * lookups for scanning a clustering key with limit 1.
    */
   public static final String DIRECT_ASSET_ACCESS_ENABLED = PREFIX + "direct_asset_access.enabled";
+
   /**
    * <code>scalar.dl.ledger.tx_state_management.enabled</code><br>
    * A flag to manage transaction states by Ledger (false by default). This must be enabled when
