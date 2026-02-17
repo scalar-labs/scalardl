@@ -29,6 +29,7 @@ import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.service.ThrowableFunction;
@@ -104,6 +105,7 @@ public class ClientServiceTest {
     when(hmacIdentityConfig.getEntityId()).thenReturn(ANY_ENTITY_ID);
     when(hmacIdentityConfig.getSecretKeyVersion()).thenReturn(ANY_KEY_VERSION);
     when(hmacIdentityConfig.getSecretKey()).thenReturn(ANY_SECRET_KEY);
+    when(config.getContextNamespace()).thenReturn(Namespaces.DEFAULT);
     service = spy(new ClientService(config, handler, signer));
     anyFilePath = File.createTempFile(ANY_FILE_NAME, "").getPath();
   }

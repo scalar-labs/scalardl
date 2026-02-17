@@ -81,6 +81,7 @@ public class ContractManagerTest {
             ANY_CONTRACT_NAME,
             ANY_BYTE_CODE,
             null,
+            null,
             ANY_ENTITY_ID,
             ANY_CERT_VERSION);
     return new ContractEntry(

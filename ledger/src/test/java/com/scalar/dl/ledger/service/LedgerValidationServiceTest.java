@@ -279,7 +279,8 @@ public class LedgerValidationServiceTest {
     prepareContractBehaviors(createAssetMocks());
     List<LedgerValidator> validators = createValidators();
     byte[] serialized =
-        LedgerValidationRequest.serialize(null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+        LedgerValidationRequest.serialize(
+            null, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -300,7 +301,7 @@ public class LedgerValidationServiceTest {
     // Act
     service.validate(
         new LedgerValidationRequest(
-            null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
+            null, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
 
     // Assert
     verify(service).validate(context, null, ID, 0, Integer.MAX_VALUE);
@@ -311,7 +312,8 @@ public class LedgerValidationServiceTest {
       validate_LedgerValidationRequestSignedByWrongKeyGiven_ShouldThrowSignatureException() {
     // Arrange
     byte[] serialized =
-        LedgerValidationRequest.serialize(null, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+        LedgerValidationRequest.serialize(
+            null, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_B);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -329,6 +331,7 @@ public class LedgerValidationServiceTest {
                         ID,
                         0,
                         Integer.MAX_VALUE,
+                        null,
                         ENTITY_ID,
                         KEY_VERSION,
                         signer.sign(serialized))))
@@ -344,7 +347,8 @@ public class LedgerValidationServiceTest {
     // Arrange
     prepareContractBehaviors(createAssetMocks());
     List<LedgerValidator> validators = createValidators();
-    byte[] serialized = LedgerValidationRequest.serialize(null, ID, 0, AGE, ENTITY_ID, KEY_VERSION);
+    byte[] serialized =
+        LedgerValidationRequest.serialize(null, ID, 0, AGE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -365,7 +369,7 @@ public class LedgerValidationServiceTest {
             () ->
                 service.validate(
                     new LedgerValidationRequest(
-                        null, ID, 0, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized))));
+                        null, ID, 0, AGE, null, ENTITY_ID, KEY_VERSION, signer.sign(serialized))));
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(LedgerException.class);
@@ -382,7 +386,7 @@ public class LedgerValidationServiceTest {
     List<LedgerValidator> validators = createValidators();
     byte[] serialized =
         LedgerValidationRequest.serialize(
-            NAMESPACE, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION);
+            NAMESPACE, ID, 0, Integer.MAX_VALUE, null, ENTITY_ID, KEY_VERSION);
     DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
     when(clientKeyValidator.getValidator(ENTITY_ID, KEY_VERSION))
         .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
@@ -403,7 +407,14 @@ public class LedgerValidationServiceTest {
     // Act
     service.validate(
         new LedgerValidationRequest(
-            NAMESPACE, ID, 0, Integer.MAX_VALUE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
+            NAMESPACE,
+            ID,
+            0,
+            Integer.MAX_VALUE,
+            null,
+            ENTITY_ID,
+            KEY_VERSION,
+            signer.sign(serialized)));
 
     // Assert
     verify(service).validate(context, NAMESPACE, ID, 0, Integer.MAX_VALUE);
