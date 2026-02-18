@@ -72,7 +72,7 @@ public enum CommonError implements ScalarDlError {
       "002",
       "Loading the certificate failed. Details: %s",
       "",
-      "Verify that the certificate file exists at the specified path, is readable, and has the correct format."),
+      "If using a certificate file, verify that it exists at the specified path, is readable, and has the correct format. If using a PEM-formatted string, verify that the certificate has the correct format."),
   CREATING_CIPHER_KEY_FAILED(
       StatusCode.UNLOADABLE_KEY,
       "003",
