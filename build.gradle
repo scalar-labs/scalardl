@@ -44,8 +44,8 @@ subprojects {
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.58.v20250814'
         assertjVersion = '3.27.7'
-        junitVersion = '5.14.2'
-        junitPlatformVersion = '1.14.2'
+        junitVersion = '5.14.3'
+        junitPlatformVersion = '1.14.3'
         mockitoVersion = '4.11.0'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
@@ -56,7 +56,7 @@ subprojects {
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.33.0'
         bouncyCastleCryptoVersion = '1.70'
-        partiqlVersion = '1.3.3'
+        partiqlVersion = '1.3.4'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
