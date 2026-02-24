@@ -8,7 +8,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.contract.ContractMachine;
@@ -167,6 +169,58 @@ public class ContractValidatorTest {
     InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
 
     // Act Asset
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
+        .isInstanceOf(ValidationException.class)
+        .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
+        .extracting("code")
+        .isEqualTo(StatusCode.INVALID_CONTRACT);
+  }
+
+  @Test
+  public void validate_CorrectAssetWithNonDefaultContextNamespaceGiven_ShouldReturnOK() {
+    // Arrange
+    String nonDefaultNamespace = "non_default_ns";
+    when(context.getNamespace()).thenReturn(nonDefaultNamespace);
+    when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
+    when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
+    when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
+    when(clientKeyValidator.getValidator(eq(nonDefaultNamespace), anyString(), anyInt()))
+        .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
+    // Signature must be generated with non-default namespace serialized
+    byte[] signature =
+        dsSigner.sign(
+            ContractExecutionRequest.serialize(
+                CONTRACT_ID, CONTRACT_ARGUMENT, nonDefaultNamespace, ENTITY_ID, CERT_VERSION));
+    InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
+
+    // Act
+    StatusCode result = validator.validate(tracer, contract, NAMESPACE, asset);
+
+    // Assert
+    assertThat(result).isEqualTo(StatusCode.OK);
+    verify(clientKeyValidator)
+        .getValidator(eq(nonDefaultNamespace), eq(ENTITY_ID), eq(CERT_VERSION));
+  }
+
+  @Test
+  public void
+      validate_AssetSignedWithDefaultNamespaceButNonDefaultContextGiven_ShouldReturnInvalid() {
+    // Arrange
+    String nonDefaultNamespace = "non_default_ns";
+    when(context.getNamespace()).thenReturn(nonDefaultNamespace);
+    when(clientIdentityKey.getEntityId()).thenReturn(ENTITY_ID);
+    when(clientIdentityKey.getKeyVersion()).thenReturn(CERT_VERSION);
+    when(contract.getClientIdentityKey()).thenReturn(clientIdentityKey);
+    when(clientKeyValidator.getValidator(eq(nonDefaultNamespace), anyString(), anyInt()))
+        .thenReturn(new DigitalSignatureValidator(CERTIFICATE_A));
+    // Signature was generated with default namespace (null), but context is non-default
+    byte[] signature =
+        dsSigner.sign(
+            ContractExecutionRequest.serialize(
+                CONTRACT_ID, CONTRACT_ARGUMENT, null, ENTITY_ID, CERT_VERSION));
+    InternalAsset asset = createAssetMock(CONTRACT_ID_IN_ASSET, CONTRACT_ARGUMENT, signature);
+
+    // Act Assert
     assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_CONTRACT.buildMessage())
