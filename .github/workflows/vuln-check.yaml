@@ -24,5 +24,6 @@ jobs:
       target-ref: ${{ inputs.target-ref }}
       find-latest-release: ${{ inputs.find-latest-release }}
       images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
+      java-versions: 21
     secrets:
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
