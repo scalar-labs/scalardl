@@ -32,6 +32,7 @@ import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -111,6 +112,7 @@ public class LedgerServiceTest {
     when(request.getContractId()).thenReturn(SOME_CONTRACT_ID);
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {

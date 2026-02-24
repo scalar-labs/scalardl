@@ -28,6 +28,7 @@ import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -71,12 +72,14 @@ public class BaseServiceTest {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getCertPem()).thenReturn(SOME_PEM);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureSecretRegistrationRequest(SecretRegistrationRequest request) {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getSecretKey()).thenReturn(SOME_SECRET_KEY);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureContractRegistrationRequest(ContractRegistrationRequest request) {
@@ -87,6 +90,7 @@ public class BaseServiceTest {
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getContractProperties()).thenReturn(Optional.empty());
     when(request.getSignature()).thenReturn(SOME_SIGNATURE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureContractsListingRequest(
@@ -95,6 +99,7 @@ public class BaseServiceTest {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getSignature()).thenReturn(SOME_SIGNATURE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {

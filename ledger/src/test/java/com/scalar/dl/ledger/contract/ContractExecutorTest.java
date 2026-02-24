@@ -26,6 +26,7 @@ import com.scalar.dl.ledger.function.FunctionMachine;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
@@ -91,6 +92,7 @@ public class ContractExecutorTest {
   private void configureBehaviors(int contractArgumentVersion, boolean useFunction) {
     when(request.getEntityId()).thenReturn(ANY_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(ANY_CERT_VERSION);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
     if (contractArgumentVersion == 1) {
       when(request.getContractArgument()).thenReturn(ANY_CONTRACT_ARGUMENT);
     } else if (contractArgumentVersion == 2) {
