@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -391,7 +392,7 @@ public class LedgerServiceIntegrationTest {
     assertThatCode(() -> service.register(request)).doesNotThrowAnyException();
 
     // Assert
-    verify(contractManager).register(DEFAULT_NAMESPACE, any(ContractEntry.class));
+    verify(contractManager).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -406,7 +407,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(DEFAULT_NAMESPACE, any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -424,7 +425,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(DEFAULT_NAMESPACE, any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -443,7 +444,7 @@ public class LedgerServiceIntegrationTest {
     assertThatCode(() -> service.register(request)).doesNotThrowAnyException();
 
     // Assert
-    verify(contractManager).register(DEFAULT_NAMESPACE, any(ContractEntry.class));
+    verify(contractManager).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -462,7 +463,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(DEFAULT_NAMESPACE, any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -1100,7 +1101,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.execute(request)).isInstanceOf(MissingContractException.class);
 
     // Assert
-    verify(contractManager, never()).getInstance(DEFAULT_NAMESPACE, entry);
+    verify(contractManager, never()).getInstance(eq(DEFAULT_NAMESPACE), eq(entry));
   }
 
   @Test

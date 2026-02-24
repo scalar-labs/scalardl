@@ -18,7 +18,6 @@ import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
-import com.scalar.dl.ledger.namespace.Namespaces;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
@@ -45,20 +44,15 @@ public class BaseService {
   }
 
   public void register(CertificateRegistrationRequest request) {
-    String namespace =
-        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
-    certManager.register(namespace, CertificateEntry.from(request));
+    certManager.register(request.getContextNamespaceOrDefault(), CertificateEntry.from(request));
   }
 
   public void register(SecretRegistrationRequest request) {
-    String namespace =
-        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
-    secretManager.register(namespace, SecretEntry.from(request));
+    secretManager.register(request.getContextNamespaceOrDefault(), SecretEntry.from(request));
   }
 
   public void register(ContractRegistrationRequest request) {
-    String namespace =
-        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
+    String namespace = request.getContextNamespaceOrDefault();
     SignatureValidator validator =
         clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
@@ -67,8 +61,7 @@ public class BaseService {
   }
 
   public List<ContractEntry> list(ContractsListingRequest request) {
-    String namespace =
-        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
+    String namespace = request.getContextNamespaceOrDefault();
     SignatureValidator validator =
         clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);

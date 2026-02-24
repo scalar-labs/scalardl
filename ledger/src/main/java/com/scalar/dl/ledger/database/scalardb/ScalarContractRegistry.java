@@ -297,10 +297,24 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
     }
   }
 
+  /**
+   * Creates a cache for contract metadata.
+   *
+   * @param namespace currently unused but required for method reference in computeIfAbsent. May be
+   *     used in the future for namespace-specific cache configuration.
+   * @return a new cache instance for contract metadata
+   */
   private Cache<ContractEntry.Key, Result> createContractCache(String namespace) {
     return CacheBuilder.newBuilder().maximumSize(CONTRACT_CACHE_SIZE).build();
   }
 
+  /**
+   * Creates a cache for contract class definitions.
+   *
+   * @param namespace currently unused but required for method reference in computeIfAbsent. May be
+   *     used in the future for namespace-specific cache configuration.
+   * @return a new cache instance for contract class definitions
+   */
   private Cache<String, Result> createContractClassCache(String namespace) {
     return CacheBuilder.newBuilder().maximumSize(CONTRACT_CLASS_CACHE_SIZE).build();
   }

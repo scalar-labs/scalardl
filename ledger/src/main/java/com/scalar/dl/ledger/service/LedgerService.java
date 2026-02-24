@@ -83,11 +83,7 @@ public class LedgerService {
   public ContractExecutionResult execute(ContractExecutionRequest request) {
     SignatureValidator validator =
         clientKeyValidator.getValidator(
-            request.getContextNamespace() == null
-                ? Namespaces.DEFAULT
-                : request.getContextNamespace(),
-            request.getEntityId(),
-            request.getKeyVersion());
+            request.getContextNamespaceOrDefault(), request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     if (config.isAuditorEnabled()) {

@@ -10,7 +10,6 @@ import com.scalar.dl.ledger.function.FunctionMachine;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.util.Argument;
 import java.util.Collections;
@@ -40,10 +39,7 @@ public class ContractExecutor {
   }
 
   public ContractExecutionResult execute(ContractExecutionRequest request) {
-    String namespace =
-        request.getContextNamespace() == null
-            ? NamespaceManager.DEFAULT_NAMESPACE
-            : request.getContextNamespace();
+    String namespace = request.getContextNamespaceOrDefault();
     ContractEntry.Key key = ContractEntry.Key.from(request);
     ContractEntry entry = contractManager.get(namespace, key);
     ContractMachine contract = contractManager.getInstance(namespace, entry);
