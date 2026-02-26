@@ -80,6 +80,10 @@ task integrationTest(type: Test) {
     // Pass scalar* system properties to test JVM
     systemProperties(System.getProperties().findAll { it.key.toString().startsWith("scalar") })
 
+    doFirst {
+        logger.lifecycle("Java toolchain language version: ${javaLauncher.get().metadata.languageVersion}")
+    }
+
     useJUnitPlatform()
 
     testLogging {
