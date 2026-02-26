@@ -1,6 +1,6 @@
 package com.scalar.dl.testing.config;
 
-/** Supported storage types. */
+/** Supported transaction modes. */
 public enum TransactionMode {
   CONSENSUS_COMMIT,
   JDBC,
