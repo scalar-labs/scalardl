@@ -18,6 +18,7 @@ jobs:
     with:
       target-ref: v3.10
       find-latest-release: true
+      java-versions: 8
     secrets:
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
 
@@ -26,6 +27,7 @@ jobs:
     with:
       target-ref: v3.11
       find-latest-release: true
+      java-versions: 8
     secrets:
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
 
@@ -34,5 +36,6 @@ jobs:
     with:
       target-ref: v3.12
       find-latest-release: true
+      java-versions: 8
     secrets:
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
