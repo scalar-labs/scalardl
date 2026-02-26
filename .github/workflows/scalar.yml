@@ -117,7 +117,7 @@ jobs:
           -Dscalardb.transaction_manager=jdbc
 
   e2e-integration-test-for-ledger:
-    name: End-to-end integration test for Ledger (Java ${{ matrix.java-version }})
+    name: End-to-end integration test for Ledger (Client built with Java ${{ matrix.java-version }})
     runs-on: ubuntu-latest
 
     strategy:
