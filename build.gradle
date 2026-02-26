@@ -185,7 +185,8 @@ jreleaser {
                                        'hash-store/build/staging-deploy',
                                        'ledger/build/staging-deploy',
                                        'rpc/build/staging-deploy',
-                                       'table-store/build/staging-deploy']
+                                       'table-store/build/staging-deploy',
+                                       'testing/build/staging-deploy']
             mavenCentral {
                 'release-deploy' {
                     active = 'RELEASE'
