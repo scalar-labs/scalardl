@@ -7,7 +7,6 @@ on:
         description: 'Target ref (branch, tag, release) to scan'
         required: false
         type: string
-
       find-latest-release:
         description: 'Flag to find the latest version for specified `target-ref`'
         required: false
