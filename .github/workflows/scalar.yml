@@ -84,7 +84,7 @@ jobs:
           -Dscalardb.password=mysql
 
   service-integration-test-with-mysql-jdbc-transaction:
-    name: Integration test with JDBC transaction manager on MySQL
+    name: Service integration test with JDBC transaction manager on MySQL
     runs-on: ubuntu-latest
 
     services:

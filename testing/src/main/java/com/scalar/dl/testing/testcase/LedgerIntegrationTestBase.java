@@ -65,6 +65,7 @@ import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.ledger.util.JsonpSerDe;
 import com.scalar.dl.testing.config.TransactionMode;
 import com.scalar.dl.testing.container.AbstractTestCluster;
+import com.scalar.dl.testing.container.LedgerContainer;
 import com.scalar.dl.testing.container.LedgerTestCluster;
 import com.scalar.dl.testing.contract.Create;
 import com.scalar.dl.testing.contract.CreateWithJackson;
@@ -222,8 +223,7 @@ public abstract class LedgerIntegrationTestBase {
    * @return The Docker image tag
    */
   protected String getLedgerImage() {
-    return System.getProperty(
-        "scalardl.ledger.image", "ghcr.io/scalar-labs/scalardl-ledger:4.0.0-SNAPSHOT");
+    return System.getProperty("scalardl.ledger.image", LedgerContainer.DEFAULT_IMAGE);
   }
 
   @BeforeAll
