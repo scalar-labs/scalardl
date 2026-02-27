@@ -19,6 +19,7 @@ jobs:
     with:
       target-ref: v3.8
       find-latest-release: true
+      java-versions: 8
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
@@ -28,6 +29,7 @@ jobs:
     with:
       target-ref: v3.9
       find-latest-release: true
+      java-versions: 8
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
