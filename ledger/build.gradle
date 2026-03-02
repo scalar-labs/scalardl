@@ -109,7 +109,7 @@ task copyFilesToDockerBuildContextDir(type: Copy) {
     dependsOn distTar
     from('Dockerfile')
     from('conf') {
-        include 'ledger.properties.for.docker'
+        include 'ledger.properties'
         include 'log4j2.properties'
     }
     from('docker-entrypoint.sh')
