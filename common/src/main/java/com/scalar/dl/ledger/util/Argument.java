@@ -37,6 +37,8 @@ public class Argument {
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(new ObjectMapper());
   private static final String ARGUMENT_VERSION_PREFIX = "V";
+  private static final String ARGUMENT_FORMAT_VERSION_2 = "2";
+  private static final String ARGUMENT_FORMAT_VERSION_3 = "3";
   private static final char NONCE_SEPARATOR = '\u0001';
   private static final char FUNCTION_SEPARATOR = '\u0002';
   private static final char ARGUMENT_SEPARATOR = '\u0003';
@@ -75,9 +77,9 @@ public class Argument {
     }
     String versionStr = argument.substring(1, separatorIndex);
     switch (versionStr) {
-      case "2":
+      case ARGUMENT_FORMAT_VERSION_2:
         return Version.V2;
-      case "3":
+      case ARGUMENT_FORMAT_VERSION_3:
         return Version.V3;
       default:
         throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
@@ -88,11 +90,11 @@ public class Argument {
    * Splits the argument into elements and validates the element count based on the version.
    *
    * @param argument the formatted argument string
+   * @param version the argument format version
    * @return the list of elements
    * @throws IllegalArgumentException if the element count is invalid for the version
    */
-  private static List<String> getElements(String argument) {
-    Version version = getVersion(argument);
+  private static List<String> getElements(String argument, Version version) {
     List<String> elements = Splitter.on(ARGUMENT_SEPARATOR).splitToList(argument);
     int expectedSize = (version == Version.V3) ? 4 : 3;
     if (elements.size() != expectedSize) {
@@ -115,7 +117,7 @@ public class Argument {
     String namespace = contextNamespace == null ? Namespaces.DEFAULT : contextNamespace;
     String prefix =
         ARGUMENT_VERSION_PREFIX
-            + "3"
+            + ARGUMENT_FORMAT_VERSION_3
             + NONCE_SEPARATOR
             + nonce
             + ARGUMENT_SEPARATOR
@@ -181,12 +183,13 @@ public class Argument {
    * @throws IllegalArgumentException if the argument format is invalid
    */
   public static String getNonce(String argument) {
-    switch (getVersion(argument)) {
+    Version version = getVersion(argument);
+    switch (version) {
       case V1:
         return jacksonSerDe.deserialize(argument).get(NONCE_KEY_NAME).asText();
       case V2:
       case V3:
-        List<String> elements = getElements(argument);
+        List<String> elements = getElements(argument, version);
         List<String> versionNonce = Splitter.on(NONCE_SEPARATOR).splitToList(elements.get(0));
         if (versionNonce.size() != 2) {
           throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
@@ -227,12 +230,13 @@ public class Argument {
    * @return the contract argument (the last element)
    */
   public static String getContractArgument(String argument) {
-    switch (getVersion(argument)) {
+    Version version = getVersion(argument);
+    switch (version) {
       case V1:
         return argument;
       case V2:
       case V3:
-        List<String> elements = getElements(argument);
+        List<String> elements = getElements(argument, version);
         return elements.get(elements.size() - 1);
       default:
         throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
@@ -247,12 +251,13 @@ public class Argument {
    * @return the context namespace (never null)
    */
   public static String getContextNamespace(String argument) {
-    switch (getVersion(argument)) {
+    Version version = getVersion(argument);
+    switch (version) {
       case V1:
       case V2:
         return Namespaces.DEFAULT;
       case V3:
-        List<String> elements = getElements(argument);
+        List<String> elements = getElements(argument, version);
         return elements.get(1);
       default:
         throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
