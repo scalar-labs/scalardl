@@ -1,0 +1,46 @@
+name: Backward Compatibility Check
+
+on:
+  workflow_call:
+    inputs:
+      target-ref:
+        description: 'Target ref (branch, tag, release) to check'
+        required: true
+        type: string
+        default: 'master'
+      java-version:
+        description: 'Java version to build the client with'
+        required: true
+        type: string
+
+jobs:
+  client-server-backward-compatibility-test:
+    name: Client-server backward compatibility test for Ledger built with Java 21 (Client built with Java ${{ inputs.java-version }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.target-ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build Docker images
+        run: ./gradlew :ledger:docker
+
+      - name: Run integration tests
+        run: ./gradlew :testing:integrationTest -PtestingJavaVersion=${{ inputs.java-version }}
+
+      - name: Upload Gradle test reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: backward_compatibility_test_reports_java${{ inputs.java-version }}
+          path: testing/build/reports/tests/integrationTest
