@@ -11,7 +11,6 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_INPUT_COLUMN_NA
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_PREV_HASH_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.scalar.db.api.Delete;
@@ -74,7 +73,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Remove the middle record (age=1) of SOME_ASSET_ID_1
     Delete delete =
         Delete.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 1))
@@ -98,7 +97,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Tamper with prev_hash of the latest record (age=2) of SOME_ASSET_ID_1
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
@@ -124,7 +123,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Original balance should be 890 (1000 - 100 - 10), tampering to 7000
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
@@ -150,7 +149,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Changing age values in input to invalid values
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
@@ -184,7 +183,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
             .build();
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
@@ -212,7 +211,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Original balance should be 890 (1000 - 100 - 10), tampering to 7000
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
@@ -237,7 +236,7 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Original balance should be 890 (1000 - 100 - 10), tampering to 7000
     Put put =
         Put.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 2))
