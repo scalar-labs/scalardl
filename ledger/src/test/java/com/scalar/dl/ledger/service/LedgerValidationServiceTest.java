@@ -141,10 +141,10 @@ public class LedgerValidationServiceTest {
     doReturn(ledger).when(transaction).getLedger();
     doReturn(assets).when(ledger).scan(any(AssetFilter.class));
     ContractMachine contract = mock(ContractMachine.class);
-    when(contractManager.getInstance(any(ContractEntry.class))).thenReturn(contract);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     ContractEntry entry = mock(ContractEntry.class);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(contractManager.get(any(ContractEntry.Key.class))).thenReturn(entry);
+    when(contractManager.get(anyString(), any(ContractEntry.Key.class))).thenReturn(entry);
     when(contract.invoke(ArgumentMatchers.<Ledger<?>>any(), anyString(), nullable(String.class)))
         .thenReturn(null);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JSONP_JSON);
@@ -182,7 +182,7 @@ public class LedgerValidationServiceTest {
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.OK);
     ContractEntry.Key expected = new ContractEntry.Key(CONTRACT_ID, ENTITY_ID, KEY_VERSION);
-    verify(contractManager, times(2)).get(expected);
+    verify(contractManager, times(2)).get(DEFAULT_NAMESPACE, expected);
     verify(contract, times(2)).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
       verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
@@ -239,7 +239,7 @@ public class LedgerValidationServiceTest {
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
     ContractEntry.Key expected = new ContractEntry.Key(CONTRACT_ID, ENTITY_ID, KEY_VERSION);
-    verify(contractManager).get(expected);
+    verify(contractManager).get(DEFAULT_NAMESPACE, expected);
     verify(contract).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
       verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
@@ -628,8 +628,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     DeprecatedLedgerTracer tracer = mock(DeprecatedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.DEPRECATED);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -666,8 +666,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     DeprecatedLedgerTracer tracer = mock(DeprecatedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.DEPRECATED);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -704,8 +704,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JSONP_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -742,8 +742,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     JsonpBasedLedgerTracer tracer = mock(JsonpBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JSONP_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -778,8 +778,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     JacksonBasedLedgerTracer tracer = mock(JacksonBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JACKSON_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -816,8 +816,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     JacksonBasedLedgerTracer tracer = mock(JacksonBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.JACKSON_JSON);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);
@@ -854,8 +854,8 @@ public class LedgerValidationServiceTest {
     ContractMachine contract = mock(ContractMachine.class);
     StringBasedLedgerTracer tracer = mock(StringBasedLedgerTracer.class);
     doNothing().when(tracer).setInput(anyString());
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(contract.getDeserializationType()).thenReturn(DeserializationType.STRING);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(validator.validate(any(), any(), anyString(), any())).thenReturn(StatusCode.OK);

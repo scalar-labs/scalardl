@@ -30,8 +30,9 @@ public class ContractMachine {
   @Override
   protected final void finalize() {}
 
-  public void initialize(ContractManager manager, ClientIdentityKey clientIdentityKey) {
-    contractBase.initialize(manager, clientIdentityKey);
+  public void initialize(
+      ContractManager manager, String namespace, ClientIdentityKey clientIdentityKey) {
+    contractBase.initialize(manager, namespace, clientIdentityKey);
   }
 
   public void setRoot(boolean isRoot) {

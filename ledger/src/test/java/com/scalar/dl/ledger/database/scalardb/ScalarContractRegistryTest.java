@@ -55,7 +55,10 @@ public class ScalarContractRegistryTest {
   private static final String ANY_PROPERTIES = "properties";
   private static final long ANY_REGISTERED_AT = 1L;
   private static final byte[] ANY_SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
+  private static final String ANY_NAMESPACE = "test_namespace";
+  private static final String RESOLVED_NAMESPACE = "resolved_namespace";
   @Mock private DistributedStorage storage;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
   private ScalarContractRegistry registry;
   private ContractEntry entry = null;
   private AutoCloseable closeable;
@@ -63,7 +66,8 @@ public class ScalarContractRegistryTest {
   @BeforeEach
   public void setUp() {
     closeable = openMocks(this);
-    registry = new ScalarContractRegistry(storage);
+    when(namespaceResolver.resolve(ANY_NAMESPACE)).thenReturn(RESOLVED_NAMESPACE);
+    registry = new ScalarContractRegistry(storage, namespaceResolver);
     entry = prepareContractEntry(ANY_ID, ANY_NAME);
   }
 
@@ -124,19 +128,21 @@ public class ScalarContractRegistryTest {
     when(entry1.getId()).thenReturn(entry.getId());
   }
 
-  private Get prepareGetForContract(ContractEntry entry) {
+  private Get prepareGetForContract(String namespace, ContractEntry entry) {
     return new Get(
             new Key(ContractEntry.ENTITY_ID, entry.getEntityId()),
             new Key(
                 new IntValue(ContractEntry.KEY_VERSION, entry.getKeyVersion()),
                 new TextValue(ContractEntry.ID, entry.getId())))
         .withConsistency(Consistency.SEQUENTIAL)
+        .forNamespace(namespace)
         .forTable(ScalarContractRegistry.CONTRACT_TABLE);
   }
 
-  private Get prepareGetForContractClass(ContractEntry entry) {
+  private Get prepareGetForContractClass(String namespace, ContractEntry entry) {
     return new Get(new Key(ContractEntry.BINARY_NAME, entry.getBinaryName()))
         .withConsistency(Consistency.LINEARIZABLE)
+        .forNamespace(namespace)
         .forTable(ScalarContractRegistry.CONTRACT_CLASS_TABLE);
   }
 
@@ -147,7 +153,7 @@ public class ScalarContractRegistryTest {
     doNothing().when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatCode(() -> registry.bind(entry)).doesNotThrowAnyException();
+    assertThatCode(() -> registry.bind(ANY_NAMESPACE, entry)).doesNotThrowAnyException();
 
     // Assert
     Put expected1 =
@@ -155,6 +161,7 @@ public class ScalarContractRegistryTest {
             .withValue(ContractEntry.BYTE_CODE, entry.getByteCode())
             .withCondition(new PutIfNotExists())
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarContractRegistry.CONTRACT_CLASS_TABLE);
 
     Put expected2 =
@@ -168,6 +175,7 @@ public class ScalarContractRegistryTest {
             .withValue(ContractEntry.REGISTERED_AT, entry.getRegisteredAt())
             .withValue(ContractEntry.SIGNATURE, ANY_SIGNATURE)
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarContractRegistry.CONTRACT_TABLE);
 
     verify(storage).put(expected1);
@@ -183,7 +191,7 @@ public class ScalarContractRegistryTest {
     doThrow(toThrow).when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.bind(entry))
+    assertThatThrownBy(() -> registry.bind(ANY_NAMESPACE, entry))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -197,7 +205,7 @@ public class ScalarContractRegistryTest {
     doNothing().doThrow(toThrow).when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.bind(entry))
+    assertThatThrownBy(() -> registry.bind(ANY_NAMESPACE, entry))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -214,7 +222,7 @@ public class ScalarContractRegistryTest {
     doThrow(toThrow).doNothing().when(storage).put(any(Put.class));
 
     // Act
-    registry.bind(entry);
+    registry.bind(ANY_NAMESPACE, entry);
 
     // Assert
     verify(storage, times(2)).put(any(Put.class));
@@ -231,7 +239,7 @@ public class ScalarContractRegistryTest {
     doReturn(Optional.of(result)).when(storage).get(any(Get.class));
 
     // Act
-    Throwable thrown = catchThrowable(() -> registry.bind(entry));
+    Throwable thrown = catchThrowable(() -> registry.bind(ANY_NAMESPACE, entry));
 
     // Assert
     verify(storage, never()).put(any(Put.class));
@@ -250,11 +258,11 @@ public class ScalarContractRegistryTest {
         .thenReturn(Optional.of(resultForClass));
 
     // Act Assert
-    ContractEntry actual = registry.lookup(entry.getKey());
+    ContractEntry actual = registry.lookup(ANY_NAMESPACE, entry.getKey());
 
     // Assert
-    Get expected1 = prepareGetForContract(entry);
-    Get expected2 = prepareGetForContractClass(entry);
+    Get expected1 = prepareGetForContract(RESOLVED_NAMESPACE, entry);
+    Get expected2 = prepareGetForContractClass(RESOLVED_NAMESPACE, entry);
     verify(storage).get(expected1);
     verify(storage).get(expected2);
     verify(storage, times(2)).get(any(Get.class));
@@ -271,12 +279,12 @@ public class ScalarContractRegistryTest {
         .thenReturn(Optional.of(resultForClass));
 
     // Act Assert
-    ContractEntry actual1 = registry.lookup(entry.getKey());
-    ContractEntry actual2 = registry.lookup(entry.getKey());
+    ContractEntry actual1 = registry.lookup(ANY_NAMESPACE, entry.getKey());
+    ContractEntry actual2 = registry.lookup(ANY_NAMESPACE, entry.getKey());
 
     // Assert
-    Get expected1 = prepareGetForContract(entry);
-    Get expected2 = prepareGetForContractClass(entry);
+    Get expected1 = prepareGetForContract(RESOLVED_NAMESPACE, entry);
+    Get expected2 = prepareGetForContractClass(RESOLVED_NAMESPACE, entry);
     verify(storage).get(expected1);
     verify(storage).get(expected2);
     verify(storage, times(2)).get(any(Get.class));
@@ -300,14 +308,14 @@ public class ScalarContractRegistryTest {
         .thenReturn(Optional.of(resultForClass2));
 
     // Act Assert
-    ContractEntry actual1 = registry.lookup(entry.getKey());
-    ContractEntry actual2 = registry.lookup(entry2.getKey());
+    ContractEntry actual1 = registry.lookup(ANY_NAMESPACE, entry.getKey());
+    ContractEntry actual2 = registry.lookup(ANY_NAMESPACE, entry2.getKey());
 
     // Assert
-    Get expected1_1 = prepareGetForContract(entry);
-    Get expected1_2 = prepareGetForContractClass(entry);
-    Get expected2_1 = prepareGetForContract(entry2);
-    Get expected2_2 = prepareGetForContractClass(entry2);
+    Get expected1_1 = prepareGetForContract(RESOLVED_NAMESPACE, entry);
+    Get expected1_2 = prepareGetForContractClass(RESOLVED_NAMESPACE, entry);
+    Get expected2_1 = prepareGetForContract(RESOLVED_NAMESPACE, entry2);
+    Get expected2_2 = prepareGetForContractClass(RESOLVED_NAMESPACE, entry2);
     verify(storage).get(expected1_1);
     verify(storage).get(expected1_2);
     verify(storage).get(expected2_1);
@@ -333,13 +341,13 @@ public class ScalarContractRegistryTest {
         .thenReturn(Optional.of(resultForClass2));
 
     // Act Assert
-    ContractEntry actual1 = registry.lookup(entry.getKey());
-    ContractEntry actual2 = registry.lookup(entry2.getKey());
+    ContractEntry actual1 = registry.lookup(ANY_NAMESPACE, entry.getKey());
+    ContractEntry actual2 = registry.lookup(ANY_NAMESPACE, entry2.getKey());
 
     // Assert
-    Get expected1_1 = prepareGetForContract(entry);
-    Get expected1_2 = prepareGetForContractClass(entry);
-    Get expected2_1 = prepareGetForContract(entry2);
+    Get expected1_1 = prepareGetForContract(RESOLVED_NAMESPACE, entry);
+    Get expected1_2 = prepareGetForContractClass(RESOLVED_NAMESPACE, entry);
+    Get expected2_1 = prepareGetForContract(RESOLVED_NAMESPACE, entry2);
     verify(storage).get(expected1_1);
     verify(storage).get(expected1_2);
     verify(storage).get(expected2_1);
@@ -355,7 +363,7 @@ public class ScalarContractRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(Optional.empty());
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(entry.getKey()))
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, entry.getKey()))
         .isInstanceOf(MissingContractException.class);
   }
 
@@ -367,7 +375,7 @@ public class ScalarContractRegistryTest {
     doThrow(toThrow).when(storage).get(any(Get.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(entry.getKey()))
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, entry.getKey()))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -381,7 +389,7 @@ public class ScalarContractRegistryTest {
     doReturn(Optional.of(resultForContract)).doThrow(toThrow).when(storage).get(any(Get.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(entry.getKey()))
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, entry.getKey()))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -395,13 +403,14 @@ public class ScalarContractRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(Optional.of(resultForClass));
 
     // Act Assert
-    List<ContractEntry> actual = registry.scan(entry.getEntityId());
+    List<ContractEntry> actual = registry.scan(ANY_NAMESPACE, entry.getEntityId());
 
     // Assert
     assertThat(actual).containsOnly(entry);
     Scan scan =
         new Scan(new Key(ContractEntry.ENTITY_ID, entry.getEntityId()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarContractRegistry.CONTRACT_TABLE);
     verify(storage).scan(scan);
   }
@@ -416,7 +425,8 @@ public class ScalarContractRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(Optional.of(resultForClass));
 
     // Act Assert
-    List<ContractEntry> actual = registry.scan(entry.getEntityId(), entry.getKeyVersion());
+    List<ContractEntry> actual =
+        registry.scan(ANY_NAMESPACE, entry.getEntityId(), entry.getKeyVersion());
 
     // Assert
     assertThat(actual).containsOnly(entry);
@@ -425,6 +435,7 @@ public class ScalarContractRegistryTest {
             .withStart(new Key(ContractEntry.KEY_VERSION, entry.getKeyVersion()))
             .withEnd(new Key(ContractEntry.KEY_VERSION, entry.getKeyVersion()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarContractRegistry.CONTRACT_TABLE);
     verify(storage).scan(scan);
   }

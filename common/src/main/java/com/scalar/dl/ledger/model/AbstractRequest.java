@@ -32,6 +32,15 @@ public abstract class AbstractRequest {
   }
 
   /**
+   * Returns the context namespace, or {@link Namespaces#DEFAULT} if the context namespace is null.
+   *
+   * @return the context namespace or the default namespace.
+   */
+  public String getContextNamespaceOrDefault() {
+    return contextNamespace == null ? Namespaces.DEFAULT : contextNamespace;
+  }
+
+  /**
    * Returns the entity ID.
    *
    * @return the entity ID
