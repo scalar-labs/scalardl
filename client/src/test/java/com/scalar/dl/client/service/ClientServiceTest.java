@@ -426,6 +426,44 @@ public class ClientServiceTest {
   }
 
   @Test
+  public void
+      registerSecret_WithNamespaceGiven_ShouldRegisterWithContextNamespaceForNonDefaultNamespace() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    service.registerSecret(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, ANY_SECRET_KEY);
+
+    // Assert
+    SecretRegistrationRequest expected =
+        SecretRegistrationRequest.newBuilder()
+            .setEntityId(ANY_ENTITY_ID)
+            .setKeyVersion(ANY_KEY_VERSION)
+            .setSecretKey(ANY_SECRET_KEY)
+            .setContextNamespace(ANY_NAMESPACE)
+            .build();
+    verify(handler).registerSecret(expected);
+  }
+
+  @Test
+  public void registerSecret_WithNullArguments_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act & Assert - entityId is null
+    Throwable thrownForNullEntityId =
+        catchThrowable(
+            () -> service.registerSecret(ANY_NAMESPACE, null, ANY_KEY_VERSION, ANY_SECRET_KEY));
+    assertThat(thrownForNullEntityId).isExactlyInstanceOf(IllegalArgumentException.class);
+
+    // Act & Assert - secretKey is null
+    Throwable thrownForNullSecretKey =
+        catchThrowable(
+            () -> service.registerSecret(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, null));
+    assertThat(thrownForNullSecretKey).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   public void registerFunction_CorrectInputsGiven_ShouldRegisterProperly() {
     // Arrange
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);

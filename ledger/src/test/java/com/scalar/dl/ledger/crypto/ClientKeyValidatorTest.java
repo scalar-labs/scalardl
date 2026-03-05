@@ -64,7 +64,8 @@ public class ClientKeyValidatorTest {
             AuthenticationMethod.HMAC,
             certificateManager,
             secretManager);
-    when(secretManager.getValidator(any(SecretEntry.Key.class))).thenReturn(hmacValidator);
+    when(secretManager.getValidator(anyString(), any(SecretEntry.Key.class)))
+        .thenReturn(hmacValidator);
 
     // Act
     SignatureValidator validator =
@@ -72,7 +73,8 @@ public class ClientKeyValidatorTest {
 
     // Assert
     assertThat(validator).isEqualTo(hmacValidator);
-    verify(secretManager).getValidator(new SecretEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
+    verify(secretManager)
+        .getValidator(SOME_NAMESPACE, new SecretEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
     verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
   }
 
@@ -98,7 +100,7 @@ public class ClientKeyValidatorTest {
 
     // Assert
     assertThat(validator).isEqualTo(hmacValidator);
-    verify(secretManager, never()).getValidator(any(SecretEntry.Key.class));
+    verify(secretManager, never()).getValidator(anyString(), any(SecretEntry.Key.class));
     verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
     verify(clientKeyValidator).createHmacValidator(SOME_SECRET_KEY);
   }
@@ -127,7 +129,7 @@ public class ClientKeyValidatorTest {
 
     // Assert
     assertThat(validator2).isEqualTo(hmacValidator);
-    verify(secretManager, never()).getValidator(any(SecretEntry.Key.class));
+    verify(secretManager, never()).getValidator(anyString(), any(SecretEntry.Key.class));
     verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
     verify(clientKeyValidator).createHmacValidator(SOME_SECRET_KEY);
   }

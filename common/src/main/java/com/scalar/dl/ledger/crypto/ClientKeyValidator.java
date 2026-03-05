@@ -39,7 +39,7 @@ public class ClientKeyValidator {
         return validators.computeIfAbsent(
             hmacAuthenticatable.getServersAuthenticationHmacSecretKey(), this::createHmacValidator);
       } else {
-        return secretManager.getValidator(new SecretEntry.Key(entityId, keyVersion));
+        return secretManager.getValidator(namespace, new SecretEntry.Key(entityId, keyVersion));
       }
     }
   }

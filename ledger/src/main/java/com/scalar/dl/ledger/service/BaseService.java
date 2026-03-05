@@ -51,7 +51,9 @@ public class BaseService {
   }
 
   public void register(SecretRegistrationRequest request) {
-    secretManager.register(SecretEntry.from(request));
+    String namespace =
+        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
+    secretManager.register(namespace, SecretEntry.from(request));
   }
 
   public void register(ContractRegistrationRequest request) {

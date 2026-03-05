@@ -11,6 +11,8 @@ import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingSecretException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -24,7 +26,7 @@ import javax.annotation.concurrent.Immutable;
 public class SecretManager {
   private static final int CACHE_SIZE = 131072;
   private final SecretRegistry registry;
-  private final Cache<SecretEntry.Key, HmacValidator> cacheForKey;
+  private final ConcurrentMap<String, Cache<SecretEntry.Key, HmacValidator>> cachesForKey;
   private final Cache<String, HmacValidator> cacheForSecret;
 
   /**
@@ -35,7 +37,7 @@ public class SecretManager {
   @Inject
   public SecretManager(SecretRegistry registry) {
     this.registry = checkNotNull(registry);
-    this.cacheForKey = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+    this.cachesForKey = new ConcurrentHashMap<>();
     this.cacheForSecret = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
   }
 
@@ -43,10 +45,10 @@ public class SecretManager {
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public SecretManager(
       SecretRegistry registry,
-      Cache<SecretEntry.Key, HmacValidator> cacheForKey,
+      ConcurrentMap<String, Cache<SecretEntry.Key, HmacValidator>> cachesForKey,
       Cache<String, HmacValidator> cacheForSecret) {
     this.registry = registry;
-    this.cacheForKey = cacheForKey;
+    this.cachesForKey = cachesForKey;
     this.cacheForSecret = cacheForSecret;
   }
 
@@ -54,32 +56,36 @@ public class SecretManager {
    * Stores the specified {@code SecretEntry} in a {@link SecretRegistry}. Will throw a {@link
    * DatabaseException} if the secret has already been registered.
    *
+   * @param namespace a namespace to register the secret
    * @param entry a {@code SecretEntry}
    */
-  public void register(SecretEntry entry) {
+  public void register(String namespace, SecretEntry entry) {
     try {
-      registry.lookup(entry.getKey());
+      registry.lookup(namespace, entry.getKey());
       throw new DatabaseException(CommonError.SECRET_ALREADY_REGISTERED);
     } catch (MissingSecretException e) {
-      registry.bind(entry);
+      registry.bind(namespace, entry);
     }
   }
 
   /**
    * Returns a {@link HmacValidator} for the given {@link SecretEntry.Key}.
    *
+   * @param namespace a namespace for the secret
    * @param key {@link SecretEntry.Key}
    * @return a {@link HmacValidator}
    */
-  public HmacValidator getValidator(SecretEntry.Key key) {
-    HmacValidator validator = cacheForKey.getIfPresent(key);
+  public HmacValidator getValidator(String namespace, SecretEntry.Key key) {
+    Cache<SecretEntry.Key, HmacValidator> cache =
+        cachesForKey.computeIfAbsent(namespace, this::createCache);
+    HmacValidator validator = cache.getIfPresent(key);
     if (validator != null) {
       return validator;
     }
 
-    SecretEntry entry = registry.lookup(key);
+    SecretEntry entry = registry.lookup(namespace, key);
     validator = new HmacValidator(entry.getSecretKey());
-    cacheForKey.put(key, validator);
+    cache.put(key, validator);
 
     return validator;
   }
@@ -100,5 +106,9 @@ public class SecretManager {
     cacheForSecret.put(secretKey, validator);
 
     return validator;
+  }
+
+  private Cache<SecretEntry.Key, HmacValidator> createCache(String namespace) {
+    return CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
   }
 }
