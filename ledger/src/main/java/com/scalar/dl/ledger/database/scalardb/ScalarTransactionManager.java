@@ -15,6 +15,7 @@ import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.MutableDatabase;
+import com.scalar.dl.ledger.database.NamespaceRestrictedAssetLedger;
 import com.scalar.dl.ledger.database.Snapshot;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
@@ -83,6 +84,12 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
       database = new ScalarMutableDatabase(transaction);
     }
 
+    TamperEvidentAssetLedger ledger = createTamperEvidentAssetLedger(request, transaction);
+    return new Transaction(ledger, database);
+  }
+
+  private TamperEvidentAssetLedger createTamperEvidentAssetLedger(
+      ContractExecutionRequest request, DistributedTransaction transaction) {
     TamperEvidentAssetLedger ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
@@ -96,7 +103,10 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
             config);
     String contextNamespace =
         request == null ? Namespaces.DEFAULT : request.getContextNamespaceOrDefault();
-    return new Transaction(ledger, database, contextNamespace);
+    if (!contextNamespace.equals(Namespaces.DEFAULT)) {
+      ledger = new NamespaceRestrictedAssetLedger(ledger, contextNamespace);
+    }
+    return ledger;
   }
 
   @Override

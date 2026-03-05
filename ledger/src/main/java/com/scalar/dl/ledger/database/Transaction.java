@@ -1,7 +1,6 @@
 package com.scalar.dl.ledger.database;
 
 import com.scalar.dl.ledger.error.CommonError;
-import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
@@ -20,19 +19,6 @@ public class Transaction {
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public Transaction(TamperEvidentAssetLedger ledger, MutableDatabase<?, ?, ?, ?, ?> database) {
     this.ledger = ledger;
-    this.database = database;
-  }
-
-  @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public Transaction(
-      TamperEvidentAssetLedger ledger,
-      MutableDatabase<?, ?, ?, ?, ?> database,
-      String contextNamespace) {
-    if (!contextNamespace.equals(Namespaces.DEFAULT)) {
-      this.ledger = new NamespaceRestrictedAssetLedger(ledger, contextNamespace);
-    } else {
-      this.ledger = ledger;
-    }
     this.database = database;
   }
 
