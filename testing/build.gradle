@@ -4,10 +4,6 @@ plugins {
     id "com.github.spotbugs" version "${spotbugsPluginVersion}"
 }
 
-ext {
-    testContainersVersion = '2.0.3'
-}
-
 // Integration test source set
 sourceSets {
     integrationTest {
