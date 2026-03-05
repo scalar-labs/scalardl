@@ -9,6 +9,16 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * A decorator for {@link TamperEvidentAssetLedger} that enforces namespace-based access control.
+ *
+ * <p>This class restricts Ledger operations to only allow access to the context namespace specified
+ * at construction time. When a contract attempts to access assets in a namespace different from its
+ * context namespace, a {@link LedgerException} is thrown.
+ *
+ * <p>Operations without namespace specification are delegated directly without access control, as
+ * they implicitly operate within the context namespace.
+ */
 @ThreadSafe
 public class NamespaceRestrictedAssetLedger implements TamperEvidentAssetLedger {
   private final TamperEvidentAssetLedger delegate;
