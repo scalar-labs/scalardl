@@ -13,6 +13,7 @@ import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.UnloadableContractException;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -153,8 +154,10 @@ public class ContractManager {
 
   @VisibleForTesting
   void validateContract(ContractEntry entry) {
+    // TODO: use context namespace
     SignatureValidator validator =
-        clientKeyValidator.getValidator(entry.getEntityId(), entry.getKeyVersion());
+        clientKeyValidator.getValidator(
+            Namespaces.DEFAULT, entry.getEntityId(), entry.getKeyVersion());
 
     byte[] serialized =
         ContractRegistrationRequest.serialize(

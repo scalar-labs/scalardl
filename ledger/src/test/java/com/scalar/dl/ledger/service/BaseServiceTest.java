@@ -17,6 +17,7 @@ import com.scalar.dl.ledger.contract.ContractManager;
 import com.scalar.dl.ledger.crypto.CertificateManager;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
+import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SecretManager;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.model.AbstractRequest;
@@ -97,8 +98,7 @@ public class BaseServiceTest {
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {
-    when(clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion()))
-        .thenReturn(validator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt())).thenReturn(validator);
     if (isValid) {
       doNothing().when(request).validateWith(validator);
     } else {
@@ -120,26 +120,26 @@ public class BaseServiceTest {
   public void register_ProperCertificateGiven_ShouldRegisterCertificate() {
     // Arrange
     configureCertificateRegistrationRequest(certRegistrationRequest);
-    doNothing().when(certManager).register(any());
+    doNothing().when(certManager).register(anyString(), any());
 
     // Act
     service.register(certRegistrationRequest);
 
     // Assert
-    verify(certManager).register(any());
+    verify(certManager).register(anyString(), any());
   }
 
   @Test
   public void register_ProperSecretGiven_ShouldRegisterSecret() {
     // Arrange
     configureSecretRegistrationRequest(secretRegistrationRequest);
-    doNothing().when(secretManager).register(any());
+    doNothing().when(secretManager).register(any(SecretEntry.class));
 
     // Act
     service.register(secretRegistrationRequest);
 
     // Assert
-    verify(secretManager).register(any());
+    verify(secretManager).register(any(SecretEntry.class));
   }
 
   @Test

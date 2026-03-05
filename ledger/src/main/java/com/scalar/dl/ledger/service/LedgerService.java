@@ -27,6 +27,7 @@ import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
@@ -81,7 +82,12 @@ public class LedgerService {
 
   public ContractExecutionResult execute(ContractExecutionRequest request) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            request.getContextNamespace() == null
+                ? Namespaces.DEFAULT
+                : request.getContextNamespace(),
+            request.getEntityId(),
+            request.getKeyVersion());
     request.validateWith(validator);
 
     if (config.isAuditorEnabled()) {
@@ -103,8 +109,10 @@ public class LedgerService {
   }
 
   public ExecutionAbortResult abort(ExecutionAbortRequest request) {
+    // always use the default namespace to authenticate Auditor
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            Namespaces.DEFAULT, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     return new ExecutionAbortResult(executor.abort(request.getNonce()));

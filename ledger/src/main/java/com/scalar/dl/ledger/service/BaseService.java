@@ -18,6 +18,7 @@ import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
@@ -44,7 +45,9 @@ public class BaseService {
   }
 
   public void register(CertificateRegistrationRequest request) {
-    certManager.register(CertificateEntry.from(request));
+    String namespace =
+        request.getContextNamespace() == null ? Namespaces.DEFAULT : request.getContextNamespace();
+    certManager.register(namespace, CertificateEntry.from(request));
   }
 
   public void register(SecretRegistrationRequest request) {
@@ -53,7 +56,12 @@ public class BaseService {
 
   public void register(ContractRegistrationRequest request) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            request.getContextNamespace() == null
+                ? Namespaces.DEFAULT
+                : request.getContextNamespace(),
+            request.getEntityId(),
+            request.getKeyVersion());
     request.validateWith(validator);
 
     contractManager.register(ContractEntry.from(request));
@@ -61,7 +69,12 @@ public class BaseService {
 
   public List<ContractEntry> list(ContractsListingRequest request) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            request.getContextNamespace() == null
+                ? Namespaces.DEFAULT
+                : request.getContextNamespace(),
+            request.getEntityId(),
+            request.getKeyVersion());
     request.validateWith(validator);
 
     return new ContractScanner(contractManager)

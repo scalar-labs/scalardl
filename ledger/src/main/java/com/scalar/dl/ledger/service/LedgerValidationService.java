@@ -17,6 +17,7 @@ import com.scalar.dl.ledger.model.AssetProofRetrievalRequest;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
@@ -65,7 +66,12 @@ public class LedgerValidationService extends ValidationService {
   @Override
   public LedgerValidationResult validate(LedgerValidationRequest request) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            request.getContextNamespace() == null
+                ? Namespaces.DEFAULT
+                : request.getContextNamespace(),
+            request.getEntityId(),
+            request.getKeyVersion());
     request.validateWith(validator);
 
     if (config.isAuditorEnabled()) {
@@ -82,8 +88,10 @@ public class LedgerValidationService extends ValidationService {
   }
 
   public AssetProof retrieve(AssetProofRetrievalRequest request) {
+    // always use the default namespace to authenticate Auditor
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            Namespaces.DEFAULT, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     String namespace =

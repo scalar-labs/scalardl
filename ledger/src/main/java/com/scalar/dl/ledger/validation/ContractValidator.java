@@ -8,6 +8,7 @@ import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
 import com.scalar.dl.ledger.statemachine.Ledger;
@@ -29,8 +30,8 @@ public class ContractValidator implements LedgerValidator {
       Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
     ClientIdentityKey clientIdentityKey = contract.getClientIdentityKey();
     SignatureValidator validator =
-        clientKeyValidator.getValidator(
-            clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
+        clientKeyValidator.getValidator( // TODO: use context namespace
+            Namespaces.DEFAULT, clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
     byte[] serialized =
         ContractExecutionRequest.serialize(
             ContractEntry.Key.deserialize(record.contractId()).getId(),

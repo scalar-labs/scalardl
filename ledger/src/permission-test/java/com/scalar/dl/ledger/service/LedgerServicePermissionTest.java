@@ -114,7 +114,7 @@ public class LedgerServicePermissionTest {
             auditorKeyValidator,
             contractExecutor,
             functionManager);
-    when(clientKeyValidator.getValidator(anyString(), anyInt())).thenReturn(validator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt())).thenReturn(validator);
     when(signer.sign(any())).thenReturn("any_bytes".getBytes(StandardCharsets.UTF_8));
     when(validator.validate(any(), any())).thenReturn(true);
 
