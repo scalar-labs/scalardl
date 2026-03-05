@@ -11,11 +11,13 @@ USER 201
 WORKDIR /scalardl-schema-loader
 
 # 'ledger' and 'auditor' can be specified
-ENV SCHEMA_TYPE 'ledger'
+ENV SCHEMA_TYPE='ledger'
 
-COPY --chown=201:201 ledger-schema.json .
-COPY --chown=201:201 auditor-schema.json .
-COPY --chown=201:201 entrypoint.sh .
-COPY --chown=201:201 database.properties .
+COPY --chown=201:201 \
+     ledger-schema.json \
+     auditor-schema.json \
+     entrypoint.sh \
+     database.properties \
+     ./
 
 ENTRYPOINT ["./entrypoint.sh"]
