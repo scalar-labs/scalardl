@@ -2,6 +2,7 @@ package com.scalar.dl.testing.container;
 
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.TransactionMode;
+import com.scalar.dl.testing.util.TestCertificates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,8 @@ public class LedgerTestCluster extends AbstractTestCluster {
     ledger.withNetwork(getNetwork()).withNetworkAliases(LEDGER_NETWORK_ALIAS);
     ledger.withStorageConfig(getStorageConfig());
     ledger.withAuthenticationMethod(authenticationMethod);
+    ledger.withProofEnabled();
+    ledger.withProofPrivateKey(TestCertificates.LEDGER_PRIVATE_KEY);
     ledger.withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("ledger"));
     ledger.start();
     logger.info("Ledger container started on port {}", ledger.getPort());
