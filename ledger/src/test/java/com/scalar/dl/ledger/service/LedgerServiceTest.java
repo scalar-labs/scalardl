@@ -18,7 +18,6 @@ import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.contract.ContractExecutor;
 import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.SignatureException;
@@ -32,6 +31,8 @@ import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,7 +53,7 @@ public class LedgerServiceTest {
   @Mock private AuditorKeyValidator auditorKeyValidator;
   @Mock private SignatureValidator signatureValidator;
   @Mock private CertificateRegistrationRequest certRegistrationRequest;
-  @Mock private SecretEntry secretEntry;
+  @Mock private SecretRegistrationRequest secretRegistrationRequest;
   @Mock private FunctionRegistrationRequest functionRegistrationRequest;
   @Mock private ContractRegistrationRequest contractRegistrationRequest;
   @Mock private ContractsListingRequest contractsListingRequest;
@@ -111,10 +112,12 @@ public class LedgerServiceTest {
     when(request.getContractId()).thenReturn(SOME_CONTRACT_ID);
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {
-    when(clientKeyValidator.getValidator(anyString(), anyInt())).thenReturn(signatureValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(signatureValidator);
     if (isValid) {
       doNothing().when(request).validateWith(signatureValidator);
     } else {
@@ -139,10 +142,10 @@ public class LedgerServiceTest {
     // Arrange
 
     // Act
-    service.register(secretEntry);
+    service.register(secretRegistrationRequest);
 
     // Assert
-    verify(base).register(secretEntry);
+    verify(base).register(secretRegistrationRequest);
   }
 
   @Test

@@ -26,7 +26,9 @@ import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +46,7 @@ public class BaseServiceTest {
   @Mock private ContractManager contractManager;
   @Mock private NamespaceManager namespaceManager;
   @Mock private CertificateRegistrationRequest certRegistrationRequest;
-  @Mock private SecretEntry secretEntry;
+  @Mock private SecretRegistrationRequest secretRegistrationRequest;
   @Mock private ContractRegistrationRequest contractRegistrationRequest;
   @Mock private ContractsListingRequest contractsListingRequest;
   @Mock private NamespaceCreationRequest namespaceCreationRequest;
@@ -58,6 +60,7 @@ public class BaseServiceTest {
   private static final int SOME_KEY_VERSION = 1;
   private static final byte[] SOME_SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
   private static final String SOME_PEM = "pem";
+  private static final String SOME_SECRET_KEY = "secret_key";
   private static final String SOME_NAMESPACE = "test_namespace";
 
   @BeforeEach
@@ -69,6 +72,14 @@ public class BaseServiceTest {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getCertPem()).thenReturn(SOME_PEM);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
+  }
+
+  private void configureSecretRegistrationRequest(SecretRegistrationRequest request) {
+    when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
+    when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    when(request.getSecretKey()).thenReturn(SOME_SECRET_KEY);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureContractRegistrationRequest(ContractRegistrationRequest request) {
@@ -79,6 +90,7 @@ public class BaseServiceTest {
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getContractProperties()).thenReturn(Optional.empty());
     when(request.getSignature()).thenReturn(SOME_SIGNATURE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureContractsListingRequest(
@@ -87,11 +99,11 @@ public class BaseServiceTest {
     when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
     when(request.getSignature()).thenReturn(SOME_SIGNATURE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
   }
 
   private void configureRequestValidation(AbstractRequest request, boolean isValid) {
-    when(clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion()))
-        .thenReturn(validator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt())).thenReturn(validator);
     if (isValid) {
       doNothing().when(request).validateWith(validator);
     } else {
@@ -113,25 +125,26 @@ public class BaseServiceTest {
   public void register_ProperCertificateGiven_ShouldRegisterCertificate() {
     // Arrange
     configureCertificateRegistrationRequest(certRegistrationRequest);
-    doNothing().when(certManager).register(any());
+    doNothing().when(certManager).register(anyString(), any());
 
     // Act
     service.register(certRegistrationRequest);
 
     // Assert
-    verify(certManager).register(any());
+    verify(certManager).register(anyString(), any());
   }
 
   @Test
   public void register_ProperSecretGiven_ShouldRegisterSecret() {
     // Arrange
-    doNothing().when(secretManager).register(any());
+    configureSecretRegistrationRequest(secretRegistrationRequest);
+    doNothing().when(secretManager).register(anyString(), any(SecretEntry.class));
 
     // Act
-    service.register(secretEntry);
+    service.register(secretRegistrationRequest);
 
     // Assert
-    verify(secretManager).register(secretEntry);
+    verify(secretManager).register(anyString(), any(SecretEntry.class));
   }
 
   @Test
@@ -144,7 +157,7 @@ public class BaseServiceTest {
     service.register(contractRegistrationRequest);
 
     // Assert
-    verify(contractManager).register(any());
+    verify(contractManager).register(anyString(), any());
   }
 
   @Test
@@ -158,7 +171,7 @@ public class BaseServiceTest {
         .isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(any());
+    verify(contractManager, never()).register(anyString(), any());
   }
 
   @Test
@@ -169,14 +182,13 @@ public class BaseServiceTest {
     ContractEntry entry1 = prepareContractEntry(SOME_CONTRACT_ID);
     ContractEntry entry2 = prepareContractEntry(SOME_CONTRACT_ID + "x");
     List<ContractEntry> entries = Arrays.asList(entry1, entry2);
-    when(contractManager.scan(anyString(), anyInt())).thenReturn(entries);
+    when(contractManager.scan(anyString(), anyString(), anyInt())).thenReturn(entries);
 
     // Act
     List<ContractEntry> actual = service.list(contractsListingRequest);
 
     // Assert
-    verify(contractManager)
-        .scan(contractsListingRequest.getEntityId(), contractsListingRequest.getKeyVersion());
+    verify(contractManager).scan(anyString(), anyString(), anyInt());
     assertThat(actual).containsOnly(entry1);
   }
 
@@ -188,14 +200,13 @@ public class BaseServiceTest {
     ContractEntry entry1 = prepareContractEntry(SOME_CONTRACT_ID);
     ContractEntry entry2 = prepareContractEntry(SOME_CONTRACT_ID + "x");
     List<ContractEntry> entries = Arrays.asList(entry1, entry2);
-    when(contractManager.scan(anyString(), anyInt())).thenReturn(entries);
+    when(contractManager.scan(anyString(), anyString(), anyInt())).thenReturn(entries);
 
     // Act
     List<ContractEntry> actual = service.list(contractsListingRequest);
 
     // Assert
-    verify(contractManager)
-        .scan(contractsListingRequest.getEntityId(), contractsListingRequest.getKeyVersion());
+    verify(contractManager).scan(anyString(), anyString(), anyInt());
     assertThat(actual).containsExactly(entry1, entry2);
   }
 

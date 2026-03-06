@@ -3,11 +3,13 @@ package com.scalar.dl.ledger.crypto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.config.LedgerConfig;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -42,7 +44,7 @@ public class AuditorKeyValidatorTest {
     // Assert
     assertThat(validator).isEqualTo(hmacValidator);
     verify(secretManager).getValidator(SOME_SECRET_KEY);
-    verify(certificateManager, never()).getValidator(any(CertificateEntry.Key.class));
+    verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
   }
 
   @Test
@@ -53,7 +55,8 @@ public class AuditorKeyValidatorTest {
     when(config.getAuditorCertVersion()).thenReturn(SOME_KEY_VERSION);
     AuditorKeyValidator auditorKeyValidator =
         new AuditorKeyValidator(config, certificateManager, secretManager);
-    when(certificateManager.getValidator(any())).thenReturn(digitalSignatureValidator);
+    when(certificateManager.getValidator(anyString(), any(CertificateEntry.Key.class)))
+        .thenReturn(digitalSignatureValidator);
 
     // Act
     SignatureValidator validator = auditorKeyValidator.getValidator();
@@ -62,8 +65,7 @@ public class AuditorKeyValidatorTest {
     assertThat(validator).isEqualTo(digitalSignatureValidator);
     verify(certificateManager)
         .getValidator(
-            new CertificateEntry.Key(
-                config.getAuditorCertHolderId(), config.getAuditorCertVersion()));
+            eq(Namespaces.DEFAULT), eq(new CertificateEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION)));
     verify(secretManager, never()).getValidator(anyString());
   }
 }

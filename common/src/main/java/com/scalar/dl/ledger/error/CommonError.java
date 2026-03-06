@@ -167,6 +167,16 @@ public enum CommonError implements ScalarDlError {
       "Use a different contract ID or class name to register this version of the contract."),
 
   //
+  // Errors for INVALID_REQUEST(407)
+  //
+  ACCESSING_NAMESPACE_NOT_ALLOWED(
+      StatusCode.INVALID_REQUEST,
+      "001",
+      "Accessing the specified namespace is not allowed. Namespace: %s, context namespace: %s",
+      "",
+      ""),
+
+  //
   // Errors for SECRET_ALREADY_REGISTERED(413)
   //
   SECRET_ALREADY_REGISTERED(

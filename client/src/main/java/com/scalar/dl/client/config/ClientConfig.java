@@ -9,6 +9,7 @@ import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.config.ConfigUtils;
 import com.scalar.dl.ledger.config.GrpcClientConfig;
 import com.scalar.dl.ledger.config.TargetConfig;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.FileInputStream;
@@ -338,6 +339,12 @@ public class ClientConfig {
    */
   public static final String AUTO_BOOTSTRAP = PREFIX + "auto_bootstrap";
 
+  /**
+   * <code>scalar.dl.client.context.namespace</code> (Optional)<br>
+   * A namespace where client requests are executed ("default" by default).
+   */
+  public static final String CONTEXT_NAMESPACE = PREFIX + "context.namespace";
+
   private final Properties props;
   private String serverHost;
   private int serverPort;
@@ -365,6 +372,7 @@ public class ClientConfig {
   private String auditorAuthorizationCredential;
   private String auditorLinearizableValidationContractId;
   private boolean isAutoBootstrapEnabled;
+  private String contextNamespace;
   private DigitalSignatureIdentityConfig digitalSignatureIdentityConfig;
   private HmacIdentityConfig hmacIdentityConfig;
   private TargetConfig ledgerTargetConfig;
@@ -446,6 +454,10 @@ public class ClientConfig {
     return isAutoBootstrapEnabled;
   }
 
+  public String getContextNamespace() {
+    return contextNamespace;
+  }
+
   private void load() {
     serverHost = ConfigUtils.getString(props, SERVER_HOST, DEFAULT_SERVER_HOST);
     serverPort = ConfigUtils.getInt(props, SERVER_PORT, DEFAULT_SERVER_PORT);
@@ -507,6 +519,7 @@ public class ClientConfig {
 
       isAutoBootstrapEnabled =
           ConfigUtils.getBoolean(props, AUTO_BOOTSTRAP, DEFAULT_AUTO_BOOTSTRAP);
+      contextNamespace = ConfigUtils.getString(props, CONTEXT_NAMESPACE, Namespaces.DEFAULT);
     } else {
       // for intermediary mode
       authenticationMethod = getAuthenticationMethod(AuthenticationMethod.PASS_THROUGH);

@@ -41,12 +41,17 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
           .build();
   private final DistributedStorage storage;
   private final Cipher cipher;
+  private final ScalarNamespaceResolver namespaceResolver;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public ScalarSecretRegistry(DistributedStorage storage, @Named("SecretRegistry") Cipher cipher) {
+  public ScalarSecretRegistry(
+      DistributedStorage storage,
+      @Named("SecretRegistry") Cipher cipher,
+      ScalarNamespaceResolver namespaceResolver) {
     this.storage = checkNotNull(storage);
     this.cipher = cipher;
+    this.namespaceResolver = checkNotNull(namespaceResolver);
   }
 
   @Override
@@ -55,7 +60,7 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
   }
 
   @Override
-  public void bind(SecretEntry entry) {
+  public void bind(String namespace, SecretEntry entry) {
     byte[] encryptedSecretKey = encrypt(entry.getSecretKey(), entry.getEntityId());
     Put put =
         new Put(
@@ -64,6 +69,7 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
             .withValue(SecretEntry.SECRET_KEY, encryptedSecretKey)
             .withValue(SecretEntry.REGISTERED_AT, entry.getRegisteredAt())
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     try {
@@ -74,12 +80,13 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
   }
 
   @Override
-  public void unbind(SecretEntry.Key key) {
+  public void unbind(String namespace, SecretEntry.Key key) {
     Delete delete =
         new Delete(
                 Key.ofText(SecretEntry.ENTITY_ID, key.getEntityId()),
                 Key.ofInt(SecretEntry.KEY_VERSION, key.getKeyVersion()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     try {
@@ -90,12 +97,13 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
   }
 
   @Override
-  public SecretEntry lookup(SecretEntry.Key key) {
+  public SecretEntry lookup(String namespace, SecretEntry.Key key) {
     Get get =
         new Get(
                 Key.ofText(SecretEntry.ENTITY_ID, key.getEntityId()),
                 Key.ofInt(SecretEntry.KEY_VERSION, key.getKeyVersion()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     Result result;

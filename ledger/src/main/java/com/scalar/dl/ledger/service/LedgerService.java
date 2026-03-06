@@ -8,7 +8,6 @@ import com.scalar.dl.ledger.contract.ContractEntry;
 import com.scalar.dl.ledger.contract.ContractExecutor;
 import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
@@ -25,8 +24,10 @@ import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
 
@@ -59,8 +60,8 @@ public class LedgerService {
     base.register(request);
   }
 
-  public void register(SecretEntry entry) {
-    base.register(entry);
+  public void register(SecretRegistrationRequest request) {
+    base.register(request);
   }
 
   public void register(FunctionRegistrationRequest request) {
@@ -81,7 +82,8 @@ public class LedgerService {
 
   public ContractExecutionResult execute(ContractExecutionRequest request) {
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            request.getContextNamespaceOrDefault(), request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     if (config.isAuditorEnabled()) {
@@ -103,8 +105,10 @@ public class LedgerService {
   }
 
   public ExecutionAbortResult abort(ExecutionAbortRequest request) {
+    // always use the default namespace to authenticate Auditor
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(
+            Namespaces.DEFAULT, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     return new ExecutionAbortResult(executor.abort(request.getNonce()));

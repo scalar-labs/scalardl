@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 public class ContractExecutionRequestTest {
   private static final String NONCE = "nonce";
+  private static final String CONTEXT_NAMESPACE = "test_namespace";
   private static final String ENTITY_ID = "entity_id";
   private static final int KEY_VERSION = 1;
   private static final String CONTRACT_ID = "TestContract";
@@ -34,12 +35,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    ENTITY_ID,
-                    KEY_VERSION,
                     CONTRACT_ID,
                     CONTRACT_ARGUMENT,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
                     SIGNATURE,
                     AUDITOR_SIGNATURE))
         .doesNotThrowAnyException();
@@ -49,18 +51,18 @@ public class ContractExecutionRequestTest {
   public void constructor_NullNonceGiven_ShouldGetNonceFromContractArgument() {
     // Arrange
     String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"" + NONCE + "\"}";
-    System.out.println(contractArgument);
 
     // Act
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             null,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             contractArgument,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
 
@@ -77,12 +79,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    null,
-                    KEY_VERSION,
                     CONTRACT_ID,
                     CONTRACT_ARGUMENT,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    null,
+                    KEY_VERSION,
                     SIGNATURE,
                     AUDITOR_SIGNATURE))
         .isInstanceOf(IllegalArgumentException.class);
@@ -97,12 +100,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    ENTITY_ID,
-                    0, // illegal
                     CONTRACT_ID,
                     CONTRACT_ARGUMENT,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    0, // illegal
                     SIGNATURE,
                     AUDITOR_SIGNATURE))
         .isInstanceOf(IllegalArgumentException.class);
@@ -117,12 +121,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    ENTITY_ID,
-                    KEY_VERSION,
                     null,
                     CONTRACT_ARGUMENT,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
                     SIGNATURE,
                     AUDITOR_SIGNATURE))
         .isInstanceOf(IllegalArgumentException.class);
@@ -137,12 +142,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    ENTITY_ID,
-                    KEY_VERSION,
                     CONTRACT_ID,
                     null,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
                     SIGNATURE,
                     AUDITOR_SIGNATURE))
         .isInstanceOf(IllegalArgumentException.class);
@@ -157,12 +163,13 @@ public class ContractExecutionRequestTest {
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             contractArgument,
             null,
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
 
@@ -179,12 +186,13 @@ public class ContractExecutionRequestTest {
             () ->
                 new ContractExecutionRequest(
                     NONCE,
-                    ENTITY_ID,
-                    KEY_VERSION,
                     CONTRACT_ID,
                     CONTRACT_ARGUMENT,
                     Collections.singletonList(FUNCTION_ID),
                     FUNCTION_ARGUMENT,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
                     null,
                     AUDITOR_SIGNATURE))
         .isInstanceOf(IllegalArgumentException.class);
@@ -196,12 +204,13 @@ public class ContractExecutionRequestTest {
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
     ContractExecutionRequest other = request;
@@ -219,23 +228,25 @@ public class ContractExecutionRequestTest {
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
     ContractExecutionRequest other =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
 
@@ -252,12 +263,13 @@ public class ContractExecutionRequestTest {
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
 
@@ -269,29 +281,66 @@ public class ContractExecutionRequestTest {
   }
 
   @Test
-  public void equals_OnDifferentData_ShouldReturnFalse() {
+  public void equals_OnDifferentSignature_ShouldReturnFalse() {
     // Arrange
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
     ContractExecutionRequest other =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             WRONG_SIGNATURE,
+            AUDITOR_SIGNATURE);
+
+    // Act
+    boolean result = request.equals(other);
+
+    // Assert
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void equals_OnDifferentContextNamespace_ShouldReturnFalse() {
+    // Arrange
+    ContractExecutionRequest request =
+        new ContractExecutionRequest(
+            NONCE,
+            CONTRACT_ID,
+            CONTRACT_ARGUMENT,
+            Collections.singletonList(FUNCTION_ID),
+            FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE,
+            AUDITOR_SIGNATURE);
+    ContractExecutionRequest other =
+        new ContractExecutionRequest(
+            NONCE,
+            CONTRACT_ID,
+            CONTRACT_ARGUMENT,
+            Collections.singletonList(FUNCTION_ID),
+            FUNCTION_ARGUMENT,
+            "different_namespace",
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE,
             AUDITOR_SIGNATURE);
 
     // Act
@@ -307,17 +356,19 @@ public class ContractExecutionRequestTest {
     ContractExecutionRequest request =
         new ContractExecutionRequest(
             NONCE,
-            ENTITY_ID,
-            KEY_VERSION,
             CONTRACT_ID,
             CONTRACT_ARGUMENT,
             Collections.singletonList(FUNCTION_ID),
             FUNCTION_ARGUMENT,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
             SIGNATURE,
             AUDITOR_SIGNATURE);
 
     // Act
     String nonce = request.getNonce();
+    String contextNamespace = request.getContextNamespace();
     String entityId = request.getEntityId();
     int keyVersion = request.getKeyVersion();
     String contractId = request.getContractId();
@@ -329,6 +380,7 @@ public class ContractExecutionRequestTest {
 
     // Assert
     assertThat(nonce).isEqualTo(NONCE);
+    assertThat(contextNamespace).isEqualTo(CONTEXT_NAMESPACE);
     assertThat(entityId).isEqualTo(ENTITY_ID);
     assertThat(keyVersion).isEqualTo(KEY_VERSION);
     assertThat(contractId).isEqualTo(CONTRACT_ID);

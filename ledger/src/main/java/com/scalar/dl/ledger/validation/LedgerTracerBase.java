@@ -32,6 +32,10 @@ public abstract class LedgerTracerBase<T> implements Ledger<T> {
 
   public abstract Map<AssetKey, String> getOutputs();
 
+  public Context getContext() {
+    return context;
+  }
+
   @Override
   public Optional<Asset<T>> get(String assetId) {
     return get(context.getNamespace(), assetId);

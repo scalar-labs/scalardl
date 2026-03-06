@@ -10,7 +10,6 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import com.scalar.dl.ledger.util.Argument;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +24,7 @@ import org.mockito.MockitoAnnotations;
 public class ArgumentValidatorTest {
   private static final String NAMESPACE = "namespace";
   private static final String ASSET_ID = "X";
-  @Mock private Ledger<?> ledger;
+  @Mock private LedgerTracerBase<?> tracer;
   @Mock private ContractMachine contract;
   private NonceValidator validator;
 
@@ -66,7 +65,7 @@ public class ArgumentValidatorTest {
     List<StatusCode> results = new ArrayList<>();
 
     // Act
-    assets.forEach(asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset)));
+    assets.forEach(asset -> results.add(validator.validate(tracer, contract, NAMESPACE, asset)));
 
     // Assert
     assertThat(results).containsOnly(StatusCode.OK);
@@ -83,7 +82,7 @@ public class ArgumentValidatorTest {
     assertThatThrownBy(
             () ->
                 assets.forEach(
-                    asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset))))
+                    asset -> results.add(validator.validate(tracer, contract, NAMESPACE, asset))))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
         .extracting("code")
@@ -97,7 +96,7 @@ public class ArgumentValidatorTest {
     List<StatusCode> results = new ArrayList<>();
 
     // Act
-    assets.forEach(asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset)));
+    assets.forEach(asset -> results.add(validator.validate(tracer, contract, NAMESPACE, asset)));
 
     // Assert
     assertThat(results).containsOnly(StatusCode.OK);
@@ -114,7 +113,7 @@ public class ArgumentValidatorTest {
     assertThatThrownBy(
             () ->
                 assets.forEach(
-                    asset -> results.add(validator.validate(ledger, contract, NAMESPACE, asset))))
+                    asset -> results.add(validator.validate(tracer, contract, NAMESPACE, asset))))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_NONCE.buildMessage(assets.get(1).id(), "1"))
         .extracting("code")

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class Common {
@@ -17,6 +18,10 @@ public class Common {
     } catch (IOException e) {
       throw new ClientException(ClientError.READING_FILE_FAILED, e, filePath, e.getMessage());
     }
+  }
+
+  public static String fileToString(String filePath) {
+    return new String(fileToBytes(filePath), StandardCharsets.UTF_8);
   }
 
   public static byte[] getClassBytes(Class<?> clazz) {

@@ -20,11 +20,14 @@ import javax.json.JsonObject;
 @Deprecated
 public abstract class Contract {
   private ContractManager manager;
+  private String namespace;
   private CertificateEntry.Key certificateKey;
   private boolean isRoot;
 
-  final void initialize(ContractManager manager, @Nullable CertificateEntry.Key certificateKey) {
+  final void initialize(
+      ContractManager manager, String namespace, @Nullable CertificateEntry.Key certificateKey) {
     this.manager = checkNotNull(manager);
+    this.namespace = checkNotNull(namespace);
     this.certificateKey = certificateKey;
     this.isRoot = false;
   }
@@ -68,8 +71,9 @@ public abstract class Contract {
     checkArgument(manager != null, "please call initialize() before this.");
 
     ContractEntry.Key key = new ContractEntry.Key(contractId, certificateKey);
-    ContractEntry entry = manager.get(key);
-    DeprecatedContract contract = (DeprecatedContract) manager.getInstance(entry).getContractBase();
+    ContractEntry entry = manager.get(namespace, key);
+    DeprecatedContract contract =
+        (DeprecatedContract) manager.getInstance(namespace, entry).getContractBase();
     DeprecatedLedger deprecatedLedger = new DeprecatedLedger(ledger);
     JsonObject properties = entry.getProperties().map(contract::deserialize).orElse(null);
     return contract.invoke(deprecatedLedger, argument, properties);

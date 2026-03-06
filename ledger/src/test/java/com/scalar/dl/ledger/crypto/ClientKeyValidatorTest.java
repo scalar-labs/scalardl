@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ClientKeyValidatorTest {
+  private static final String SOME_NAMESPACE = "some_namespace";
   private static final String SOME_ENTITY_ID = "entity_id";
   private static final int SOME_KEY_VERSION = 1;
   private static final String SOME_SECRET_KEY = "secret_key";
@@ -40,17 +41,17 @@ public class ClientKeyValidatorTest {
             AuthenticationMethod.DIGITAL_SIGNATURE,
             certificateManager,
             secretManager);
-    when(certificateManager.getValidator(any(CertificateEntry.Key.class)))
+    when(certificateManager.getValidator(anyString(), any(CertificateEntry.Key.class)))
         .thenReturn(digitalSignatureValidator);
 
     // Act
     SignatureValidator validator =
-        clientKeyValidator.getValidator(SOME_ENTITY_ID, SOME_KEY_VERSION);
+        clientKeyValidator.getValidator(SOME_NAMESPACE, SOME_ENTITY_ID, SOME_KEY_VERSION);
 
     // Assert
     assertThat(validator).isEqualTo(digitalSignatureValidator);
     verify(certificateManager)
-        .getValidator(new CertificateEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
+        .getValidator(SOME_NAMESPACE, new CertificateEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
     verify(secretManager, never()).getValidator(anyString());
   }
 
@@ -63,16 +64,18 @@ public class ClientKeyValidatorTest {
             AuthenticationMethod.HMAC,
             certificateManager,
             secretManager);
-    when(secretManager.getValidator(any(SecretEntry.Key.class))).thenReturn(hmacValidator);
+    when(secretManager.getValidator(anyString(), any(SecretEntry.Key.class)))
+        .thenReturn(hmacValidator);
 
     // Act
     SignatureValidator validator =
-        clientKeyValidator.getValidator(SOME_ENTITY_ID, SOME_KEY_VERSION);
+        clientKeyValidator.getValidator(SOME_NAMESPACE, SOME_ENTITY_ID, SOME_KEY_VERSION);
 
     // Assert
     assertThat(validator).isEqualTo(hmacValidator);
-    verify(secretManager).getValidator(new SecretEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
-    verify(certificateManager, never()).getValidator(any(CertificateEntry.Key.class));
+    verify(secretManager)
+        .getValidator(SOME_NAMESPACE, new SecretEntry.Key(SOME_ENTITY_ID, SOME_KEY_VERSION));
+    verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
   }
 
   @Test
@@ -92,12 +95,13 @@ public class ClientKeyValidatorTest {
 
     // Act
     SignatureValidator validator =
-        clientKeyValidator.getValidator(ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
+        clientKeyValidator.getValidator(
+            SOME_NAMESPACE, ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
 
     // Assert
     assertThat(validator).isEqualTo(hmacValidator);
-    verify(secretManager, never()).getValidator(any(SecretEntry.Key.class));
-    verify(certificateManager, never()).getValidator(any(CertificateEntry.Key.class));
+    verify(secretManager, never()).getValidator(anyString(), any(SecretEntry.Key.class));
+    verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
     verify(clientKeyValidator).createHmacValidator(SOME_SECRET_KEY);
   }
 
@@ -115,16 +119,18 @@ public class ClientKeyValidatorTest {
     when(serversHmacAuthenticatable.getServersAuthenticationHmacSecretKey())
         .thenReturn(SOME_SECRET_KEY);
     doReturn(hmacValidator).when(clientKeyValidator).createHmacValidator(anyString());
-    clientKeyValidator.getValidator(ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
+    clientKeyValidator.getValidator(
+        SOME_NAMESPACE, ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
 
     // Act
     SignatureValidator validator2 =
-        clientKeyValidator.getValidator(ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
+        clientKeyValidator.getValidator(
+            SOME_NAMESPACE, ClientKeyValidator.AUDITOR_ENTITY_ID, SOME_KEY_VERSION);
 
     // Assert
     assertThat(validator2).isEqualTo(hmacValidator);
-    verify(secretManager, never()).getValidator(any(SecretEntry.Key.class));
-    verify(certificateManager, never()).getValidator(any(CertificateEntry.Key.class));
+    verify(secretManager, never()).getValidator(anyString(), any(SecretEntry.Key.class));
+    verify(certificateManager, never()).getValidator(anyString(), any(CertificateEntry.Key.class));
     verify(clientKeyValidator).createHmacValidator(SOME_SECRET_KEY);
   }
 }

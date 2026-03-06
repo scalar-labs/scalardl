@@ -39,9 +39,10 @@ public class ContractExecutor {
   }
 
   public ContractExecutionResult execute(ContractExecutionRequest request) {
+    String namespace = request.getContextNamespaceOrDefault();
     ContractEntry.Key key = ContractEntry.Key.from(request);
-    ContractEntry entry = contractManager.get(key);
-    ContractMachine contract = contractManager.getInstance(entry);
+    ContractEntry entry = contractManager.get(namespace, key);
+    ContractMachine contract = contractManager.getInstance(namespace, entry);
     List<FunctionMachine> functions = getFunctions(request.getFunctionIds());
     Optional<String> properties = entry.getProperties();
     String contractArgument = Argument.getContractArgument(request.getContractArgument());

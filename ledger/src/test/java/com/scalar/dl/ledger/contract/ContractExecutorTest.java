@@ -26,6 +26,7 @@ import com.scalar.dl.ledger.function.FunctionMachine;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
@@ -91,6 +92,7 @@ public class ContractExecutorTest {
   private void configureBehaviors(int contractArgumentVersion, boolean useFunction) {
     when(request.getEntityId()).thenReturn(ANY_ENTITY_ID);
     when(request.getKeyVersion()).thenReturn(ANY_CERT_VERSION);
+    when(request.getContextNamespaceOrDefault()).thenReturn(Namespaces.DEFAULT);
     if (contractArgumentVersion == 1) {
       when(request.getContractArgument()).thenReturn(ANY_CONTRACT_ARGUMENT);
     } else if (contractArgumentVersion == 2) {
@@ -103,8 +105,8 @@ public class ContractExecutorTest {
       when(request.getFunctionArgument()).thenReturn(Optional.of(ANY_FUNCTION_ARGUMENT));
     }
     ContractEntry entry = mock(ContractEntry.class);
-    when(contractManager.get(any())).thenReturn(entry);
-    when(contractManager.getInstance(entry)).thenReturn(contract);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
+    when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(entry.getProperties()).thenReturn(Optional.empty());
     when(functionManager.getInstance(ANY_FUNCTION_ID)).thenReturn(function);
     when(transactionManager.startWith(request)).thenReturn(transaction);
