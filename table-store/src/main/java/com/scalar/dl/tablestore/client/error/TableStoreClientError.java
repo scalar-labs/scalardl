@@ -35,7 +35,7 @@ public enum TableStoreClientError implements ScalarDlError {
   SYNTAX_ERROR_INVALID_INSERT_STATEMENT(
       StatusCode.INVALID_ARGUMENT,
       "005",
-      "Syntax error. The specified insert statement is invalid.",
+      "Syntax error. The specified INSERT statement is invalid.",
       "",
       "Fix the syntax error in the INSERT statement."),
   SYNTAX_ERROR_INVALID_STATEMENT(
@@ -83,15 +83,15 @@ public enum TableStoreClientError implements ScalarDlError {
   SYNTAX_ERROR_INVALID_JOIN_CONDITION(
       StatusCode.INVALID_ARGUMENT,
       "013",
-      "Syntax error. The specified join condition is invalid. Condition: %s",
+      "Syntax error. The specified JOIN condition is invalid. Condition: %s",
       "",
-      "Fix the syntax error in the join condition."),
+      "Fix the syntax error in the JOIN condition."),
   SYNTAX_ERROR_INVALID_JOIN_TYPE(
       StatusCode.INVALID_ARGUMENT,
       "014",
-      "Syntax error. The specified join type is invalid.",
+      "Syntax error. The specified JOIN type is invalid.",
       "",
-      "Fix the join type to use valid syntax."),
+      "Fix the JOIN type to use valid syntax."),
   SYNTAX_ERROR_INVALID_PROJECTION(
       StatusCode.INVALID_ARGUMENT,
       "015",
@@ -101,13 +101,13 @@ public enum TableStoreClientError implements ScalarDlError {
   SYNTAX_ERROR_INVALID_LIMIT_CLAUSE(
       StatusCode.INVALID_ARGUMENT,
       "016",
-      "Syntax error. The specified limit clause is invalid.",
+      "Syntax error. The specified LIMIT clause is invalid.",
       "",
       "Fix the syntax error in the LIMIT clause."),
   SYNTAX_ERROR_INVALID_SELECT_STATEMENT(
       StatusCode.INVALID_ARGUMENT,
       "017",
-      "Syntax error. The specified select statement is invalid.",
+      "Syntax error. The specified SELECT statement is invalid.",
       "",
       "Fix the syntax error in the SELECT statement."),
   SYNTAX_ERROR_WITH_NOT_SUPPORTED(
@@ -167,7 +167,7 @@ public enum TableStoreClientError implements ScalarDlError {
   LIMIT_CLAUSE_NOT_SUPPORTED(
       StatusCode.INVALID_ARGUMENT,
       "027",
-      "The limit clause is not supported except in the history query.",
+      "The LIMIT clause is not supported except in the history query.",
       "",
       "Remove the LIMIT clause from your query or use it only in history queries."),
   TABLE_ALIAS_NOT_SUPPORTED(

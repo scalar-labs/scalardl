@@ -11,15 +11,15 @@ public enum HashStoreClientError implements ScalarDlError {
   PUT_MUST_HAVE_NAMESPACE_AND_TABLE(
       StatusCode.INVALID_ARGUMENT,
       "001",
-      "The put operation for the mutable database must have a namespace and table.",
+      "The PUT operation for the mutable database must have a namespace and table.",
       "",
-      "Provide both a namespace and table name for the put operation."),
+      "Provide both a namespace and table name for the PUT operation."),
   UNSUPPORTED_DATA_TYPE_FOR_MUTABLE_PUT(
       StatusCode.INVALID_ARGUMENT,
       "002",
-      "An unsupported data type is specified in the put operation. Data type: %s",
+      "An unsupported data type is specified in the PUT operation. Data type: %s",
       "",
-      "Use a supported data type for the put operation. Check the documentation for valid data types."),
+      "Use a supported data type for the PUT operation. Check the documentation for valid data types."),
   ;
 
   private static final String COMPONENT_NAME = "DL-HASH-STORE";
