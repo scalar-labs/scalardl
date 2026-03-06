@@ -72,7 +72,7 @@ public enum CommonError implements ScalarDlError {
       "002",
       "Loading the certificate failed. Details: %s",
       "",
-      "Verify that the certificate file exists at the specified path, is readable, and has the correct format."),
+      "If using a certificate file, verify that it exists at the specified path, is readable, and has the correct format. If using a PEM-formatted string, verify that the certificate has the correct format."),
   CREATING_CIPHER_KEY_FAILED(
       StatusCode.UNLOADABLE_KEY,
       "003",
@@ -254,19 +254,19 @@ public enum CommonError implements ScalarDlError {
   GRPC_DEADLINE_DURATION_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "013",
-      "The grpc deadline duration must be greater than or equal to zero.",
+      "The gRPC deadline duration must be greater than or equal to zero.",
       "",
       "Set the gRPC deadline duration to a value greater than or equal to zero in your configuration."),
   GRPC_MAX_INBOUND_MESSAGE_SIZE_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "014",
-      "The grpc max inbound message size must be greater than or equal to zero.",
+      "The gRPC max inbound message size must be greater than or equal to zero.",
       "",
       "Set the gRPC max inbound message size to a value greater than or equal to zero in your configuration."),
   GRPC_MAX_INBOUND_METADATA_SIZE_MUST_BE_GREATER_THAN_OR_EQUAL_TO_ZERO(
       StatusCode.INVALID_ARGUMENT,
       "015",
-      "The grpc max inbound metadata size must be greater than or equal to zero.",
+      "The gRPC max inbound metadata size must be greater than or equal to zero.",
       "",
       "Set the gRPC max inbound metadata size to a value greater than or equal to zero in your configuration."),
   INVALID_AUTHENTICATION_METHOD(
