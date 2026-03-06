@@ -43,7 +43,7 @@ public class ContractExecutor {
     ContractEntry.Key key = ContractEntry.Key.from(request);
     ContractEntry entry = contractManager.get(namespace, key);
     ContractMachine contract = contractManager.getInstance(namespace, entry);
-    List<FunctionMachine> functions = getFunctions(request.getFunctionIds());
+    List<FunctionMachine> functions = getFunctions(namespace, request.getFunctionIds());
     Optional<String> properties = entry.getProperties();
     String contractArgument = Argument.getContractArgument(request.getContractArgument());
 
@@ -93,11 +93,13 @@ public class ContractExecutor {
     return transactionManager.abort(nonce);
   }
 
-  private List<FunctionMachine> getFunctions(List<String> functionIds) {
+  private List<FunctionMachine> getFunctions(String namespace, List<String> functionIds) {
     if (!config.isFunctionEnabled()) {
       return Collections.emptyList();
     }
 
-    return functionIds.stream().map(functionManager::getInstance).collect(Collectors.toList());
+    return functionIds.stream()
+        .map(id -> functionManager.getInstance(namespace, id))
+        .collect(Collectors.toList());
   }
 }

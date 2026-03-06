@@ -1123,7 +1123,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunction());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1165,7 +1165,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunction());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1206,7 +1206,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJsonp());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1248,7 +1248,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJsonp());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1289,7 +1289,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJackson());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1330,7 +1330,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJackson());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1370,7 +1370,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithString());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1616,7 +1616,7 @@ public class LedgerServiceIntegrationTest {
     contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
     when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new FunctionUsingContext());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doReturn(Collections.emptyList()).when(ledger).commit();

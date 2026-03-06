@@ -20,7 +20,9 @@ import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
+import com.scalar.dl.ledger.function.FunctionEntry;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.AbstractRequest;
 import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
@@ -32,6 +34,7 @@ import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
+import com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -157,7 +160,7 @@ public class LedgerServiceTest {
     service.register(functionRegistrationRequest);
 
     // Assert
-    verify(functionManager).register(any());
+    verify(functionManager).register(anyString(), any(FunctionEntry.class));
   }
 
   @Test
@@ -380,5 +383,159 @@ public class LedgerServiceTest {
 
     // Assert
     verify(base).drop(request);
+  }
+
+  @Test
+  public void
+      register_SignedFunctionRegistrationRequestGivenButNotEnabled_ShouldThrowLedgerException() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            "test_namespace",
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> service.register(request)).isInstanceOf(LedgerException.class);
+
+    // Assert
+    verify(functionManager, never()).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void
+      register_SignedFunctionRegistrationRequestWithInvalidSignature_ShouldThrowSignatureException() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            "test_namespace",
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(true);
+    when(clientKeyValidator.getValidator("test_namespace", SOME_ENTITY_ID, SOME_KEY_VERSION))
+        .thenReturn(signatureValidator);
+    when(signatureValidator.validate(any(byte[].class), any(byte[].class))).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
+
+    // Assert
+    verify(functionManager, never()).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void
+      register_SignedFunctionRegistrationRequestWithExistingFunctionButOverwriteDisabled_ShouldThrowLedgerException() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            "test_namespace",
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(true);
+    when(config.isNonPrivilegedPortFunctionOverwriteEnabled()).thenReturn(false);
+    when(clientKeyValidator.getValidator("test_namespace", SOME_ENTITY_ID, SOME_KEY_VERSION))
+        .thenReturn(signatureValidator);
+    when(signatureValidator.validate(any(byte[].class), any(byte[].class))).thenReturn(true);
+    when(functionManager.exists("test_namespace", SOME_FUNCTION_ID)).thenReturn(true);
+
+    // Act Assert
+    assertThatThrownBy(() -> service.register(request)).isInstanceOf(LedgerException.class);
+
+    // Assert
+    verify(functionManager, never()).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void
+      register_SignedFunctionRegistrationRequestWithExistingFunctionAndOverwriteEnabled_ShouldRegister() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            "test_namespace",
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(true);
+    when(config.isNonPrivilegedPortFunctionOverwriteEnabled()).thenReturn(true);
+    when(clientKeyValidator.getValidator("test_namespace", SOME_ENTITY_ID, SOME_KEY_VERSION))
+        .thenReturn(signatureValidator);
+    when(signatureValidator.validate(any(byte[].class), any(byte[].class))).thenReturn(true);
+    when(functionManager.exists("test_namespace", SOME_FUNCTION_ID)).thenReturn(true);
+
+    // Act
+    service.register(request);
+
+    // Assert
+    verify(functionManager).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void register_ValidSignedFunctionRegistrationRequest_ShouldRegisterFunction() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            "test_namespace",
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(true);
+    when(config.isNonPrivilegedPortFunctionOverwriteEnabled()).thenReturn(false);
+    when(clientKeyValidator.getValidator("test_namespace", SOME_ENTITY_ID, SOME_KEY_VERSION))
+        .thenReturn(signatureValidator);
+    when(signatureValidator.validate(any(byte[].class), any(byte[].class))).thenReturn(true);
+    when(functionManager.exists("test_namespace", SOME_FUNCTION_ID)).thenReturn(false);
+
+    // Act
+    service.register(request);
+
+    // Assert
+    verify(functionManager).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void
+      register_SignedFunctionRegistrationRequestWithNullContextNamespace_ShouldUseDefaultNamespace() {
+    // Arrange
+    SignedFunctionRegistrationRequest request =
+        new SignedFunctionRegistrationRequest(
+            SOME_FUNCTION_ID,
+            SOME_FUNCTION_NAME,
+            SOME_FUNCTION_BYTE_CODE,
+            null,
+            SOME_ENTITY_ID,
+            SOME_KEY_VERSION,
+            SOME_SIGNATURE);
+    when(config.isNonPrivilegedPortFunctionRegistrationEnabled()).thenReturn(true);
+    when(config.isNonPrivilegedPortFunctionOverwriteEnabled()).thenReturn(false);
+    when(clientKeyValidator.getValidator(Namespaces.DEFAULT, SOME_ENTITY_ID, SOME_KEY_VERSION))
+        .thenReturn(signatureValidator);
+    when(signatureValidator.validate(any(byte[].class), any(byte[].class))).thenReturn(true);
+    when(functionManager.exists(Namespaces.DEFAULT, SOME_FUNCTION_ID)).thenReturn(false);
+
+    // Act
+    service.register(request);
+
+    // Assert
+    verify(functionManager).register(anyString(), any(FunctionEntry.class));
   }
 }
