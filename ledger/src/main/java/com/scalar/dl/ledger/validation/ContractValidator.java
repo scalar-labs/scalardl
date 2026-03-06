@@ -11,7 +11,6 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nonnull;
 
 /**
@@ -27,16 +26,23 @@ public class ContractValidator implements LedgerValidator {
 
   @Override
   public StatusCode validate(
-      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
+      LedgerTracerBase<?> tracer,
+      ContractMachine contract,
+      @Nonnull String namespace,
+      InternalAsset record) {
     ClientIdentityKey clientIdentityKey = contract.getClientIdentityKey();
     SignatureValidator validator =
-        clientKeyValidator.getValidator( // TODO: use context namespace
-            Namespaces.DEFAULT, clientIdentityKey.getEntityId(), clientIdentityKey.getKeyVersion());
+        clientKeyValidator.getValidator(
+            tracer.getContext().getNamespace(),
+            clientIdentityKey.getEntityId(),
+            clientIdentityKey.getKeyVersion());
     byte[] serialized =
         ContractExecutionRequest.serialize(
             ContractEntry.Key.deserialize(record.contractId()).getId(),
             record.argument(),
-            null, // TODO: use context namespace
+            tracer.getContext().getNamespace().equals(Namespaces.DEFAULT)
+                ? null
+                : tracer.getContext().getNamespace(),
             clientIdentityKey.getEntityId(),
             clientIdentityKey.getKeyVersion());
     if (validator.validate(serialized, record.signature())) {

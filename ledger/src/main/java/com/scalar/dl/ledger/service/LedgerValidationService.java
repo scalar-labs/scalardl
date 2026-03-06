@@ -10,6 +10,7 @@ import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
+import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.ValidationException;
@@ -75,7 +76,7 @@ public class LedgerValidationService extends ValidationService {
       throw new LedgerException(LedgerError.INVALID_AUDITOR_CONFIGURATION);
     } else {
       return validate(
-          Context.withNamespace(NamespaceManager.DEFAULT_NAMESPACE),
+          Context.withNamespace(request.getContextNamespaceOrDefault()),
           request.getNamespace(),
           request.getAssetId(),
           request.getStartAge(),
@@ -103,6 +104,12 @@ public class LedgerValidationService extends ValidationService {
       Context context, @Nullable String namespace, String assetId, int startAge, int endAge) {
     if (namespace == null) {
       namespace = context.getNamespace();
+    }
+
+    if (!context.getNamespace().equals(NamespaceManager.DEFAULT_NAMESPACE)
+        && !context.getNamespace().equals(namespace)) {
+      throw new LedgerException(
+          CommonError.ACCESSING_NAMESPACE_NOT_ALLOWED, namespace, context.getNamespace());
     }
 
     List<LedgerValidator> validators = givenValidators;
