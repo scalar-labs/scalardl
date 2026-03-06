@@ -91,7 +91,7 @@ public enum TableStoreClientError implements ScalarDlError {
       "014",
       "Syntax error. The specified JOIN type is invalid.",
       "",
-      "Fix the JOIN type to use valid syntax."),
+      "Fix the syntax error in the JOIN type."),
   SYNTAX_ERROR_INVALID_PROJECTION(
       StatusCode.INVALID_ARGUMENT,
       "015",
