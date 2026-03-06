@@ -173,7 +173,7 @@ public enum TableStoreClientError implements ScalarDlError {
   TABLE_ALIAS_NOT_SUPPORTED(
       StatusCode.INVALID_ARGUMENT,
       "028",
-      "The table alias not supported in the information schema and history query.",
+      "The table alias is not supported in the information schema and history query.",
       "",
       "Remove the table alias from your information schema or history query."),
   PROJECTION_NOT_SUPPORTED_FOR_INFORMATION_SCHEMA_QUERY(
