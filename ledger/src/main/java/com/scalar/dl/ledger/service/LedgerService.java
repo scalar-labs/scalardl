@@ -72,7 +72,9 @@ public class LedgerService {
 
   public void register(SignedFunctionRegistrationRequest request) {
     if (!config.isNonPrivilegedPortFunctionRegistrationEnabled()) {
-      throw new LedgerException(LedgerError.FUNCTION_REGISTRATION_NOT_ALLOWED);
+      throw new LedgerException(
+          LedgerError.FUNCTION_REGISTRATION_NOT_ALLOWED,
+          LedgerConfig.NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED);
     }
 
     String namespace =
@@ -83,7 +85,9 @@ public class LedgerService {
 
     if (!config.isNonPrivilegedPortFunctionOverwriteEnabled()
         && functionManager.exists(namespace, request.getFunctionId())) {
-      throw new LedgerException(LedgerError.FUNCTION_OVERWRITE_NOT_ALLOWED);
+      throw new LedgerException(
+          LedgerError.FUNCTION_OVERWRITE_NOT_ALLOWED,
+          LedgerConfig.NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED);
     }
 
     functionManager.register(namespace, FunctionEntry.from(request));
