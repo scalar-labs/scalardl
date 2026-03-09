@@ -388,7 +388,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   }
 
   @Test
-  void executeContract_PaymentWithCrossNamespace_ShouldPaidCorrectly() {
+  void executeContract_PaymentWithCrossNamespace_ShouldBePaidCorrectly() {
     // Arrange
     clientServiceA.executeContract(
         NAMESPACE_AWARE_CREATE_ID, createArgument(NAMESPACE_1, SOME_ASSET_ID_1, SOME_AMOUNT_1));

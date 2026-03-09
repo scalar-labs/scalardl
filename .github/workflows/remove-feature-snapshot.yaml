@@ -78,7 +78,7 @@ jobs:
             VERSIONS_JSON=$(gh api \
               "/orgs/${ORG}/packages/container/${IMAGE}/versions" 2>/dev/null || echo "[]")
 
-            VERSION_ID=$(echo "$VERSIONS_JSON" | jq -r ".[] | select(.metadata.container.tags[] == \"${VERSION}\") | .id")
+            VERSION_ID=$(echo "$VERSIONS_JSON" | jq -r ".[] | select(.metadata.container.tags[]? == \"${VERSION}\") | .id")
 
             if [ -n "$VERSION_ID" ]; then
               gh api \
