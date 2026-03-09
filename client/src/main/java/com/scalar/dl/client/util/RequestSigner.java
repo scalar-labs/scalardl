@@ -9,6 +9,7 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
@@ -18,6 +19,21 @@ public class RequestSigner {
   @Inject
   public RequestSigner(SignatureSigner signer) {
     this.signer = signer;
+  }
+
+  public SignedFunctionRegistrationRequest.Builder sign(
+      SignedFunctionRegistrationRequest.Builder builder) {
+    byte[] bytes =
+        com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest.serialize(
+            builder.getFunctionId(),
+            builder.getFunctionBinaryName(),
+            builder.getFunctionByteCode().toByteArray(),
+            builder.getContextNamespace(),
+            builder.getEntityId(),
+            builder.getKeyVersion());
+
+    byte[] signature = signer.sign(bytes);
+    return builder.setSignature(ByteString.copyFrom(signature));
   }
 
   public ContractRegistrationRequest.Builder sign(ContractRegistrationRequest.Builder builder) {

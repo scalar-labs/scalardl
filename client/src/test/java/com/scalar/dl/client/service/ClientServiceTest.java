@@ -43,6 +43,7 @@ import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -473,6 +474,21 @@ public class ClientServiceTest {
 
     // Assert
     verify(client).register(any(FunctionRegistrationRequest.class));
+  }
+
+  @Test
+  public void registerFunction_NonDefaultNamespaceGiven_ShouldRegisterWithSignedRequest() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getContextNamespace()).thenReturn(ANY_NAMESPACE);
+
+    // Act
+    service.registerFunction(ANY_FUNCTION_ID, ANY_FUNCTION_NAME, anyFilePath);
+
+    // Assert
+    verify(digitalSignatureIdentityConfig).getEntityId();
+    verify(digitalSignatureIdentityConfig).getCertVersion();
+    verify(client).register(any(SignedFunctionRegistrationRequest.class));
   }
 
   @Test

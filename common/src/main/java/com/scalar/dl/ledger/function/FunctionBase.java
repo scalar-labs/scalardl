@@ -9,12 +9,18 @@ import javax.annotation.Nullable;
 
 abstract class FunctionBase<T, G, S, P, D, R> {
   private FunctionManager manager;
+  private String namespace;
   protected T contractProperties;
   protected T contractContext;
   private boolean isRoot;
 
   void initialize(FunctionManager manager) {
     this.manager = checkNotNull(manager);
+  }
+
+  void initialize(FunctionManager manager, String namespace) {
+    this.manager = checkNotNull(manager);
+    this.namespace = checkNotNull(namespace);
   }
 
   abstract void setContractProperties(@Nullable String contractProperties);
@@ -79,7 +85,8 @@ abstract class FunctionBase<T, G, S, P, D, R> {
     checkArgument(manager != null, "please call initialize() before this.");
 
     FunctionBase<T, G, S, P, D, R> function =
-        (FunctionBase<T, G, S, P, D, R>) manager.getInstance(functionId).getFunctionBase();
+        (FunctionBase<T, G, S, P, D, R>)
+            manager.getInstance(namespace, functionId).getFunctionBase();
     function.setContractContext(contractContext); // context is propagated to all the functions
     return function.invoke(database, functionArgument, contractArgument, contractProperties);
   }

@@ -36,6 +36,7 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -289,14 +290,26 @@ public class ClientService implements AutoCloseable {
     checkArgument(
         functionBytes != null, ClientError.SERVICE_FUNCTION_BYTES_CANNOT_BE_NULL.buildMessage());
 
-    FunctionRegistrationRequest request =
-        FunctionRegistrationRequest.newBuilder()
-            .setFunctionId(id)
-            .setFunctionBinaryName(name)
-            .setFunctionByteCode(ByteString.copyFrom(functionBytes))
-            .build();
-
-    handler.registerFunction(request);
+    if (config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      FunctionRegistrationRequest request =
+          FunctionRegistrationRequest.newBuilder()
+              .setFunctionId(id)
+              .setFunctionBinaryName(name)
+              .setFunctionByteCode(ByteString.copyFrom(functionBytes))
+              .build();
+      handler.registerFunction(request);
+    } else {
+      SignedFunctionRegistrationRequest.Builder builder =
+          SignedFunctionRegistrationRequest.newBuilder()
+              .setContextNamespace(config.getContextNamespace())
+              .setEntityId(getEntityId())
+              .setKeyVersion(getKeyVersion())
+              .setFunctionId(id)
+              .setFunctionBinaryName(name)
+              .setFunctionByteCode(ByteString.copyFrom(functionBytes));
+      SignedFunctionRegistrationRequest request = signer.sign(builder).build();
+      handler.registerFunction(request);
+    }
   }
 
   /**

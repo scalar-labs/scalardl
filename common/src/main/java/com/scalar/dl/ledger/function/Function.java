@@ -18,10 +18,16 @@ import javax.json.JsonObject;
 @Deprecated
 public abstract class Function {
   private FunctionManager manager;
+  private String namespace;
   private JsonObject properties;
 
   final void initialize(FunctionManager manager) {
     this.manager = checkNotNull(manager);
+  }
+
+  final void initialize(FunctionManager manager, String namespace) {
+    this.manager = checkNotNull(manager);
+    this.namespace = checkNotNull(namespace);
   }
 
   final void setProperties(@Nullable JsonObject properties) {
@@ -58,9 +64,10 @@ public abstract class Function {
       JsonObject contractArgument,
       Optional<JsonObject> contractProperties) {
     checkArgument(manager != null, "please call initialize() before this.");
+    checkArgument(namespace != null, "please call initialize() with namespace before this.");
 
     DeprecatedFunction function =
-        (DeprecatedFunction) manager.getInstance(functionId).getFunctionBase();
+        (DeprecatedFunction) manager.getInstance(namespace, functionId).getFunctionBase();
     function.invoke(
         database, functionArgument.orElse(null), contractArgument, contractProperties.orElse(null));
   }

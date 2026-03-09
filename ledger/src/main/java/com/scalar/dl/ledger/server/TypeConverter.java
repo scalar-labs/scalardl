@@ -17,6 +17,7 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import com.scalar.dl.rpc.StateRetrievalRequest;
 import java.util.Base64;
 import java.util.List;
@@ -59,6 +60,18 @@ public class TypeConverter {
       FunctionRegistrationRequest req) {
     return new com.scalar.dl.ledger.model.FunctionRegistrationRequest(
         req.getFunctionId(), req.getFunctionBinaryName(), req.getFunctionByteCode().toByteArray());
+  }
+
+  public static com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest convert(
+      SignedFunctionRegistrationRequest req) {
+    return new com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest(
+        req.getFunctionId(),
+        req.getFunctionBinaryName(),
+        req.getFunctionByteCode().toByteArray(),
+        req.getContextNamespace().isEmpty() ? null : req.getContextNamespace(),
+        req.getEntityId(),
+        req.getKeyVersion(),
+        req.getSignature().toByteArray());
   }
 
   public static com.scalar.dl.ledger.model.ContractsListingRequest convert(

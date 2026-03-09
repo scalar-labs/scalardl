@@ -108,7 +108,7 @@ public class ContractExecutorTest {
     when(contractManager.get(anyString(), any())).thenReturn(entry);
     when(contractManager.getInstance(anyString(), any(ContractEntry.class))).thenReturn(contract);
     when(entry.getProperties()).thenReturn(Optional.empty());
-    when(functionManager.getInstance(ANY_FUNCTION_ID)).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doReturn(deprecatedLedger).when(transaction).getLedger(DeserializationType.DEPRECATED);
     doReturn(jsonpBasedAssetLedger).when(transaction).getLedger(DeserializationType.JSONP_JSON);

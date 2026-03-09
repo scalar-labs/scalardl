@@ -25,6 +25,12 @@ class DeprecatedFunction extends FunctionBase<JsonObject, Get, Scan, Put, Delete
   }
 
   @Override
+  final void initialize(FunctionManager manager, String namespace) {
+    super.initialize(manager, namespace);
+    function.initialize(manager, namespace);
+  }
+
+  @Override
   final void setContractProperties(String contractProperties) {
     function.setProperties(
         contractProperties == null ? null : serde.deserialize(contractProperties));
