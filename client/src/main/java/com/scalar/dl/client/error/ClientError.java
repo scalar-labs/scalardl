@@ -161,7 +161,7 @@ public enum ClientError implements ScalarDlError {
       "024",
       "The specified keys are incorrect for the asset type.",
       "",
-      ""),
+      "Provide valid keys for the asset type."),
 
   //
   // Errors for RUNTIME_ERROR(502)
