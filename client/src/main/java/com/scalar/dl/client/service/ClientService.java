@@ -2,10 +2,10 @@ package com.scalar.dl.client.service;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.ASSET_ID_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.END_AGE_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.NAMESPACE_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.START_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.ASSET_ID_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.END_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.NAMESPACE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.START_AGE_KEY;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.client.util.RequestSigner;
-import com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger;
+import com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
