@@ -1,9 +1,9 @@
 package com.scalar.dl.client.service;
 
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.ASSET_ID_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.END_AGE_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.NAMESPACE_KEY;
-import static com.scalar.dl.client.validation.contract.v1_0_0.ValidateLedger.START_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.ASSET_ID_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.END_AGE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.NAMESPACE_KEY;
+import static com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger.START_AGE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;

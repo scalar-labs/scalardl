@@ -173,14 +173,6 @@ jobs:
     name: Integration testing with the Consensus Commit transaction manager on Blob Storage
     runs-on: ubuntu-latest
 
-    services:
-      blob-storage:
-        image: mcr.microsoft.com/azure-storage/azurite
-        env:
-          AZURITE_ACCOUNTS: "test:test"
-        ports:
-          - 10000:10000
-
     steps:
       - name: Checkout the target repository
         uses: actions/checkout@v6
@@ -195,6 +187,15 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
+
+      # Start Azurite with `--skipApiVersionCheck` to avoid API version check issues
+      - name: Start Azurite
+        run: |
+          docker run -d --name azurite \
+            -e AZURITE_ACCOUNTS=test:test \
+            -p 10000:10000 \
+            mcr.microsoft.com/azure-storage/azurite \
+            azurite --blobHost 0.0.0.0 --location /data --skipApiVersionCheck
 
       - name: Create Blob Storage container
         run: |

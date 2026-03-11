@@ -1,7 +1,25 @@
-plugins {
-    id("com.diffplug.spotless") version "8.1.0"
-    id("org.jreleaser") version "1.21.0"
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.3.0") {
+            // Jreleaser and Spotless plugins have a conflict on this dependency.
+            // Jreleaser requires an older version but Spotless requires a newer version for some
+            // feature we are not using.
+            // See https://github.com/jreleaser/jreleaser/issues/1989.
+            //
+            // We can reconsider this exclusion if Jreleaser updates this dependency in the future.
+            exclude group: 'org.eclipse.jgit', module: 'org.eclipse.jgit'
+        }
+    }
 }
+
+plugins {
+    id "org.jreleaser" version "1.23.0"
+}
+
+apply plugin: 'com.diffplug.spotless'
 
 ext {
     projectGroup = 'com.scalar-labs'
@@ -35,7 +53,7 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.25.3'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.21.0'
+        jacksonVersion = '2.21.1'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.17.1'
         scalarAdminVersion = '2.2.1'
@@ -44,8 +62,8 @@ subprojects {
         prometheusVersion = '0.16.0'
         jettyVersion = '9.4.58.v20250814'
         assertjVersion = '3.27.7'
-        junitVersion = '5.14.2'
-        junitPlatformVersion = '1.14.2'
+        junitVersion = '5.14.3'
+        junitPlatformVersion = '1.14.3'
         mockitoVersion = '4.11.0'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
@@ -56,7 +74,7 @@ subprojects {
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.33.0'
         bouncyCastleCryptoVersion = '1.70'
-        partiqlVersion = '1.3.3'
+        partiqlVersion = '1.3.4'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
