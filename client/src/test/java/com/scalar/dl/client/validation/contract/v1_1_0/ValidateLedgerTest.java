@@ -1,4 +1,4 @@
-package com.scalar.dl.client.validation.contract.v1_0_0;
+package com.scalar.dl.client.validation.contract.v1_1_0;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
