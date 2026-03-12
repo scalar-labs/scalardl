@@ -86,6 +86,10 @@ public class LedgerTracer implements Ledger {
     return result;
   }
 
+  public Context getContext() {
+    return context;
+  }
+
   @Override
   public Optional<Asset> get(String assetId) {
     return get(context.getNamespace(), assetId);

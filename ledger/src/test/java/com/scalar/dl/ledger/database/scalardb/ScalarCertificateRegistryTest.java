@@ -29,7 +29,6 @@ import com.scalar.dl.ledger.exception.MissingCertificateException;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -38,12 +37,17 @@ public class ScalarCertificateRegistryTest {
   private static final int ANY_VERSION = 1;
   private static final String ANY_PEM = "pem";
   private static final long ANY_TIME = 1L;
+  private static final String ANY_NAMESPACE = "test_namespace";
+  private static final String RESOLVED_NAMESPACE = "resolved_namespace";
   @Mock private DistributedStorage storage;
-  @InjectMocks private ScalarCertificateRegistry registry;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
+  private ScalarCertificateRegistry registry;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    when(namespaceResolver.resolve(ANY_NAMESPACE)).thenReturn(RESOLVED_NAMESPACE);
+    registry = new ScalarCertificateRegistry(storage, namespaceResolver);
   }
 
   private Optional<Result> configureResult(CertificateEntry entry) {
@@ -70,7 +74,7 @@ public class ScalarCertificateRegistryTest {
     doNothing().when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatCode(() -> registry.bind(entry)).doesNotThrowAnyException();
+    assertThatCode(() -> registry.bind(ANY_NAMESPACE, entry)).doesNotThrowAnyException();
 
     // Assert
     Put expected =
@@ -80,6 +84,7 @@ public class ScalarCertificateRegistryTest {
             .withValue(CertificateEntry.PEM, ANY_PEM)
             .withValue(CertificateEntry.REGISTERED_AT, ANY_TIME)
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarCertificateRegistry.TABLE);
     verify(storage).put(expected);
   }
@@ -91,7 +96,9 @@ public class ScalarCertificateRegistryTest {
 
     // Act Assert
     assertThatThrownBy(
-            () -> registry.bind(new CertificateEntry(null, ANY_VERSION, ANY_PEM, ANY_TIME)))
+            () ->
+                registry.bind(
+                    ANY_NAMESPACE, new CertificateEntry(null, ANY_VERSION, ANY_PEM, ANY_TIME)))
         .isInstanceOf(NullPointerException.class);
 
     // Assert
@@ -107,7 +114,7 @@ public class ScalarCertificateRegistryTest {
     doThrow(toThrow).when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.bind(entry))
+    assertThatThrownBy(() -> registry.bind(ANY_NAMESPACE, entry))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -119,7 +126,7 @@ public class ScalarCertificateRegistryTest {
     doNothing().when(storage).delete(any(Delete.class));
 
     // Act Assert
-    assertThatCode(() -> registry.unbind(key)).doesNotThrowAnyException();
+    assertThatCode(() -> registry.unbind(ANY_NAMESPACE, key)).doesNotThrowAnyException();
 
     // Assert
     Delete expected =
@@ -127,6 +134,7 @@ public class ScalarCertificateRegistryTest {
                 new Key(CertificateEntry.ENTITY_ID, ANY_ENTITY_ID),
                 new Key(CertificateEntry.VERSION, ANY_VERSION))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarCertificateRegistry.TABLE);
     verify(storage).delete(expected);
   }
@@ -137,7 +145,8 @@ public class ScalarCertificateRegistryTest {
     // Arrange
 
     // Act Assert
-    assertThatThrownBy(() -> registry.unbind(new CertificateEntry.Key(null, ANY_VERSION)))
+    assertThatThrownBy(
+            () -> registry.unbind(ANY_NAMESPACE, new CertificateEntry.Key(null, ANY_VERSION)))
         .isInstanceOf(NullPointerException.class);
 
     // Assert
@@ -153,7 +162,7 @@ public class ScalarCertificateRegistryTest {
     doThrow(toThrow).when(storage).delete(any(Delete.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.unbind(key))
+    assertThatThrownBy(() -> registry.unbind(ANY_NAMESPACE, key))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -166,7 +175,7 @@ public class ScalarCertificateRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(result);
 
     // Act Assert
-    CertificateEntry actual = registry.lookup(entry.getKey());
+    CertificateEntry actual = registry.lookup(ANY_NAMESPACE, entry.getKey());
 
     // Assert
     assertThat(actual).isEqualTo(entry);
@@ -175,6 +184,7 @@ public class ScalarCertificateRegistryTest {
                 new Key(CertificateEntry.ENTITY_ID, ANY_ENTITY_ID),
                 new Key(CertificateEntry.VERSION, ANY_VERSION))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarCertificateRegistry.TABLE);
     verify(storage).get(expected);
   }
@@ -185,7 +195,8 @@ public class ScalarCertificateRegistryTest {
     // Arrange
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(new CertificateEntry.Key(null, ANY_VERSION)))
+    assertThatThrownBy(
+            () -> registry.lookup(ANY_NAMESPACE, new CertificateEntry.Key(null, ANY_VERSION)))
         .isInstanceOf(NullPointerException.class);
 
     // Assert
@@ -201,7 +212,8 @@ public class ScalarCertificateRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(Optional.empty());
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(key)).isInstanceOf(MissingCertificateException.class);
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, key))
+        .isInstanceOf(MissingCertificateException.class);
 
     // Assert
     verify(storage).get(any(Get.class));
@@ -216,7 +228,7 @@ public class ScalarCertificateRegistryTest {
     when(storage.get(any(Get.class))).thenThrow(toThrow);
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(key))
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, key))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
 
@@ -233,7 +245,8 @@ public class ScalarCertificateRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(result);
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(key)).isInstanceOf(MissingCertificateException.class);
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, key))
+        .isInstanceOf(MissingCertificateException.class);
 
     // Assert
     verify(storage).get(any(Get.class));

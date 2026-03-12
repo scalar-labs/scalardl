@@ -4,7 +4,6 @@ import static com.scalar.dl.ledger.server.TypeConverter.convert;
 
 import com.google.inject.Inject;
 import com.google.protobuf.Empty;
-import com.scalar.dl.ledger.crypto.SecretEntry;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
 import com.scalar.dl.ledger.service.LedgerService;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
@@ -48,8 +47,8 @@ public class LedgerPrivilegedService extends LedgerPrivilegedGrpc.LedgerPrivileg
   @Override
   public void registerSecret(
       SecretRegistrationRequest request, StreamObserver<Empty> responseObserver) {
-    ThrowableConsumer<SecretEntry> f = ledger::register;
-    commonService.serve(f, convert(request), responseObserver);
+    ThrowableConsumer<SecretRegistrationRequest> f = r -> ledger.register(convert(r));
+    commonService.serve(f, request, responseObserver);
   }
 
   @Override

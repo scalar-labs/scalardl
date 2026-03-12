@@ -22,6 +22,7 @@ import com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.ledger.util.JacksonSerDe;
@@ -35,6 +36,7 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -102,16 +104,22 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void bootstrap() {
-    try {
-      if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
-        registerCertificate();
-      } else {
-        registerSecret();
-      }
-    } catch (ClientException e) {
-      if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
-          && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
-        throw e;
+    checkClientMode(ClientMode.CLIENT);
+
+    // Skip identity registration for the non-default context namespace because the privileged port
+    // is assumed to be not accessible from clients for the isolated namespace.
+    if (config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      try {
+        if (config.getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
+          registerCertificate();
+        } else {
+          registerSecret();
+        }
+      } catch (ClientException e) {
+        if (!e.getStatusCode().equals(StatusCode.CERTIFICATE_ALREADY_REGISTERED)
+            && !e.getStatusCode().equals(StatusCode.SECRET_ALREADY_REGISTERED)) {
+          throw e;
+        }
       }
     }
 
@@ -143,18 +151,42 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void registerCertificate() {
-    checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getDigitalSignatureIdentityConfig() != null,
         ClientError.CONFIG_DIGITAL_SIGNATURE_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
-    CertificateRegistrationRequest request =
-        CertificateRegistrationRequest.newBuilder()
-            .setEntityId(config.getDigitalSignatureIdentityConfig().getEntityId())
-            .setKeyVersion(config.getDigitalSignatureIdentityConfig().getCertVersion())
-            .setCertPem(config.getDigitalSignatureIdentityConfig().getCert())
-            .build();
+    registerCertificate(
+        config.getContextNamespace(),
+        config.getDigitalSignatureIdentityConfig().getEntityId(),
+        config.getDigitalSignatureIdentityConfig().getCertVersion(),
+        config.getDigitalSignatureIdentityConfig().getCert());
+  }
 
-    handler.registerCertificate(request);
+  /**
+   * Registers a certificate to the specified namespace for digital signature authentication.
+   *
+   * @param namespace a namespace
+   * @param entityId an entity ID
+   * @param version a version of the certificate
+   * @param pem a certificate in PEM format
+   * @throws ClientException if a request fails for some reason
+   */
+  public void registerCertificate(
+      @Nullable String namespace, String entityId, int version, String pem) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(entityId != null, ClientError.SERVICE_ENTITY_ID_CANNOT_BE_NULL.buildMessage());
+    checkArgument(pem != null, ClientError.SERVICE_CERT_PEM_CANNOT_BE_NULL.buildMessage());
+
+    CertificateRegistrationRequest.Builder builder =
+        CertificateRegistrationRequest.newBuilder()
+            .setEntityId(entityId)
+            .setKeyVersion(version)
+            .setCertPem(pem);
+
+    if (namespace != null && !namespace.equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(namespace);
+    }
+
+    handler.registerCertificate(builder.build());
   }
 
   /**
@@ -184,18 +216,41 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void registerSecret() {
-    checkClientMode(ClientMode.CLIENT);
     checkState(
         config.getHmacIdentityConfig() != null,
         ClientError.CONFIG_HMAC_AUTHENTICATION_NOT_CONFIGURED.buildMessage());
-    SecretRegistrationRequest request =
-        SecretRegistrationRequest.newBuilder()
-            .setEntityId(config.getHmacIdentityConfig().getEntityId())
-            .setKeyVersion(config.getHmacIdentityConfig().getSecretKeyVersion())
-            .setSecretKey(config.getHmacIdentityConfig().getSecretKey())
-            .build();
+    registerSecret(
+        config.getContextNamespace(),
+        config.getHmacIdentityConfig().getEntityId(),
+        config.getHmacIdentityConfig().getSecretKeyVersion(),
+        config.getHmacIdentityConfig().getSecretKey());
+  }
 
-    handler.registerSecret(request);
+  /**
+   * Registers a secret key to the specified namespace for HMAC authentication.
+   *
+   * @param namespace a namespace
+   * @param entityId an entity ID
+   * @param version a version of the secret key
+   * @param key a secret key
+   * @throws ClientException if a request fails for some reason
+   */
+  public void registerSecret(@Nullable String namespace, String entityId, int version, String key) {
+    checkClientMode(ClientMode.CLIENT);
+    checkArgument(entityId != null, ClientError.SERVICE_ENTITY_ID_CANNOT_BE_NULL.buildMessage());
+    checkArgument(key != null, ClientError.SERVICE_SECRET_KEY_CANNOT_BE_NULL.buildMessage());
+
+    SecretRegistrationRequest.Builder builder =
+        SecretRegistrationRequest.newBuilder()
+            .setEntityId(entityId)
+            .setKeyVersion(version)
+            .setSecretKey(key);
+
+    if (namespace != null && !namespace.equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(namespace);
+    }
+
+    handler.registerSecret(builder.build());
   }
 
   /**
@@ -235,14 +290,26 @@ public class ClientService implements AutoCloseable {
     checkArgument(
         functionBytes != null, ClientError.SERVICE_FUNCTION_BYTES_CANNOT_BE_NULL.buildMessage());
 
-    FunctionRegistrationRequest request =
-        FunctionRegistrationRequest.newBuilder()
-            .setFunctionId(id)
-            .setFunctionBinaryName(name)
-            .setFunctionByteCode(ByteString.copyFrom(functionBytes))
-            .build();
-
-    handler.registerFunction(request);
+    if (config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      FunctionRegistrationRequest request =
+          FunctionRegistrationRequest.newBuilder()
+              .setFunctionId(id)
+              .setFunctionBinaryName(name)
+              .setFunctionByteCode(ByteString.copyFrom(functionBytes))
+              .build();
+      handler.registerFunction(request);
+    } else {
+      SignedFunctionRegistrationRequest.Builder builder =
+          SignedFunctionRegistrationRequest.newBuilder()
+              .setContextNamespace(config.getContextNamespace())
+              .setEntityId(getEntityId())
+              .setKeyVersion(getKeyVersion())
+              .setFunctionId(id)
+              .setFunctionBinaryName(name)
+              .setFunctionByteCode(ByteString.copyFrom(functionBytes));
+      SignedFunctionRegistrationRequest request = signer.sign(builder).build();
+      handler.registerFunction(request);
+    }
   }
 
   /**
@@ -461,6 +528,10 @@ public class ClientService implements AutoCloseable {
             .setContractId(id)
             .setContractBinaryName(name)
             .setContractByteCode(ByteString.copyFrom(contractBytes));
+
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (properties != null) {
       builder.setContractProperties(properties);
     }
@@ -502,6 +573,10 @@ public class ClientService implements AutoCloseable {
         ContractsListingRequest.newBuilder()
             .setEntityId(getEntityId())
             .setKeyVersion(getKeyVersion());
+
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (id != null) {
       builder.setContractId(id);
     }
@@ -622,7 +697,7 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce).toString(),
+        Argument.format(contractArgument, nonce, config.getContextNamespace(), functionIds),
         functionIds,
         functionArgument.map(Object::toString).orElse(null));
   }
@@ -677,7 +752,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument != null ? functionArgument.toString() : null);
   }
@@ -768,7 +847,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument != null ? jacksonSerDe.serialize(functionArgument) : null);
   }
@@ -809,7 +892,8 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.emptyList()),
+        Argument.format(
+            contractArgument, nonce, config.getContextNamespace(), Collections.emptyList()),
         Collections.emptyList(),
         null);
   }
@@ -864,7 +948,11 @@ public class ClientService implements AutoCloseable {
     return executeContractInternal(
         nonce,
         contractId,
-        Argument.format(contractArgument, nonce, Collections.singletonList(functionId)),
+        Argument.format(
+            contractArgument,
+            nonce,
+            config.getContextNamespace(),
+            Collections.singletonList(functionId)),
         functionId != null ? Collections.singletonList(functionId) : Collections.emptyList(),
         functionArgument);
   }
@@ -890,6 +978,9 @@ public class ClientService implements AutoCloseable {
             .setContractId(contractId)
             .setContractArgument(contractArgument);
 
+    if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+      builder.setContextNamespace(config.getContextNamespace());
+    }
     if (!functionIds.isEmpty()) {
       builder.setUseFunctionIds(true).addAllFunctionIds(functionIds);
     }
@@ -985,6 +1076,10 @@ public class ClientService implements AutoCloseable {
               .setAssetId(assetId)
               .setStartAge(startAge)
               .setEndAge(endAge);
+
+      if (!config.getContextNamespace().equals(Namespaces.DEFAULT)) {
+        builder.setContextNamespace(config.getContextNamespace());
+      }
       if (namespace != null) {
         builder.setNamespace(namespace);
       }

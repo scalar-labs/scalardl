@@ -179,15 +179,16 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce,
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signers.get(entityId).sign(serialized),
         null);
   }
@@ -212,15 +213,16 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
 
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce,
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signers.get(entityId).sign(serialized),
         null);
   }
@@ -247,15 +249,16 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
 
     String argument = Argument.format(contractArgument, nonce, Collections.emptyList());
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, argument, entityId, KEY_VERSION);
+        ContractExecutionRequest.serialize(contractId, argument, null, entityId, KEY_VERSION);
     return new ContractExecutionRequest(
         nonce,
-        entityId,
-        KEY_VERSION,
         contractId,
         argument,
         Collections.emptyList(),
         null,
+        null,
+        entityId,
+        KEY_VERSION,
         signers.get(entityId).sign(serialized),
         null);
   }
@@ -269,12 +272,13 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
       String namespace, String assetId, int startAge, int endAge, String entityId) {
     byte[] serialized =
         LedgerValidationRequest.serialize(
-            namespace, assetId, startAge, endAge, entityId, KEY_VERSION);
+            namespace, assetId, startAge, endAge, null, entityId, KEY_VERSION);
     return new LedgerValidationRequest(
         namespace,
         assetId,
         startAge,
         endAge,
+        null,
         entityId,
         KEY_VERSION,
         signers.get(entityId).sign(serialized));

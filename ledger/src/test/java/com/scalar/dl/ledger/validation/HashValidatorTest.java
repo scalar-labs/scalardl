@@ -11,7 +11,6 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import java.nio.charset.StandardCharsets;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -31,7 +30,7 @@ public class HashValidatorTest {
   private static final String CONTRACT_ARGUMENT = "contract_argument";
   private static final byte[] SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
   private static final byte[] PREV_HASH = "prevHash".getBytes(StandardCharsets.UTF_8);
-  @Mock private Ledger<?> ledger;
+  @Mock private LedgerTracerBase<?> tracer;
   @Mock private ContractMachine contract;
   @InjectMocks private HashValidator validator;
 
@@ -95,7 +94,7 @@ public class HashValidatorTest {
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
     // Act
-    StatusCode result = validator.validate(ledger, contract, NAMESPACE, asset);
+    StatusCode result = validator.validate(tracer, contract, NAMESPACE, asset);
 
     // Assert
     assertThat(result).isEqualTo(StatusCode.OK);
@@ -112,7 +111,7 @@ public class HashValidatorTest {
             tampered, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -130,7 +129,7 @@ public class HashValidatorTest {
             ID, tampered, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -156,7 +155,7 @@ public class HashValidatorTest {
             hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -182,7 +181,7 @@ public class HashValidatorTest {
             hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -200,7 +199,7 @@ public class HashValidatorTest {
             ID, AGE, INPUT, DATA, tampered, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -217,7 +216,7 @@ public class HashValidatorTest {
         createAssetMock(ID, AGE, INPUT, DATA, CONTRACT_ID, tampered, SIGNATURE, PREV_HASH, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -236,7 +235,7 @@ public class HashValidatorTest {
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, tampered, PREV_HASH, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -255,7 +254,7 @@ public class HashValidatorTest {
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, tampered, hash);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
@@ -274,7 +273,7 @@ public class HashValidatorTest {
             ID, AGE, INPUT, DATA, CONTRACT_ID, CONTRACT_ARGUMENT, SIGNATURE, PREV_HASH, tampered);
 
     // Act Asset
-    assertThatThrownBy(() -> validator.validate(ledger, contract, NAMESPACE, asset))
+    assertThatThrownBy(() -> validator.validate(tracer, contract, NAMESPACE, asset))
         .isInstanceOf(ValidationException.class)
         .hasMessage(LedgerError.VALIDATION_FAILED_FOR_HASH.buildMessage())
         .extracting("code")
