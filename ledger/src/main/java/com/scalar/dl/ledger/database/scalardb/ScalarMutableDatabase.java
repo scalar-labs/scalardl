@@ -101,25 +101,16 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
   }
 
   private void validateNamespace(Operation operation) {
-    if (!operation.forNamespace().isPresent()) {
+    if (operation.forNamespace().isEmpty()) {
       return;
     }
     String namespace = operation.forNamespace().get();
 
     String lowercaseNamespace = namespace.toLowerCase();
-    DISALLOWED_NAMESPACES.forEach(
-        n -> {
-          if (n.equalsIgnoreCase(namespace)) {
-            throw new InvalidFunctionException(
-                LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
-          }
-        });
-    DISALLOWED_NAMESPACE_PREFIXES.forEach(
-        prefix -> {
-          if (lowercaseNamespace.startsWith(prefix)) {
-            throw new InvalidFunctionException(
-                LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
-          }
-        });
+    if (DISALLOWED_NAMESPACES.contains(lowercaseNamespace)
+        || DISALLOWED_NAMESPACE_PREFIXES.stream().anyMatch(lowercaseNamespace::startsWith)) {
+      throw new InvalidFunctionException(
+          LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
+    }
   }
 }

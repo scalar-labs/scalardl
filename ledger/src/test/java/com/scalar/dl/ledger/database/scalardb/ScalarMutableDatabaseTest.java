@@ -12,6 +12,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.exception.InvalidFunctionException;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -116,6 +117,49 @@ public class ScalarMutableDatabaseTest {
 
     // Act
     Throwable thrown = catchThrowable(() -> database.get(get));
+
+    // Assert
+    assertThat(thrown).isNull();
+  }
+
+  @ParameterizedTest
+  @MethodSource("allowedNamespaces")
+  public void scan_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
+    // Arrange
+    Scan scan =
+        Scan.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+    when(transaction.scan(scan)).thenReturn(Collections.emptyList());
+
+    // Act
+    Throwable thrown = catchThrowable(() -> database.scan(scan));
+
+    // Assert
+    assertThat(thrown).isNull();
+  }
+
+  @ParameterizedTest
+  @MethodSource("allowedNamespaces")
+  public void put_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
+    // Arrange
+    Put put =
+        Put.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> database.put(put));
+
+    // Assert
+    assertThat(thrown).isNull();
+  }
+
+  @ParameterizedTest
+  @MethodSource("allowedNamespaces")
+  public void delete_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
+    // Arrange
+    Delete delete =
+        Delete.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+
+    // Act
+    Throwable thrown = catchThrowable(() -> database.delete(delete));
 
     // Assert
     assertThat(thrown).isNull();
