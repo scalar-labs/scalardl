@@ -27,8 +27,9 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
           "system_auth",
           "system_distributed",
           "system_traces",
-          "scalar",
           "coordinator");
+  private static final List<String> DISALLOWED_NAMESPACE_PREFIXES =
+      Arrays.asList("scalar", "auditor");
 
   public ScalarMutableDatabase(DistributedTransaction transaction) {
     this.transaction = transaction;
@@ -105,9 +106,17 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
     }
     String namespace = operation.forNamespace().get();
 
+    String lowercaseNamespace = namespace.toLowerCase();
     DISALLOWED_NAMESPACES.forEach(
         n -> {
           if (n.equalsIgnoreCase(namespace)) {
+            throw new InvalidFunctionException(
+                LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
+          }
+        });
+    DISALLOWED_NAMESPACE_PREFIXES.forEach(
+        prefix -> {
+          if (lowercaseNamespace.startsWith(prefix)) {
             throw new InvalidFunctionException(
                 LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
           }
