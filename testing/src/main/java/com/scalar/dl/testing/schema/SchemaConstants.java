@@ -34,4 +34,18 @@ public final class SchemaConstants {
           .build();
 
   private SchemaConstants() {}
+
+  /**
+   * Resolves a logical namespace name to a physical ScalarDB namespace name.
+   *
+   * @param baseNamespace the base namespace (e.g., "scalar" for Ledger, "auditor" for Auditor)
+   * @param logicalNamespace the logical namespace name (e.g., "namespace1", "default", or null)
+   * @return the physical namespace name (e.g., "scalar_namespace1" or "scalar")
+   */
+  public static String resolveNamespace(String baseNamespace, String logicalNamespace) {
+    if (logicalNamespace == null || logicalNamespace.equals("default")) {
+      return baseNamespace;
+    }
+    return baseNamespace + "_" + logicalNamespace;
+  }
 }

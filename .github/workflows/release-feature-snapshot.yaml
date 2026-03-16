@@ -34,3 +34,19 @@ jobs:
             -PprojectVersion=${{ steps.version.outputs.version }} \
             -PgprUsername="${{ github.repository_owner }}" \
             -PgprPassword="${{ secrets.CR_PAT }}"
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Create container images
+        run: ./gradlew docker -PprojectVersion=${{ steps.version.outputs.version }}
+
+      - name: Push container images
+        run: |
+          docker push ghcr.io/scalar-labs/scalardl-ledger:${{ steps.version.outputs.version }}
+          docker push ghcr.io/scalar-labs/scalardl-client:${{ steps.version.outputs.version }}
+          docker push ghcr.io/scalar-labs/scalardl-schema-loader:${{ steps.version.outputs.version }}
