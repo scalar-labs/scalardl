@@ -1,0 +1,40 @@
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'scalardl-testing'
+            from components.java
+            artifact javadocJar
+            artifact sourcesJar
+            pom {
+                name = 'ScalarDL Testing'
+                description = 'ScalarDL integration testing framework.'
+                url = 'https://github.com/scalar-labs/scalardl'
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hiroyuki'
+                        name = 'Hiroyuki Yamada'
+                        email = 'hiroyuki.yamada@scalar-labs.com'
+                    }
+                    developer {
+                        id = 'jnmt'
+                        name = 'Jun Nemoto'
+                        email = 'jun.nemoto@scalar-labs.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/scalar-labs/scalardl.git'
+                    developerConnection = 'scm:git:https://github.com/scalar-labs/scalardl.git'
+                    url = 'https://github.com/scalar-labs/scalardl'
+                }
+            }
+        }
+    }
+}
