@@ -50,6 +50,7 @@ import com.scalar.dl.testing.contract.NamespaceAwareGetHistory;
 import com.scalar.dl.testing.contract.NamespaceAwarePayment;
 import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
+import java.io.IOException;
 import java.util.Optional;
 import java.util.Properties;
 import org.junit.jupiter.api.AfterAll;
@@ -143,7 +144,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
     SchemaLoader.load(props, TestSchemas.getLedgerSchema(), java.util.Collections.emptyMap(), true);
   }
 
-  private void createClientServices() throws java.io.IOException {
+  private void createClientServices() throws IOException {
     AuthenticationMethod authMethod = getAuthenticationMethod();
     if (authMethod == AuthenticationMethod.DIGITAL_SIGNATURE) {
       clientServiceA =
@@ -167,7 +168,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   }
 
   private ClientService createDigitalSignatureClientService(
-      String entityId, String privateKey, String certificate) throws java.io.IOException {
+      String entityId, String privateKey, String certificate) throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
     props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
@@ -184,7 +185,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   }
 
   private ClientService createHmacClientService(String entityId, String secretKey)
-      throws java.io.IOException {
+      throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
     props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
