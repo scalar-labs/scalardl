@@ -193,8 +193,30 @@ task sourcesJar(type: Jar) {
 javadoc {
     title = "ScalarDL Java Client SDK ${version}"
     source += sourceSets.main.java
+    source += project(':common').sourceSets.main.java
     include "com/scalar/dl/client/**"
-    options.links = ["https://javadoc.io/doc/com.scalar-labs/scalardl-common/${version}/".toString()]
+    include "com/scalar/dl/ledger/asset/Asset.java"
+    include "com/scalar/dl/ledger/asset/AssetMetadata.java"
+    include "com/scalar/dl/ledger/contract/Contract.java"
+    include "com/scalar/dl/ledger/contract/JacksonBasedContract.java"
+    include "com/scalar/dl/ledger/contract/JsonpBasedContract.java"
+    include "com/scalar/dl/ledger/contract/StringBasedContract.java"
+    include "com/scalar/dl/ledger/crypto/CertificateEntry.java"
+    include "com/scalar/dl/ledger/crypto/ClientIdentityKey.java"
+    include "com/scalar/dl/ledger/database/AssetFilter.java"
+    include "com/scalar/dl/ledger/database/Database.java"
+    include "com/scalar/dl/ledger/database/Ledger.java"
+    include "com/scalar/dl/ledger/exception/*.java"
+    include "com/scalar/dl/ledger/function/Function.java"
+    include "com/scalar/dl/ledger/function/JacksonBasedFunction.java"
+    include "com/scalar/dl/ledger/function/JsonpBasedFunction.java"
+    include "com/scalar/dl/ledger/function/StringBasedFunction.java"
+    include "com/scalar/dl/ledger/model/*.java"
+    include "com/scalar/dl/ledger/proof/AssetProof.java"
+    include "com/scalar/dl/ledger/service/StatusCode.java"
+    include "com/scalar/dl/ledger/statemachine/Asset.java"
+    include "com/scalar/dl/ledger/statemachine/AssetMetadata.java"
+    include "com/scalar/dl/ledger/statemachine/Ledger.java"
 }
 
 task testJar(type: Jar) {
