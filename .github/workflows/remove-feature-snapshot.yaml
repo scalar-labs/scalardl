@@ -35,6 +35,11 @@ jobs:
             "com.scalar-labs.scalardl-hashstore-java-client-sdk"
             "com.scalar-labs.scalardl-tablestore-java-client-sdk"
           )
+          IMAGES=(
+            "scalardl-ledger"
+            "scalardl-client"
+            "scalardl-schema-loader"
+          )
 
           for PACKAGE in "${PACKAGES[@]}"; do
             echo "Deleting ${PACKAGE}:${VERSION}..."
@@ -64,5 +69,24 @@ jobs:
               fi
             else
               echo "  Version not found: ${PACKAGE}:${VERSION}"
+            fi
+          done
+
+          for IMAGE in "${IMAGES[@]}"; do
+            echo "Deleting container image ${IMAGE}:${VERSION}..."
+
+            VERSIONS_JSON=$(gh api \
+              "/orgs/${ORG}/packages/container/${IMAGE}/versions" 2>/dev/null || echo "[]")
+
+            VERSION_ID=$(echo "$VERSIONS_JSON" | jq -r ".[] | select(.metadata.container.tags[]? == \"${VERSION}\") | .id")
+
+            if [ -n "$VERSION_ID" ]; then
+              gh api \
+                --method DELETE \
+                "/orgs/${ORG}/packages/container/${IMAGE}/versions/${VERSION_ID}" \
+                && echo "  Deleted ${IMAGE}:${VERSION}" \
+                || { echo "  Failed to delete ${IMAGE}:${VERSION}"; exit 1; }
+            else
+              echo "  Version not found: ${IMAGE}:${VERSION}"
             fi
           done
