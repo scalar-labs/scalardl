@@ -43,6 +43,7 @@ subprojects {
         junitVersion = '5.11.3'
         junitPlatformVersion = '1.11.3'
         mockitoVersion = '4.11.0'
+        testContainersVersion = '2.0.3'
         errorproneVersion = '2.10.0'
         errorproneJavacVersion = '9+181-r4173-1'
         errorpronePluginVersion = '2.0.2'
@@ -128,7 +129,8 @@ jreleaser {
             def stagingRepositories = ['client/build/staging-deploy',
                                        'common/build/staging-deploy',
                                        'ledger/build/staging-deploy',
-                                       'rpc/build/staging-deploy']
+                                       'rpc/build/staging-deploy',
+                                       'testing/build/staging-deploy']
             mavenCentral {
                 'release-deploy' {
                     active = 'RELEASE'
