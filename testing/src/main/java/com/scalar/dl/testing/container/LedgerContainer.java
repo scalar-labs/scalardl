@@ -118,6 +118,9 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to serialize properties", e);
     }
+
+    // Override the default CMD to bypass dockerize and use the test-provided properties directly.
+    withCommand("./bin/scalar-ledger", "--config=" + PROPERTIES_PATH);
   }
 
   /**
