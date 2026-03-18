@@ -377,7 +377,7 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
   }
 
   @Test
-  public void execute_PaymentWithCrossNamespaceArgumentsGiven_ShouldPaidCorrectly() {
+  public void execute_PaymentWithCrossNamespaceArgumentsGiven_ShouldBePaidCorrectly() {
     // Arrange
     ledgerService.execute(
         prepareRequestForCreate(SOME_NAMESPACE1, SOME_ASSET_ID_1, SOME_AMOUNT_1, ENTITY_ID_A));
