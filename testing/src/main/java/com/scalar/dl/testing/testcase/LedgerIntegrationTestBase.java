@@ -276,8 +276,8 @@ public abstract class LedgerIntegrationTestBase {
 
   @AfterEach
   void truncateTables() throws Exception {
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_TABLE);
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_METADATA_TABLE);
+    storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_TABLE);
+    storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_METADATA_TABLE);
     transactionAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
   }
 

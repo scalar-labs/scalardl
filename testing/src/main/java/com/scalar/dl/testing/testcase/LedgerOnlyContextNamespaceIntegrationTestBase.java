@@ -1,9 +1,5 @@
 package com.scalar.dl.testing.testcase;
 
-import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
 
@@ -14,7 +10,6 @@ import com.scalar.dl.testing.container.LedgerTestCluster;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 
 /**
@@ -149,16 +144,6 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
           TestCertificates.KEY_VERSION,
           TestCertificates.SECRET_KEY_B);
     }
-  }
-
-  @AfterEach
-  @Override
-  void truncateTables() throws Exception {
-    // Truncate tables in the context namespace
-    String physicalNamespace = resolveNamespace(SCALAR_NAMESPACE, TEST_NAMESPACE);
-    storageAdmin.truncateTable(physicalNamespace, ASSET_TABLE);
-    storageAdmin.truncateTable(physicalNamespace, ASSET_METADATA_TABLE);
-    transactionAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
   }
 
   @AfterAll
