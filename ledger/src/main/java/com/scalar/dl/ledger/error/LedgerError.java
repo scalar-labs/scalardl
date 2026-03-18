@@ -84,7 +84,7 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_REGISTRATION_NOT_ALLOWED(
       StatusCode.INVALID_REQUEST,
       "005",
-      "Function registration via the non-privileged port is not allowed. Use the privileged port or enable %s.",
+      "Registering a function via a non-privileged port is not allowed. Use a privileged port or enable %s.",
       "",
       ""),
   FUNCTION_OVERWRITE_NOT_ALLOWED(
