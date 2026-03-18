@@ -85,10 +85,37 @@ public final class TestCertificates {
   public static final String SECRET_KEY_B = "secret_key_B";
   public static final String CIPHER_KEY = "cipher_key_0123456789abcdef";
 
-  // Default test entity IDs
+  // Default test client entity IDs
   public static final String ENTITY_ID_A = "test_entity_a";
   public static final String ENTITY_ID_B = "test_entity_b";
   public static final int KEY_VERSION = 1;
+
+  // Admin client entity (for privileged operations like namespace management)
+  public static final String ENTITY_ID_ADMIN = "admin";
+  public static final String SECRET_KEY_ADMIN = "secret_key_admin";
+
+  public static final String PRIVATE_KEY_ADMIN =
+      "-----BEGIN EC PRIVATE KEY-----\n"
+          + "MHcCAQEEIHeHsFEhWyxHuU+DjuNrMCrjrn9UpNz7BAeFgYqoRY6IoAoGCCqGSM49\n"
+          + "AwEHoUQDQgAERyCMoH416edaj6zKNXZUesrTHkRUxNu/K4a31rxGw7Dro9OSIP6g\n"
+          + "Y0OP7G85EMQsJL8S2Sq7+fneZbHx6s+Gpg==\n"
+          + "-----END EC PRIVATE KEY-----";
+
+  public static final String CERTIFICATE_ADMIN =
+      "-----BEGIN CERTIFICATE-----\n"
+          + "MIICJDCCAcugAwIBAgIUNeNdiAgGMQ8Op40T+T446B8H+qowCgYIKoZIzj0EAwIw\n"
+          + "ZzELMAkGA1UEBhMCSlAxDjAMBgNVBAgMBVRva3lvMQ4wDAYDVQQHDAVUb2t5bzET\n"
+          + "MBEGA1UECgwKVGVzdCBBZG1pbjEjMCEGA1UEAwwaYWRtaW4udGVzdC5zY2FsYXIt\n"
+          + "bGFicy5jb20wIBcNMjYwMzA0MDIwMTQxWhgPMjEyNjAyMDgwMjAxNDFaMGcxCzAJ\n"
+          + "BgNVBAYTAkpQMQ4wDAYDVQQIDAVUb2t5bzEOMAwGA1UEBwwFVG9reW8xEzARBgNV\n"
+          + "BAoMClRlc3QgQWRtaW4xIzAhBgNVBAMMGmFkbWluLnRlc3Quc2NhbGFyLWxhYnMu\n"
+          + "Y29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERyCMoH416edaj6zKNXZUesrT\n"
+          + "HkRUxNu/K4a31rxGw7Dro9OSIP6gY0OP7G85EMQsJL8S2Sq7+fneZbHx6s+GpqNT\n"
+          + "MFEwHQYDVR0OBBYEFKlSca+Sy4x+mbPj6fLwWTh7OlrnMB8GA1UdIwQYMBaAFKlS\n"
+          + "ca+Sy4x+mbPj6fLwWTh7OlrnMA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwID\n"
+          + "RwAwRAIgEUJtcxvR/PpLJvAOIfPh0DI/QfAPShrz8ZzS+LWxZpECIA0eBXHKElCX\n"
+          + "flBb5N4C+h7u2HcA+eMPqENkhb0Odwph\n"
+          + "-----END CERTIFICATE-----";
 
   private TestCertificates() {}
 }

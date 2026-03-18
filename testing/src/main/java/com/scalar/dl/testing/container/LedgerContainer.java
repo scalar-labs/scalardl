@@ -40,6 +40,7 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
   private boolean auditorEnabled = false;
   private String serversAuthenticationHmacSecretKey;
   private String proofPrivateKey;
+  private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
 
   public LedgerContainer() {
     this(DEFAULT_IMAGE);
@@ -104,6 +105,17 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
     return this;
   }
 
+  /**
+   * Enables function registration via the non-privileged port using signed requests. This is
+   * required for function registration when using a context namespace other than "default".
+   *
+   * @return This container instance
+   */
+  public LedgerContainer withNonPrivilegedPortFunctionRegistrationEnabled() {
+    this.nonPrivilegedPortFunctionRegistrationEnabled = true;
+    return this;
+  }
+
   /** Called before the container starts. Builds and copies the properties file to the container. */
   @Override
   protected void configure() {
@@ -161,6 +173,11 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
 
     if (proofPrivateKey != null) {
       props.setProperty("scalar.dl.ledger.proof.private_key_pem", proofPrivateKey);
+    }
+
+    if (nonPrivilegedPortFunctionRegistrationEnabled) {
+      props.setProperty(
+          "scalar.dl.ledger.function.non_privileged_port_registration.enabled", "true");
     }
 
     return props;
