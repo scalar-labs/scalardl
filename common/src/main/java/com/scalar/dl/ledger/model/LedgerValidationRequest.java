@@ -25,6 +25,7 @@ public class LedgerValidationRequest extends AbstractRequest {
    * @param assetId an id of an asset
    * @param startAge an age to be validated from
    * @param endAge an age to be validated to
+   * @param contextNamespace a context namespace
    * @param entityId an entity ID
    * @param keyVersion the version of a digital signature certificate or a HMAC secret key.
    * @param signature a signature of the request
@@ -35,10 +36,11 @@ public class LedgerValidationRequest extends AbstractRequest {
       String assetId,
       int startAge,
       int endAge,
+      String contextNamespace,
       String entityId,
       int keyVersion,
       byte[] signature) {
-    super(entityId, keyVersion);
+    super(contextNamespace, entityId, keyVersion);
     this.namespace = namespace;
     this.assetId = assetId;
     this.startAge = startAge;
@@ -100,7 +102,8 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(namespace, assetId, startAge, endAge, Arrays.hashCode(signature));
+    return Objects.hash(
+        super.hashCode(), namespace, assetId, startAge, endAge, Arrays.hashCode(signature));
   }
 
   /**
@@ -143,7 +146,15 @@ public class LedgerValidationRequest extends AbstractRequest {
    */
   @Override
   public void validateWith(SignatureValidator validator) {
-    byte[] bytes = serialize(namespace, assetId, startAge, endAge, getEntityId(), getKeyVersion());
+    byte[] bytes =
+        serialize(
+            namespace,
+            assetId,
+            startAge,
+            endAge,
+            getContextNamespace(),
+            getEntityId(),
+            getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(CommonLedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
@@ -155,11 +166,13 @@ public class LedgerValidationRequest extends AbstractRequest {
       String assetId,
       int startAge,
       int endAge,
+      @Nullable String contextNamespace,
       String entityId,
       int keyVersion) {
     byte[] namespaceBytes =
         namespace != null ? namespace.getBytes(StandardCharsets.UTF_8) : new byte[0];
     byte[] assetIdBytes = assetId.getBytes(StandardCharsets.UTF_8);
+    byte[] contextNamespaceBytes = serializeContextNamespace(contextNamespace);
     byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
 
     ByteBuffer buffer =
@@ -168,12 +181,14 @@ public class LedgerValidationRequest extends AbstractRequest {
                 + assetIdBytes.length
                 + Integer.BYTES
                 + Integer.BYTES
+                + contextNamespaceBytes.length
                 + entityIdBytes.length
                 + Integer.BYTES);
     buffer.put(namespaceBytes);
     buffer.put(assetIdBytes);
     buffer.putInt(startAge);
     buffer.putInt(endAge);
+    buffer.put(contextNamespaceBytes);
     buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();

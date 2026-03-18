@@ -11,6 +11,7 @@ import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import java.util.Optional;
 
 public abstract class AbstractLedgerClient implements Client {
@@ -18,6 +19,8 @@ public abstract class AbstractLedgerClient implements Client {
       DEFAULT_AUDITING_HOOK = r -> null;
 
   abstract void register(FunctionRegistrationRequest request);
+
+  abstract void register(SignedFunctionRegistrationRequest request);
 
   abstract ContractExecutionResult execute(ContractExecutionRequest request);
 

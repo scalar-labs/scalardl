@@ -11,6 +11,8 @@ import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingCertificateException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -25,7 +27,8 @@ import javax.annotation.concurrent.Immutable;
 public class CertificateManager {
   private static final int CACHE_SIZE = 131072;
   private final CertificateRegistry registry;
-  private final Cache<CertificateEntry.Key, DigitalSignatureValidator> cache;
+  private final ConcurrentMap<String, Cache<CertificateEntry.Key, DigitalSignatureValidator>>
+      caches;
 
   /**
    * Constructs a {@code CertificateManager} with the specified {@link CertificateRegistry}.
@@ -35,48 +38,57 @@ public class CertificateManager {
   @Inject
   public CertificateManager(CertificateRegistry registry) {
     this.registry = checkNotNull(registry);
-    this.cache = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+    this.caches = new ConcurrentHashMap<>();
   }
 
   @VisibleForTesting
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CertificateManager(
-      CertificateRegistry registry, Cache<CertificateEntry.Key, DigitalSignatureValidator> cache) {
+      CertificateRegistry registry,
+      ConcurrentMap<String, Cache<CertificateEntry.Key, DigitalSignatureValidator>> caches) {
     this.registry = registry;
-    this.cache = cache;
+    this.caches = caches;
   }
 
   /**
    * Stores the specified {@code CertificateEntry} in a {@link CertificateRegistry}. Will throw a
    * {@link DatabaseException} if the certificate has already been registered.
    *
+   * @param namespace a namespace to register the certificate
    * @param entry a {@code CertificateEntry}
    */
-  public void register(CertificateEntry entry) {
+  public void register(String namespace, CertificateEntry entry) {
     try {
-      registry.lookup(entry.getKey());
+      registry.lookup(namespace, entry.getKey());
       throw new DatabaseException(CommonError.CERTIFICATE_ALREADY_REGISTERED);
     } catch (MissingCertificateException e) {
-      registry.bind(entry);
+      registry.bind(namespace, entry);
     }
   }
 
   /**
    * Returns a {@link DigitalSignatureValidator} for the given {@link CertificateEntry.Key}.
    *
+   * @param namespace a namespace for the certificate
    * @param key {@link CertificateEntry.Key}
    * @return a {@link DigitalSignatureValidator}
    */
-  public DigitalSignatureValidator getValidator(CertificateEntry.Key key) {
+  public DigitalSignatureValidator getValidator(String namespace, CertificateEntry.Key key) {
+    Cache<CertificateEntry.Key, DigitalSignatureValidator> cache =
+        caches.computeIfAbsent(namespace, this::createCache);
     DigitalSignatureValidator validator = cache.getIfPresent(key);
     if (validator != null) {
       return validator;
     }
 
-    CertificateEntry entry = registry.lookup(key);
+    CertificateEntry entry = registry.lookup(namespace, key);
     validator = new DigitalSignatureValidator(entry.getPem());
     cache.put(key, validator);
 
     return validator;
+  }
+
+  private Cache<CertificateEntry.Key, DigitalSignatureValidator> createCache(String namespace) {
+    return CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
   }
 }

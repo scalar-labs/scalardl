@@ -54,6 +54,7 @@ public class ScalarTransactionManagerTest {
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     when(namespaceResolver.resolve(DEFAULT_NAMESPACE)).thenReturn(BASE_NAMESPACE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(DEFAULT_NAMESPACE);
   }
 
   @Test

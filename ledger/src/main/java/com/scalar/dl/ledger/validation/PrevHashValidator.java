@@ -6,7 +6,6 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
@@ -33,7 +32,10 @@ public class PrevHashValidator implements LedgerValidator {
 
   @Override
   public StatusCode validate(
-      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
+      LedgerTracerBase<?> tracer,
+      ContractMachine contract,
+      @Nonnull String namespace,
+      InternalAsset record) {
     boolean isValid = validate(record);
     prevHash = record.hash();
     if (isValid) {

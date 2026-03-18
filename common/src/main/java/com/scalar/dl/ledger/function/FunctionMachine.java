@@ -32,6 +32,10 @@ public class FunctionMachine {
     functionBase.initialize(manager);
   }
 
+  void initialize(FunctionManager manager, String namespace) {
+    functionBase.initialize(manager, namespace);
+  }
+
   void setRoot(boolean isRoot) {
     functionBase.setRoot(isRoot);
   }

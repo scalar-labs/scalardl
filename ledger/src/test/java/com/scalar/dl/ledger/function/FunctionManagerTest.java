@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class FunctionManagerTest {
+  private static final String ANY_NAMESPACE = "test_namespace";
   private static final String ANY_FUNCTION_ID = "Test";
   @Mock private FunctionEntry entry;
   @Mock private FunctionRegistry registry;
@@ -42,11 +43,11 @@ public class FunctionManagerTest {
     doReturn(TestJacksonBasedFunction.class).when(loader).defineClass(entry);
 
     // Act
-    manager.register(entry);
+    manager.register(ANY_NAMESPACE, entry);
 
     // Assert
-    verify(manager).defineClass(entry);
-    verify(registry).bind(entry);
+    verify(manager).getInstance(entry);
+    verify(registry).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
@@ -55,49 +56,49 @@ public class FunctionManagerTest {
     doThrow(RuntimeException.class).when(loader).defineClass(entry);
 
     // Act
-    Throwable thrown = catchThrowable(() -> manager.register(entry));
+    Throwable thrown = catchThrowable(() -> manager.register(ANY_NAMESPACE, entry));
 
     // Assert
     assertThat(thrown).isExactlyInstanceOf(UnloadableFunctionException.class);
-    verify(manager).defineClass(entry);
-    verify(registry, never()).bind(entry);
+    verify(manager).getInstance(entry);
+    verify(registry, never()).bind(ANY_NAMESPACE, entry);
   }
 
   @Test
   public void get_ExistingFunctionIdGiven_ShouldReturnEntry() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
 
     // Act
-    FunctionEntry actual = manager.get(ANY_FUNCTION_ID);
+    FunctionEntry actual = manager.get(ANY_NAMESPACE, ANY_FUNCTION_ID);
 
     // Assert
-    verify(registry).lookup(ANY_FUNCTION_ID);
+    verify(registry).lookup(ANY_NAMESPACE, ANY_FUNCTION_ID);
     assertThat(actual).isEqualTo(entry);
   }
 
   @Test
   public void get_UnexistingFunctionIdGiven_ShouldThrowMissingFunctionException() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.empty());
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.empty());
 
     // Act
-    assertThatThrownBy(() -> manager.get(ANY_FUNCTION_ID))
+    assertThatThrownBy(() -> manager.get(ANY_NAMESPACE, ANY_FUNCTION_ID))
         .isInstanceOf(MissingFunctionException.class);
 
     // Assert
-    verify(registry).lookup(ANY_FUNCTION_ID);
+    verify(registry).lookup(ANY_NAMESPACE, ANY_FUNCTION_ID);
   }
 
   @Test
   public void getInstance_ExistingFunctionIdGiven_ShouldReturnFunction() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
     Class<? extends Function> clazz = TestFunction.class;
     doReturn(clazz).when(loader).defineClass(entry);
 
     // Act
-    FunctionMachine function = manager.getInstance(ANY_FUNCTION_ID);
+    FunctionMachine function = manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID);
 
     // Assert
     verify(loader).defineClass(entry);
@@ -107,11 +108,11 @@ public class FunctionManagerTest {
   @Test
   public void getInstance_ExistingJsonpBasedFunctionIdGiven_ShouldReturnFunction() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
     doReturn(TestJsonpBasedFunction.class).when(loader).defineClass(entry);
 
     // Act
-    FunctionMachine function = manager.getInstance(ANY_FUNCTION_ID);
+    FunctionMachine function = manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID);
 
     // Assert
     verify(loader).defineClass(entry);
@@ -121,11 +122,11 @@ public class FunctionManagerTest {
   @Test
   public void getInstance_ExistingJacksonBasedFunctionIdGiven_ShouldReturnFunction() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
     doReturn(TestJacksonBasedFunction.class).when(loader).defineClass(entry);
 
     // Act
-    FunctionMachine function = manager.getInstance(ANY_FUNCTION_ID);
+    FunctionMachine function = manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID);
 
     // Assert
     verify(loader).defineClass(entry);
@@ -135,11 +136,11 @@ public class FunctionManagerTest {
   @Test
   public void getInstance_ExistingStringBasedFunctionIdGiven_ShouldReturnFunction() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
     doReturn(TestStringBasedFunction.class).when(loader).defineClass(entry);
 
     // Act
-    FunctionMachine function = manager.getInstance(ANY_FUNCTION_ID);
+    FunctionMachine function = manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID);
 
     // Assert
     verify(loader).defineClass(entry);
@@ -149,31 +150,57 @@ public class FunctionManagerTest {
   @Test
   public void getInstance_NonexistingFunctionIdGiven_ShouldThrowMissingFunctionException() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.empty());
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.empty());
 
     // Act
-    assertThatThrownBy(() -> manager.getInstance(ANY_FUNCTION_ID))
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID))
         .isInstanceOf(MissingFunctionException.class);
 
     // Assert
-    verify(manager).defineClass(ANY_FUNCTION_ID);
+    verify(manager).defineClass(ANY_NAMESPACE, ANY_FUNCTION_ID);
   }
 
   @Test
   public void
       getInstance_LoadingFailedNotDueToFunctionMissing_ShouldThrowUnloadableFunctionException() {
     // Arrange
-    when(registry.lookup(ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
     SecurityException toThrow = mock(SecurityException.class);
     when(toThrow.getMessage()).thenReturn("details");
     doThrow(toThrow).when(loader).defineClass(entry);
 
     // Act
-    assertThatThrownBy(() -> manager.getInstance(ANY_FUNCTION_ID))
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, ANY_FUNCTION_ID))
         .isInstanceOf(UnloadableFunctionException.class)
         .hasMessage(CommonLedgerError.LOADING_FUNCTION_FAILED.buildMessage("details"));
 
     // Assert
-    verify(manager).defineClass(ANY_FUNCTION_ID);
+    verify(manager).defineClass(ANY_NAMESPACE, ANY_FUNCTION_ID);
+  }
+
+  @Test
+  public void exists_ExistingFunctionIdGiven_ShouldReturnTrue() {
+    // Arrange
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.of(entry));
+
+    // Act
+    boolean result = manager.exists(ANY_NAMESPACE, ANY_FUNCTION_ID);
+
+    // Assert
+    assertThat(result).isTrue();
+    verify(registry).lookup(ANY_NAMESPACE, ANY_FUNCTION_ID);
+  }
+
+  @Test
+  public void exists_NonexistingFunctionIdGiven_ShouldReturnFalse() {
+    // Arrange
+    when(registry.lookup(ANY_NAMESPACE, ANY_FUNCTION_ID)).thenReturn(Optional.empty());
+
+    // Act
+    boolean result = manager.exists(ANY_NAMESPACE, ANY_FUNCTION_ID);
+
+    // Assert
+    assertThat(result).isFalse();
+    verify(registry).lookup(ANY_NAMESPACE, ANY_FUNCTION_ID);
   }
 }

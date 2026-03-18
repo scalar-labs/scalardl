@@ -58,6 +58,10 @@ public class LedgerConfigTest {
     assertThat(config.getGrpcServerConfig().getMaxInboundMetadataSize()).isEqualTo(0);
     assertThat(config.isProofEnabled()).isEqualTo(LedgerConfig.DEFAULT_PROOF_ENABLED);
     assertThat(config.isFunctionEnabled()).isEqualTo(LedgerConfig.DEFAULT_FUNCTION_ENABLED);
+    assertThat(config.isNonPrivilegedPortFunctionRegistrationEnabled())
+        .isEqualTo(LedgerConfig.DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED);
+    assertThat(config.isNonPrivilegedPortFunctionOverwriteEnabled())
+        .isEqualTo(LedgerConfig.DEFAULT_NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED);
     assertThat(config.isAuditorEnabled()).isEqualTo(LedgerConfig.DEFAULT_AUDITOR_ENABLED);
     assertThat(config.getAuditorCertHolderId())
         .isEqualTo(LedgerConfig.DEFAULT_AUDITOR_CERT_HOLDER_ID);
@@ -230,6 +234,31 @@ public class LedgerConfigTest {
 
     // Assert
     assertThat(config.isFunctionEnabled()).isTrue();
+  }
+
+  @Test
+  public void
+      isNonPrivilegedPortFunctionRegistrationEnabled_PropertiesGiven_ShouldReturnSpecified() {
+    // Arrange
+    props.setProperty(LedgerConfig.NON_PRIVILEGED_PORT_FUNCTION_REGISTRATION_ENABLED, "true");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isNonPrivilegedPortFunctionRegistrationEnabled()).isTrue();
+  }
+
+  @Test
+  public void isNonPrivilegedPortFunctionOverwriteEnabled_PropertiesGiven_ShouldReturnSpecified() {
+    // Arrange
+    props.setProperty(LedgerConfig.NON_PRIVILEGED_PORT_FUNCTION_OVERWRITE_ENABLED, "true");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isNonPrivilegedPortFunctionOverwriteEnabled()).isTrue();
   }
 
   @Test

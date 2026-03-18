@@ -4,9 +4,9 @@ import com.scalar.dl.ledger.crypto.SecretEntry;
 
 public interface SecretRegistry {
 
-  void bind(SecretEntry entry);
+  void bind(String namespace, SecretEntry entry);
 
-  void unbind(SecretEntry.Key key);
+  void unbind(String namespace, SecretEntry.Key key);
 
-  SecretEntry lookup(SecretEntry.Key key);
+  SecretEntry lookup(String namespace, SecretEntry.Key key);
 }

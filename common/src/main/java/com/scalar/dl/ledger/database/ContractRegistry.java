@@ -5,13 +5,13 @@ import java.util.List;
 
 public interface ContractRegistry {
 
-  void bind(ContractEntry entry);
+  void bind(String namespace, ContractEntry entry);
 
-  void unbind(ContractEntry.Key key);
+  void unbind(String namespace, ContractEntry.Key key);
 
-  ContractEntry lookup(ContractEntry.Key key);
+  ContractEntry lookup(String namespace, ContractEntry.Key key);
 
-  List<ContractEntry> scan(String certId);
+  List<ContractEntry> scan(String namespace, String certId);
 
-  List<ContractEntry> scan(String certId, int certVersion);
+  List<ContractEntry> scan(String namespace, String certId, int certVersion);
 }
