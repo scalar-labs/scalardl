@@ -28,6 +28,9 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
           "system_distributed",
           "system_traces",
           "coordinator");
+  // Note: "auditor" is included as a safeguard for development and PoC environments. In
+  // production, the Auditor namespace is not accessible from Ledger's transaction manager because
+  // Ledger and Auditor belong to different administrative domains.
   private static final List<String> DISALLOWED_NAMESPACE_PREFIXES =
       Arrays.asList("scalar", "auditor");
 
