@@ -38,27 +38,29 @@ public class ContractExecutionRequest extends AbstractRequest {
    * entity ID, key version, a list of {@code AssetProof} and signature of the request.
    *
    * @param nonce the unique id of a request
-   * @param entityId an entity ID
-   * @param keyVersion the version of a digital signature certificate or a HMAC secret key.
    * @param contractId a contract id of a registered contract to execute
    * @param contractArgument an argument to a contract
    * @param functionIds a list of function ids
    * @param functionArgument an argument to a function
+   * @param contextNamespace a context namespace
+   * @param entityId an entity ID
+   * @param keyVersion the version of a digital signature certificate or a HMAC secret key.
    * @param signature a signature of the request
    * @param auditorSignature a signature from an auditor
    */
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ContractExecutionRequest(
       String nonce,
-      String entityId,
-      int keyVersion,
       String contractId,
       String contractArgument,
       List<String> functionIds,
       @Nullable String functionArgument,
+      @Nullable String contextNamespace,
+      String entityId,
+      int keyVersion,
       byte[] signature,
       @Nullable byte[] auditorSignature) {
-    super(entityId, keyVersion);
+    super(contextNamespace, entityId, keyVersion);
     checkArgument(contractId != null && !contractId.isEmpty());
     checkArgument(contractArgument != null && !contractArgument.isEmpty());
     checkArgument(signature != null && signature.length > 0);
@@ -150,7 +152,9 @@ public class ContractExecutionRequest extends AbstractRequest {
   public void validateWith(SignatureValidator validator) {
     // proofs are not included in the signature because including it doesn't make much difference.
     // It assumes that nonce is appended to the argument by clients.
-    byte[] bytes = serialize(contractId, contractArgument, getEntityId(), getKeyVersion());
+    byte[] bytes =
+        serialize(
+            contractId, contractArgument, getContextNamespace(), getEntityId(), getKeyVersion());
 
     if (!validator.validate(bytes, signature)) {
       throw new SignatureException(CommonError.REQUEST_SIGNATURE_VALIDATION_FAILED);
@@ -181,6 +185,7 @@ public class ContractExecutionRequest extends AbstractRequest {
   @Override
   public int hashCode() {
     return Objects.hash(
+        super.hashCode(),
         nonce,
         contractId,
         contractArgument,
@@ -225,16 +230,27 @@ public class ContractExecutionRequest extends AbstractRequest {
   }
 
   public static byte[] serialize(
-      String contractId, String argument, String entityId, int keyVersion) {
+      String contractId,
+      String argument,
+      @Nullable String contextNamespace,
+      String entityId,
+      int keyVersion) {
+    byte[] contractIdBytes = contractId.getBytes(StandardCharsets.UTF_8);
+    byte[] argumentBytes = argument.getBytes(StandardCharsets.UTF_8);
+    byte[] contextNamespaceBytes = serializeContextNamespace(contextNamespace);
+    byte[] entityIdBytes = entityId.getBytes(StandardCharsets.UTF_8);
+
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            contractId.getBytes(StandardCharsets.UTF_8).length
-                + argument.getBytes(StandardCharsets.UTF_8).length
-                + entityId.getBytes(StandardCharsets.UTF_8).length
+            contractIdBytes.length
+                + argumentBytes.length
+                + contextNamespaceBytes.length
+                + entityIdBytes.length
                 + Integer.BYTES);
-    buffer.put(contractId.getBytes(StandardCharsets.UTF_8));
-    buffer.put(argument.getBytes(StandardCharsets.UTF_8));
-    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+    buffer.put(contractIdBytes);
+    buffer.put(argumentBytes);
+    buffer.put(contextNamespaceBytes);
+    buffer.put(entityIdBytes);
     buffer.putInt(keyVersion);
     buffer.rewind();
     return buffer.array();

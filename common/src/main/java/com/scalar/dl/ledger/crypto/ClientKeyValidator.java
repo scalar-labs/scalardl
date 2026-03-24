@@ -30,16 +30,16 @@ public class ClientKeyValidator {
     this.validators = new ConcurrentHashMap<>();
   }
 
-  public SignatureValidator getValidator(String entityId, int keyVersion) {
+  public SignatureValidator getValidator(String namespace, String entityId, int keyVersion) {
     if (authMethod == AuthenticationMethod.DIGITAL_SIGNATURE) {
-      return certManager.getValidator(new CertificateEntry.Key(entityId, keyVersion));
+      return certManager.getValidator(namespace, new CertificateEntry.Key(entityId, keyVersion));
     } else {
       if (entityId.equals(AUDITOR_ENTITY_ID)) { // from Auditor
         assert hmacAuthenticatable.getServersAuthenticationHmacSecretKey() != null;
         return validators.computeIfAbsent(
             hmacAuthenticatable.getServersAuthenticationHmacSecretKey(), this::createHmacValidator);
       } else {
-        return secretManager.getValidator(new SecretEntry.Key(entityId, keyVersion));
+        return secretManager.getValidator(namespace, new SecretEntry.Key(entityId, keyVersion));
       }
     }
   }

@@ -23,6 +23,7 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -80,6 +81,17 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
    */
   @Override
   public void registerFunction(FunctionRegistrationRequest request) {
+    client.register(request);
+  }
+
+  /**
+   * Registers the function with the specified {@code SignedFunctionRegistrationRequest}.
+   *
+   * @param request a {@code SignedFunctionRegistrationRequest}.
+   * @throws ClientException if a request fails for some reason
+   */
+  @Override
+  public void registerFunction(SignedFunctionRegistrationRequest request) {
     client.register(request);
   }
 

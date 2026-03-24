@@ -35,7 +35,7 @@ import com.scalar.dl.ledger.exception.UnexpectedValueException;
 import com.scalar.dl.ledger.exception.UnknownTransactionStatusException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.Context;
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
@@ -89,7 +90,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
       DistributedTransaction transaction,
       Metadata metadata,
       Snapshot snapshot,
-      ContractExecutionRequest request,
+      @Nullable ContractExecutionRequest request,
       TamperEvidentAssetComposer assetComposer,
       AssetProofComposer proofComposer,
       TransactionStateManager stateManager,
@@ -104,9 +105,12 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     this.stateManager = stateManager;
     this.namespaceResolver = namespaceResolver;
     this.config = config;
-    // Although currently a context is statically set to the default namespace, it will be set based
-    // on the context specified in the request when the isolated namespace feature is supported.
-    this.context = Context.withNamespace(NamespaceManager.DEFAULT_NAMESPACE);
+    // When initialized without a ContractExecutionRequest (request is null), it means
+    // the ledger is used for retrieving assets independent of context (e.g., validation),
+    // so the default namespace is used.
+    this.context =
+        Context.withNamespace(
+            request == null ? Namespaces.DEFAULT : request.getContextNamespaceOrDefault());
   }
 
   static Map<String, TableMetadata> getTransactionTables() {

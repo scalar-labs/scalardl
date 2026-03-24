@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 public class LedgerValidationRequestTest {
   private static final String NAMESPACE = "namespace";
+  private static final String CONTEXT_NAMESPACE = "context_namespace";
   private static final String ASSET_ID = "asset_id";
   private static final int START_AGE = 0;
   private static final int END_AGE = 10;
@@ -25,7 +26,14 @@ public class LedgerValidationRequestTest {
     assertThatCode(
             () ->
                 new LedgerValidationRequest(
-                    NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE))
+                    NAMESPACE,
+                    ASSET_ID,
+                    START_AGE,
+                    END_AGE,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
+                    SIGNATURE))
         .doesNotThrowAnyException();
   }
 
@@ -37,7 +45,14 @@ public class LedgerValidationRequestTest {
     assertThatCode(
             () ->
                 new LedgerValidationRequest(
-                    null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE))
+                    null,
+                    ASSET_ID,
+                    START_AGE,
+                    END_AGE,
+                    CONTEXT_NAMESPACE,
+                    ENTITY_ID,
+                    KEY_VERSION,
+                    SIGNATURE))
         .doesNotThrowAnyException();
   }
 
@@ -46,13 +61,21 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     String namespace = request.getNamespace();
     String assetId = request.getAssetId();
     int startAge = request.getStartAge();
     int endAge = request.getEndAge();
+    String contextNamespace = request.getContextNamespace();
     String entityId = request.getEntityId();
     int keyVersion = request.getKeyVersion();
     byte[] signature = request.getSignature();
@@ -62,6 +85,7 @@ public class LedgerValidationRequestTest {
     assertThat(assetId).isEqualTo(ASSET_ID);
     assertThat(startAge).isEqualTo(START_AGE);
     assertThat(endAge).isEqualTo(END_AGE);
+    assertThat(contextNamespace).isEqualTo(CONTEXT_NAMESPACE);
     assertThat(entityId).isEqualTo(ENTITY_ID);
     assertThat(keyVersion).isEqualTo(KEY_VERSION);
     assertThat(signature).isEqualTo(SIGNATURE);
@@ -72,7 +96,14 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            null,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     String namespace = request.getNamespace();
@@ -86,7 +117,14 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other = request;
 
     // Act
@@ -101,10 +139,24 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -118,10 +170,24 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            null,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            null,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -135,7 +201,14 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(ARBITRARY_OBJECT);
@@ -149,10 +222,55 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            "different_namespace", ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            "different_namespace",
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
+
+    // Act
+    boolean result = request.equals(other);
+
+    // Assert
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void equals_OnDifferentContextNamespace_ShouldReturnFalse() {
+    // Arrange
+    LedgerValidationRequest request =
+        new LedgerValidationRequest(
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
+    LedgerValidationRequest other =
+        new LedgerValidationRequest(
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            "different_context_namespace",
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -166,10 +284,17 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE, ASSET_ID, START_AGE, END_AGE, null, ENTITY_ID, KEY_VERSION, SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, "different_asset_id", START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            "different_asset_id",
+            START_AGE,
+            END_AGE,
+            null,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -183,10 +308,17 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, 99, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE, ASSET_ID, 99, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION, SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -200,10 +332,24 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, 99, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            99,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -217,10 +363,24 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, WRONG_SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            WRONG_SIGNATURE);
 
     // Act
     boolean result = request.equals(other);
@@ -234,10 +394,24 @@ public class LedgerValidationRequestTest {
     // Arrange
     LedgerValidationRequest request =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
     LedgerValidationRequest other =
         new LedgerValidationRequest(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION, SIGNATURE);
+            NAMESPACE,
+            ASSET_ID,
+            START_AGE,
+            END_AGE,
+            CONTEXT_NAMESPACE,
+            ENTITY_ID,
+            KEY_VERSION,
+            SIGNATURE);
 
     // Act
     int hash1 = request.hashCode();
@@ -254,7 +428,7 @@ public class LedgerValidationRequestTest {
     // Act
     byte[] serialized =
         LedgerValidationRequest.serialize(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION);
+            NAMESPACE, ASSET_ID, START_AGE, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION);
 
     // Assert
     assertThat(serialized).isNotNull();
@@ -268,7 +442,7 @@ public class LedgerValidationRequestTest {
     // Act
     byte[] serialized =
         LedgerValidationRequest.serialize(
-            null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION);
+            null, ASSET_ID, START_AGE, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION);
 
     // Assert
     assertThat(serialized).isNotNull();
@@ -282,10 +456,26 @@ public class LedgerValidationRequestTest {
     // Act
     byte[] serialized1 =
         LedgerValidationRequest.serialize(
-            NAMESPACE, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION);
+            NAMESPACE, ASSET_ID, START_AGE, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION);
     byte[] serialized2 =
         LedgerValidationRequest.serialize(
-            null, ASSET_ID, START_AGE, END_AGE, ENTITY_ID, KEY_VERSION);
+            null, ASSET_ID, START_AGE, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION);
+
+    // Assert
+    assertThat(serialized1).isNotEqualTo(serialized2);
+  }
+
+  @Test
+  public void serialize_WithDifferentContextNamespace_ShouldReturnDifferentBytes() {
+    // Arrange
+
+    // Act
+    byte[] serialized1 =
+        LedgerValidationRequest.serialize(
+            NAMESPACE, ASSET_ID, START_AGE, END_AGE, null, ENTITY_ID, KEY_VERSION);
+    byte[] serialized2 =
+        LedgerValidationRequest.serialize(
+            NAMESPACE, ASSET_ID, START_AGE, END_AGE, CONTEXT_NAMESPACE, ENTITY_ID, KEY_VERSION);
 
     // Assert
     assertThat(serialized1).isNotEqualTo(serialized2);

@@ -13,12 +13,9 @@ public class ContractScanner {
     this.manager = manager;
   }
 
-  public List<ContractEntry> scan(String entityId, int keyVersion) {
-    return scan(entityId, keyVersion, Optional.empty());
-  }
-
-  public List<ContractEntry> scan(String entityId, int keyVersion, Optional<String> contractId) {
-    List<ContractEntry> list = manager.scan(entityId, keyVersion);
+  public List<ContractEntry> scan(
+      String namespace, String entityId, int keyVersion, Optional<String> contractId) {
+    List<ContractEntry> list = manager.scan(namespace, entityId, keyVersion);
     if (!contractId.isPresent() || contractId.get().isEmpty()) {
       return list;
     }

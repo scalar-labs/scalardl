@@ -60,6 +60,7 @@ import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.JacksonSerDe;
 import com.scalar.dl.ledger.util.JsonpSerDe;
@@ -226,6 +227,26 @@ public abstract class LedgerIntegrationTestBase {
     return System.getProperty("scalardl.ledger.image", LedgerContainer.DEFAULT_IMAGE);
   }
 
+  /**
+   * Returns the physical namespace for asset tables. Override in subclasses that use a context
+   * namespace.
+   *
+   * @return The physical namespace for asset tables
+   */
+  protected String getPhysicalNamespace() {
+    return SCALAR_NAMESPACE;
+  }
+
+  /**
+   * Returns the context namespace for client configuration. Override in subclasses that use a
+   * non-default context namespace.
+   *
+   * @return The context namespace
+   */
+  protected String getContextNamespace() {
+    return Namespaces.DEFAULT;
+  }
+
   @BeforeAll
   void setUpCluster() throws Exception {
     logger.info(
@@ -255,8 +276,8 @@ public abstract class LedgerIntegrationTestBase {
 
   @AfterEach
   void truncateTables() throws Exception {
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_TABLE);
-    storageAdmin.truncateTable(SCALAR_NAMESPACE, ASSET_METADATA_TABLE);
+    storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_TABLE);
+    storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_METADATA_TABLE);
     transactionAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
   }
 
@@ -312,7 +333,7 @@ public abstract class LedgerIntegrationTestBase {
     return clientServiceB;
   }
 
-  private void createStorage() {
+  protected void createStorage() {
     Properties props = cluster.getStorageConfig().getPropertiesForHost();
     StorageFactory storageFactory = StorageFactory.create(props);
     storage = storageFactory.getStorage();
@@ -321,24 +342,35 @@ public abstract class LedgerIntegrationTestBase {
     transactionAdmin = transactionFactory.getTransactionAdmin();
   }
 
-  private void createSchema() throws SchemaLoaderException {
+  protected void createSchema() throws SchemaLoaderException {
     Properties props = cluster.getStorageConfig().getPropertiesForHost();
     SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
   }
 
-  private void createFunctionTableSchema() throws Exception {
+  protected void createFunctionTableSchema() throws Exception {
     transactionAdmin.createNamespace(FUNCTION_NAMESPACE, true);
     transactionAdmin.createTable(FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
   }
 
-  private ClientConfig getDigitalSignatureClientConfig(
+  protected ClientConfig getDigitalSignatureClientConfig(
       String entityId, String privateKey, String certificate) throws IOException {
     return getDigitalSignatureClientConfig(
-        entityId, privateKey, certificate, getAuthenticationMethod());
+        entityId, privateKey, certificate, getAuthenticationMethod(), getContextNamespace());
   }
 
-  private ClientConfig getDigitalSignatureClientConfig(
+  protected ClientConfig getDigitalSignatureClientConfig(
       String entityId, String privateKey, String certificate, AuthenticationMethod authMethod)
+      throws IOException {
+    return getDigitalSignatureClientConfig(
+        entityId, privateKey, certificate, authMethod, getContextNamespace());
+  }
+
+  protected ClientConfig getDigitalSignatureClientConfig(
+      String entityId,
+      String privateKey,
+      String certificate,
+      AuthenticationMethod authMethod,
+      String contextNamespace)
       throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
@@ -351,15 +383,23 @@ public abstract class LedgerIntegrationTestBase {
     props.setProperty(ClientConfig.DS_PRIVATE_KEY_PEM, privateKey);
     props.setProperty(ClientConfig.DS_CERT_PEM, certificate);
     props.setProperty(ClientConfig.DS_CERT_VERSION, "1");
+    props.setProperty(ClientConfig.CONTEXT_NAMESPACE, contextNamespace);
     return new ClientConfig(props);
   }
 
-  private ClientConfig getHmacClientConfig(String entityId, String secretKey) throws IOException {
-    return getHmacClientConfig(entityId, secretKey, getAuthenticationMethod());
+  protected ClientConfig getHmacClientConfig(String entityId, String secretKey) throws IOException {
+    return getHmacClientConfig(
+        entityId, secretKey, getAuthenticationMethod(), getContextNamespace());
   }
 
-  private ClientConfig getHmacClientConfig(
+  protected ClientConfig getHmacClientConfig(
       String entityId, String secretKey, AuthenticationMethod authMethod) throws IOException {
+    return getHmacClientConfig(entityId, secretKey, authMethod, getContextNamespace());
+  }
+
+  protected ClientConfig getHmacClientConfig(
+      String entityId, String secretKey, AuthenticationMethod authMethod, String contextNamespace)
+      throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
     props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
@@ -370,10 +410,11 @@ public abstract class LedgerIntegrationTestBase {
     props.setProperty(ClientConfig.ENTITY_ID, entityId);
     props.setProperty(ClientConfig.HMAC_SECRET_KEY, secretKey);
     props.setProperty(ClientConfig.HMAC_SECRET_KEY_VERSION, "1");
+    props.setProperty(ClientConfig.CONTEXT_NAMESPACE, contextNamespace);
     return new ClientConfig(props);
   }
 
-  private void createClientServices() throws IOException {
+  protected void createClientServices() throws IOException {
     if (getAuthenticationMethod().equals(AuthenticationMethod.DIGITAL_SIGNATURE)) {
       clientServiceA =
           clientServiceFactory.create(
@@ -508,7 +549,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 0))
@@ -536,7 +577,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 0))
@@ -564,7 +605,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 0))
@@ -587,7 +628,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .clusteringKey(Key.ofInt(ASSET_AGE_COLUMN_NAME, 0))
@@ -968,7 +1009,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert: Two entries should be created with age 0 and 1
     Scan scan =
         Scan.newBuilder()
-            .namespace(SCALAR_NAMESPACE)
+            .namespace(getPhysicalNamespace())
             .table(ASSET_TABLE)
             .partitionKey(Key.ofText(ASSET_ID_COLUMN_NAME, SOME_ASSET_ID_1))
             .build();

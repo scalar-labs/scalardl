@@ -5,7 +5,6 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import com.scalar.dl.ledger.util.Argument;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +27,10 @@ public class NonceValidator implements LedgerValidator {
 
   @Override
   public StatusCode validate(
-      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
+      LedgerTracerBase<?> tracer,
+      ContractMachine contract,
+      @Nonnull String namespace,
+      InternalAsset record) {
     String nonce = Argument.getNonce(record.argument());
 
     if (seenNonces.contains(nonce)) {

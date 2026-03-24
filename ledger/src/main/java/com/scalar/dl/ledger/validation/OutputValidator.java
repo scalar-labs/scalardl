@@ -6,7 +6,6 @@ import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
-import com.scalar.dl.ledger.statemachine.Ledger;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
@@ -19,8 +18,10 @@ public class OutputValidator implements LedgerValidator {
 
   @Override
   public StatusCode validate(
-      Ledger<?> ledger, ContractMachine contract, @Nonnull String namespace, InternalAsset record) {
-    LedgerTracerBase<?> tracer = (LedgerTracerBase<?>) ledger;
+      LedgerTracerBase<?> tracer,
+      ContractMachine contract,
+      @Nonnull String namespace,
+      InternalAsset record) {
     String recomputed = tracer.getOutput(AssetKey.of(namespace, record.id()));
     String stored = record.data();
     if (!recomputed.equals(stored)) {

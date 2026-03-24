@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.crypto;
 
 import com.google.inject.Inject;
 import com.scalar.dl.ledger.config.LedgerConfig;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
@@ -21,6 +22,7 @@ public class AuditorKeyValidator {
   public SignatureValidator getValidator() {
     if (config.getServersAuthenticationHmacSecretKey() == null) { // use digital signatures
       return certManager.getValidator(
+          Namespaces.DEFAULT,
           new CertificateEntry.Key(
               config.getAuditorCertHolderId(), config.getAuditorCertVersion()));
     } else { // use HMAC

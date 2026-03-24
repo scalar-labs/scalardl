@@ -104,6 +104,7 @@ public class ScalarTamperEvidentAssetLedgerTest {
     when(config.isProofEnabled()).thenReturn(false);
     when(config.getNamespace()).thenReturn(NAMESPACE);
     when(namespaceResolver.resolve(DEFAULT_NAMESPACE)).thenReturn(NAMESPACE);
+    when(request.getContextNamespaceOrDefault()).thenReturn(DEFAULT_NAMESPACE);
     ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,

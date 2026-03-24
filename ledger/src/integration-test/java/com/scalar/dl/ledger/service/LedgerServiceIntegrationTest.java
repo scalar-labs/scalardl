@@ -39,7 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -92,6 +94,7 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.contract.ContractUsingContext;
 import com.scalar.dl.ledger.service.contract.Create;
 import com.scalar.dl.ledger.service.contract.CreateWithJackson;
@@ -144,6 +147,8 @@ public class LedgerServiceIntegrationTest {
   @Mock private ClientIdentityKey clientIdentityKey;
   @Mock private FunctionManager functionManager;
   @Mock private NamespaceManager namespaceManager;
+  private static final String DEFAULT_NAMESPACE = Namespaces.DEFAULT;
+  private static final String ANY_NAMESPACE = "test_namespace";
   private LedgerService service;
   private DigitalSignatureSigner dsSigner;
   private DigitalSignatureValidator dsValidator;
@@ -177,7 +182,8 @@ public class LedgerServiceIntegrationTest {
 
     dsSigner = new DigitalSignatureSigner(PRIVATE_KEY_A);
     dsValidator = new DigitalSignatureValidator(CERTIFICATE_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(dsValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(dsValidator);
   }
 
   private String prepareArgumentForCreate(String assetId, int amount, String nonce) {
@@ -313,9 +319,10 @@ public class LedgerServiceIntegrationTest {
   private ContractRegistrationRequest prepareRegistrationRequest(
       SignatureSigner signer, String id, String name, byte[] contract) {
     byte[] serialized =
-        ContractRegistrationRequest.serialize(id, name, contract, null, ENTITY_ID_A, KEY_VERSION);
+        ContractRegistrationRequest.serialize(
+            id, name, contract, null, null, ENTITY_ID_A, KEY_VERSION);
     return new ContractRegistrationRequest(
-        id, name, contract, null, ENTITY_ID_A, KEY_VERSION, signer.sign(serialized));
+        id, name, contract, null, null, ENTITY_ID_A, KEY_VERSION, signer.sign(serialized));
   }
 
   private ContractExecutionRequest prepareExecutionRequest(
@@ -341,15 +348,17 @@ public class LedgerServiceIntegrationTest {
       @Nullable String functionArgument,
       @Nullable SignatureSigner auditorSigner) {
     byte[] serialized =
-        ContractExecutionRequest.serialize(contractId, contractArgument, ENTITY_ID_A, KEY_VERSION);
+        ContractExecutionRequest.serialize(
+            contractId, contractArgument, null, ENTITY_ID_A, KEY_VERSION);
     return new ContractExecutionRequest(
         SOME_NONCE,
-        ENTITY_ID_A,
-        KEY_VERSION,
         contractId,
         contractArgument,
         functionIds,
         functionArgument,
+        null,
+        ENTITY_ID_A,
+        KEY_VERSION,
         signer.sign(serialized),
         auditorSigner == null ? null : auditorSigner.sign(serialized));
   }
@@ -383,7 +392,7 @@ public class LedgerServiceIntegrationTest {
     assertThatCode(() -> service.register(request)).doesNotThrowAnyException();
 
     // Assert
-    verify(contractManager).register(any(ContractEntry.class));
+    verify(contractManager).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -398,7 +407,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -409,13 +418,14 @@ public class LedgerServiceIntegrationTest {
         prepareRegistrationRequest(dsSigner, CREATE_CONTRACT_ID1, CREATE_CONTRACT_ID1, contract);
     // simulate wrong cert id is specified (then wrong certificate is returned)
     dsValidator = new DigitalSignatureValidator(CERTIFICATE_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(dsValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(dsValidator);
 
     // Act
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -423,7 +433,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     byte[] contract = "create".getBytes(StandardCharsets.UTF_8);
     ContractRegistrationRequest request =
@@ -433,7 +444,7 @@ public class LedgerServiceIntegrationTest {
     assertThatCode(() -> service.register(request)).doesNotThrowAnyException();
 
     // Assert
-    verify(contractManager).register(any(ContractEntry.class));
+    verify(contractManager).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -441,7 +452,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     byte[] contract = "create".getBytes(StandardCharsets.UTF_8);
     ContractRegistrationRequest request =
@@ -451,7 +463,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.register(request)).isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(contractManager, never()).register(any(ContractEntry.class));
+    verify(contractManager, never()).register(eq(DEFAULT_NAMESPACE), any(ContractEntry.class));
   }
 
   @Test
@@ -459,12 +471,12 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Create());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -486,12 +498,12 @@ public class LedgerServiceIntegrationTest {
     String argument =
         prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Create());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -512,12 +524,12 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -540,12 +552,12 @@ public class LedgerServiceIntegrationTest {
     String argument =
         prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -566,12 +578,12 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -593,12 +605,12 @@ public class LedgerServiceIntegrationTest {
     String argument =
         prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -619,12 +631,12 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareStringArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithString());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -645,16 +657,17 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_A);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     String argument = prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(hmacSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new CreateWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -689,7 +702,8 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     hmacSigner = new HmacSigner(SECRET_KEY_A);
     hmacValidator = new HmacValidator(SECRET_KEY_B);
-    when(clientKeyValidator.getValidator(ENTITY_ID_A, KEY_VERSION)).thenReturn(hmacValidator);
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt()))
+        .thenReturn(hmacValidator);
 
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractExecutionRequest request =
@@ -722,12 +736,12 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Create());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -743,11 +757,11 @@ public class LedgerServiceIntegrationTest {
     // Arrange
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argument);
     UnloadableContractException toThrow = mock(UnloadableContractException.class);
-    when(contractManager.getInstance(any())).thenThrow(toThrow);
+    when(contractManager.getInstance(anyString(), any())).thenThrow(toThrow);
 
     // Act
     assertThatThrownBy(() -> service.execute(request)).isEqualTo(toThrow);
@@ -764,12 +778,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Payment());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -803,12 +817,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE, true);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Payment());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -842,12 +856,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new PaymentWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -881,12 +895,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE, true);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new PaymentWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -920,12 +934,12 @@ public class LedgerServiceIntegrationTest {
         prepareJacksonArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new PaymentWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -955,12 +969,12 @@ public class LedgerServiceIntegrationTest {
         prepareJacksonArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE, true);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new PaymentWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_1);
@@ -990,12 +1004,12 @@ public class LedgerServiceIntegrationTest {
         prepareStringArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_2, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new PaymentWithString());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareStringAssetMock(SOME_AMOUNT_1);
@@ -1024,12 +1038,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Payment());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     InternalAsset asset1 = prepareAssetMock(SOME_AMOUNT_3);
@@ -1052,12 +1066,12 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
     ContractMachine contract = new ContractMachine(new Payment());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     DatabaseException toThrow = mock(DatabaseException.class);
@@ -1078,7 +1092,8 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForPayment(
             Arrays.asList(SOME_ASSET_ID_1, SOME_ASSET_ID_2), SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(PAYMENT_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenThrow(MissingContractException.class);
+    when(contractManager.get(DEFAULT_NAMESPACE, entry.getKey()))
+        .thenThrow(MissingContractException.class);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, PAYMENT_CONTRACT_ID1, argument);
 
@@ -1086,7 +1101,7 @@ public class LedgerServiceIntegrationTest {
     assertThatThrownBy(() -> service.execute(request)).isInstanceOf(MissingContractException.class);
 
     // Assert
-    verify(contractManager, never()).getInstance(entry);
+    verify(contractManager, never()).getInstance(eq(DEFAULT_NAMESPACE), eq(entry));
   }
 
   @Test
@@ -1096,7 +1111,7 @@ public class LedgerServiceIntegrationTest {
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1105,10 +1120,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new Create());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunction());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1138,7 +1153,7 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1147,10 +1162,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new Create());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunction());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1179,7 +1194,7 @@ public class LedgerServiceIntegrationTest {
     String argument = prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1188,10 +1203,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new CreateWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJsonp());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1221,7 +1236,7 @@ public class LedgerServiceIntegrationTest {
         prepareArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1230,10 +1245,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new CreateWithJsonp());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJsonp());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1262,7 +1277,7 @@ public class LedgerServiceIntegrationTest {
     String argument = prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1271,10 +1286,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new CreateWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJackson());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1303,7 +1318,7 @@ public class LedgerServiceIntegrationTest {
         prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE, true, false);
     JsonObject functionArgument = prepareArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1312,10 +1327,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument.toString());
     ContractMachine contract = new ContractMachine(new CreateWithJackson());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithJackson());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1343,7 +1358,7 @@ public class LedgerServiceIntegrationTest {
     String argument = prepareStringArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     String functionArgument = prepareStringArgumentForCreateFunction(SOME_ID, SOME_BALANCE);
     ContractEntry entry = prepareContractEntry(CREATE_CONTRACT_ID1, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner,
@@ -1352,10 +1367,10 @@ public class LedgerServiceIntegrationTest {
             Collections.singletonList(CREATE_FUNCTION_ID1),
             functionArgument);
     ContractMachine contract = new ContractMachine(new CreateWithString());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new CreateFunctionWithString());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1400,15 +1415,16 @@ public class LedgerServiceIntegrationTest {
     ContractEntry.Key createContractKey = new ContractEntry.Key(CREATE_CONTRACT_ID1, certKey);
     ContractEntry.Key getBalanceContractKey =
         new ContractEntry.Key(GET_BALANCE_CONTRACT_ID1, certKey);
-    when(contractManager.get(createContractKey)).thenReturn(createEntry);
-    when(contractManager.get(getBalanceContractKey)).thenReturn(getBalanceEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, createContractKey)).thenReturn(createEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, getBalanceContractKey)).thenReturn(getBalanceEntry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID1, argumentForCreate);
     ContractMachine create = new ContractMachine(new Create());
-    create.initialize(contractManager, certKey);
+    create.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
     ContractMachine getBalance = new ContractMachine(new GetBalance());
-    getBalance.initialize(contractManager, certKey);
-    when(contractManager.getInstance(any())).thenReturn(create).thenReturn(getBalance);
+    getBalance.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, createEntry)).thenReturn(create);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, getBalanceEntry)).thenReturn(getBalance);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1455,15 +1471,16 @@ public class LedgerServiceIntegrationTest {
     ContractEntry.Key createContractKey = new ContractEntry.Key(CREATE_CONTRACT_ID2, certKey);
     ContractEntry.Key getBalanceContractKey =
         new ContractEntry.Key(GET_BALANCE_CONTRACT_ID2, certKey);
-    when(contractManager.get(createContractKey)).thenReturn(createEntry);
-    when(contractManager.get(getBalanceContractKey)).thenReturn(getBalanceEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, createContractKey)).thenReturn(createEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, getBalanceContractKey)).thenReturn(getBalanceEntry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID2, argumentForCreate);
     ContractMachine create = new ContractMachine(new CreateWithJsonp());
-    create.initialize(contractManager, certKey);
+    create.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
     ContractMachine getBalance = new ContractMachine(new GetBalanceWithJsonp());
-    getBalance.initialize(contractManager, certKey);
-    when(contractManager.getInstance(any())).thenReturn(create).thenReturn(getBalance);
+    getBalance.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, createEntry)).thenReturn(create);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, getBalanceEntry)).thenReturn(getBalance);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1507,15 +1524,16 @@ public class LedgerServiceIntegrationTest {
     ContractEntry.Key createContractKey = new ContractEntry.Key(CREATE_CONTRACT_ID3, certKey);
     ContractEntry.Key getBalanceContractKey =
         new ContractEntry.Key(GET_BALANCE_CONTRACT_ID3, certKey);
-    when(contractManager.get(createContractKey)).thenReturn(createEntry);
-    when(contractManager.get(getBalanceContractKey)).thenReturn(getBalanceEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, createContractKey)).thenReturn(createEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, getBalanceContractKey)).thenReturn(getBalanceEntry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID3, argumentForCreate);
     ContractMachine create = new ContractMachine(new CreateWithJackson());
-    create.initialize(contractManager, certKey);
+    create.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
     ContractMachine getBalance = new ContractMachine(new GetBalanceWithJackson());
-    getBalance.initialize(contractManager, certKey);
-    when(contractManager.getInstance(any())).thenReturn(create).thenReturn(getBalance);
+    getBalance.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, createEntry)).thenReturn(create);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, getBalanceEntry)).thenReturn(getBalance);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1553,15 +1571,16 @@ public class LedgerServiceIntegrationTest {
     ContractEntry.Key createContractKey = new ContractEntry.Key(CREATE_CONTRACT_ID4, certKey);
     ContractEntry.Key getBalanceContractKey =
         new ContractEntry.Key(GET_BALANCE_CONTRACT_ID4, certKey);
-    when(contractManager.get(createContractKey)).thenReturn(createEntry);
-    when(contractManager.get(getBalanceContractKey)).thenReturn(getBalanceEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, createContractKey)).thenReturn(createEntry);
+    when(contractManager.get(DEFAULT_NAMESPACE, getBalanceContractKey)).thenReturn(getBalanceEntry);
     ContractExecutionRequest request =
         prepareExecutionRequest(dsSigner, CREATE_CONTRACT_ID4, argumentForCreate);
     ContractMachine create = new ContractMachine(new CreateWithString());
-    create.initialize(contractManager, certKey);
+    create.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
     ContractMachine getBalance = new ContractMachine(new GetBalanceWithString());
-    getBalance.initialize(contractManager, certKey);
-    when(contractManager.getInstance(any())).thenReturn(create).thenReturn(getBalance);
+    getBalance.initialize(contractManager, DEFAULT_NAMESPACE, certKey);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, createEntry)).thenReturn(create);
+    when(contractManager.getInstance(DEFAULT_NAMESPACE, getBalanceEntry)).thenReturn(getBalance);
     Transaction transaction = new Transaction(ledger, null);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doNothing().when(ledger).put(anyString(), anyString());
@@ -1589,15 +1608,15 @@ public class LedgerServiceIntegrationTest {
     prepare(true);
     String argument = prepareJacksonArgumentForCreate(SOME_ASSET_ID_1, SOME_AMOUNT_1, SOME_NONCE);
     ContractEntry entry = prepareContractEntry(SOME_ID, ENTITY_ID_A, KEY_VERSION);
-    when(contractManager.get(entry.getKey())).thenReturn(entry);
+    when(contractManager.get(anyString(), any())).thenReturn(entry);
     ContractExecutionRequest request =
         prepareExecutionRequest(
             dsSigner, SOME_ID, argument, Collections.singletonList(SOME_ID), null);
     ContractMachine contract = new ContractMachine(new ContractUsingContext());
-    contract.initialize(contractManager, entry.getClientIdentityKey());
-    when(contractManager.getInstance(any())).thenReturn(contract);
+    contract.initialize(contractManager, ANY_NAMESPACE, entry.getClientIdentityKey());
+    when(contractManager.getInstance(anyString(), any())).thenReturn(contract);
     FunctionMachine function = new FunctionMachine(new FunctionUsingContext());
-    when(functionManager.getInstance(anyString())).thenReturn(function);
+    when(functionManager.getInstance(anyString(), anyString())).thenReturn(function);
     Transaction transaction = new Transaction(ledger, database);
     when(transactionManager.startWith(request)).thenReturn(transaction);
     doReturn(Collections.emptyList()).when(ledger).commit();

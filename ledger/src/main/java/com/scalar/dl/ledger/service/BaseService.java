@@ -16,6 +16,7 @@ import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
+import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -43,28 +44,30 @@ public class BaseService {
   }
 
   public void register(CertificateRegistrationRequest request) {
-    certManager.register(CertificateEntry.from(request));
+    certManager.register(request.getContextNamespaceOrDefault(), CertificateEntry.from(request));
   }
 
-  public void register(SecretEntry entry) {
-    secretManager.register(entry);
+  public void register(SecretRegistrationRequest request) {
+    secretManager.register(request.getContextNamespaceOrDefault(), SecretEntry.from(request));
   }
 
   public void register(ContractRegistrationRequest request) {
+    String namespace = request.getContextNamespaceOrDefault();
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
-    contractManager.register(ContractEntry.from(request));
+    contractManager.register(namespace, ContractEntry.from(request));
   }
 
   public List<ContractEntry> list(ContractsListingRequest request) {
+    String namespace = request.getContextNamespaceOrDefault();
     SignatureValidator validator =
-        clientKeyValidator.getValidator(request.getEntityId(), request.getKeyVersion());
+        clientKeyValidator.getValidator(namespace, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
     return new ContractScanner(contractManager)
-        .scan(request.getEntityId(), request.getKeyVersion(), request.getContractId());
+        .scan(namespace, request.getEntityId(), request.getKeyVersion(), request.getContractId());
   }
 
   public void create(NamespaceCreationRequest request) {
