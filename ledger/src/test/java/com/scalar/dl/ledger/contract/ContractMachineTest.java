@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ContractMachineTest {
+  private static final String ANY_NAMESPACE = "test_namespace";
   @Mock private Ledger ledger;
   @Mock private ContractManager contractManager;
   @Mock private CertificateEntry.Key certKey;
@@ -73,10 +74,10 @@ public class ContractMachineTest {
     machine = new ContractMachine(contract);
 
     // Act
-    machine.initialize(contractManager, certKey);
+    machine.initialize(contractManager, ANY_NAMESPACE, certKey);
 
     // Assert
-    verify(contract).initialize(contractManager, certKey);
+    verify(contract).initialize(contractManager, ANY_NAMESPACE, certKey);
   }
 
   @Test

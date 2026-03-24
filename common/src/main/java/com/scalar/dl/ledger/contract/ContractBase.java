@@ -11,12 +11,14 @@ import javax.annotation.Nullable;
 
 abstract class ContractBase<T> {
   private ContractManager manager;
+  private String namespace;
   private ClientIdentityKey clientIdentityKey;
   private T context;
   private boolean isRoot;
 
-  void initialize(ContractManager manager, ClientIdentityKey clientIdentityKey) {
+  void initialize(ContractManager manager, String namespace, ClientIdentityKey clientIdentityKey) {
     this.manager = checkNotNull(manager);
+    this.namespace = checkNotNull(namespace);
     this.clientIdentityKey = clientIdentityKey;
     this.isRoot = false;
   }
@@ -91,8 +93,9 @@ abstract class ContractBase<T> {
     checkArgument(manager != null, "please call initialize() before this.");
 
     ContractEntry.Key key = new ContractEntry.Key(contractId, clientIdentityKey);
-    ContractEntry entry = manager.get(key);
-    ContractBase<T> contract = (ContractBase<T>) manager.getInstance(entry).getContractBase();
+    ContractEntry entry = manager.get(namespace, key);
+    ContractBase<T> contract =
+        (ContractBase<T>) manager.getInstance(namespace, entry).getContractBase();
     T properties = entry.getProperties().map(this::deserialize).orElse(null);
     T result = contract.invoke(ledger, argument, properties);
     setContext(contract.getContext()); // context is propagated to the root

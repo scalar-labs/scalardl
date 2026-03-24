@@ -58,8 +58,10 @@ public abstract class ValidationService {
 
   protected StatusCode validateEach(
       Context context, List<LedgerValidator> validators, String namespace, InternalAsset asset) {
-    ContractEntry entry = contractManager.get(ContractEntry.Key.deserialize(asset.contractId()));
-    ContractMachine contract = contractManager.getInstance(entry);
+    ContractEntry entry =
+        contractManager.get(
+            context.getNamespace(), ContractEntry.Key.deserialize(asset.contractId()));
+    ContractMachine contract = contractManager.getInstance(context.getNamespace(), entry);
     LedgerTracerBase<?> tracer = getLedgerTracerBase(context, contract.getDeserializationType());
     tracer.setInput(asset.input());
     String contractArgument = Argument.getContractArgument(asset.argument());

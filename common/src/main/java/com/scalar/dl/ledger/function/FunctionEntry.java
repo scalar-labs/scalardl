@@ -3,6 +3,7 @@ package com.scalar.dl.ledger.function;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
+import com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest;
 import com.scalar.dl.ledger.util.Time;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Arrays;
@@ -105,6 +106,14 @@ public class FunctionEntry {
   }
 
   public static FunctionEntry from(FunctionRegistrationRequest request) {
+    return new FunctionEntry(
+        request.getFunctionId(),
+        request.getFunctionBinaryName(),
+        request.getFunctionByteCode(),
+        Time.getCurrentUtcTimeInMillis());
+  }
+
+  public static FunctionEntry from(SignedFunctionRegistrationRequest request) {
     return new FunctionEntry(
         request.getFunctionId(),
         request.getFunctionBinaryName(),
