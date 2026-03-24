@@ -20,6 +20,7 @@ public class LedgerTestCluster extends AbstractTestCluster {
 
   private final String ledgerImage;
   private LedgerContainer ledger;
+  private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
 
   /**
    * Creates a test cluster with default settings.
@@ -56,6 +57,17 @@ public class LedgerTestCluster extends AbstractTestCluster {
     this.ledgerImage = ledgerImage;
   }
 
+  /**
+   * Enables function registration via the non-privileged port using signed requests. This is
+   * required for function registration when using a context namespace other than "default".
+   *
+   * @return This cluster instance
+   */
+  public LedgerTestCluster withNonPrivilegedPortFunctionRegistrationEnabled() {
+    this.nonPrivilegedPortFunctionRegistrationEnabled = true;
+    return this;
+  }
+
   @Override
   @SuppressWarnings("resource")
   protected void startContainers() {
@@ -65,6 +77,9 @@ public class LedgerTestCluster extends AbstractTestCluster {
     ledger.withAuthenticationMethod(authenticationMethod);
     ledger.withProofEnabled();
     ledger.withProofPrivateKey(TestCertificates.LEDGER_PRIVATE_KEY);
+    if (nonPrivilegedPortFunctionRegistrationEnabled) {
+      ledger.withNonPrivilegedPortFunctionRegistrationEnabled();
+    }
     ledger.withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("ledger"));
     ledger.start();
     logger.info("Ledger container started on port {}", ledger.getPort());
