@@ -25,6 +25,7 @@ import com.scalar.dl.rpc.ExecutionAbortResponse;
 import com.scalar.dl.rpc.LedgerGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import com.scalar.dl.rpc.TransactionState;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
@@ -51,6 +52,14 @@ public class LedgerService extends LedgerGrpc.LedgerImplBase {
   public void registerContract(
       ContractRegistrationRequest request, StreamObserver<Empty> responseObserver) {
     ThrowableConsumer<ContractRegistrationRequest> f = r -> ledger.register(convert(r));
+
+    commonService.serve(f, request, responseObserver);
+  }
+
+  @Override
+  public void registerFunction(
+      SignedFunctionRegistrationRequest request, StreamObserver<Empty> responseObserver) {
+    ThrowableConsumer<SignedFunctionRegistrationRequest> f = r -> ledger.register(convert(r));
 
     commonService.serve(f, request, responseObserver);
   }

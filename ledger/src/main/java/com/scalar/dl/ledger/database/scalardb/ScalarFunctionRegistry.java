@@ -33,11 +33,14 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
           .addPartitionKey(FunctionEntry.ID)
           .build();
   private final DistributedStorage storage;
+  private final ScalarNamespaceResolver namespaceResolver;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public ScalarFunctionRegistry(DistributedStorage storage) {
+  public ScalarFunctionRegistry(
+      DistributedStorage storage, ScalarNamespaceResolver namespaceResolver) {
     this.storage = storage;
+    this.namespaceResolver = namespaceResolver;
   }
 
   @Override
@@ -46,7 +49,8 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
   }
 
   @Override
-  public void bind(FunctionEntry entry) {
+  public void bind(String namespace, FunctionEntry entry) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
     long currentTime = System.currentTimeMillis();
 
     ScalarFunctionEntry wrapped = new ScalarFunctionEntry(entry);
@@ -56,6 +60,7 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
             .withValue(wrapped.getByteCodeValue())
             .withValue(FunctionEntry.REGISTERED_AT, currentTime)
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(resolvedNamespace)
             .forTable(FUNCTION_TABLE);
 
     try {
@@ -66,10 +71,12 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
   }
 
   @Override
-  public void unbind(String id) {
+  public void unbind(String namespace, String id) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
     Delete delete =
         new Delete(new Key(FunctionEntry.ID, id))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(resolvedNamespace)
             .forTable(FUNCTION_TABLE);
 
     try {
@@ -80,10 +87,12 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
   }
 
   @Override
-  public Optional<FunctionEntry> lookup(String id) {
+  public Optional<FunctionEntry> lookup(String namespace, String id) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
     Get get =
         new Get(new Key(FunctionEntry.ID, id))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(resolvedNamespace)
             .forTable(FUNCTION_TABLE);
 
     try {

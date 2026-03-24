@@ -24,7 +24,7 @@ public class DeprecatedLedgerTracer extends LedgerTracerBase<JsonObject>
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public DeprecatedLedgerTracer(LedgerTracer tracer) {
-    super(null);
+    super(tracer.getContext());
     this.tracer = tracer;
   }
 

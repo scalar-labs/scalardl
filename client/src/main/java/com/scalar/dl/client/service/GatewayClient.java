@@ -26,6 +26,7 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import java.util.ArrayList;
@@ -120,6 +121,17 @@ public class GatewayClient extends AbstractGatewayClient {
   public void register(FunctionRegistrationRequest request) {
     ThrowableConsumer<FunctionRegistrationRequest> f =
         r -> getGatewayPrivilegedStub().registerFunction(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+  }
+
+  @Override
+  public void register(SignedFunctionRegistrationRequest request) {
+    ThrowableConsumer<SignedFunctionRegistrationRequest> f =
+        r -> getGatewayStub().registerFunction(r);
     try {
       accept(f, request);
     } catch (Exception e) {

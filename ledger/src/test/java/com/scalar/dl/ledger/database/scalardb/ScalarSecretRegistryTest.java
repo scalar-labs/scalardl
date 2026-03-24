@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -37,13 +36,18 @@ public class ScalarSecretRegistryTest {
   private static final String SOME_SECRET_KEY = "secret_key";
   private static final long SOME_REGISTERED_AT = 1L;
   private static final byte[] SOME_ENCRYPTED = "encrypted".getBytes(StandardCharsets.UTF_8);
+  private static final String ANY_NAMESPACE = "test_namespace";
+  private static final String RESOLVED_NAMESPACE = "resolved_namespace";
   @Mock private DistributedStorage storage;
   @Mock private Cipher cipher;
-  @InjectMocks private ScalarSecretRegistry registry;
+  @Mock private ScalarNamespaceResolver namespaceResolver;
+  private ScalarSecretRegistry registry;
 
   @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
+    when(namespaceResolver.resolve(ANY_NAMESPACE)).thenReturn(RESOLVED_NAMESPACE);
+    registry = new ScalarSecretRegistry(storage, cipher, namespaceResolver);
   }
 
   private Optional<Result> configureResult(SecretEntry entry) {
@@ -67,7 +71,7 @@ public class ScalarSecretRegistryTest {
     when(cipher.encrypt(any(), anyString())).thenReturn(SOME_ENCRYPTED);
 
     // Act Assert
-    assertThatCode(() -> registry.bind(entry)).doesNotThrowAnyException();
+    assertThatCode(() -> registry.bind(ANY_NAMESPACE, entry)).doesNotThrowAnyException();
 
     // Assert
     Put expected =
@@ -77,6 +81,7 @@ public class ScalarSecretRegistryTest {
             .withValue(SecretEntry.SECRET_KEY, SOME_ENCRYPTED)
             .withValue(SecretEntry.REGISTERED_AT, SOME_REGISTERED_AT)
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarSecretRegistry.TABLE);
     verify(storage).put(expected);
   }
@@ -91,7 +96,7 @@ public class ScalarSecretRegistryTest {
     doThrow(toThrow).when(storage).put(any(Put.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.bind(entry))
+    assertThatThrownBy(() -> registry.bind(ANY_NAMESPACE, entry))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -103,7 +108,7 @@ public class ScalarSecretRegistryTest {
     doNothing().when(storage).delete(any(Delete.class));
 
     // Act Assert
-    assertThatCode(() -> registry.unbind(key)).doesNotThrowAnyException();
+    assertThatCode(() -> registry.unbind(ANY_NAMESPACE, key)).doesNotThrowAnyException();
 
     // Assert
     Delete expected =
@@ -111,6 +116,7 @@ public class ScalarSecretRegistryTest {
                 new Key(SecretEntry.ENTITY_ID, SOME_ENTITY_ID),
                 new Key(SecretEntry.KEY_VERSION, SOME_KEY_VERSION))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarSecretRegistry.TABLE);
     verify(storage).delete(expected);
   }
@@ -124,7 +130,7 @@ public class ScalarSecretRegistryTest {
     doThrow(toThrow).when(storage).delete(any(Delete.class));
 
     // Act Assert
-    assertThatThrownBy(() -> registry.unbind(key))
+    assertThatThrownBy(() -> registry.unbind(ANY_NAMESPACE, key))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
   }
@@ -140,7 +146,7 @@ public class ScalarSecretRegistryTest {
         .thenReturn(SOME_SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 
     // Act Assert
-    SecretEntry actual = registry.lookup(entry.getKey());
+    SecretEntry actual = registry.lookup(ANY_NAMESPACE, entry.getKey());
 
     // Assert
     assertThat(actual).isEqualTo(entry);
@@ -149,6 +155,7 @@ public class ScalarSecretRegistryTest {
                 new Key(SecretEntry.ENTITY_ID, SOME_ENTITY_ID),
                 new Key(SecretEntry.KEY_VERSION, SOME_KEY_VERSION))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(RESOLVED_NAMESPACE)
             .forTable(ScalarSecretRegistry.TABLE);
     verify(storage).get(expected);
   }
@@ -161,7 +168,8 @@ public class ScalarSecretRegistryTest {
     when(storage.get(any(Get.class))).thenReturn(Optional.empty());
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(key)).isInstanceOf(MissingSecretException.class);
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, key))
+        .isInstanceOf(MissingSecretException.class);
 
     // Assert
     verify(storage).get(any(Get.class));
@@ -176,7 +184,7 @@ public class ScalarSecretRegistryTest {
     when(storage.get(any(Get.class))).thenThrow(toThrow);
 
     // Act Assert
-    assertThatThrownBy(() -> registry.lookup(key))
+    assertThatThrownBy(() -> registry.lookup(ANY_NAMESPACE, key))
         .isInstanceOf(DatabaseException.class)
         .hasCause(toThrow);
 

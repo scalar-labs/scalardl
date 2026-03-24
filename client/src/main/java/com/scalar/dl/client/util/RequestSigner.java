@@ -9,6 +9,7 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import javax.annotation.concurrent.Immutable;
 
 @Immutable
@@ -20,6 +21,21 @@ public class RequestSigner {
     this.signer = signer;
   }
 
+  public SignedFunctionRegistrationRequest.Builder sign(
+      SignedFunctionRegistrationRequest.Builder builder) {
+    byte[] bytes =
+        com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest.serialize(
+            builder.getFunctionId(),
+            builder.getFunctionBinaryName(),
+            builder.getFunctionByteCode().toByteArray(),
+            builder.getContextNamespace(),
+            builder.getEntityId(),
+            builder.getKeyVersion());
+
+    byte[] signature = signer.sign(bytes);
+    return builder.setSignature(ByteString.copyFrom(signature));
+  }
+
   public ContractRegistrationRequest.Builder sign(ContractRegistrationRequest.Builder builder) {
     byte[] bytes =
         com.scalar.dl.ledger.model.ContractRegistrationRequest.serialize(
@@ -27,6 +43,7 @@ public class RequestSigner {
             builder.getContractBinaryName(),
             builder.getContractByteCode().toByteArray(),
             builder.getContractProperties(),
+            builder.getContextNamespace(),
             builder.getEntityId(),
             builder.getKeyVersion());
 
@@ -37,7 +54,10 @@ public class RequestSigner {
   public ContractsListingRequest.Builder sign(ContractsListingRequest.Builder builder) {
     byte[] bytes =
         com.scalar.dl.ledger.model.ContractsListingRequest.serialize(
-            builder.getContractId(), builder.getEntityId(), builder.getKeyVersion());
+            builder.getContractId(),
+            builder.getContextNamespace(),
+            builder.getEntityId(),
+            builder.getKeyVersion());
 
     byte[] signature = signer.sign(bytes);
     return builder.setSignature(ByteString.copyFrom(signature));
@@ -48,6 +68,7 @@ public class RequestSigner {
         com.scalar.dl.ledger.model.ContractExecutionRequest.serialize(
             builder.getContractId(),
             builder.getContractArgument(),
+            builder.getContextNamespace(),
             builder.getEntityId(),
             builder.getKeyVersion());
 
@@ -62,6 +83,7 @@ public class RequestSigner {
             builder.getAssetId(),
             builder.getStartAge(),
             builder.getEndAge(),
+            builder.getContextNamespace(),
             builder.getEntityId(),
             builder.getKeyVersion());
 

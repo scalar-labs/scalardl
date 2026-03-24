@@ -37,11 +37,14 @@ public class ScalarCertificateRegistry implements CertificateRegistry, TableMeta
           .addClusteringKey(CertificateEntry.VERSION)
           .build();
   private final DistributedStorage storage;
+  private final ScalarNamespaceResolver namespaceResolver;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public ScalarCertificateRegistry(DistributedStorage storage) {
+  public ScalarCertificateRegistry(
+      DistributedStorage storage, ScalarNamespaceResolver namespaceResolver) {
     this.storage = checkNotNull(storage);
+    this.namespaceResolver = checkNotNull(namespaceResolver);
   }
 
   @Override
@@ -50,7 +53,7 @@ public class ScalarCertificateRegistry implements CertificateRegistry, TableMeta
   }
 
   @Override
-  public void bind(CertificateEntry entry) {
+  public void bind(String namespace, CertificateEntry entry) {
     Put put =
         new Put(
                 new Key(CertificateEntry.ENTITY_ID, entry.getEntityId()),
@@ -58,6 +61,7 @@ public class ScalarCertificateRegistry implements CertificateRegistry, TableMeta
             .withValue(CertificateEntry.PEM, entry.getPem())
             .withValue(CertificateEntry.REGISTERED_AT, entry.getRegisteredAt())
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     try {
@@ -68,12 +72,13 @@ public class ScalarCertificateRegistry implements CertificateRegistry, TableMeta
   }
 
   @Override
-  public void unbind(CertificateEntry.Key key) {
+  public void unbind(String namespace, CertificateEntry.Key key) {
     Delete delete =
         new Delete(
                 new Key(CertificateEntry.ENTITY_ID, key.getEntityId()),
                 new Key(CertificateEntry.VERSION, key.getKeyVersion()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     try {
@@ -84,12 +89,13 @@ public class ScalarCertificateRegistry implements CertificateRegistry, TableMeta
   }
 
   @Override
-  public CertificateEntry lookup(CertificateEntry.Key key) {
+  public CertificateEntry lookup(String namespace, CertificateEntry.Key key) {
     Get get =
         new Get(
                 new Key(CertificateEntry.ENTITY_ID, key.getEntityId()),
                 new Key(CertificateEntry.VERSION, key.getKeyVersion()))
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(namespaceResolver.resolve(namespace))
             .forTable(TABLE);
 
     Result result;

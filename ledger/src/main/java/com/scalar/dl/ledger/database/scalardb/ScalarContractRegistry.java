@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
@@ -64,16 +66,18 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
   private static final int CONTRACT_CACHE_SIZE = 1048576;
   private static final int CONTRACT_CLASS_CACHE_SIZE = 128;
   private final DistributedStorage storage;
-  private final Cache<ContractEntry.Key, Result> contractCache;
-  private final Cache<String, Result> contractClassCache;
+  private final ScalarNamespaceResolver namespaceResolver;
+  private final ConcurrentMap<String, Cache<ContractEntry.Key, Result>> contractCaches;
+  private final ConcurrentMap<String, Cache<String, Result>> contractClassCaches;
 
   @Inject
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public ScalarContractRegistry(DistributedStorage storage) {
+  public ScalarContractRegistry(
+      DistributedStorage storage, ScalarNamespaceResolver namespaceResolver) {
     this.storage = storage;
-    this.contractCache = CacheBuilder.newBuilder().maximumSize(CONTRACT_CACHE_SIZE).build();
-    this.contractClassCache =
-        CacheBuilder.newBuilder().maximumSize(CONTRACT_CLASS_CACHE_SIZE).build();
+    this.namespaceResolver = namespaceResolver;
+    this.contractCaches = new ConcurrentHashMap<>();
+    this.contractClassCaches = new ConcurrentHashMap<>();
   }
 
   @Override
@@ -86,8 +90,9 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
   }
 
   @Override
-  public void bind(ContractEntry entry) {
-    if (hasDifferentClassWithSameName(entry)) {
+  public void bind(String namespace, ContractEntry entry) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
+    if (hasDifferentClassWithSameName(resolvedNamespace, entry)) {
       throw new DatabaseException(CommonError.DIFFERENT_CLASS_WITH_SAME_NAME);
     }
 
@@ -97,6 +102,7 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
             .withValue(wrapped.getByteCodeValue())
             .withCondition(new PutIfNotExists())
             .withConsistency(Consistency.LINEARIZABLE)
+            .forNamespace(resolvedNamespace)
             .forTable(CONTRACT_CLASS_TABLE);
 
     Put putForContract =
@@ -108,6 +114,7 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
             .withValue(wrapped.getRegisteredAtValue())
             .withValue(wrapped.getSignatureValue())
             .withConsistency(Consistency.SEQUENTIAL)
+            .forNamespace(resolvedNamespace)
             .forTable(CONTRACT_TABLE);
 
     try {
@@ -126,23 +133,29 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
   }
 
   @Override
-  public void unbind(ContractEntry.Key key) {
+  public void unbind(String namespace, ContractEntry.Key key) {
     throw new UnsupportedOperationException("delete operation is not supported");
   }
 
   @Override
-  public ContractEntry lookup(ContractEntry.Key key) {
+  public ContractEntry lookup(String namespace, ContractEntry.Key key) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
+
+    Cache<ContractEntry.Key, Result> contractCache =
+        contractCaches.computeIfAbsent(resolvedNamespace, this::createContractCache);
     Result resultForContract = contractCache.getIfPresent(key);
     if (resultForContract == null) {
-      Get getForContract = prepareGetForContract(key);
+      Get getForContract = prepareGetForContract(resolvedNamespace, key);
       resultForContract = get(getForContract);
       contractCache.put(key, resultForContract);
     }
 
     String binaryName = getNameFrom(resultForContract);
+    Cache<String, Result> contractClassCache =
+        contractClassCaches.computeIfAbsent(resolvedNamespace, this::createContractClassCache);
     Result resultForClass = contractClassCache.getIfPresent(binaryName);
     if (resultForClass == null) {
-      Get getForClass = prepareGetForClass(binaryName);
+      Get getForClass = prepareGetForClass(resolvedNamespace, binaryName);
       resultForClass = get(getForClass);
       contractClassCache.put(binaryName, resultForClass);
     }
@@ -151,24 +164,27 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
   }
 
   @Override
-  public List<ContractEntry> scan(String entityId) {
-    return scan(entityId, 0);
+  public List<ContractEntry> scan(String namespace, String entityId) {
+    return scan(namespace, entityId, 0);
   }
 
   @Override
-  public List<ContractEntry> scan(String entityId, int certVersion) {
+  public List<ContractEntry> scan(String namespace, String entityId, int certVersion) {
+    String resolvedNamespace = namespaceResolver.resolve(namespace);
     Scan scan = new Scan(new Key(ContractEntry.ENTITY_ID, entityId));
     if (certVersion > 0) {
       scan.withStart(new Key(ContractEntry.KEY_VERSION, certVersion))
           .withEnd(new Key(ContractEntry.KEY_VERSION, certVersion));
     }
-    scan.withConsistency(Consistency.SEQUENTIAL).forTable(CONTRACT_TABLE);
+    scan.withConsistency(Consistency.SEQUENTIAL)
+        .forNamespace(resolvedNamespace)
+        .forTable(CONTRACT_TABLE);
 
     Scanner scanner = null;
     try {
       scanner = storage.scan(scan);
       return Streams.stream(scanner)
-          .map(r -> toContractEntry(r, get(prepareGetForClass(getNameFrom(r)))))
+          .map(r -> toContractEntry(r, get(prepareGetForClass(resolvedNamespace, getNameFrom(r)))))
           .collect(Collectors.toList());
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.SCANNING_CONTRACT_FAILED, e, e.getMessage());
@@ -183,19 +199,21 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
     }
   }
 
-  private Get prepareGetForContract(ContractEntry.Key key) {
+  private Get prepareGetForContract(String namespace, ContractEntry.Key key) {
     return new Get(
             new Key(ContractEntry.ENTITY_ID, key.getClientIdentityKey().getEntityId()),
             new Key(
                 new IntValue(ContractEntry.KEY_VERSION, key.getClientIdentityKey().getKeyVersion()),
                 new TextValue(ContractEntry.ID, key.getId())))
         .withConsistency(Consistency.SEQUENTIAL)
+        .forNamespace(namespace)
         .forTable(CONTRACT_TABLE);
   }
 
-  private Get prepareGetForClass(String name) {
+  private Get prepareGetForClass(String namespace, String name) {
     return new Get(new Key(ContractEntry.BINARY_NAME, name))
         .withConsistency(Consistency.LINEARIZABLE)
+        .forNamespace(namespace)
         .forTable(CONTRACT_CLASS_TABLE);
   }
 
@@ -209,8 +227,8 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
     }
   }
 
-  private boolean hasDifferentClassWithSameName(ContractEntry entry) {
-    Get getForClass = prepareGetForClass(entry.getBinaryName());
+  private boolean hasDifferentClassWithSameName(String namespace, ContractEntry entry) {
+    Get getForClass = prepareGetForClass(namespace, entry.getBinaryName());
     try {
       Result resultForClass = get(getForClass);
       byte[] bytesRegistered = getContractBytesFrom(resultForClass);
@@ -277,5 +295,27 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
       throw new UnexpectedValueException(
           CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
     }
+  }
+
+  /**
+   * Creates a cache for contract metadata.
+   *
+   * @param namespace currently unused but required for method reference in computeIfAbsent. May be
+   *     used in the future for namespace-specific cache configuration.
+   * @return a new cache instance for contract metadata
+   */
+  private Cache<ContractEntry.Key, Result> createContractCache(String namespace) {
+    return CacheBuilder.newBuilder().maximumSize(CONTRACT_CACHE_SIZE).build();
+  }
+
+  /**
+   * Creates a cache for contract class definitions.
+   *
+   * @param namespace currently unused but required for method reference in computeIfAbsent. May be
+   *     used in the future for namespace-specific cache configuration.
+   * @return a new cache instance for contract class definitions
+   */
+  private Cache<String, Result> createContractClassCache(String namespace) {
+    return CacheBuilder.newBuilder().maximumSize(CONTRACT_CLASS_CACHE_SIZE).build();
   }
 }

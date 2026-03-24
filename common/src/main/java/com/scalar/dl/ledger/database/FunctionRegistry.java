@@ -5,9 +5,9 @@ import java.util.Optional;
 
 public interface FunctionRegistry {
 
-  void bind(FunctionEntry entry);
+  void bind(String namespace, FunctionEntry entry);
 
-  void unbind(String id);
+  void unbind(String namespace, String id);
 
-  Optional<FunctionEntry> lookup(String id);
+  Optional<FunctionEntry> lookup(String namespace, String id);
 }

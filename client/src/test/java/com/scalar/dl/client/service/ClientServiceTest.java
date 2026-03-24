@@ -29,6 +29,7 @@ import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.service.ThrowableFunction;
@@ -42,6 +43,7 @@ import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +106,7 @@ public class ClientServiceTest {
     when(hmacIdentityConfig.getEntityId()).thenReturn(ANY_ENTITY_ID);
     when(hmacIdentityConfig.getSecretKeyVersion()).thenReturn(ANY_KEY_VERSION);
     when(hmacIdentityConfig.getSecretKey()).thenReturn(ANY_SECRET_KEY);
+    when(config.getContextNamespace()).thenReturn(Namespaces.DEFAULT);
     service = spy(new ClientService(config, handler, signer));
     anyFilePath = File.createTempFile(ANY_FILE_NAME, "").getPath();
   }
@@ -215,6 +218,7 @@ public class ClientServiceTest {
   public void bootstrap_OtherExceptionThrown_ShouldThrowException() {
     // Arrange
     ClientException exception = new ClientException("Invalid request", StatusCode.INVALID_REQUEST);
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
     when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
     doThrow(exception).when(service).registerCertificate();
 
@@ -258,6 +262,22 @@ public class ClientServiceTest {
     verify(service).registerCertificate();
     verify(service, never())
         .registerContract(anyString(), anyString(), any(byte[].class), eq((String) null));
+  }
+
+  @Test
+  public void bootstrap_NonDefaultContextNamespaceGiven_ShouldSkipCertificateRegistration() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getAuthenticationMethod()).thenReturn(AuthenticationMethod.DIGITAL_SIGNATURE);
+    when(config.getContextNamespace()).thenReturn(ANY_NAMESPACE);
+    when(config.isAuditorEnabled()).thenReturn(false);
+
+    // Act
+    service.bootstrap();
+
+    // Assert
+    verify(service, never()).registerCertificate();
+    verify(service, never()).registerSecret();
   }
 
   @Test
@@ -315,6 +335,44 @@ public class ClientServiceTest {
   }
 
   @Test
+  public void
+      registerCertificate_WithNamespaceGiven_ShouldRegisterWithContextNamespaceForNonDefaultNamespace() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    service.registerCertificate(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, ANY_CERT);
+
+    // Assert
+    CertificateRegistrationRequest expected =
+        CertificateRegistrationRequest.newBuilder()
+            .setEntityId(ANY_ENTITY_ID)
+            .setKeyVersion(ANY_KEY_VERSION)
+            .setCertPem(ANY_CERT)
+            .setContextNamespace(ANY_NAMESPACE)
+            .build();
+    verify(handler).registerCertificate(expected);
+  }
+
+  @Test
+  public void registerCertificate_WithNullArguments_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act & Assert - entityId is null
+    Throwable thrownForNullEntityId =
+        catchThrowable(
+            () -> service.registerCertificate(ANY_NAMESPACE, null, ANY_KEY_VERSION, ANY_CERT));
+    assertThat(thrownForNullEntityId).isExactlyInstanceOf(IllegalArgumentException.class);
+
+    // Act & Assert - pem is null
+    Throwable thrownForNullPem =
+        catchThrowable(
+            () -> service.registerCertificate(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, null));
+    assertThat(thrownForNullPem).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   public void registerSecret_CorrectInputsGiven_ShouldRegisterProperly() {
     // Arrange
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
@@ -369,6 +427,44 @@ public class ClientServiceTest {
   }
 
   @Test
+  public void
+      registerSecret_WithNamespaceGiven_ShouldRegisterWithContextNamespaceForNonDefaultNamespace() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act
+    service.registerSecret(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, ANY_SECRET_KEY);
+
+    // Assert
+    SecretRegistrationRequest expected =
+        SecretRegistrationRequest.newBuilder()
+            .setEntityId(ANY_ENTITY_ID)
+            .setKeyVersion(ANY_KEY_VERSION)
+            .setSecretKey(ANY_SECRET_KEY)
+            .setContextNamespace(ANY_NAMESPACE)
+            .build();
+    verify(handler).registerSecret(expected);
+  }
+
+  @Test
+  public void registerSecret_WithNullArguments_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+
+    // Act & Assert - entityId is null
+    Throwable thrownForNullEntityId =
+        catchThrowable(
+            () -> service.registerSecret(ANY_NAMESPACE, null, ANY_KEY_VERSION, ANY_SECRET_KEY));
+    assertThat(thrownForNullEntityId).isExactlyInstanceOf(IllegalArgumentException.class);
+
+    // Act & Assert - secretKey is null
+    Throwable thrownForNullSecretKey =
+        catchThrowable(
+            () -> service.registerSecret(ANY_NAMESPACE, ANY_ENTITY_ID, ANY_KEY_VERSION, null));
+    assertThat(thrownForNullSecretKey).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   public void registerFunction_CorrectInputsGiven_ShouldRegisterProperly() {
     // Arrange
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
@@ -378,6 +474,21 @@ public class ClientServiceTest {
 
     // Assert
     verify(client).register(any(FunctionRegistrationRequest.class));
+  }
+
+  @Test
+  public void registerFunction_NonDefaultNamespaceGiven_ShouldRegisterWithSignedRequest() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    when(config.getContextNamespace()).thenReturn(ANY_NAMESPACE);
+
+    // Act
+    service.registerFunction(ANY_FUNCTION_ID, ANY_FUNCTION_NAME, anyFilePath);
+
+    // Assert
+    verify(digitalSignatureIdentityConfig).getEntityId();
+    verify(digitalSignatureIdentityConfig).getCertVersion();
+    verify(client).register(any(SignedFunctionRegistrationRequest.class));
   }
 
   @Test
