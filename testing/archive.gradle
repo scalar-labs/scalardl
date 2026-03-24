@@ -5,6 +5,7 @@ publishing {
         mavenJava(MavenPublication) {
             artifactId = 'scalardl-testing'
             from components.java
+            artifact javadocJar
             artifact sourcesJar
             pom {
                 name = 'ScalarDL Testing'
