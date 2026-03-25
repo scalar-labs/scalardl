@@ -31,7 +31,7 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.24.1'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.18.1'
+        jacksonVersion = '2.18.6'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.14.5'
         scalarAdminVersion = '2.2.1'
