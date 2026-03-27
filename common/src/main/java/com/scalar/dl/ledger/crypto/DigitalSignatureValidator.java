@@ -17,6 +17,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A validator used to validate that a given byte array was signed by the private key corresponding
@@ -24,6 +26,7 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public class DigitalSignatureValidator implements SignatureValidator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DigitalSignatureValidator.class);
   private static final String DEFAULT_ALGORITHM = "SHA256withECDSA";
   private final String algorithm;
   private final X509Certificate cert;
@@ -69,10 +72,23 @@ public class DigitalSignatureValidator implements SignatureValidator {
   @Override
   public boolean validate(byte[] toBeValidated, byte[] signatureBytes) {
     try {
+      long t0 = System.nanoTime();
       Signature signature = Signature.getInstance(algorithm);
+      long t1 = System.nanoTime();
       signature.initVerify(cert.getPublicKey());
+      long t2 = System.nanoTime();
       signature.update(toBeValidated);
-      return signature.verify(signatureBytes);
+      long t3 = System.nanoTime();
+      boolean result = signature.verify(signatureBytes);
+      long t4 = System.nanoTime();
+      LOGGER.info(
+          "Signature.validate elapsed [us]: getInstance={}, initVerify={}, update={}, verify={}, total={}",
+          (t1 - t0) / 1000.0,
+          (t2 - t1) / 1000.0,
+          (t3 - t2) / 1000.0,
+          (t4 - t3) / 1000.0,
+          (t4 - t0) / 1000.0);
+      return result;
     } catch (java.security.SignatureException | NoSuchAlgorithmException | InvalidKeyException e) {
       throw new SignatureException(CommonError.SIGNATURE_VALIDATION_FAILED, e.getMessage());
     }
