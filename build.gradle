@@ -46,12 +46,12 @@ subprojects {
 
     ext {
         grpcVersion = '1.80.0'
-        protocVersion = '3.25.8'
+        protocVersion = '3.25.9'
         picoCliVersion = '4.7.7'
         guiceVersion = '6.0.0'
         guavaVersion = '32.1.3-jre'
         slf4jVersion = '1.7.36'
-        log4jVersion = '2.25.3'
+        log4jVersion = '2.25.4'
         jsonpVersion = '1.1.4'
         jacksonVersion = '2.21.2'
         toml4jVersion = '0.7.2'
