@@ -276,43 +276,43 @@ public enum LedgerError implements ScalarDlError {
       "001",
       "The transaction state has already been %s.",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "002",
       "Retrieving the asset records failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   PUTTING_ASSET_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "003",
       "Putting the asset records failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   COMMITTING_ASSET_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "004",
       "Committing the asset records failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   RETRIEVING_ASSET_METADATA_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "005",
       "Retrieving the asset metadata failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   PUTTING_ASSET_METADATA_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "006",
       "Putting the asset metadata failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   OPERATION_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "007",
       "The database operation in the function failed due to a conflict. Details: %s",
       "",
-      "Retry the transaction."),
+      "Retry the operation."),
   ;
 
   private static final String COMPONENT_NAME = "DL-LEDGER";
