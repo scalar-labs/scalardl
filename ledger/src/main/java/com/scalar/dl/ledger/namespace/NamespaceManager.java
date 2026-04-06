@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
  * <p>A {@code NamespaceManager} manages namespaces in a {@link NamespaceRegistry}.
  */
 public class NamespaceManager {
-  public static final String DEFAULT_NAMESPACE = "default";
   public static final Pattern NAMESPACE_NAME_PATTERN = Pattern.compile("[a-zA-Z][a-zA-Z0-9_]*");
   private final NamespaceRegistry registry;
 
@@ -44,7 +43,7 @@ public class NamespaceManager {
     if (!isValidNamespaceName(namespace)) {
       throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
     }
-    if (namespace.equals(DEFAULT_NAMESPACE)) {
+    if (namespace.equals(Namespaces.DEFAULT)) {
       throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
     }
     registry.create(namespace);
@@ -60,7 +59,7 @@ public class NamespaceManager {
     if (!isValidNamespaceName(namespace)) {
       throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
     }
-    if (namespace.equals(DEFAULT_NAMESPACE)) {
+    if (namespace.equals(Namespaces.DEFAULT)) {
       throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
     }
     registry.drop(namespace);
@@ -79,8 +78,8 @@ public class NamespaceManager {
    */
   public List<String> scan(@Nonnull String pattern) {
     Set<String> namespaces = new TreeSet<>(registry.scan(pattern));
-    if (DEFAULT_NAMESPACE.contains(pattern)) {
-      namespaces.add(DEFAULT_NAMESPACE);
+    if (Namespaces.DEFAULT.contains(pattern)) {
+      namespaces.add(Namespaces.DEFAULT);
     }
     return new ArrayList<>(namespaces);
   }

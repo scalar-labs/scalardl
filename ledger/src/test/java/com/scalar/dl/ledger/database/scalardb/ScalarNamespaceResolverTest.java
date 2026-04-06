@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.config.ServerConfig;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -28,7 +28,7 @@ public class ScalarNamespaceResolverTest {
   @Test
   public void resolve_DefaultNamespaceGiven_ShouldReturnBaseNamespace() {
     // Act
-    String actual = resolver.resolve(NamespaceManager.DEFAULT_NAMESPACE);
+    String actual = resolver.resolve(Namespaces.DEFAULT);
 
     // Assert
     assertThat(actual).isEqualTo(BASE_NAMESPACE);
