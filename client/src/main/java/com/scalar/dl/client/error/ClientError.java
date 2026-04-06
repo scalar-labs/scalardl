@@ -169,11 +169,23 @@ public enum ClientError implements ScalarDlError {
       "",
       "Provide a non-null namespace name."),
   SERVICE_ENTITY_ID_CANNOT_BE_NULL(
-      StatusCode.INVALID_ARGUMENT, "026", "The entity ID cannot be null.", "", ""),
+      StatusCode.INVALID_ARGUMENT,
+      "026",
+      "The entity ID cannot be null.",
+      "",
+      "Provide a non-null entity ID in your service request."),
   SERVICE_CERT_PEM_CANNOT_BE_NULL(
-      StatusCode.INVALID_ARGUMENT, "027", "The certificate in PEM format cannot be null.", "", ""),
+      StatusCode.INVALID_ARGUMENT,
+      "027",
+      "The certificate in PEM format cannot be null.",
+      "",
+      "Provide a valid certificate in PEM format in your service request."),
   SERVICE_SECRET_KEY_CANNOT_BE_NULL(
-      StatusCode.INVALID_ARGUMENT, "028", "The secret key cannot be null.", "", ""),
+      StatusCode.INVALID_ARGUMENT,
+      "028",
+      "The secret key cannot be null.",
+      "",
+      "Provide a non-null secret key in your service request."),
 
   //
   // Errors for RUNTIME_ERROR(502)
