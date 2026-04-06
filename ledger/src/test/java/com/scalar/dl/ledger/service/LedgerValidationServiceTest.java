@@ -42,7 +42,7 @@ import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.AssetProofRetrievalRequest;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.statemachine.Context;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
 import com.scalar.dl.ledger.statemachine.InternalAsset;
@@ -81,7 +81,7 @@ public class LedgerValidationServiceTest {
   @Mock private Transaction transaction;
   @Mock private TamperEvidentAssetLedger ledger;
   private LedgerValidationService service;
-  private static final String DEFAULT_NAMESPACE = NamespaceManager.DEFAULT_NAMESPACE;
+  private static final String DEFAULT_NAMESPACE = Namespaces.DEFAULT;
   private static final String BASE_NAMESPACE = "scalar";
   private static final String NAMESPACE = "namespace";
   private static final String ID = "id";
