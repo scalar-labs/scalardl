@@ -174,7 +174,7 @@ public enum CommonError implements ScalarDlError {
       "001",
       "Accessing the specified namespace is not allowed. Namespace: %s, context namespace: %s",
       "",
-      ""),
+      "Verify that your certificate or secret has been registered to the specified namespace, or use the appropriate context namespace for your operation."),
 
   //
   // Errors for SECRET_ALREADY_REGISTERED(413)
