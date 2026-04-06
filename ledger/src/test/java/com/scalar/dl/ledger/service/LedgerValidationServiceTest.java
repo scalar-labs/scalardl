@@ -81,7 +81,6 @@ public class LedgerValidationServiceTest {
   @Mock private Transaction transaction;
   @Mock private TamperEvidentAssetLedger ledger;
   private LedgerValidationService service;
-  private static final String DEFAULT_NAMESPACE = Namespaces.DEFAULT;
   private static final String BASE_NAMESPACE = "scalar";
   private static final String NAMESPACE = "namespace";
   private static final String ID = "id";
@@ -98,7 +97,7 @@ public class LedgerValidationServiceTest {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final JacksonSerDe jacksonSerDe = new JacksonSerDe(mapper);
   private static final JsonpSerDe jsonpSerDe = new JsonpSerDe();
-  private static final Context context = Context.withNamespace(DEFAULT_NAMESPACE);
+  private static final Context context = Context.withNamespace(Namespaces.DEFAULT);
 
   @BeforeEach
   public void init() {
@@ -183,14 +182,14 @@ public class LedgerValidationServiceTest {
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.OK);
     ContractEntry.Key expected = new ContractEntry.Key(CONTRACT_ID, ENTITY_ID, KEY_VERSION);
-    verify(contractManager, times(2)).get(DEFAULT_NAMESPACE, expected);
+    verify(contractManager, times(2)).get(Namespaces.DEFAULT, expected);
     verify(contract, times(2)).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
-      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
-      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(1));
+      verify(v).validate(tracer, contract, Namespaces.DEFAULT, assets.get(0));
+      verify(v).validate(tracer, contract, Namespaces.DEFAULT, assets.get(1));
     }
     AssetFilter filter =
-        new AssetFilter(DEFAULT_NAMESPACE, ID)
+        new AssetFilter(Namespaces.DEFAULT, ID)
             .withStartAge(0, true)
             .withEndAge(Integer.MAX_VALUE, true)
             .withAgeOrder(AgeOrder.ASC);
@@ -240,10 +239,10 @@ public class LedgerValidationServiceTest {
     // Assert
     assertThat(result.getCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
     ContractEntry.Key expected = new ContractEntry.Key(CONTRACT_ID, ENTITY_ID, KEY_VERSION);
-    verify(contractManager).get(DEFAULT_NAMESPACE, expected);
+    verify(contractManager).get(Namespaces.DEFAULT, expected);
     verify(contract).invoke(tracer, CONTRACT_ARGUMENT, null);
     for (LedgerValidator v : validators) {
-      verify(v).validate(tracer, contract, DEFAULT_NAMESPACE, assets.get(0));
+      verify(v).validate(tracer, contract, Namespaces.DEFAULT, assets.get(0));
     }
     verify(transaction).commit();
   }
@@ -429,7 +428,7 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     AssetFilter filter =
-        new AssetFilter(DEFAULT_NAMESPACE, ID)
+        new AssetFilter(Namespaces.DEFAULT, ID)
             .withStartAge(age, true)
             .withEndAge(age, true)
             .withAgeOrder(AssetFilter.AgeOrder.ASC);
@@ -442,7 +441,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, age);
+    InternalAsset actual = service.retrieve(Namespaces.DEFAULT, ID, age);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
@@ -459,19 +458,19 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     InternalAsset asset = createAssetMocks().get(1);
-    doReturn(Optional.of(asset)).when(ledger).get(DEFAULT_NAMESPACE, ID);
+    doReturn(Optional.of(asset)).when(ledger).get(Namespaces.DEFAULT, ID);
     service =
         spy(
             new LedgerValidationService(
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, -1);
+    InternalAsset actual = service.retrieve(Namespaces.DEFAULT, ID, -1);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
     assertThat(actual.age()).isEqualTo(age);
-    verify(ledger).get(DEFAULT_NAMESPACE, ID);
+    verify(ledger).get(Namespaces.DEFAULT, ID);
     verify(transaction).commit();
   }
 
@@ -483,7 +482,7 @@ public class LedgerValidationServiceTest {
     when(transactionManager.startWith()).thenReturn(transaction);
     doReturn(ledger).when(transaction).getLedger();
     InternalAsset asset = createAssetMocks().get(1);
-    doReturn(Optional.of(asset)).when(ledger).get(DEFAULT_NAMESPACE, ID);
+    doReturn(Optional.of(asset)).when(ledger).get(Namespaces.DEFAULT, ID);
     proofComposer = new AssetProofComposer(new DigitalSignatureSigner(PRIVATE_KEY_A));
     service =
         spy(
@@ -491,12 +490,12 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    InternalAsset actual = service.retrieve(DEFAULT_NAMESPACE, ID, Integer.MAX_VALUE);
+    InternalAsset actual = service.retrieve(Namespaces.DEFAULT, ID, Integer.MAX_VALUE);
 
     // Assert
     assertThat(actual.id()).isEqualTo(ID);
     assertThat(actual.age()).isEqualTo(age);
-    verify(ledger).get(DEFAULT_NAMESPACE, ID);
+    verify(ledger).get(Namespaces.DEFAULT, ID);
     verify(transaction).commit();
   }
 
@@ -511,11 +510,11 @@ public class LedgerValidationServiceTest {
             config, transactionManager, clientKeyValidator, contractManager, proofComposer);
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, -1));
+    Throwable thrown = catchThrowable(() -> service.retrieve(Namespaces.DEFAULT, ID, -1));
 
     // Assert
     assertThat(thrown).isEqualTo(toThrow);
-    verify(ledger).get(DEFAULT_NAMESPACE, ID);
+    verify(ledger).get(Namespaces.DEFAULT, ID);
     verify(transaction).abort();
   }
 
@@ -533,7 +532,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, age));
+    Throwable thrown = catchThrowable(() -> service.retrieve(Namespaces.DEFAULT, ID, age));
 
     // Assert
     assertThat(thrown).isInstanceOf(ValidationException.class);
@@ -554,7 +553,7 @@ public class LedgerValidationServiceTest {
                 config, transactionManager, clientKeyValidator, contractManager, proofComposer));
 
     // Act
-    Throwable thrown = catchThrowable(() -> service.retrieve(DEFAULT_NAMESPACE, ID, -1));
+    Throwable thrown = catchThrowable(() -> service.retrieve(Namespaces.DEFAULT, ID, -1));
 
     // Assert
     assertThat(thrown).isInstanceOf(ValidationException.class);
@@ -587,7 +586,7 @@ public class LedgerValidationServiceTest {
             null, ID, AGE, ENTITY_ID, KEY_VERSION, signer.sign(serialized)));
 
     // Assert
-    verify(service).retrieve(DEFAULT_NAMESPACE, ID, AGE);
+    verify(service).retrieve(Namespaces.DEFAULT, ID, AGE);
   }
 
   @Test
@@ -611,7 +610,7 @@ public class LedgerValidationServiceTest {
         .isInstanceOf(SignatureException.class);
 
     // Assert
-    verify(service, never()).retrieve(DEFAULT_NAMESPACE, ID, AGE);
+    verify(service, never()).retrieve(Namespaces.DEFAULT, ID, AGE);
   }
 
   @Test
@@ -642,12 +641,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -682,12 +681,12 @@ public class LedgerValidationServiceTest {
             any(Context.class), ArgumentMatchers.eq(DeserializationType.DEPRECATED));
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -718,12 +717,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -756,12 +755,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jsonpSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -792,12 +791,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jacksonSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -830,12 +829,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, jacksonSerDe.serialize(contractArgument), null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
@@ -868,12 +867,12 @@ public class LedgerValidationServiceTest {
         .thenReturn((LedgerTracerBase) tracer);
 
     // Act
-    StatusCode status = service.validateEach(context, validators, DEFAULT_NAMESPACE, asset);
+    StatusCode status = service.validateEach(context, validators, Namespaces.DEFAULT, asset);
 
     // Assert
     assertThat(status).isEqualTo(StatusCode.OK);
     verify(contract).invoke(tracer, contractArgument, null);
-    verify(validator).validate(tracer, contract, DEFAULT_NAMESPACE, asset);
+    verify(validator).validate(tracer, contract, Namespaces.DEFAULT, asset);
   }
 
   @Test
