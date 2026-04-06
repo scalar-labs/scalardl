@@ -122,7 +122,7 @@ public enum LedgerError implements ScalarDlError {
       "001",
       "The specified asset is not found.",
       "",
-      "Verify the asset ID and namespace are correct and the asset has been created."),
+      "Verify the asset ID is correct and the asset has been created."),
 
   //
   // Errors for FUNCTION_NOT_FOUND(410)
@@ -152,7 +152,7 @@ public enum LedgerError implements ScalarDlError {
       "001",
       "The function is not allowed to access the specified namespace.",
       "",
-      "Functions cannot access system namespaces or namespaces with reserved prefixes. Disallowed namespaces: system, system_schema, system_auth, system_distributed, system_traces, coordinator. Disallowed namespace prefixes: scalar, auditor. Use a different namespace for your function operations."),
+      "Functions cannot access system namespaces (system, system_schema, system_auth, system_distributed, system_traces, scalar, coordinator). Use a different namespace for your function operations."),
   OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT(
       StatusCode.INVALID_FUNCTION,
       "002",
