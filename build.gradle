@@ -75,7 +75,7 @@ subprojects {
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.33.0'
         bouncyCastleCryptoVersion = '1.70'
-        partiqlVersion = '1.3.9'
+        partiqlVersion = '1.3.10'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
