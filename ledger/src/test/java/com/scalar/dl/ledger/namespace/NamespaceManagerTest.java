@@ -131,7 +131,7 @@ public class NamespaceManagerTest {
   @Test
   public void create_DefaultNamespaceGiven_ShouldThrowLedgerException() {
     // Arrange
-    String namespace = NamespaceManager.DEFAULT_NAMESPACE;
+    String namespace = Namespaces.DEFAULT;
 
     // Act Assert
     assertThatThrownBy(() -> manager.create(namespace))
@@ -282,7 +282,7 @@ public class NamespaceManagerTest {
   @Test
   public void drop_DefaultNamespaceGiven_ShouldThrowLedgerException() {
     // Arrange
-    String namespace = NamespaceManager.DEFAULT_NAMESPACE;
+    String namespace = Namespaces.DEFAULT;
 
     // Act Assert
     assertThatThrownBy(() -> manager.drop(namespace))

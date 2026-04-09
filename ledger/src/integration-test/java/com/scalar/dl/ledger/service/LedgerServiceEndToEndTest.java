@@ -79,7 +79,7 @@ import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.function.CreateFunction;
 import com.scalar.dl.ledger.service.function.CreateFunctionWithJackson;
@@ -2193,7 +2193,7 @@ public class LedgerServiceEndToEndTest extends LedgerServiceEndToEndTestBase {
     AssetProof proof = result.getLedgerProofs().get(0);
     byte[] toBeValidated =
         AssetProof.serialize(
-            NamespaceManager.DEFAULT_NAMESPACE,
+            Namespaces.DEFAULT,
             proof.getId(),
             proof.getAge(),
             proof.getNonce(),
