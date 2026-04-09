@@ -17,7 +17,6 @@ import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.AssetProofRetrievalRequest;
 import com.scalar.dl.ledger.model.LedgerValidationRequest;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.statemachine.Context;
@@ -91,10 +90,7 @@ public class LedgerValidationService extends ValidationService {
             Namespaces.DEFAULT, request.getEntityId(), request.getKeyVersion());
     request.validateWith(validator);
 
-    String namespace =
-        request.getNamespace() == null
-            ? NamespaceManager.DEFAULT_NAMESPACE
-            : request.getNamespace();
+    String namespace = request.getNamespace() == null ? Namespaces.DEFAULT : request.getNamespace();
     InternalAsset asset = retrieve(namespace, request.getAssetId(), request.getAge());
     return proofComposer.create(namespace, asset);
   }
@@ -106,7 +102,7 @@ public class LedgerValidationService extends ValidationService {
       namespace = context.getNamespace();
     }
 
-    if (!context.getNamespace().equals(NamespaceManager.DEFAULT_NAMESPACE)
+    if (!context.getNamespace().equals(Namespaces.DEFAULT)
         && !context.getNamespace().equals(namespace)) {
       throw new LedgerException(
           CommonError.ACCESSING_NAMESPACE_NOT_ALLOWED, namespace, context.getNamespace());
