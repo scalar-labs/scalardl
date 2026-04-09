@@ -50,7 +50,7 @@ import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.ledger.util.JacksonSerDe;
@@ -718,8 +718,7 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
     List<String> actual = ledgerService.list(request);
 
     // Assert
-    assertThat(actual)
-        .containsExactly(NamespaceManager.DEFAULT_NAMESPACE, SOME_NAMESPACE1, SOME_NAMESPACE2);
+    assertThat(actual).containsExactly(Namespaces.DEFAULT, SOME_NAMESPACE1, SOME_NAMESPACE2);
   }
 
   @Test
@@ -750,8 +749,7 @@ public class LedgerServiceNamespaceEndToEndTest extends LedgerServiceEndToEndTes
   @Test
   public void drop_DefaultNamespaceGiven_ShouldThrowException() {
     // Arrange
-    NamespaceDroppingRequest request =
-        new NamespaceDroppingRequest(NamespaceManager.DEFAULT_NAMESPACE);
+    NamespaceDroppingRequest request = new NamespaceDroppingRequest(Namespaces.DEFAULT);
 
     // Act
     Throwable thrown = catchThrowable(() -> ledgerService.drop(request));

@@ -2,7 +2,7 @@ package com.scalar.dl.ledger.database.scalardb;
 
 import com.google.inject.Inject;
 import com.scalar.dl.ledger.config.ServerConfig;
-import com.scalar.dl.ledger.namespace.NamespaceManager;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -38,7 +38,7 @@ public class ScalarNamespaceResolver {
    * @return the physical ScalarDB namespace name
    */
   public String resolve(String logicalNamespace) {
-    if (logicalNamespace.equals(NamespaceManager.DEFAULT_NAMESPACE)) {
+    if (logicalNamespace.equals(Namespaces.DEFAULT)) {
       return baseNamespace;
     }
     return baseNamespace + NAMESPACE_NAME_SEPARATOR + logicalNamespace;
