@@ -145,7 +145,7 @@ public class StorageConfig {
       props.put(DatabaseConfig.STORAGE, STORAGE_JDBC);
       props.put(
           DatabaseConfig.CONTACT_POINTS,
-          "jdbc:mysql://" + containerNetworkAlias + ":" + MYSQL_PORT + "/?permitMysqlScheme=true");
+          "jdbc:mysql://" + containerNetworkAlias + ":" + MYSQL_PORT + "/");
       props.put(DatabaseConfig.USERNAME, MYSQL_USERNAME);
       props.put(DatabaseConfig.PASSWORD, MYSQL_PASSWORD);
     } else if (contactPoints != null) {
