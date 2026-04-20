@@ -79,7 +79,7 @@ jobs:
         run: >-
           ./gradlew :ledger:integrationTest
           -Dscalardb.storage=jdbc
-          -Dscalardb.contact_points=jdbc:mysql://localhost/
+          -Dscalardb.contact_points=jdbc:mysql://localhost/?sslMode=REQUIRED
           -Dscalardb.username=root
           -Dscalardb.password=mysql
 
@@ -111,7 +111,7 @@ jobs:
         run: >-
           ./gradlew :ledger:integrationTest
           -Dscalardb.storage=jdbc
-          -Dscalardb.contact_points=jdbc:mysql://localhost/
+          -Dscalardb.contact_points=jdbc:mysql://localhost/?sslMode=REQUIRED
           -Dscalardb.username=root
           -Dscalardb.password=mysql
           -Dscalardb.transaction_manager=jdbc
@@ -190,7 +190,7 @@ jobs:
             --network host \
             -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
-            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/?sslMode=REQUIRED" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
@@ -257,7 +257,7 @@ jobs:
             --network host \
             -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
-            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/?sslMode=REQUIRED" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
@@ -324,7 +324,7 @@ jobs:
             --network host \
             -v /tmp/ledger-key.pem:/keys/ledger-key.pem:ro \
             -e SCALAR_DB_STORAGE=jdbc \
-            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/" \
+            -e SCALAR_DB_CONTACT_POINTS="jdbc:mysql://localhost:3306/?sslMode=REQUIRED" \
             -e SCALAR_DB_USERNAME=root \
             -e SCALAR_DB_PASSWORD=mysql \
             -e SCALAR_DB_TRANSACTION_MANAGER=consensus-commit \
