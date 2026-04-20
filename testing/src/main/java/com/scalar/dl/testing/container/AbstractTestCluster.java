@@ -114,11 +114,16 @@ public abstract class AbstractTestCluster implements AutoCloseable {
       case "jdbc":
         logger.info("Starting MySQL container");
         mysqlContainer =
-            new MySQLContainer(MYSQL_IMAGE)
-                .withNetwork(network)
+            new MySQLContainer(MYSQL_IMAGE) {
+              @Override
+              public String getDriverClassName() {
+                return "org.mariadb.jdbc.Driver";
+              }
+            }.withNetwork(network)
                 .withNetworkAliases(MYSQL_NETWORK_ALIAS)
                 .withUsername("root")
                 .withPassword("mysql")
+                .withUrlParam("permitMysqlScheme", "true")
                 .withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("mysql"));
         mysqlContainer.start();
         logger.info(
