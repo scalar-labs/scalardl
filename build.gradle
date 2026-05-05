@@ -16,7 +16,7 @@ buildscript {
 }
 
 plugins {
-    id "org.jreleaser" version "1.23.0"
+    id "org.jreleaser" version "1.24.0"
 }
 
 apply plugin: 'com.diffplug.spotless'
@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        grpcVersion = '1.80.0'
+        grpcVersion = '1.81.0'
         protocVersion = '3.25.9'
         picoCliVersion = '4.7.7'
         guiceVersion = '6.0.0'
@@ -53,9 +53,9 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.25.4'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.21.2'
+        jacksonVersion = '2.21.3'
         toml4jVersion = '0.7.2'
-        scalarDbVersion = '3.17.3'
+        scalarDbVersion = '3.18.0'
         scalarAdminVersion = '2.2.1'
         resilience4jRetryVersion = '1.7.1'
         dropwizardMetricsVersion = '4.2.38'
