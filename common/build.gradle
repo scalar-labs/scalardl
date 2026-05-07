@@ -8,6 +8,7 @@ dependencies {
     api(group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}") {
         exclude group: 'io.grpc', module: 'grpc-stub'
         exclude group: 'io.grpc', module: 'grpc-netty'
+        exclude group: 'io.grpc', module: 'grpc-netty-shaded'
         exclude group: 'io.grpc', module: 'grpc-protobuf'
         exclude group: 'io.grpc', module: 'grpc-services'
     }
