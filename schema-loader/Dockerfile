@@ -2,7 +2,7 @@ ARG SCALARDB_VERSION
 
 FROM docker.io/busybox:1.36 AS tools
 
-ENV DOCKERIZE_VERSION v0.6.1
+ENV DOCKERIZE_VERSION=v0.6.1
 
 # Install dockerize
 # Support for use cases where environment variables are used to configure the database
@@ -24,11 +24,13 @@ USER 201
 WORKDIR /scalardl-schema-loader
 
 # 'ledger' and 'auditor' can be specified
-ENV SCHEMA_TYPE 'ledger'
+ENV SCHEMA_TYPE='ledger'
 
-COPY --chown=201:201 ledger-schema.json .
-COPY --chown=201:201 auditor-schema.json .
-COPY --chown=201:201 entrypoint.sh .
-COPY --chown=201:201 database.properties.tmpl .
+COPY --chown=201:201 \
+     ledger-schema.json \
+     auditor-schema.json \
+     entrypoint.sh \
+     database.properties.tmpl \
+     ./
 
 ENTRYPOINT ["./entrypoint.sh"]
