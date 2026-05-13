@@ -3,6 +3,7 @@ package com.scalar.dl.client.util;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 import com.scalar.dl.ledger.crypto.SignatureSigner;
+import com.scalar.dl.rpc.AssetLockRecoveryRequest;
 import com.scalar.dl.rpc.AssetProofRetrievalRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
@@ -108,6 +109,18 @@ public class RequestSigner {
     byte[] bytes =
         com.scalar.dl.ledger.model.ExecutionAbortRequest.serialize(
             builder.getNonce(), builder.getEntityId(), builder.getKeyVersion());
+
+    byte[] signature = signer.sign(bytes);
+    return builder.setSignature(ByteString.copyFrom(signature));
+  }
+
+  public AssetLockRecoveryRequest.Builder sign(AssetLockRecoveryRequest.Builder builder) {
+    byte[] bytes =
+        com.scalar.dl.ledger.model.AssetLockRecoveryRequest.serialize(
+            builder.getNamespace(),
+            builder.getAssetId(),
+            builder.getEntityId(),
+            builder.getKeyVersion());
 
     byte[] signature = signer.sign(bytes);
     return builder.setSignature(ByteString.copyFrom(signature));
