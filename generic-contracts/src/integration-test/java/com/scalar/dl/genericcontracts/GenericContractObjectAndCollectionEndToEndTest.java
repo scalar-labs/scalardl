@@ -146,7 +146,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
   private static final String SOME_TIME_TEXT = "05:45:00";
   private static final String SOME_TIMESTAMPTZ_TEXT = "2021-02-03 05:45:00.000 Z";
   private static final boolean SOME_BOOLEAN_VALUE = false;
-  private static final long SOME_BIGINT_VALUE = BigIntColumn.MAX_VALUE;
+  private static final long SOME_BIGINT_VALUE = Long.MAX_VALUE;
   private static final float SOME_FLOAT_VALUE = Float.MAX_VALUE;
   private static final double SOME_DOUBLE_VALUE = Double.MAX_VALUE;
   private static final byte[] SOME_BLOB_VALUE = {1, 2, 3, 4, 5};
