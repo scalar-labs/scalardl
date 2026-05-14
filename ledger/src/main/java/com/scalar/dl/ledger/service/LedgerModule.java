@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Named;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
@@ -54,7 +55,6 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.PropertyPermission;
 import javax.annotation.Nullable;
-import javax.inject.Named;
 
 public class LedgerModule extends AbstractModule {
   private static final String DUMMY_CIPHER_KEY = "dummy-cipher-key";

@@ -19,7 +19,10 @@ import static com.scalar.dl.ledger.test.TestConstants.PRIVATE_KEY_B;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
+import com.scalar.db.api.DistributedTransactionAdmin;
+import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.schemaloader.SchemaLoader;
@@ -104,6 +107,7 @@ public abstract class LedgerServiceEndToEndTestBase {
   protected DistributedStorageAdmin storageAdmin;
   protected String namespace;
   protected String functionNamespace;
+  private Injector injector;
 
   @BeforeAll
   public void setUpBeforeClass() throws Exception {
@@ -171,8 +175,7 @@ public abstract class LedgerServiceEndToEndTestBase {
     storageAdmin.truncateTable(namespace, ASSET_TABLE);
     storageAdmin.truncateTable(namespace, ASSET_METADATA_TABLE);
     storageAdmin.truncateTable(functionNamespace, FUNCTION_TABLE);
-    storageService.close();
-    transactionService.close();
+    closeServices();
   }
 
   abstract Map<String, Map<String, String>> getContractsMap();
@@ -233,11 +236,24 @@ public abstract class LedgerServiceEndToEndTestBase {
   }
 
   protected void createServices(LedgerConfig config) {
-    Injector injector = Guice.createInjector(new LedgerModule(config));
+    closeServices();
+    injector = Guice.createInjector(new LedgerModule(config));
     ledgerService = injector.getInstance(LedgerService.class);
     validationService = injector.getInstance(LedgerValidationService.class);
     storageService = injector.getInstance(StorageService.class);
     transactionService = injector.getInstance(TransactionService.class);
+  }
+
+  private void closeServices() {
+    if (injector == null) {
+      return;
+    }
+    injector.getInstance(DistributedStorage.class).close();
+    injector.getInstance(DistributedStorageAdmin.class).close();
+    injector.getInstance(DistributedTransactionManager.class).close();
+    injector.getInstance(DistributedTransactionAdmin.class).close();
+    injector.getInstance(StorageService.class).close();
+    injector.getInstance(TransactionService.class).close();
   }
 
   private void registerCertificate() {
