@@ -7,6 +7,7 @@ import com.scalar.dl.client.rpc.RpcUtil;
 import com.scalar.dl.ledger.config.TargetConfig;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
 import com.scalar.dl.ledger.service.ThrowableFunction;
+import com.scalar.dl.rpc.AssetLockRecoveryRequest;
 import com.scalar.dl.rpc.AuditorGrpc;
 import com.scalar.dl.rpc.AuditorPrivilegedGrpc;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
@@ -138,6 +139,16 @@ public class AuditorClient extends AbstractAuditorClient {
     }
     // Java compiler requires this line even though it won't come here
     return ContractExecutionResponse.getDefaultInstance();
+  }
+
+  @Override
+  public void recoverAssetLock(AssetLockRecoveryRequest request) {
+    ThrowableConsumer<AssetLockRecoveryRequest> f = r -> getAuditorStub().recoverAssetLock(r);
+    try {
+      accept(f, request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
   }
 
   @Override

@@ -53,6 +53,8 @@ service Auditor {
     }
     rpc ValidateExecution(ExecutionValidationRequest) returns (ContractExecutionResponse) {
     }
+    rpc RecoverAssetLock (AssetLockRecoveryRequest) returns (google.protobuf.Empty) {
+    }
 }
 
 service AuditorPrivileged {
@@ -193,6 +195,14 @@ message StateRetrievalRequest {
 message ExecutionValidationRequest {
     ContractExecutionRequest request = 1;
     repeated AssetProof proofs = 2;
+}
+
+message AssetLockRecoveryRequest {
+    string namespace = 1;
+    string asset_id = 2;
+    string entity_id = 3;
+    uint32 key_version = 4;
+    bytes signature = 5;
 }
 
 message NamespaceCreationRequest {
