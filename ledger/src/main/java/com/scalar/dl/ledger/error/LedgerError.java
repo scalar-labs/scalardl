@@ -96,7 +96,7 @@ public enum LedgerError implements ScalarDlError {
       "004",
       "%s must be enabled to make auditing work.",
       "",
-      "AUDITOR_NOT_CONFIGURED"),
+      "Enable the Auditor in the configuration."),
   FUNCTION_REGISTRATION_NOT_ALLOWED(
       StatusCode.INVALID_REQUEST,
       "005",
