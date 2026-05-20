@@ -49,9 +49,9 @@ service Auditor {
     }
     rpc ListContracts (ContractsListingRequest) returns (ContractsListingResponse) {
     }
-    rpc OrderExecution(ContractExecutionRequest) returns (ExecutionOrderingResponse) {
+    rpc OrderExecution (ContractExecutionRequest) returns (ExecutionOrderingResponse) {
     }
-    rpc ValidateExecution(ExecutionValidationRequest) returns (ContractExecutionResponse) {
+    rpc ValidateExecution (ExecutionValidationRequest) returns (ContractExecutionResponse) {
     }
 }
 
@@ -65,6 +65,8 @@ service AuditorPrivileged {
     rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
     }
     rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    }
+    rpc RecoverAssetLock (AssetLockRecoveryRequest) returns (AssetLockRecoveryResponse) {
     }
 }
 
@@ -195,6 +197,11 @@ message ExecutionValidationRequest {
     repeated AssetProof proofs = 2;
 }
 
+message AssetLockRecoveryRequest {
+    string namespace = 1;
+    string asset_id = 2;
+}
+
 message NamespaceCreationRequest {
     string namespace = 1;
 }
@@ -236,6 +243,16 @@ message AssetProof {
     bytes prev_hash = 6;
     bytes signature = 7;
     string namespace = 8;
+}
+
+message AssetLockRecoveryResponse {
+    enum Result {
+        SUCCEEDED = 0;        // recovery executed and succeeded
+        FAILED = 1;           // recovery executed but failed
+        NOT_RECOVERABLE = 2;  // lock within grace period; cannot recover yet
+        ALREADY_RECOVERED = 3; // lock already released; no recovery needed
+    }
+    Result result = 1;
 }
 
 enum TransactionState {
