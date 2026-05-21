@@ -9,7 +9,7 @@ public class AssetLockRecoveryResult {
   private final LockRecoveryResult result;
 
   public AssetLockRecoveryResult(LockRecoveryResult result) {
-    this.result = result;
+    this.result = Objects.requireNonNull(result);
   }
 
   public LockRecoveryResult getResult() {

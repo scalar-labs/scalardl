@@ -247,10 +247,11 @@ message AssetProof {
 
 message AssetLockRecoveryResponse {
     enum Result {
-        SUCCEEDED = 0;        // recovery executed and succeeded
-        FAILED = 1;           // recovery executed but failed
-        NOT_RECOVERABLE = 2;  // lock within grace period; cannot recover yet
-        ALREADY_RECOVERED = 3; // lock already released; no recovery needed
+        UNSPECIFIED = 0;
+        SUCCEEDED = 1;        // recovery executed and succeeded
+        FAILED = 2;           // recovery executed but failed
+        NOT_RECOVERABLE = 3;  // lock within grace period; cannot recover yet
+        ALREADY_RECOVERED = 4; // lock already released; no recovery needed
     }
     Result result = 1;
 }

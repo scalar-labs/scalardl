@@ -3,10 +3,10 @@ package com.scalar.dl.auditor.ordering;
 import com.scalar.dl.ledger.error.CommonError;
 
 public enum LockRecoveryResult {
-  SUCCEEDED(0),
-  FAILED(1),
-  NOT_RECOVERABLE(2),
-  ALREADY_RECOVERED(3);
+  SUCCEEDED(1),
+  FAILED(2),
+  NOT_RECOVERABLE(3),
+  ALREADY_RECOVERED(4);
 
   private final int id;
 
