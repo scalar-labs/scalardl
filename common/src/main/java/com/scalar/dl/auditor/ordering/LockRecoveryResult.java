@@ -6,7 +6,7 @@ public enum LockRecoveryResult {
   SUCCEEDED(1),
   FAILED(2),
   NOT_RECOVERABLE(3),
-  ALREADY_RECOVERED(4);
+  NOT_NEEDED(4);
 
   private final int id;
 
