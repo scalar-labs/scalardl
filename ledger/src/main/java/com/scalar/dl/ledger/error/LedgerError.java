@@ -114,11 +114,11 @@ public enum LedgerError implements ScalarDlError {
   // Errors for ASSET_NOT_FOUND(409)
   //
   ASSET_NOT_FOUND(
-    StatusCode.ASSET_NOT_FOUND,
-    "001",
-    "The specified asset is not found.",
-    "",
-    "Verify that the asset ID and namespace are correct and that the asset has been created."),
+      StatusCode.ASSET_NOT_FOUND,
+      "001",
+      "The specified asset is not found.",
+      "",
+      "Verify that the asset ID and namespace are correct and that the asset has been created."),
 
   //
   // Errors for INVALID_FUNCTION(412)
