@@ -23,6 +23,7 @@ import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.ExecutionAbortResponse;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerGrpc;
 import com.scalar.dl.rpc.LedgerPrivilegedGrpc;
@@ -243,6 +244,15 @@ public class LedgerClient extends AbstractLedgerClient {
     }
     // Java compiler requires this line even though it won't come here
     return TransactionState.UNKNOWN;
+  }
+
+  @Override
+  public void finish(ExecutionFinishRequest request) {
+    try {
+      getLedgerStub().finishExecution(request);
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
   }
 
   @Override

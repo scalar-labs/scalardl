@@ -255,6 +255,36 @@ public class ScalarTransactionManagerTest {
   }
 
   @Test
+  public void finish_StateManagementEnabled_ShouldCallDeleteState() {
+    // Arrange
+    when(config.isTxStateManagementEnabled()).thenReturn(true);
+    transactionManager =
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
+
+    // Act
+    transactionManager.finish(NONCE);
+
+    // Assert
+    verify(stateManager).deleteState(NONCE);
+  }
+
+  @Test
+  public void finish_StateManagementDisabled_ShouldNotCallDeleteState() {
+    // Arrange
+    when(config.isTxStateManagementEnabled()).thenReturn(false);
+    transactionManager =
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
+
+    // Act
+    transactionManager.finish(NONCE);
+
+    // Assert
+    verify(stateManager, never()).deleteState(NONCE);
+  }
+
+  @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
   public void recover_AssetKeysGivenAndConsensusCommitManagerUsed_ShouldRecoverAssetIds() {
     // Arrange

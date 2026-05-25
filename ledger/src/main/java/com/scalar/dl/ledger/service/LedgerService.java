@@ -21,6 +21,7 @@ import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
 import com.scalar.dl.ledger.model.ExecutionAbortRequest;
 import com.scalar.dl.ledger.model.ExecutionAbortResult;
+import com.scalar.dl.ledger.model.ExecutionFinishRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
@@ -137,6 +138,16 @@ public class LedgerService {
     request.validateWith(validator);
 
     return new ExecutionAbortResult(executor.abort(request.getNonce()));
+  }
+
+  public void finish(ExecutionFinishRequest request) {
+    // always use the default namespace to authenticate Auditor
+    SignatureValidator validator =
+        clientKeyValidator.getValidator(
+            Namespaces.DEFAULT, request.getEntityId(), request.getKeyVersion());
+    request.validateWith(validator);
+
+    executor.finish(request.getNonce());
   }
 
   public void create(NamespaceCreationRequest request) {
