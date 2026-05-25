@@ -286,7 +286,7 @@ public enum CommonError implements ScalarDlError {
       "018",
       "The deserialization type is not supported. Type: %s",
       "",
-      ""),
+      "Use a supported deserialization type. Check the documentation for valid types."),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
@@ -350,7 +350,11 @@ public enum CommonError implements ScalarDlError {
       "",
       "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   SCANNING_CONTRACT_FAILED(
-      StatusCode.DATABASE_ERROR, "009", "Scanning the contracts failed. Details: %s", "", ""),
+      StatusCode.DATABASE_ERROR,
+      "009",
+      "Scanning the contracts failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
 
   //
   // Errors for RUNTIME_ERROR(502)
