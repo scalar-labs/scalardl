@@ -1,9 +1,14 @@
 package com.scalar.dl.testing.container;
 
+import com.scalar.db.schemaloader.SchemaLoader;
+import com.scalar.db.schemaloader.SchemaLoaderException;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.TransactionMode;
+import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Collections;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -71,6 +76,9 @@ public class LedgerTestCluster extends AbstractTestCluster {
   @Override
   @SuppressWarnings("resource")
   protected void startContainers() {
+    // Create Ledger schema before starting the container (matches production deployment order)
+    createLedgerSchema();
+
     ledger = new LedgerContainer(ledgerImage);
     ledger.withNetwork(getNetwork()).withNetworkAliases(LEDGER_NETWORK_ALIAS);
     ledger.withStorageConfig(getStorageConfig());
@@ -83,6 +91,15 @@ public class LedgerTestCluster extends AbstractTestCluster {
     ledger.withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("ledger"));
     ledger.start();
     logger.info("Ledger container started on port {}", ledger.getPort());
+  }
+
+  private void createLedgerSchema() {
+    try {
+      Properties props = getStorageConfig().getPropertiesForHost();
+      SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
+    } catch (SchemaLoaderException e) {
+      throw new RuntimeException("Failed to create Ledger schema", e);
+    }
   }
 
   @Override
