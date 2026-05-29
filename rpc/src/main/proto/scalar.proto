@@ -70,6 +70,8 @@ service AuditorPrivileged {
     }
     rpc RecoverAssetLock (AssetLockRecoveryRequest) returns (AssetLockRecoveryResponse) {
     }
+    rpc PurgeTransactionStates (TransactionStatePurgeRequest) returns (TransactionStatePurgeResponse) {
+    }
 }
 
 service Gateway {
@@ -97,6 +99,8 @@ service GatewayPrivileged {
     rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
     }
     rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    }
+    rpc PurgeTransactionStates (TransactionStatePurgeRequest) returns (TransactionStatePurgeResponse) {
     }
 }
 
@@ -291,4 +295,13 @@ message ExecutionOrderingResponse {
 
 message NamespacesListingResponse {
     string json = 1;
+}
+
+message TransactionStatePurgeRequest {
+}
+
+message TransactionStatePurgeResponse {
+    int32 total_targets = 1;
+    int32 purged = 2;
+    int32 skipped = 3;
 }

@@ -62,6 +62,9 @@ public class ScalarDlCommandLineTest {
               "  drop-namespace         Drop a namespace.",
               "  list-namespaces        List namespaces.",
               "",
+              "manage transaction state",
+              "  purge-state            Purge stale transaction states.",
+              "",
               "validate ledger",
               "  validate-ledger        Validate a specified asset in a ledger.",
               "",
@@ -105,6 +108,7 @@ public class ScalarDlCommandLineTest {
                 NamespaceCreation.class,
                 NamespaceDropping.class,
                 NamespacesListing.class,
+                PurgeState.class,
               });
     }
   }
