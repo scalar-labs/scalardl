@@ -467,6 +467,12 @@ public enum CommonError implements ScalarDlError {
       "The contract type or instance is not supported.",
       "",
       "Check the error details in the logs and verify that the contract type is supported."),
+  INVALID_LOCK_RECOVERY_RESULT_SPECIFIED(
+      StatusCode.RUNTIME_ERROR,
+      "007",
+      "The specified lock recovery result is invalid.",
+      "",
+      "Check the error details in the logs and verify the lock recovery result."),
   ;
 
   private static final String COMPONENT_NAME = "DL-COMMON";
