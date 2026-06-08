@@ -8,13 +8,17 @@ RUN set -x && \
     wget -q -O grpc_health_probe "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" && \
     chmod +x grpc_health_probe
 
-FROM eclipse-temurin:21-jre-jammy
+# hadolint ignore=DL3007
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
 
-RUN apt-get update && apt-get upgrade -y --no-install-recommends \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/* \
+# hadolint ignore=DL3041
+RUN microdnf update -y \
+ && microdnf install java-21-openjdk-headless shadow-utils --setopt install_weak_deps=0 --nodocs -y \
  && groupadd -r --gid 201 scalar \
- && useradd -r --uid 201 -g scalar scalar
+ && useradd -r --uid 201 -g scalar scalar \
+ && microdnf remove shadow-utils -y \
+ && microdnf clean all \
+ && rm -rf /var/cache/yum
 
 COPY --from=tools grpc_health_probe /usr/local/bin/
 
