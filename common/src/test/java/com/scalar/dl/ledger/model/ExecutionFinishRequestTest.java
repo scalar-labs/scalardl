@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.exception.SignatureException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
@@ -235,5 +236,40 @@ public class ExecutionFinishRequestTest {
 
     // Assert
     assertThat(serialized1).isNotEqualTo(serialized2);
+  }
+
+  @Test
+  public void serialize_ArgumentsGiven_ShouldBePrefixedWithRequestTypeTag() {
+    // Arrange
+    byte[] tag = "finish".getBytes(StandardCharsets.UTF_8);
+    byte[] nonce = NONCE.getBytes(StandardCharsets.UTF_8);
+    byte[] entityId = ENTITY_ID.getBytes(StandardCharsets.UTF_8);
+    byte[] expected =
+        ByteBuffer.allocate(tag.length + nonce.length + entityId.length + Integer.BYTES)
+            .put(tag)
+            .put(nonce)
+            .put(entityId)
+            .putInt(KEY_VERSION)
+            .array();
+
+    // Act
+    byte[] serialized = ExecutionFinishRequest.serialize(NONCE, ENTITY_ID, KEY_VERSION);
+
+    // Assert
+    assertThat(serialized).isEqualTo(expected);
+  }
+
+  @Test
+  public void serialize_SameValuesAsAbortRequest_ShouldReturnDifferentBytes() {
+    // Arrange
+
+    // Act
+    byte[] finish = ExecutionFinishRequest.serialize(NONCE, ENTITY_ID, KEY_VERSION);
+    byte[] abort = ExecutionAbortRequest.serialize(NONCE, ENTITY_ID, KEY_VERSION);
+
+    // Assert
+    // The domain separator ensures a captured abort signature cannot be reused as a finish
+    // signature (and vice versa) even when the signed values are identical.
+    assertThat(finish).isNotEqualTo(abort);
   }
 }

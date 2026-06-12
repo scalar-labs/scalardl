@@ -12,6 +12,10 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class ExecutionFinishRequest extends AbstractRequest {
+  // A domain separator prepended to the signed bytes so that a signature for this request type
+  // cannot be reused for another request type that signs the same values. For example,
+  // ExecutionAbortRequest signs the same nonce + entityId + keyVersion.
+  private static final byte[] REQUEST_TYPE_TAG = "finish".getBytes(StandardCharsets.UTF_8);
   private final String nonce;
   private final byte[] signature;
 
@@ -63,9 +67,11 @@ public class ExecutionFinishRequest extends AbstractRequest {
   public static byte[] serialize(String nonce, String entityId, int keyVersion) {
     ByteBuffer buffer =
         ByteBuffer.allocate(
-            nonce.getBytes(StandardCharsets.UTF_8).length
+            REQUEST_TYPE_TAG.length
+                + nonce.getBytes(StandardCharsets.UTF_8).length
                 + entityId.getBytes(StandardCharsets.UTF_8).length
                 + Integer.BYTES);
+    buffer.put(REQUEST_TYPE_TAG);
     buffer.put(nonce.getBytes(StandardCharsets.UTF_8));
     buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
     buffer.putInt(keyVersion);
