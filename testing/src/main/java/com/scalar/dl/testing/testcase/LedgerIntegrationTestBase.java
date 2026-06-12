@@ -50,7 +50,6 @@ import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scanner;
 import com.scalar.db.io.Key;
 import com.scalar.db.schemaloader.SchemaLoader;
-import com.scalar.db.schemaloader.SchemaLoaderException;
 import com.scalar.db.service.StorageFactory;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.dl.client.config.ClientConfig;
@@ -89,7 +88,6 @@ import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -267,7 +265,6 @@ public abstract class LedgerIntegrationTestBase {
    */
   protected void setUpAfterClusterStart() throws Exception {
     createStorage();
-    createSchema();
     createFunctionTableSchema();
     createClientServices();
     registerContracts();
@@ -340,11 +337,6 @@ public abstract class LedgerIntegrationTestBase {
     storageAdmin = storageFactory.getStorageAdmin();
     TransactionFactory transactionFactory = TransactionFactory.create(props);
     transactionAdmin = transactionFactory.getTransactionAdmin();
-  }
-
-  protected void createSchema() throws SchemaLoaderException {
-    Properties props = cluster.getStorageConfig().getPropertiesForHost();
-    SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
   }
 
   protected void createFunctionTableSchema() throws Exception {
