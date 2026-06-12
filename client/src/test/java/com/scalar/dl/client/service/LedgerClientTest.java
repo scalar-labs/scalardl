@@ -17,6 +17,7 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.rpc.AssetProof;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractExecutionResponse;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.LedgerGrpc;
 import com.scalar.dl.rpc.Status;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -148,5 +149,36 @@ public class LedgerClientTest {
     assertThat(((ClientException) thrown).getStatusCode())
         .isEqualTo(StatusCode.UNKNOWN_TRANSACTION_STATUS);
     assertThat(thrown.getMessage()).isEqualTo(io.grpc.Status.INTERNAL.getCode().toString());
+  }
+
+  @Test
+  public void finish_CorrectRequestGiven_ShouldCallFinishExecution() {
+    // Arrange
+    ExecutionFinishRequest request = ExecutionFinishRequest.newBuilder().build();
+    when(ledgerStub.withDeadlineAfter(anyLong(), any(TimeUnit.class))).thenReturn(anotherStub);
+
+    // Act
+    client.finish(request);
+
+    // Assert
+    verify(ledgerStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
+    verify(anotherStub).finishExecution(request);
+  }
+
+  @Test
+  public void finish_ExceptionThrown_ShouldThrowClientException() {
+    // Arrange
+    ExecutionFinishRequest request = ExecutionFinishRequest.newBuilder().build();
+    StatusRuntimeException toThrow = new StatusRuntimeException(io.grpc.Status.INTERNAL);
+    when(ledgerStub.withDeadlineAfter(anyLong(), any(TimeUnit.class))).thenReturn(anotherStub);
+    when(anotherStub.finishExecution(request)).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> client.finish(request));
+
+    // Assert
+    verify(ledgerStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
+    verify(anotherStub).finishExecution(request);
+    assertThat(thrown).isInstanceOf(ClientException.class).hasCause(toThrow);
   }
 }
