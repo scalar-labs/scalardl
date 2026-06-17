@@ -25,6 +25,8 @@ dependencies {
     api project(':common')
     implementation group: 'com.moandjiezana.toml', name: 'toml4j', version: "${toml4jVersion}"
     implementation group: 'info.picocli', name: 'picocli', version: "${picoCliVersion}"
+    // Route java.util.logging (e.g. grpc-netty) through log4j2 so it honors log4j2.properties
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: "${log4jVersion}"
     api group: 'javax.json', name: 'javax.json-api', version: "${jsonpVersion}"
     api group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
@@ -42,6 +44,12 @@ dependencies {
     spotbugs "com.github.spotbugs:spotbugs:${spotbugsVersion}"
     compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
     testCompileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugsVersion}"
+}
+
+// Activate the log4j-jul bridge for every generated CLI launcher. Must be set before any
+// java.util.logging logger initializes, so it goes on the JVM command line in the start scripts.
+tasks.withType(CreateStartScripts).configureEach {
+    defaultJvmOpts = [ '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager' ]
 }
 
 task ScalarDl(type: CreateStartScripts) {
