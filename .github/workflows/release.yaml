@@ -63,9 +63,13 @@ jobs:
       - name: Create containers
         run: ./gradlew docker
 
+      - name: Create UBI-based containers
+        run: ./gradlew :ledger:docker -Pubi
+
       - name: Push containers to private GitHub Packages
         run: |
           docker push ghcr.io/scalar-labs/scalardl-ledger:${{ steps.version.outputs.version }}
+          docker push ghcr.io/scalar-labs/scalardl-ledger-ubi:${{ steps.version.outputs.version }}
           docker push ghcr.io/scalar-labs/scalardl-client:${{ steps.version.outputs.version }}
           docker push ghcr.io/scalar-labs/scalardl-schema-loader:${{ steps.version.outputs.version }}
 
