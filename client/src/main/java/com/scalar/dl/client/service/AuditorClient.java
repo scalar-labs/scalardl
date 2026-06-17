@@ -1,12 +1,15 @@
 package com.scalar.dl.client.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.scalar.dl.auditor.ordering.LockRecoveryResult;
 import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.rpc.RpcUtil;
 import com.scalar.dl.ledger.config.TargetConfig;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
 import com.scalar.dl.ledger.service.ThrowableFunction;
+import com.scalar.dl.rpc.AssetLockRecoveryRequest;
 import com.scalar.dl.rpc.AuditorGrpc;
 import com.scalar.dl.rpc.AuditorPrivilegedGrpc;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
@@ -53,6 +56,19 @@ public class AuditorClient extends AbstractAuditorClient {
     privilegedChannel = privilegedBuilder.build();
     auditorPrivilegedStub = AuditorPrivilegedGrpc.newBlockingStub(privilegedChannel);
 
+    deadlineDurationMillis = config.getGrpcClientConfig().getDeadlineDurationMillis();
+  }
+
+  @VisibleForTesting
+  AuditorClient(
+      TargetConfig config,
+      AuditorGrpc.AuditorBlockingStub auditorStub,
+      AuditorPrivilegedGrpc.AuditorPrivilegedBlockingStub auditorPrivilegedStub) {
+    this.channel = null;
+    this.privilegedChannel = null;
+    this.auditorStub = auditorStub;
+    this.auditorPrivilegedStub = auditorPrivilegedStub;
+    assert config.getGrpcClientConfig() != null;
     deadlineDurationMillis = config.getGrpcClientConfig().getDeadlineDurationMillis();
   }
 
@@ -171,6 +187,18 @@ public class AuditorClient extends AbstractAuditorClient {
     }
     // Java compiler requires this line even though it won't come here
     return "";
+  }
+
+  @Override
+  public LockRecoveryResult recover(AssetLockRecoveryRequest request) {
+    try {
+      return LockRecoveryResult.getInstance(
+          getAuditorPrivilegedStub().recoverAssetLock(request).getResult().getNumber());
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    return LockRecoveryResult.FAILED;
   }
 
   private AuditorGrpc.AuditorBlockingStub getAuditorStub() {
