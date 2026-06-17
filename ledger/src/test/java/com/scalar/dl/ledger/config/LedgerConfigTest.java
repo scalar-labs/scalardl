@@ -465,6 +465,109 @@ public class LedgerConfigTest {
   }
 
   @Test
+  public void isTransactionStatePurgeEnabled_NotConfigured_ShouldReturnDefault() {
+    // Arrange
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isTransactionStatePurgeEnabled())
+        .isEqualTo(LedgerConfig.DEFAULT_TRANSACTION_STATE_PURGE_ENABLED);
+  }
+
+  @Test
+  public void
+      constructor_TransactionStatePurgeEnabledWithConsensusCommit_ShouldForceWriteSetLoggingEnabled() {
+    // Arrange
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PEM);
+    props.setProperty(LedgerConfig.TRANSACTION_STATE_PURGE_ENABLED, "true");
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+    // Explicitly disable write-set logging to verify that it is forced on.
+    props.setProperty(ConsensusCommitConfig.COORDINATOR_WRITE_SET_LOGGING_ENABLED, "false");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isTransactionStatePurgeEnabled()).isTrue();
+    assertThat(
+            new ConsensusCommitConfig(config.getDatabaseConfig())
+                .isCoordinatorWriteSetLoggingEnabled())
+        .isTrue();
+  }
+
+  @Test
+  public void
+      constructor_TransactionStatePurgeDisabledWithConsensusCommit_ShouldNotForceWriteSetLogging() {
+    // Arrange
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+    // Transaction state purge is disabled by default.
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isTransactionStatePurgeEnabled()).isFalse();
+    assertThat(
+            new ConsensusCommitConfig(config.getDatabaseConfig())
+                .isCoordinatorWriteSetLoggingEnabled())
+        .isFalse();
+  }
+
+  @Test
+  public void
+      constructor_TransactionStatePurgeEnabledButAuditorDisabled_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    props.setProperty(LedgerConfig.TRANSACTION_STATE_PURGE_ENABLED, "true");
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "false");
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
+  public void constructor_TransactionStatePurgeEnabledAndAuditorEnabled_ShouldConstructProperly() {
+    // Arrange
+    props.setProperty(LedgerConfig.TRANSACTION_STATE_PURGE_ENABLED, "true");
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PEM);
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isTransactionStatePurgeEnabled()).isTrue();
+  }
+
+  @Test
+  public void
+      constructor_TransactionStatePurgeEnabledButJdbcTransactionManager_ShouldThrowIllegalArgumentException() {
+    // Arrange: Auditor is enabled (so the auditor-required check passes) and tx state management is
+    // enabled (required for JDBC in Auditor mode), but purge is not supported for JDBC.
+    props.setProperty(LedgerConfig.TRANSACTION_STATE_PURGE_ENABLED, "true");
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PEM);
+    props.setProperty(LedgerConfig.TX_STATE_MANAGEMENT_ENABLED, "true");
+    props.setProperty(DatabaseConfig.STORAGE, "jdbc");
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "jdbc");
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   public void constructor_AuditorAndProofEnabledAndPrivateKeyGiven_ShouldConstructProperly() {
     // Arrange
     props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");

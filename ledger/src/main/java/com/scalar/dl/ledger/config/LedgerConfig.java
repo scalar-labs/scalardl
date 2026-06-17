@@ -46,6 +46,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   @VisibleForTesting static final int DEFAULT_AUDITOR_CERT_VERSION = 1;
   @VisibleForTesting static final boolean DEFAULT_DIRECT_ASSET_ACCESS_ENABLED = false;
   @VisibleForTesting static final boolean DEFAULT_TX_STATE_MANAGEMENT_ENABLED = false;
+  @VisibleForTesting static final boolean DEFAULT_TRANSACTION_STATE_PURGE_ENABLED = false;
 
   @VisibleForTesting
   static final AuthenticationMethod DEFAULT_AUTHENTICATION_METHOD =
@@ -59,6 +60,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
 
   private static final String PREFIX = "scalar.dl.ledger.";
   private static final String SERVER_PREFIX = PREFIX + "server.";
+  private static final String TRANSACTION_STATE_PURGE_PREFIX = PREFIX + "transaction_state_purge.";
 
   /**
    * <code>scalar.dl.ledger.name</code> (Optional)<br>
@@ -270,6 +272,23 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
    */
   public static final String TX_STATE_MANAGEMENT_ENABLED = PREFIX + "tx_state_management.enabled";
 
+  /**
+   * <code>scalar.dl.ledger.transaction_state_purge.enabled</code> (Optional)<br>
+   * The master switch for transaction state purge (false by default). While disabled, the Ledger
+   * rejects transaction state purge (finish) requests so that transaction states are not deleted
+   * unintentionally. This must be enabled together with the corresponding Auditor setting to allow
+   * purge. Note that transaction state purge is currently supported only when Auditor is enabled
+   * and the Consensus Commit transaction manager is used.
+   *
+   * <p>Enabling this forces ScalarDB's <code>
+   * scalar.db.consensus_commit.coordinator.write_set_logging.enabled</code> on (overriding an
+   * explicit false), because finishing a transaction needs the Coordinator state's write set to
+   * delete it. This only takes effect for transactions committed after purge is enabled;
+   * Coordinator states committed beforehand carry no write set and are not reclaimed by purge.
+   */
+  public static final String TRANSACTION_STATE_PURGE_ENABLED =
+      TRANSACTION_STATE_PURGE_PREFIX + "enabled";
+
   private final Properties props;
   private String name;
   private String namespace;
@@ -296,6 +315,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private Set<String> executableContractNames;
   private boolean isDirectAssetAccessEnabled;
   private boolean isTxStateManagementEnabled;
+  private boolean isTransactionStatePurgeEnabled;
 
   public LedgerConfig(File propertiesFile) throws IOException {
     try (FileInputStream stream = new FileInputStream(propertiesFile)) {
@@ -454,6 +474,10 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     return isTxStateManagementEnabled;
   }
 
+  public boolean isTransactionStatePurgeEnabled() {
+    return isTransactionStatePurgeEnabled;
+  }
+
   private void load() {
     name = ConfigUtils.getString(props, NAME, DEFAULT_NAME);
     namespace = ConfigUtils.getString(props, NAMESPACE, DEFAULT_NAMESPACE);
@@ -550,6 +574,9 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     isTxStateManagementEnabled =
         ConfigUtils.getBoolean(
             props, TX_STATE_MANAGEMENT_ENABLED, DEFAULT_TX_STATE_MANAGEMENT_ENABLED);
+    isTransactionStatePurgeEnabled =
+        ConfigUtils.getBoolean(
+            props, TRANSACTION_STATE_PURGE_ENABLED, DEFAULT_TRANSACTION_STATE_PURGE_ENABLED);
     validateTransactionManager();
 
     LOGGER.info(name + " is configured with " + this + " (credential information is omitted)");
@@ -565,6 +592,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private void validateTransactionManager() {
     DatabaseConfig databaseConfig = new DatabaseConfig(props);
     String transactionManager = databaseConfig.getTransactionManager().toLowerCase(Locale.ROOT);
+
+    validateTransactionStatePurge(transactionManager);
 
     if (transactionManager.equals("jdbc")) {
       if (isAuditorEnabled && !isTxStateManagementEnabled) {
@@ -593,6 +622,36 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
             ConsensusCommitConfig.COORDINATOR_WRITE_OMISSION_ON_READ_ONLY_ENABLED,
             Boolean.toString(false));
       }
+      // finishTransaction needs the persisted Coordinator write set to delete Coordinator states
+      // during transaction state purge. Force write-set logging on only when purge is enabled, so
+      // purge-disabled deployments avoid the extra storage cost of the tx_write_set column.
+      if (isTransactionStatePurgeEnabled
+          && !consensusCommitConfig.isCoordinatorWriteSetLoggingEnabled()) {
+        LOGGER.warn(
+            "Enabling the option '{}' because it is required to delete Coordinator states during transaction state purge",
+            ConsensusCommitConfig.COORDINATOR_WRITE_SET_LOGGING_ENABLED);
+        props.setProperty(
+            ConsensusCommitConfig.COORDINATOR_WRITE_SET_LOGGING_ENABLED, Boolean.toString(true));
+      }
+    }
+  }
+
+  // Transaction state purge is currently supported only with Auditor enabled and the Consensus
+  // Commit transaction manager (see ScalarTransactionManager#finish for why the ScalarDL-managed
+  // tx_state needs separate handling). Reject the unsupported combinations at startup.
+  private void validateTransactionStatePurge(String transactionManager) {
+    if (!isTransactionStatePurgeEnabled) {
+      return;
+    }
+    if (!isAuditorEnabled) {
+      throw new IllegalArgumentException(
+          LedgerError.CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_WITHOUT_AUDITOR.buildMessage(
+              TRANSACTION_STATE_PURGE_ENABLED));
+    }
+    if (transactionManager.equals("jdbc")) {
+      throw new IllegalArgumentException(
+          LedgerError.CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_JDBC_TRANSACTION
+              .buildMessage(TRANSACTION_STATE_PURGE_ENABLED));
     }
   }
 
@@ -625,6 +684,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
         .add(EXECUTABLE_CONTRACTS, getExecutableContractNames())
         .add(DIRECT_ASSET_ACCESS_ENABLED, isDirectAssetAccessEnabled())
         .add(TX_STATE_MANAGEMENT_ENABLED, isTxStateManagementEnabled())
+        .add(TRANSACTION_STATE_PURGE_ENABLED, isTransactionStatePurgeEnabled())
         .toString();
   }
 }
