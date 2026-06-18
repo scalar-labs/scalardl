@@ -85,6 +85,7 @@
       "cert_holder_id": "TEXT",
       "cert_version": "INT",
       "signature": "BLOB",
+      "read_write_set_keys": "TEXT",
       "registered_at": "BIGINT"
     },
     "compaction-strategy": "LCS"
