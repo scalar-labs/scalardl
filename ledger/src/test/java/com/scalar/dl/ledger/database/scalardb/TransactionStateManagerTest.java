@@ -3,12 +3,14 @@ package com.scalar.dl.ledger.database.scalardb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
+import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
@@ -19,6 +21,7 @@ import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.exception.ConflictException;
+import com.scalar.dl.ledger.exception.DatabaseException;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -324,5 +327,42 @@ public class TransactionStateManagerTest {
     verify(transaction).abort();
     verify(transaction, never()).commit();
     assertThat(state).isEqualTo(TransactionState.UNKNOWN);
+  }
+
+  @Test
+  public void deleteState_TransactionIdGiven_ShouldDeleteAndCommit() throws TransactionException {
+    // Arrange
+    DistributedTransaction transaction = mock(DistributedTransaction.class);
+    when(manager.start()).thenReturn(transaction);
+
+    // Act
+    stateManager.deleteState(SOME_TX_ID);
+
+    // Assert
+    verify(transaction).commit();
+    verify(transaction, never()).abort();
+    ArgumentCaptor<Delete> deleteCaptor = ArgumentCaptor.forClass(Delete.class);
+    verify(transaction).delete(deleteCaptor.capture());
+    Delete deleteCaptured = deleteCaptor.getValue();
+    assertThat(deleteCaptured.getPartitionKey().getColumns().getFirst().getTextValue())
+        .isEqualTo(SOME_TX_ID);
+  }
+
+  @Test
+  public void deleteState_TransactionExceptionThrown_ShouldAbortAndThrowDatabaseException()
+      throws TransactionException {
+    // Arrange
+    DistributedTransaction transaction = mock(DistributedTransaction.class);
+    when(manager.start()).thenReturn(transaction);
+    CrudException toThrow = mock(CrudException.class);
+    doThrow(toThrow).when(transaction).delete(any(Delete.class));
+
+    // Act
+    Throwable thrown = catchThrowable(() -> stateManager.deleteState(SOME_TX_ID));
+
+    // Assert
+    verify(transaction, never()).commit();
+    verify(transaction).abort();
+    assertThat(thrown).isExactlyInstanceOf(DatabaseException.class);
   }
 }

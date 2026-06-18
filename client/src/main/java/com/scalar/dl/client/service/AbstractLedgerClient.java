@@ -9,6 +9,7 @@ import com.scalar.dl.rpc.AssetProofRetrievalRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
@@ -33,4 +34,6 @@ public abstract class AbstractLedgerClient implements Client {
   abstract Optional<AssetProof> retrieve(AssetProofRetrievalRequest request);
 
   abstract TransactionState abort(ExecutionAbortRequest request);
+
+  abstract void finish(ExecutionFinishRequest request);
 }

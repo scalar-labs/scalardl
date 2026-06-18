@@ -93,6 +93,10 @@ public class ContractExecutor {
     return transactionManager.abort(nonce);
   }
 
+  public void finish(String nonce) {
+    transactionManager.finish(nonce);
+  }
+
   private List<FunctionMachine> getFunctions(String namespace, List<String> functionIds) {
     if (!config.isFunctionEnabled()) {
       return Collections.emptyList();

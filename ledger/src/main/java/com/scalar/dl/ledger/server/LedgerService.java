@@ -22,6 +22,7 @@ import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ContractsListingResponse;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
 import com.scalar.dl.rpc.ExecutionAbortResponse;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.LedgerGrpc;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
@@ -128,6 +129,14 @@ public class LedgerService extends LedgerGrpc.LedgerImplBase {
               .setState(TransactionState.forNumber(result.getState().get()))
               .build();
         };
+
+    commonService.serve(f, request, responseObserver);
+  }
+
+  @Override
+  public void finishExecution(
+      ExecutionFinishRequest request, StreamObserver<Empty> responseObserver) {
+    ThrowableConsumer<ExecutionFinishRequest> f = r -> ledger.finish(convert(r));
 
     commonService.serve(f, request, responseObserver);
   }
