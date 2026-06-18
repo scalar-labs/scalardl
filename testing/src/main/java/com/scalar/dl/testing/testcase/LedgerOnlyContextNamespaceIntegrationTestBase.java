@@ -79,7 +79,6 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
   @Override
   protected void setUpAfterClusterStart() throws Exception {
     createStorage();
-    createSchema();
     createFunctionTableSchema();
 
     // Phase 1: Create admin ClientService (default namespace)
