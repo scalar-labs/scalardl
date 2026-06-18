@@ -108,6 +108,7 @@ task copyFilesToDockerBuildContextDir(type: Copy) {
     description = 'Copy files to a temporary folder to build the Docker image'
     dependsOn distTar
     from('Dockerfile')
+    from('Dockerfile.ubi')
     from('conf') {
         include 'ledger.properties'
         include 'log4j2.properties'
@@ -117,11 +118,23 @@ task copyFilesToDockerBuildContextDir(type: Copy) {
     into('build/docker')
 }
 
+def ubiSuffix = project.hasProperty("ubi") ? "-ubi" : ""
+def dockerfileSuffix = project.hasProperty("ubi") ? ".ubi" : ""
+def imageName = "scalardl-ledger${ubiSuffix}"
+def imageVersion = dockerVersion
+def imageRelease = System.currentTimeMillis().toString()
+
 task docker(type: Exec) {
     description = 'Build ScalarDL Ledger Docker image'
     dependsOn copyFilesToDockerBuildContextDir
     workingDir 'build/docker'
-    commandLine 'docker', 'build', '--tag', "ghcr.io/scalar-labs/scalardl-ledger:${dockerVersion}", '.'
+    commandLine 'docker', 'build',
+    '--build-arg', "IMAGE_NAME=${imageName}",
+    '--build-arg', "IMAGE_VERSION=${imageVersion}",
+    '--build-arg', "IMAGE_RELEASE=${imageRelease}",
+    '-f', "Dockerfile${dockerfileSuffix}",
+    '--tag', "ghcr.io/scalar-labs/${imageName}:${imageVersion}",
+    '.'
 }
 
 def integrationTestBase = {
