@@ -126,7 +126,6 @@ public abstract class LedgerNamespaceIntegrationTestBase {
     cluster.start();
 
     createStorage();
-    createSchema();
     createClientServices();
     createNamespaces();
     registerNamespaceAwareContracts();
@@ -137,11 +136,6 @@ public abstract class LedgerNamespaceIntegrationTestBase {
     StorageFactory factory = StorageFactory.create(storageProps);
     storage = factory.getStorage();
     storageAdmin = factory.getStorageAdmin();
-  }
-
-  private void createSchema() throws Exception {
-    Properties props = cluster.getStorageConfig().getPropertiesForHost();
-    SchemaLoader.load(props, TestSchemas.getLedgerSchema(), java.util.Collections.emptyMap(), true);
   }
 
   private void createClientServices() throws IOException {
