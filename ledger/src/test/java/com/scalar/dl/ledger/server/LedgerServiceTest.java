@@ -3,6 +3,7 @@ package com.scalar.dl.ledger.server;
 import static com.scalar.dl.ledger.server.TypeConverter.convert;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,6 +22,7 @@ import com.scalar.dl.rpc.AssetProofRetrievalResponse;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractExecutionResponse;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.LedgerValidationResponse;
 import io.grpc.stub.StreamObserver;
@@ -291,6 +293,50 @@ public class LedgerServiceTest {
     // Assert
     verify(validation).retrieve(convert(request));
     // Can't compare since StatusRuntimeException doesn't implement equals
+    verify(observer).onError(any());
+  }
+
+  @Test
+  public void finishExecution_ExecutionFinishRequestGiven_ShouldCallFinishAndOnCompleted() {
+    // Arrange
+    ExecutionFinishRequest request =
+        ExecutionFinishRequest.newBuilder()
+            .setNonce(SOME_NONCE)
+            .setEntityId(SOME_ENTITY_ID)
+            .setKeyVersion(SOME_KEY_VERSION)
+            .setSignature(ByteString.copyFrom(SOME_SIGNATURE))
+            .build();
+    doNothing().when(ledger).finish(convert(request));
+    StreamObserver<Empty> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.finishExecution(request, observer);
+
+    // Assert
+    verify(ledger).finish(convert(request));
+    verify(observer).onNext(any(Empty.class));
+    verify(observer).onCompleted();
+  }
+
+  @Test
+  public void finishExecution_LedgerExceptionThrown_ShouldCallOnError() {
+    // Arrange
+    ExecutionFinishRequest request =
+        ExecutionFinishRequest.newBuilder()
+            .setNonce(SOME_NONCE)
+            .setEntityId(SOME_ENTITY_ID)
+            .setKeyVersion(SOME_KEY_VERSION)
+            .setSignature(ByteString.copyFrom(SOME_SIGNATURE))
+            .build();
+    LedgerException toThrow = new LedgerException(SOME_MESSAGE, StatusCode.DATABASE_ERROR);
+    doThrow(toThrow).when(ledger).finish(convert(request));
+    StreamObserver<Empty> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.finishExecution(request, observer);
+
+    // Assert
+    verify(ledger).finish(convert(request));
     verify(observer).onError(any());
   }
 }
