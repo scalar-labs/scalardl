@@ -29,6 +29,7 @@ import com.scalar.dl.ledger.model.CertificateRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
 import com.scalar.dl.ledger.model.ContractsListingRequest;
+import com.scalar.dl.ledger.model.ExecutionFinishRequest;
 import com.scalar.dl.ledger.model.FunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.NamespaceCreationRequest;
 import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
@@ -537,5 +538,33 @@ public class LedgerServiceTest {
 
     // Assert
     verify(functionManager).register(anyString(), any(FunctionEntry.class));
+  }
+
+  @Test
+  public void finish_ProperRequestGiven_ShouldCallFinish() {
+    // Arrange
+    ExecutionFinishRequest request = mock(ExecutionFinishRequest.class);
+    when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
+    when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    when(request.getNonce()).thenReturn("some_nonce");
+    configureRequestValidation(request, true);
+
+    // Act
+    service.finish(request);
+
+    // Assert
+    verify(contractExecutor).finish("some_nonce");
+  }
+
+  @Test
+  public void finish_InvalidSignatureGiven_ShouldThrowSignatureException() {
+    // Arrange
+    ExecutionFinishRequest request = mock(ExecutionFinishRequest.class);
+    when(request.getEntityId()).thenReturn(SOME_ENTITY_ID);
+    when(request.getKeyVersion()).thenReturn(SOME_KEY_VERSION);
+    configureRequestValidation(request, false);
+
+    // Act & Assert
+    assertThatThrownBy(() -> service.finish(request)).isInstanceOf(SignatureException.class);
   }
 }

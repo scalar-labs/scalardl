@@ -1,0 +1,81 @@
+package com.scalar.dl.ledger.model;
+
+import com.scalar.dl.ledger.crypto.SignatureValidator;
+import com.scalar.dl.ledger.error.CommonLedgerError;
+import com.scalar.dl.ledger.exception.SignatureException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Objects;
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
+public class ExecutionFinishRequest extends AbstractRequest {
+  // A domain separator prepended to the signed bytes so that a signature for this request type
+  // cannot be reused for another request type that signs the same values. For example,
+  // ExecutionAbortRequest signs the same nonce + entityId + keyVersion.
+  private static final byte[] REQUEST_TYPE_TAG = "finish".getBytes(StandardCharsets.UTF_8);
+  private final String nonce;
+  private final byte[] signature;
+
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
+  public ExecutionFinishRequest(String nonce, String entityId, int keyVersion, byte[] signature) {
+    super(null, entityId, keyVersion);
+    this.nonce = nonce;
+    this.signature = signature;
+  }
+
+  public String getNonce() {
+    return nonce;
+  }
+
+  @SuppressFBWarnings("EI_EXPOSE_REP")
+  public byte[] getSignature() {
+    return signature;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), nonce, Arrays.hashCode(signature));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!super.equals(o)) {
+      return false;
+    }
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof ExecutionFinishRequest)) {
+      return false;
+    }
+    ExecutionFinishRequest other = (ExecutionFinishRequest) o;
+    return this.nonce.equals(other.nonce) && Arrays.equals(this.signature, other.signature);
+  }
+
+  @Override
+  public void validateWith(SignatureValidator validator) {
+    byte[] bytes = serialize(nonce, getEntityId(), getKeyVersion());
+
+    if (!validator.validate(bytes, signature)) {
+      throw new SignatureException(CommonLedgerError.REQUEST_SIGNATURE_VALIDATION_FAILED);
+    }
+  }
+
+  public static byte[] serialize(String nonce, String entityId, int keyVersion) {
+    ByteBuffer buffer =
+        ByteBuffer.allocate(
+            REQUEST_TYPE_TAG.length
+                + nonce.getBytes(StandardCharsets.UTF_8).length
+                + entityId.getBytes(StandardCharsets.UTF_8).length
+                + Integer.BYTES);
+    buffer.put(REQUEST_TYPE_TAG);
+    buffer.put(nonce.getBytes(StandardCharsets.UTF_8));
+    buffer.put(entityId.getBytes(StandardCharsets.UTF_8));
+    buffer.putInt(keyVersion);
+    buffer.rewind();
+    return buffer.array();
+  }
+}

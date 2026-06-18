@@ -142,6 +142,15 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
   }
 
   @Override
+  public void finish(String transactionId) {
+    if (config.isTxStateManagementEnabled()) {
+      stateManager.deleteState(transactionId);
+    }
+    // TODO: Call manager.finishTransaction(transactionId) when ScalarDB PR #3567 is merged
+    // https://github.com/scalar-labs/scalardb/pull/3567
+  }
+
+  @Override
   public void recover(Map<AssetKey, Integer> assetKeys) {
     if (manager instanceof ConsensusCommitManager) {
       /*

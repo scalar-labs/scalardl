@@ -257,6 +257,12 @@ public enum LedgerError implements ScalarDlError {
       "The database operation in the function failed due to a database error. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
+  FINISHING_TRANSACTION_FAILED(
+      StatusCode.DATABASE_ERROR,
+      "012",
+      "Finishing the transaction failed. Details: %s",
+      "",
+      "Check the error details in the logs and verify your database configuration and connection."),
 
   //
   // Errors for UNKNOWN_TRANSACTION_STATUS(501)
