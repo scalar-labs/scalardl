@@ -1244,11 +1244,6 @@ public class ClientService implements AutoCloseable {
    */
   public TransactionStatePurgeResult purgeState() {
     checkClientMode(ClientMode.CLIENT);
-    if (!config.isAuditorEnabled()) {
-      throw new ClientException(
-          "Auditor is not configured. purge-state requires Auditor to be enabled.",
-          StatusCode.INVALID_REQUEST);
-    }
     TransactionStatePurgeRequest request = TransactionStatePurgeRequest.getDefaultInstance();
     return handler.purgeTransactionStates(request);
   }
