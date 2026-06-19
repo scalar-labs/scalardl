@@ -1,16 +1,31 @@
 package com.scalar.dl.testing.testcase;
 
+import static com.scalar.dl.testing.contract.Constants.AMOUNT_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Constants.ASSET_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Constants.BALANCE_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Constants.CREATE_CONTRACT_ID1;
+import static com.scalar.dl.testing.contract.Constants.CREATE_FUNCTION_ID1;
+import static com.scalar.dl.testing.contract.Constants.ID_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Constants.NAMESPACE_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.namespace.Namespaces;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.testing.container.LedgerTestCluster;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
+import javax.json.Json;
+import javax.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * Base class for running all {@link LedgerOnlyIntegrationTestBase} tests (including Function tests)
@@ -57,6 +72,16 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
 
   @Override
   protected String getContextNamespace() {
+    return TEST_NAMESPACE;
+  }
+
+  /**
+   * In a non-default context, functions may only access the ScalarDB namespace with the same name
+   * as the context namespace. The inherited function tests therefore operate on the context
+   * namespace instead of the default {@code FUNCTION_NAMESPACE}.
+   */
+  @Override
+  protected String getFunctionNamespace() {
     return TEST_NAMESPACE;
   }
 
@@ -143,6 +168,33 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
           TestCertificates.KEY_VERSION,
           TestCertificates.SECRET_KEY_B);
     }
+  }
+
+  @Test
+  void executeContract_FunctionAccessingNamespaceOtherThanContextNamespace_ShouldThrowException() {
+    // Arrange: the function tries to access FUNCTION_NAMESPACE, which differs from the context
+    // namespace. A function registered in a non-default namespace may only access the ScalarDB
+    // namespace with the same name as its context namespace, so this must be rejected.
+    JsonObject contractArgument =
+        Json.createObjectBuilder()
+            .add(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+            .add(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+            .build();
+    JsonObject functionArgument =
+        Json.createObjectBuilder()
+            .add(ID_ATTRIBUTE_NAME, "id1")
+            .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+            .add(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE)
+            .build();
+
+    // Act & Assert
+    assertThatThrownBy(
+            () ->
+                clientServiceA.executeContract(
+                    CREATE_CONTRACT_ID1, contractArgument, CREATE_FUNCTION_ID1, functionArgument))
+        .isInstanceOfSatisfying(
+            ClientException.class,
+            e -> assertThat(e.getStatusCode()).isEqualTo(StatusCode.INVALID_FUNCTION));
   }
 
   @AfterAll
