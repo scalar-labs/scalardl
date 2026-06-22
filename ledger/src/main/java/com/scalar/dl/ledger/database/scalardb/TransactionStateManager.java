@@ -5,6 +5,7 @@ import static com.scalar.dl.ledger.database.TransactionState.COMMITTED;
 import static com.scalar.dl.ledger.database.TransactionState.UNKNOWN;
 
 import com.google.inject.Inject;
+import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
@@ -19,6 +20,7 @@ import com.scalar.db.io.TextValue;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
+import com.scalar.dl.ledger.exception.DatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +92,26 @@ public class TransactionStateManager {
       LOGGER.warn(
           "could not get the state of transaction " + transactionId + " for some reason.", e);
       return UNKNOWN;
+    }
+  }
+
+  public void deleteState(String transactionId) {
+    DistributedTransaction transaction = null;
+    try {
+      transaction = manager.start();
+      Delete delete =
+          Delete.newBuilder().table(TABLE).partitionKey(Key.ofText(ID, transactionId)).build();
+      transaction.delete(delete);
+      transaction.commit();
+    } catch (TransactionException e) {
+      if (transaction != null) {
+        try {
+          transaction.abort();
+        } catch (AbortException ignored) {
+          // ignore it since the transaction state is eventually settled
+        }
+      }
+      throw new DatabaseException(LedgerError.FINISHING_TRANSACTION_FAILED, e, e.getMessage());
     }
   }
 

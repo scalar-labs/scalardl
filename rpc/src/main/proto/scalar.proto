@@ -25,6 +25,8 @@ service Ledger {
     }
     rpc AbortExecution (ExecutionAbortRequest) returns (ExecutionAbortResponse) {
     }
+    rpc FinishExecution (ExecutionFinishRequest) returns (google.protobuf.Empty) {
+    }
 }
 
 service LedgerPrivileged {
@@ -182,6 +184,13 @@ message AssetProofRetrievalRequest {
 }
 
 message ExecutionAbortRequest {
+    string nonce = 1;
+    string entity_id = 2;
+    uint32 key_version = 3;
+    bytes signature = 4;
+}
+
+message ExecutionFinishRequest {
     string nonce = 1;
     string entity_id = 2;
     uint32 key_version = 3;

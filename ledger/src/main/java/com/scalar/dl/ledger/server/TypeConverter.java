@@ -11,6 +11,7 @@ import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
 import com.scalar.dl.rpc.ContractsListingRequest;
 import com.scalar.dl.rpc.ExecutionAbortRequest;
+import com.scalar.dl.rpc.ExecutionFinishRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.NamespaceCreationRequest;
@@ -131,6 +132,12 @@ public class TypeConverter {
   public static com.scalar.dl.ledger.model.ExecutionAbortRequest convert(
       ExecutionAbortRequest req) {
     return new com.scalar.dl.ledger.model.ExecutionAbortRequest(
+        req.getNonce(), req.getEntityId(), req.getKeyVersion(), req.getSignature().toByteArray());
+  }
+
+  public static com.scalar.dl.ledger.model.ExecutionFinishRequest convert(
+      ExecutionFinishRequest req) {
+    return new com.scalar.dl.ledger.model.ExecutionFinishRequest(
         req.getNonce(), req.getEntityId(), req.getKeyVersion(), req.getSignature().toByteArray());
   }
 

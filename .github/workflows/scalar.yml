@@ -34,6 +34,11 @@ jobs:
           client:dockerfileLint \
           ledger:dockerfileLint \
 
+    - name: Lint Dockerfile for UBI-based images
+      run: |
+        ./gradlew \
+          ledger:dockerfileLint -Pubi
+
     - name: Run unit tests
       run: ./gradlew check
 
@@ -117,8 +122,18 @@ jobs:
           -Dscalardb.transaction_manager=jdbc
 
   e2e-integration-test-for-ledger:
-    name: End-to-end integration test for Ledger
+    name: End-to-end integration test for Ledger (${{ matrix.image-type }})
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - image-type: temurin
+            build-args: ""
+            image-suffix: ""
+          - image-type: ubi
+            build-args: "-Pubi"
+            image-suffix: "-ubi"
 
     steps:
       - uses: actions/checkout@v6
@@ -132,17 +147,25 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      - name: Get the project version
+        id: set-version
+        run: |
+          VERSION=$(./gradlew :common:properties -q | grep "version:" | awk '{print $2}')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
       - name: Build Docker images
-        run: ./gradlew :ledger:docker
+        run: ./gradlew :ledger:docker ${{ matrix.build-args }}
 
       - name: Run integration tests
-        run: ./gradlew :testing:integrationTest
+        run: |
+          ./gradlew :testing:integrationTest \
+            -Dscalardl.ledger.image=ghcr.io/scalar-labs/scalardl-ledger${{ matrix.image-suffix }}:${{ steps.set-version.outputs.version }}
 
       - name: Upload Gradle test reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: integration_test_reports_for_ledger_e2e
+          name: integration_test_reports_for_ledger_e2e_${{ matrix.image-type }}
           path: testing/build/reports/tests/integrationTest
 
   e2e-integration-test-for-generic-contracts:

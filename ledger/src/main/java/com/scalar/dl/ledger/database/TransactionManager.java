@@ -14,5 +14,7 @@ public interface TransactionManager {
 
   TransactionState abort(String transactionId);
 
+  void finish(String transactionId);
+
   void recover(Map<AssetKey, Integer> assetIds);
 }

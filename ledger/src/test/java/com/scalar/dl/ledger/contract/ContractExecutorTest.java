@@ -285,4 +285,16 @@ public class ContractExecutorTest {
         .invoke(any(Database.class), nullable(String.class), anyString(), nullable(String.class));
     assertThat(thrown).isEqualTo(toThrow);
   }
+
+  @Test
+  public void finish_NonceGiven_ShouldCallTransactionManagerFinish() {
+    // Arrange
+    String nonce = "some_nonce";
+
+    // Act
+    executor.finish(nonce);
+
+    // Assert
+    verify(transactionManager).finish(nonce);
+  }
 }
