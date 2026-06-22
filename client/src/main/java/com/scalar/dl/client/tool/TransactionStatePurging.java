@@ -11,7 +11,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "purge-state", description = "Purge stale transaction states.")
-public class PurgeState extends AbstractClientCommand {
+public class TransactionStatePurging extends AbstractClientCommand {
 
   @Option(
       names = {"-f", "--force"},
@@ -19,7 +19,7 @@ public class PurgeState extends AbstractClientCommand {
   private boolean force;
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new PurgeState()).execute(args);
+    int exitCode = new CommandLine(new TransactionStatePurging()).execute(args);
     System.exit(exitCode);
   }
 

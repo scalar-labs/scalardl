@@ -28,12 +28,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
 
-public class PurgeStateTest {
+public class TransactionStatePurgingTest {
   private CommandLine commandLine;
 
   @BeforeEach
   void setup() {
-    commandLine = new CommandLine(new PurgeState());
+    commandLine = new CommandLine(new TransactionStatePurging());
   }
 
   @Nested
@@ -44,7 +44,7 @@ public class PurgeStateTest {
     void returns0AsExitCode() throws ClientException {
       // Arrange
       String[] args = new String[] {"--properties=PROPERTIES_FILE"};
-      PurgeState command = spy(parseArgs(args));
+      TransactionStatePurging command = spy(parseArgs(args));
       doReturn(true).when(command).confirmPurging();
       ClientService serviceMock = mock(ClientService.class);
       when(serviceMock.purgeState()).thenReturn(new TransactionStatePurgeResult(3, 2, 1));
@@ -74,7 +74,7 @@ public class PurgeStateTest {
               // Enable Gateway.
               "--use-gateway"
             };
-        PurgeState command = spy(parseArgs(args));
+        TransactionStatePurging command = spy(parseArgs(args));
         doReturn(true).when(command).confirmPurging();
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
@@ -105,7 +105,7 @@ public class PurgeStateTest {
               propertiesOption,
               // Gateway is disabled by default.
             };
-        PurgeState command = spy(parseArgs(args));
+        TransactionStatePurging command = spy(parseArgs(args));
         doReturn(true).when(command).confirmPurging();
         ClientServiceFactory factory = mock(ClientServiceFactory.class);
         ClientService serviceMock = mock(ClientService.class);
@@ -129,7 +129,7 @@ public class PurgeStateTest {
       void returns1AsExitCodeAndDoesNotCallPurgeState() throws ClientException {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE"};
-        PurgeState command = spy(parseArgs(args));
+        TransactionStatePurging command = spy(parseArgs(args));
         doReturn(false).when(command).confirmPurging();
         ClientService serviceMock = mock(ClientService.class);
 
@@ -150,7 +150,7 @@ public class PurgeStateTest {
       void returns0AsExitCodeWithoutConfirmation() throws ClientException {
         // Arrange
         String[] args = new String[] {"--properties=PROPERTIES_FILE", "--force"};
-        PurgeState command = parseArgs(args);
+        TransactionStatePurging command = parseArgs(args);
         ClientService serviceMock = mock(ClientService.class);
         when(serviceMock.purgeState()).thenReturn(new TransactionStatePurgeResult(0, 0, 0));
 
@@ -172,7 +172,7 @@ public class PurgeStateTest {
         // Arrange
         File file = createDefaultClientPropertiesFile(tempDir, "client.props");
         String[] args = new String[] {"--properties=" + file.getAbsolutePath()};
-        PurgeState command = spy(parseArgs(args));
+        TransactionStatePurging command = spy(parseArgs(args));
         doReturn(true).when(command).confirmPurging();
         // Mock service that throws an exception.
         ClientServiceFactory factoryMock = mock(ClientServiceFactory.class);
@@ -190,7 +190,7 @@ public class PurgeStateTest {
     }
   }
 
-  private PurgeState parseArgs(String[] args) {
-    return CommandLineTestUtils.parseArgs(commandLine, PurgeState.class, args);
+  private TransactionStatePurging parseArgs(String[] args) {
+    return CommandLineTestUtils.parseArgs(commandLine, TransactionStatePurging.class, args);
   }
 }

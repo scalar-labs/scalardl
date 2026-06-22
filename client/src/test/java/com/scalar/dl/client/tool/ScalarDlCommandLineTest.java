@@ -108,7 +108,7 @@ public class ScalarDlCommandLineTest {
                 NamespaceCreation.class,
                 NamespaceDropping.class,
                 NamespacesListing.class,
-                PurgeState.class,
+                TransactionStatePurging.class,
               });
     }
   }
