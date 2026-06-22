@@ -50,6 +50,7 @@ import java.net.SocketPermission;
 import java.security.PermissionCollection;
 import java.security.Permissions;
 import java.security.ProtectionDomain;
+import java.sql.SQLPermission;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.PropertyPermission;
@@ -200,6 +201,15 @@ public class LedgerModule extends AbstractModule {
     // (null, null) means that it denies all if java.security.manager is enabled
     PermissionCollection permissionCollection = new Permissions();
     permissionCollection.add(new RuntimePermission("createClassLoader"));
+    // For ScalarDB on JDBC databases
+    if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("jdbc")) {
+      permissionCollection.add(new SocketPermission("*", "connect,resolve"));
+      // The PostgreSQL JDBC driver reads this property to decide SOCKS proxy resolution.
+      permissionCollection.add(new PropertyPermission("socksProxyHost", "read"));
+      // HikariCP calls these methods when validating/closing connections.
+      permissionCollection.add(new SQLPermission("setNetworkTimeout"));
+      permissionCollection.add(new SQLPermission("callAbort"));
+    }
     // For ScalarDB on Cosmos DB
     permissionCollection.add(new RuntimePermission("getenv.*"));
     permissionCollection.add(new PropertyPermission("log4j2.flowMessageFactory", "read"));
