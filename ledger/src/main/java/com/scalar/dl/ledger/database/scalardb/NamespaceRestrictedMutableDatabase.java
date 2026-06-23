@@ -123,10 +123,11 @@ public class NamespaceRestrictedMutableDatabase
   }
 
   private void validateAgainstDisallowedNamespaces(Operation operation) {
-    if (operation.forNamespace().isEmpty()) {
+    Optional<String> namespace = operation.forNamespace();
+    if (namespace.isEmpty()) {
       return;
     }
-    String lowercaseNamespace = operation.forNamespace().get().toLowerCase();
+    String lowercaseNamespace = namespace.get().toLowerCase();
     if (DISALLOWED_NAMESPACES.contains(lowercaseNamespace)
         || DISALLOWED_NAMESPACE_PREFIXES.stream().anyMatch(lowercaseNamespace::startsWith)) {
       throw new InvalidFunctionException(
