@@ -23,9 +23,10 @@ import java.util.Optional;
  * NamespaceRestrictedMutableDatabase}, which wraps this class. This class only delegates operations
  * to the underlying transaction and translates ScalarDB exceptions.
  *
- * <p>Instances must always be wrapped by {@link NamespaceRestrictedMutableDatabase}. The
- * constructor is intentionally package-private so that only {@link ScalarTransactionManager} can
- * create instances, preventing an unwrapped instance (with no access control) from being used.
+ * <p>Instances must always be wrapped by {@link NamespaceRestrictedMutableDatabase}, which enforces
+ * namespace access control. The constructor is intentionally package-private so that instances can
+ * only be created from within this package (in practice, by {@link ScalarTransactionManager}),
+ * keeping the wrapping requirement contained to this package.
  */
 public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, Delete, Result> {
   private final DistributedTransaction transaction;

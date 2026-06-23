@@ -20,16 +20,18 @@ import javax.annotation.concurrent.ThreadSafe;
  * A decorator for {@link MutableDatabase} that enforces namespace-based access control on the
  * ScalarDB operations issued by functions.
  *
- * <p>This is the single place that governs which ScalarDB namespaces a function may access:
+ * <p>This is the single place that governs which ScalarDB namespaces a function may access. System
+ * namespaces and namespaces with reserved prefixes are always rejected, regardless of the context
+ * namespace (this still applies even if the context namespace itself happens to be a reserved
+ * name). In addition:
  *
  * <ul>
- *   <li>When the context namespace is the default namespace, only system namespaces and namespaces
- *       with reserved prefixes are disallowed (the historical behavior, kept for backward
- *       compatibility). Operations without a namespace are allowed.
- *   <li>When the context namespace is a non-default namespace, the function may only access the
+ *   <li>When the context namespace is the default namespace, only that deny list applies (the
+ *       historical behavior, kept for backward compatibility), and operations without a namespace
+ *       are allowed.
+ *   <li>When the context namespace is a non-default namespace, the function may access only the
  *       ScalarDB namespace with the same name as its context namespace. Any operation targeting a
- *       different namespace, or an operation without an explicit namespace, is rejected. Since
- *       system namespaces never match a user context namespace, they are implicitly disallowed too.
+ *       different namespace, or an operation without an explicit namespace, is rejected.
  * </ul>
  *
  * <p>This mirrors {@link com.scalar.dl.ledger.database.NamespaceRestrictedAssetLedger}, which
@@ -98,8 +100,13 @@ public class NamespaceRestrictedMutableDatabase
   }
 
   private void validateNamespaceAccess(Operation operation) {
+    // Always reject system namespaces and namespaces with reserved prefixes, regardless of the
+    // context namespace. This is required even for a non-default context namespace because the
+    // context namespace itself can be a reserved name (only "default" is reserved at namespace
+    // creation), in which case the equality check below would otherwise allow access to it.
+    validateAgainstDisallowedNamespaces(operation);
+
     if (Namespaces.DEFAULT.equals(contextNamespace)) {
-      validateAgainstDisallowedNamespaces(operation);
       return;
     }
 

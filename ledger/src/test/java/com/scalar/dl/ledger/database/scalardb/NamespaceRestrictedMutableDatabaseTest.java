@@ -78,6 +78,11 @@ public class NamespaceRestrictedMutableDatabaseTest {
         .flatMap(ns -> Arrays.stream(Op.values()).map(op -> Arguments.of(op, ns)));
   }
 
+  static Stream<Arguments> operationsAndReservedContextNamespaces() {
+    return Stream.of("coordinator", "system", "scalar_secret", "auditor_log")
+        .flatMap(ns -> Arrays.stream(Op.values()).map(op -> Arguments.of(op, ns)));
+  }
+
   // ---- DEFAULT context: backward-compatible behavior (only system namespaces blocked) ----
 
   @ParameterizedTest
@@ -138,13 +143,26 @@ public class NamespaceRestrictedMutableDatabaseTest {
   @ParameterizedTest
   @EnumSource(Op.class)
   public void operation_NonDefaultContextWithSystemNamespace_ShouldThrow(Op op) {
-    // A system namespace never equals a user context namespace, so it is rejected as a
-    // different-namespace access.
+    // A system namespace is always rejected by the deny list, which is applied regardless of the
+    // context namespace.
     assertThatThrownBy(() -> run(restrictedDatabase, op, "coordinator"))
         .isInstanceOf(InvalidFunctionException.class)
         .hasMessage(
-            LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_DIFFERENT_NAMESPACE.buildMessage(
-                "coordinator", CONTEXT_NAMESPACE));
+            LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE.buildMessage());
+  }
+
+  @ParameterizedTest
+  @MethodSource("operationsAndReservedContextNamespaces")
+  public void operation_ReservedContextNamespaceTargetingItself_ShouldThrow(
+      Op op, String reservedNamespace) {
+    // Even when the context namespace itself is a reserved name, accessing that reserved ScalarDB
+    // namespace must be rejected; the deny list is always applied.
+    NamespaceRestrictedMutableDatabase database =
+        new NamespaceRestrictedMutableDatabase(delegate, reservedNamespace);
+    assertThatThrownBy(() -> run(database, op, reservedNamespace))
+        .isInstanceOf(InvalidFunctionException.class)
+        .hasMessage(
+            LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE.buildMessage());
   }
 
   @ParameterizedTest
