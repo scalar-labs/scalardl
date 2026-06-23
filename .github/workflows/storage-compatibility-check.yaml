@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
@@ -122,7 +122,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
@@ -147,7 +147,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
@@ -175,7 +175,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
@@ -218,7 +218,7 @@ jobs:
 
     steps:
       - name: Checkout the target repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target-ref }}
 
