@@ -638,7 +638,9 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
 
   // Transaction state purge is currently supported only with Auditor enabled and the Consensus
   // Commit transaction manager (see ScalarTransactionManager#finish for why the ScalarDL-managed
-  // tx_state needs separate handling). Reject the unsupported combinations at startup.
+  // tx_state needs separate handling). Require Consensus Commit explicitly (a whitelist) and reject
+  // every other transaction manager at startup, because finish() assumes Consensus Commit semantics
+  // (finishTransaction deleting the Coordinator state).
   private void validateTransactionStatePurge(String transactionManager) {
     if (!isTransactionStatePurgeEnabled) {
       return;
@@ -648,10 +650,10 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
           LedgerError.CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_WITHOUT_AUDITOR.buildMessage(
               TRANSACTION_STATE_PURGE_ENABLED));
     }
-    if (transactionManager.equals("jdbc")) {
+    if (!transactionManager.equals("consensus-commit")) {
       throw new IllegalArgumentException(
-          LedgerError.CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_JDBC_TRANSACTION
-              .buildMessage(TRANSACTION_STATE_PURGE_ENABLED));
+          LedgerError.CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_TRANSACTION_MANAGER
+              .buildMessage(TRANSACTION_STATE_PURGE_ENABLED, transactionManager));
     }
   }
 

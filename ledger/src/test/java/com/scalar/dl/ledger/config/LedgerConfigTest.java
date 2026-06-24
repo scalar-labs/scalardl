@@ -568,6 +568,24 @@ public class LedgerConfigTest {
   }
 
   @Test
+  public void
+      constructor_TransactionStatePurgeEnabledButNonConsensusCommitTransactionManager_ShouldThrowIllegalArgumentException() {
+    // Arrange: Auditor is enabled (so the auditor-required check passes), but purge is supported
+    // only with the Consensus Commit transaction manager, so any other manager must be rejected.
+    props.setProperty(LedgerConfig.TRANSACTION_STATE_PURGE_ENABLED, "true");
+    props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_ENABLED, "true");
+    props.setProperty(LedgerConfig.PROOF_PRIVATE_KEY_PEM, SOME_PEM);
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "single-crud-operation");
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+  }
+
+  @Test
   public void constructor_AuditorAndProofEnabledAndPrivateKeyGiven_ShouldConstructProperly() {
     // Arrange
     props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");

@@ -199,10 +199,10 @@ public enum LedgerError implements ScalarDlError {
       "%s is not supported when Auditor is disabled.",
       "",
       "Enable Auditor (scalar.dl.ledger.auditor.enabled=true), or disable transaction state purge."),
-  CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_JDBC_TRANSACTION(
+  CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_TRANSACTION_MANAGER(
       StatusCode.INVALID_ARGUMENT,
       "010",
-      "%s is not supported when using the JDBC transaction manager.",
+      "%s is not supported when using the '%s' transaction manager.",
       "",
       "Use the Consensus Commit transaction manager, or disable transaction state purge."),
 

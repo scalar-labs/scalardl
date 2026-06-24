@@ -152,14 +152,15 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
     }
 
     if (config.isTxStateManagementEnabled()) {
-      // Currently unreachable: transaction state purge is rejected for the JDBC transaction
-      // manager at startup (see LedgerConfig), and tx state management is only used with JDBC,
-      // so finish is never called here while purge is enabled. This path is kept for future
-      // JDBC-mode purge support, but it must NOT simply delete the state: a force-aborted state
-      // of a long-running transaction past the grace period must be retained (deleting it could
-      // let that transaction commit afterward and cause an anomaly). That needs a separate
-      // reclamation mechanism on a different time axis from the Auditor's periodic purge.
-      stateManager.deleteState(transactionId);
+      // JDBC-mode (tx state management) purge is not supported yet. It is already rejected at
+      // startup (see LedgerConfig#validateTransactionStatePurge), and tx state management is only
+      // used with the JDBC transaction manager, so this is an unreachable defensive guard. Do NOT
+      // delete the state here: a force-aborted state of a long-running transaction past the grace
+      // period must be retained (deleting it could let that transaction commit afterward and cause
+      // an anomaly). JDBC-mode purge needs a separate reclamation mechanism on a different time
+      // axis from the Auditor's periodic purge.
+      throw new UnsupportedOperationException(
+          "Transaction state purge is not supported for the JDBC transaction manager.");
     } else {
       // Consensus Commit manages the Coordinator states, so delegate to ScalarDB to finish the
       // transaction (run recovery if needed and delete the Coordinator state). A failure surfaces

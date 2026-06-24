@@ -257,8 +257,9 @@ public class ScalarTransactionManagerTest {
   }
 
   @Test
-  public void finish_PurgeEnabledAndStateManagementEnabled_ShouldCallDeleteState()
-      throws TransactionException {
+  public void
+      finish_PurgeEnabledAndStateManagementEnabled_ShouldThrowUnsupportedOperationException()
+          throws TransactionException {
     // Arrange
     when(config.isTransactionStatePurgeEnabled()).thenReturn(true);
     when(config.isTxStateManagementEnabled()).thenReturn(true);
@@ -267,10 +268,11 @@ public class ScalarTransactionManagerTest {
             manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
 
     // Act
-    transactionManager.finish(NONCE);
+    Throwable thrown = catchThrowable(() -> transactionManager.finish(NONCE));
 
     // Assert
-    verify(stateManager).deleteState(NONCE);
+    assertThat(thrown).isInstanceOf(UnsupportedOperationException.class);
+    verify(stateManager, never()).deleteState(NONCE);
     verify(manager, never()).finishTransaction(NONCE);
   }
 
