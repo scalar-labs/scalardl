@@ -29,6 +29,7 @@ import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -44,6 +45,7 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
@@ -1281,5 +1283,52 @@ public class ClientServiceTest {
     // Assert
     assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
     verify(handler, never()).dropNamespace(any(NamespaceDroppingRequest.class));
+  }
+
+  @Test
+  public void purgeState_ClientModeGiven_ShouldDelegateToHandler() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    TransactionStatePurgeResult expected = new TransactionStatePurgeResult(3, 2, 1);
+    when(auditorClient.purgeTransactionStates(any(TransactionStatePurgeRequest.class)))
+        .thenReturn(expected);
+
+    // Act
+    TransactionStatePurgeResult result = service.purgeState();
+
+    // Assert
+    ArgumentCaptor<TransactionStatePurgeRequest> captor =
+        ArgumentCaptor.forClass(TransactionStatePurgeRequest.class);
+    verify(handler).purgeTransactionStates(captor.capture());
+    assertThat(captor.getValue()).isEqualTo(TransactionStatePurgeRequest.getDefaultInstance());
+    assertThat(result).isEqualTo(expected);
+  }
+
+  @Test
+  public void purgeState_IntermediaryModeGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.INTERMEDIARY);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.purgeState());
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(IllegalArgumentException.class);
+    verify(handler, never()).purgeTransactionStates(any(TransactionStatePurgeRequest.class));
+  }
+
+  @Test
+  public void purgeState_AuditorClientNotAvailable_ShouldThrowClientException() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    ClientService serviceWithoutAuditor =
+        new ClientService(config, new DefaultClientServiceHandler(client, null), signer);
+
+    // Act
+    Throwable thrown = catchThrowable(serviceWithoutAuditor::purgeState);
+
+    // Assert
+    assertThat(thrown).isExactlyInstanceOf(ClientException.class);
+    assertThat(((ClientException) thrown).getStatusCode()).isEqualTo(StatusCode.INVALID_REQUEST);
   }
 }

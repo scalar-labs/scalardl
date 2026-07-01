@@ -7,6 +7,7 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.exception.ValidationException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import com.scalar.dl.rpc.AssetProof;
@@ -24,6 +25,7 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -159,6 +161,16 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
   @Override
   public String listNamespaces(NamespacesListingRequest request) {
     return client.list(request);
+  }
+
+  @Override
+  public TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request) {
+    if (auditorClient == null) {
+      throw new ClientException(
+          "Auditor is not configured. purge-state requires Auditor to be enabled.",
+          StatusCode.INVALID_REQUEST);
+    }
+    return auditorClient.purgeTransactionStates(request);
   }
 
   private void registerToAuditor(CertificateRegistrationRequest request) {
