@@ -2,10 +2,12 @@ package com.scalar.dl.client.service;
 
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.FunctionRegistrationRequest;
 import com.scalar.dl.rpc.LedgerValidationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 
 public abstract class AbstractGatewayClient implements Client {
 
@@ -16,4 +18,6 @@ public abstract class AbstractGatewayClient implements Client {
   abstract ContractExecutionResult execute(ContractExecutionRequest request);
 
   abstract LedgerValidationResult validate(LedgerValidationRequest request);
+
+  abstract TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request);
 }

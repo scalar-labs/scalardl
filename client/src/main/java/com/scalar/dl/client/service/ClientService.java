@@ -22,6 +22,7 @@ import com.scalar.dl.client.validation.contract.v1_1_0.ValidateLedger;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
@@ -37,6 +38,7 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -1230,6 +1232,20 @@ public class ClientService implements AutoCloseable {
     }
 
     return handler.listNamespaces(request);
+  }
+
+  /**
+   * Purges stale transaction states. This triggers a batch recovery of all stuck transaction states
+   * and returns a summary of the results.
+   *
+   * @return {@link TransactionStatePurgeResult} containing total targets, purged, and skipped
+   *     counts
+   * @throws ClientException if a request fails or Auditor is not configured
+   */
+  public TransactionStatePurgeResult purgeState() {
+    checkClientMode(ClientMode.CLIENT);
+    TransactionStatePurgeRequest request = TransactionStatePurgeRequest.getDefaultInstance();
+    return handler.purgeTransactionStates(request);
   }
 
   /**

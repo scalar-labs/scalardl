@@ -3,6 +3,7 @@ package com.scalar.dl.client.service;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
@@ -14,6 +15,7 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import javax.json.JsonObject;
 
 public interface ClientServiceHandler {
@@ -111,4 +113,13 @@ public interface ClientServiceHandler {
    * @throws ClientException if a request fails for some reason
    */
   String listNamespaces(NamespacesListingRequest request);
+
+  /**
+   * Purges stale transaction states in Auditor.
+   *
+   * @param request a {@code TransactionStatePurgeRequest}.
+   * @return {@link TransactionStatePurgeResult}
+   * @throws ClientException if a request fails for some reason
+   */
+  TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request);
 }
