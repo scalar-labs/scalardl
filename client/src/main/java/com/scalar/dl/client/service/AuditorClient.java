@@ -7,6 +7,7 @@ import com.scalar.dl.client.error.ClientError;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.rpc.RpcUtil;
 import com.scalar.dl.ledger.config.TargetConfig;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
 import com.scalar.dl.ledger.service.ThrowableFunction;
 import com.scalar.dl.rpc.AssetLockRecoveryRequest;
@@ -23,6 +24,8 @@ import com.scalar.dl.rpc.NamespaceCreationRequest;
 import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import java.util.concurrent.TimeUnit;
@@ -199,6 +202,20 @@ public class AuditorClient extends AbstractAuditorClient {
     }
     // Java compiler requires this line even though it won't come here
     return LockRecoveryResult.FAILED;
+  }
+
+  @Override
+  TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request) {
+    try {
+      TransactionStatePurgeResponse response =
+          getAuditorPrivilegedStub().purgeTransactionStates(request);
+      return new TransactionStatePurgeResult(
+          response.getTotalTargets(), response.getPurged(), response.getSkipped());
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    throw new AssertionError();
   }
 
   private AuditorGrpc.AuditorBlockingStub getAuditorStub() {
