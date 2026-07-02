@@ -108,8 +108,7 @@ public class ScalarLeaseIntegrationTest {
   @Test
   public void tryAcquireOrRenew_WhenAbsent_ShouldLetExactlyOneHolderAcquire() {
     // The first holder acquires the absent lease; a second holder's PutIfNotExists must fail
-    // because
-    // the record now exists. This proves the acquire is a real compare-and-swap.
+    // because the record now exists. This proves the acquire is a real compare-and-swap.
     assertThat(lease.tryAcquireOrRenew(LEASE, null, HOLDER_A, 1000L)).isTrue();
     assertThat(lease.tryAcquireOrRenew(LEASE, null, HOLDER_B, 1000L)).isFalse();
 

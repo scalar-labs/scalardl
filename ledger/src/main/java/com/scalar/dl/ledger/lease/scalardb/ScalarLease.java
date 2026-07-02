@@ -71,7 +71,7 @@ public class ScalarLease implements Lease {
     this.storage = checkNotNull(storage);
     this.storageAdmin = checkNotNull(storageAdmin);
     // The lease is a single global table in the default (base) namespace.
-    this.namespace = namespaceResolver.resolve(Namespaces.DEFAULT);
+    this.namespace = checkNotNull(namespaceResolver).resolve(Namespaces.DEFAULT);
   }
 
   @Override
@@ -134,6 +134,14 @@ public class ScalarLease implements Lease {
       // The compare-and-swap lost: another node holds or changed the lease. Expected during
       // failover contention; not an error.
       return false;
+    } catch (IllegalArgumentException e) {
+      // Mirror get(): surface a missing table as LeaseTableNotFoundException so an acquire-first
+      // caller can provision the table and retry, rather than leaking a raw storage exception.
+      if (e.getMessage() != null
+          && e.getMessage().startsWith(CoreError.TABLE_NOT_FOUND.buildCode())) {
+        throw new LeaseTableNotFoundException(CommonError.LEASE_TABLE_NOT_FOUND, e);
+      }
+      throw e;
     } catch (ExecutionException e) {
       throw new LeaseException(CommonError.ACQUIRING_OR_RENEWING_LEASE_FAILED, e, e.getMessage());
     }

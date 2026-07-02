@@ -51,6 +51,8 @@ public interface Lease {
    * @param expiry the new expiration time in epoch milliseconds
    * @return true if this node now holds the lease; false if the compare-and-swap lost (another node
    *     holds or changed it)
+   * @throws LeaseTableNotFoundException if the backing lease table does not exist (e.g. when a
+   *     caller acquires without a preceding {@link #get})
    * @throws LeaseException if the write fails due to an infrastructure error
    */
   boolean tryAcquireOrRenew(

@@ -146,6 +146,19 @@ public class ScalarLeaseTest {
   }
 
   @Test
+  public void tryAcquireOrRenew_WhenTableDoesNotExist_ShouldThrowLeaseTableNotFoundException()
+      throws Exception {
+    doThrow(
+            new IllegalArgumentException(
+                CoreError.TABLE_NOT_FOUND.buildCode() + " the table is missing"))
+        .when(storage)
+        .put(any(Put.class));
+
+    assertThatThrownBy(() -> lease.tryAcquireOrRenew(ANY_LEASE_NAME, null, ANY_HOLDER, ANY_EXPIRY))
+        .isInstanceOf(LeaseTableNotFoundException.class);
+  }
+
+  @Test
   public void createTable_ShouldCreateLeaseTableWithIfNotExists() throws Exception {
     lease.createTable();
 
