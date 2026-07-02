@@ -138,9 +138,9 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_DIFFERENT_NAMESPACE(
       StatusCode.INVALID_FUNCTION,
       "003",
-      "The function is not allowed to access a namespace other than its context namespace. Namespace: %s, context namespace: %s",
+      "The function is not allowed to access a namespace that is neither its context namespace nor prefixed by it. Namespace: %s, context namespace: %s",
       "",
-      "A function registered in a non-default namespace can only access the ScalarDB namespace with the same name as its context namespace. Specify that namespace explicitly in the database operation, or register the function in the appropriate namespace."),
+      "A function registered in a non-default namespace can only access the ScalarDB namespace with the same name as its context namespace, or a namespace whose name starts with the context namespace followed by an underscore. Specify such a namespace explicitly in the database operation, or register the function in the appropriate namespace."),
 
   //
   // Errors for INVALID_ARGUMENT(414)

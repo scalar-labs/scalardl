@@ -29,9 +29,12 @@ import javax.annotation.concurrent.ThreadSafe;
  *   <li>When the context namespace is the default namespace, only that deny list applies (the
  *       historical behavior, kept for backward compatibility), and operations without a namespace
  *       are allowed.
- *   <li>When the context namespace is a non-default namespace, the function may access only the
- *       ScalarDB namespace with the same name as its context namespace. Any operation targeting a
- *       different namespace, or an operation without an explicit namespace, is rejected.
+ *   <li>When the context namespace is a non-default namespace, the function may access the ScalarDB
+ *       namespace with the same name as its context namespace, or any namespace whose name is
+ *       prefixed by the context namespace followed by a separator ("_"). For example, a context
+ *       namespace of "tenant_a" allows access to "tenant_a", "tenant_a_logs", and "tenant_a_2024",
+ *       but not "tenant_ax". Any operation targeting a namespace outside this set, or an operation
+ *       without an explicit namespace, is rejected.
  * </ul>
  *
  * <p>This mirrors {@link com.scalar.dl.ledger.database.NamespaceRestrictedAssetLedger}, which
@@ -64,6 +67,9 @@ public class NamespaceRestrictedMutableDatabase
   // Ledger and Auditor belong to different administrative domains.
   private static final List<String> DISALLOWED_NAMESPACE_PREFIXES =
       Arrays.asList("scalar", "auditor");
+  // A function's context namespace grants access to namespaces prefixed by it and this separator,
+  // matching the separator used to compose physical namespace names in ScalarNamespaceResolver.
+  private static final String NAMESPACE_SEPARATOR = "_";
 
   private final MutableDatabase<Get, Scan, Put, Delete, Result> delegate;
   private final String contextNamespace;
@@ -110,16 +116,22 @@ public class NamespaceRestrictedMutableDatabase
       return;
     }
 
-    // For a non-default context namespace, a function may only access the ScalarDB namespace with
-    // the same name as its context namespace. An operation without an explicit namespace is also
-    // rejected to prevent implicit access to the configured default namespace.
+    // For a non-default context namespace, a function may access the ScalarDB namespace with the
+    // same name as its context namespace, or any namespace prefixed by the context namespace
+    // followed by a separator. An operation without an explicit namespace is also rejected to
+    // prevent implicit access to the configured default namespace.
     String namespace = operation.forNamespace().orElse(null);
-    if (!contextNamespace.equals(namespace)) {
+    if (namespace == null || !isAccessibleNamespace(namespace)) {
       throw new InvalidFunctionException(
           LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_DIFFERENT_NAMESPACE,
           namespace,
           contextNamespace);
     }
+  }
+
+  private boolean isAccessibleNamespace(String namespace) {
+    return contextNamespace.equals(namespace)
+        || namespace.startsWith(contextNamespace + NAMESPACE_SEPARATOR);
   }
 
   private void validateAgainstDisallowedNamespaces(Operation operation) {

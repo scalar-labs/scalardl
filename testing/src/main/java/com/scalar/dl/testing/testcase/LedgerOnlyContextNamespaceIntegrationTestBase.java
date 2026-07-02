@@ -8,11 +8,16 @@ import static com.scalar.dl.testing.contract.Constants.CREATE_FUNCTION_ID1;
 import static com.scalar.dl.testing.contract.Constants.ID_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Constants.NAMESPACE_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE_METADATA;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.scalar.db.api.Get;
+import com.scalar.db.api.Result;
+import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
@@ -21,6 +26,7 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.testing.container.LedgerTestCluster;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
+import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
@@ -61,6 +67,9 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
     extends LedgerOnlyIntegrationTestBase {
 
   protected static final String TEST_NAMESPACE = "context_test";
+  // A namespace prefixed by the context namespace (with the separator). Functions in the context
+  // namespace are allowed to access it under prefix-based access control.
+  protected static final String PREFIXED_FUNCTION_NAMESPACE = TEST_NAMESPACE + "_sub";
 
   // Admin ClientService (default namespace, for privileged operations)
   protected ClientService adminClientService;
@@ -83,6 +92,15 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
   @Override
   protected String getFunctionNamespace() {
     return TEST_NAMESPACE;
+  }
+
+  @Override
+  protected void createFunctionTableSchema() throws Exception {
+    super.createFunctionTableSchema();
+    // Also create a namespace prefixed by the context namespace to verify prefix-based access.
+    transactionAdmin.createNamespace(PREFIXED_FUNCTION_NAMESPACE, true);
+    transactionAdmin.createTable(
+        PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
   }
 
   @BeforeAll
@@ -171,6 +189,40 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
   }
 
   @Test
+  void executeContract_FunctionAccessingNamespacePrefixedByContextNamespace_ShouldSucceed()
+      throws Exception {
+    // Arrange: the function writes to a namespace whose name is prefixed by the context namespace
+    // (context_test -> context_test_sub), which is allowed under prefix-based access control.
+    String id = "prefixed_id";
+    JsonObject contractArgument =
+        Json.createObjectBuilder()
+            .add(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+            .add(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+            .build();
+    JsonObject functionArgument =
+        Json.createObjectBuilder()
+            .add(ID_ATTRIBUTE_NAME, id)
+            .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+            .add(NAMESPACE_ATTRIBUTE_NAME, PREFIXED_FUNCTION_NAMESPACE)
+            .build();
+
+    // Act
+    clientServiceA.executeContract(
+        CREATE_CONTRACT_ID1, contractArgument, CREATE_FUNCTION_ID1, functionArgument);
+
+    // Assert
+    Get get =
+        Get.newBuilder()
+            .namespace(PREFIXED_FUNCTION_NAMESPACE)
+            .table(FUNCTION_TABLE)
+            .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, id))
+            .build();
+    Optional<Result> result = storage.get(get);
+    assertThat(result).isPresent();
+    assertThat(result.get().getInt(BALANCE_ATTRIBUTE_NAME)).isEqualTo(SOME_AMOUNT_1);
+  }
+
+  @Test
   void executeContract_FunctionAccessingNamespaceOtherThanContextNamespace_ShouldThrowException() {
     // Arrange: the function tries to access FUNCTION_NAMESPACE, which differs from the context
     // namespace. A function registered in a non-default namespace may only access the ScalarDB
@@ -201,6 +253,17 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
   @Override
   void tearDownCluster() {
     logger.info("Tearing down context namespace cluster");
+
+    // Drop the prefixed function namespace created for prefix-access tests. This must run before
+    // super.tearDownCluster() closes transactionAdmin.
+    if (transactionAdmin != null) {
+      try {
+        transactionAdmin.dropTable(PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE);
+        transactionAdmin.dropNamespace(PREFIXED_FUNCTION_NAMESPACE);
+      } catch (Exception e) {
+        logger.warn("Failed to drop prefixed function namespace", e);
+      }
+    }
 
     // Drop the test namespace (this also removes the namespace's asset tables)
     if (adminClientService != null) {

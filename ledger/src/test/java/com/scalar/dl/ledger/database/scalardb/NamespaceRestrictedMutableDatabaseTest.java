@@ -42,7 +42,8 @@ public class NamespaceRestrictedMutableDatabaseTest {
 
   // contextNamespace == DEFAULT: only the disallowed (system) namespaces are blocked.
   private NamespaceRestrictedMutableDatabase defaultDatabase;
-  // contextNamespace != DEFAULT: only the same-named namespace is accessible.
+  // contextNamespace != DEFAULT: the same-named namespace and namespaces prefixed by it are
+  // accessible.
   private NamespaceRestrictedMutableDatabase restrictedDatabase;
 
   @BeforeEach
@@ -83,6 +84,19 @@ public class NamespaceRestrictedMutableDatabaseTest {
         .flatMap(ns -> Arrays.stream(Op.values()).map(op -> Arguments.of(op, ns)));
   }
 
+  static Stream<Arguments> operationsAndPrefixedNamespaces() {
+    // Namespaces prefixed by the context namespace followed by the separator, which are accessible.
+    return Stream.of(CONTEXT_NAMESPACE + "_sub", CONTEXT_NAMESPACE + "_2024_archive")
+        .flatMap(ns -> Arrays.stream(Op.values()).map(op -> Arguments.of(op, ns)));
+  }
+
+  static Stream<Arguments> operationsAndSiblingNamespaces() {
+    // Namespaces that share the string prefix but are not bounded by the separator, so they must be
+    // rejected (for example, "context_nsx" must not match context namespace "context_ns").
+    return Stream.of(CONTEXT_NAMESPACE + "x", CONTEXT_NAMESPACE + "sibling")
+        .flatMap(ns -> Arrays.stream(Op.values()).map(op -> Arguments.of(op, ns)));
+  }
+
   // ---- DEFAULT context: backward-compatible behavior (only system namespaces blocked) ----
 
   @ParameterizedTest
@@ -107,13 +121,35 @@ public class NamespaceRestrictedMutableDatabaseTest {
     verifyDelegated(op, null);
   }
 
-  // ---- Non-default context: only the same-named namespace is accessible ----
+  // ---- Non-default context: the same-named namespace and namespaces prefixed by it (with the
+  // separator) are accessible ----
 
   @ParameterizedTest
   @EnumSource(Op.class)
   public void operation_NonDefaultContextWithSameNamespace_ShouldDelegate(Op op) {
     assertThatCode(() -> run(restrictedDatabase, op, CONTEXT_NAMESPACE)).doesNotThrowAnyException();
     verifyDelegated(op, CONTEXT_NAMESPACE);
+  }
+
+  @ParameterizedTest
+  @MethodSource("operationsAndPrefixedNamespaces")
+  public void operation_NonDefaultContextWithPrefixedNamespace_ShouldDelegate(
+      Op op, String namespace) {
+    assertThatCode(() -> run(restrictedDatabase, op, namespace)).doesNotThrowAnyException();
+    verifyDelegated(op, namespace);
+  }
+
+  @ParameterizedTest
+  @MethodSource("operationsAndSiblingNamespaces")
+  public void operation_NonDefaultContextWithSiblingNamespace_ShouldThrow(Op op, String namespace) {
+    // A namespace that shares the string prefix but is not separated by the separator is rejected.
+    assertThatThrownBy(() -> run(restrictedDatabase, op, namespace))
+        .isInstanceOf(InvalidFunctionException.class)
+        .hasMessage(
+            LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_DIFFERENT_NAMESPACE.buildMessage(
+                namespace, CONTEXT_NAMESPACE))
+        .extracting("code")
+        .isEqualTo(StatusCode.INVALID_FUNCTION);
   }
 
   @ParameterizedTest
