@@ -30,6 +30,7 @@ import picocli.CommandLine.HelpCommand;
       NamespaceCreation.class,
       NamespaceDropping.class,
       NamespacesListing.class,
+      TransactionStatePurging.class,
     },
     description = {"These are ScalarDL commands used in various situations:"})
 public class ScalarDlCommandLine {
@@ -84,6 +85,9 @@ public class ScalarDlCommandLine {
     sections.put(
         "%nmanage namespaces%n",
         Arrays.asList(NamespaceCreation.class, NamespaceDropping.class, NamespacesListing.class));
+    // Section: manage transaction state.
+    sections.put(
+        "%nmanage transaction state%n", Collections.singletonList(TransactionStatePurging.class));
     // Section: validate ledger.
     sections.put("%nvalidate ledger%n", Collections.singletonList(LedgerValidation.class));
     // Section: generic contracts.

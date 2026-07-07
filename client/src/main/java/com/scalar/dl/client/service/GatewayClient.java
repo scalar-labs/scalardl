@@ -8,6 +8,7 @@ import com.scalar.dl.client.rpc.RpcUtil;
 import com.scalar.dl.ledger.config.TargetConfig;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.proof.AssetProof;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.service.ThrowableConsumer;
@@ -27,6 +28,8 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import java.util.ArrayList;
@@ -229,6 +232,20 @@ public class GatewayClient extends AbstractGatewayClient {
     }
     // Java compiler requires this line even though it won't come here
     return "";
+  }
+
+  @Override
+  TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request) {
+    try {
+      TransactionStatePurgeResponse response =
+          getGatewayPrivilegedStub().purgeTransactionStates(request);
+      return new TransactionStatePurgeResult(
+          response.getTotalTargets(), response.getPurged(), response.getSkipped());
+    } catch (Exception e) {
+      throwExceptionWithStatusCode(e);
+    }
+    // Java compiler requires this line even though it won't come here
+    throw new AssertionError();
   }
 
   private GatewayGrpc.GatewayBlockingStub getGatewayStub() {
