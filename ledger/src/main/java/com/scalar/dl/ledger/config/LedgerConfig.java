@@ -564,7 +564,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
 
   // The ScalarDB transaction managers that ScalarDL supports. Any other value (e.g.,
   // "single-crud-operation") is rejected because ScalarDL relies on multi-operation transactions.
-  private static final Set<String> SUPPORTED_TRANSACTION_MANAGERS =
+  private static final ImmutableSet<String> SUPPORTED_TRANSACTION_MANAGERS =
       ImmutableSet.of(
           ConsensusCommitConfig.TRANSACTION_MANAGER_NAME, // "consensus-commit"
           JdbcConfig.TRANSACTION_MANAGER_NAME); // "jdbc"
