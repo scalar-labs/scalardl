@@ -165,7 +165,7 @@ task SmallbankLoader(type: CreateStartScripts) {
 // routed to Log4j2 (see the log4j-jul dependency above). This must be set at JVM startup, so it
 // is applied to every generated start script.
 tasks.withType(CreateStartScripts).configureEach {
-    defaultJvmOpts = ['-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager']
+    defaultJvmOpts += ['-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager']
 }
 
 distributions {

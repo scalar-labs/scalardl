@@ -55,7 +55,7 @@ task HashStore(type: CreateStartScripts) {
 // routed to Log4j2. The log4j-jul dependency and the io.grpc.netty log level come transitively
 // from the :client module. This must be set at JVM startup, so it is applied to the start script.
 tasks.withType(CreateStartScripts).configureEach {
-    defaultJvmOpts = ['-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager']
+    defaultJvmOpts += ['-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager']
 }
 
 distributions {
