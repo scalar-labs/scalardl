@@ -29,6 +29,11 @@ dependencies {
     api group: 'org.glassfish', name: 'javax.json', version: "${jsonpVersion}"
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${jacksonVersion}"
 
+    // Routes grpc-java's java.util.logging (JUL) output (e.g. io.grpc.netty.TcpMetrics) to Log4j2
+    // so that it is controlled by our log4j2.properties. This requires the java.util.logging.manager
+    // system property to be set at JVM startup (see the CreateStartScripts configuration below).
+    runtimeOnly group: 'org.apache.logging.log4j', name: 'log4j-jul', version: "${log4jVersion}"
+
     // for tests
     testImplementation project(':common-test')
     integrationTestImplementation sourceSets.main.output
@@ -154,6 +159,13 @@ task SmallbankLoader(type: CreateStartScripts) {
     applicationName = 'smallbank-loader'
     outputDir = new File(project.buildDir, 'scriptsTmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
+}
+
+// Replace the JUL LogManager with Log4j2's implementation so that grpc-java's JUL logging is
+// routed to Log4j2 (see the log4j-jul dependency above). This must be set at JVM startup, so it
+// is applied to every generated start script.
+tasks.withType(CreateStartScripts).configureEach {
+    defaultJvmOpts = ['-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager']
 }
 
 distributions {
