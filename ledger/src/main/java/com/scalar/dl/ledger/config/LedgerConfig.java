@@ -16,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -572,15 +571,16 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
 
   private void validateTransactionManager() {
     DatabaseConfig databaseConfig = new DatabaseConfig(props);
-    String transactionManager = databaseConfig.getTransactionManager().toLowerCase(Locale.ROOT);
+    String transactionManager = databaseConfig.getTransactionManager();
 
-    if (transactionManager.equals(JdbcConfig.TRANSACTION_MANAGER_NAME)) {
+    if (JdbcConfig.TRANSACTION_MANAGER_NAME.equalsIgnoreCase(transactionManager)) {
       if (isAuditorEnabled && !isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_ENABLED_FOR_JDBC_TRANSACTION
                 .buildMessage(TX_STATE_MANAGEMENT_ENABLED));
       }
-    } else if (transactionManager.equals(ConsensusCommitConfig.TRANSACTION_MANAGER_NAME)) {
+    } else if (ConsensusCommitConfig.TRANSACTION_MANAGER_NAME.equalsIgnoreCase(
+        transactionManager)) {
       if (isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_DISABLED_FOR_CONSENSUS_COMMIT
