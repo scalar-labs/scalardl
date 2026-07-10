@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 @Immutable
 @SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
-public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
+public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private static final Logger LOGGER = LoggerFactory.getLogger(LedgerConfig.class);
   @VisibleForTesting static final String PRODUCT_NAME = "scalardl";
   @VisibleForTesting static final String SERVICE_NAME = "ledger";
@@ -316,13 +316,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     props.putAll(properties);
     load();
   }
-
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
 
   public DatabaseConfig getDatabaseConfig() {
     return new DatabaseConfig(props);
