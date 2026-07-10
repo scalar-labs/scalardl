@@ -455,7 +455,7 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
             Objects.requireNonNull(
                     ConfigUtils.getString(
                         props, AUTHENTICATION_METHOD, DEFAULT_AUTHENTICATION_METHOD.getMethod()))
-                .toLowerCase());
+                .toLowerCase(Locale.ROOT));
     if (authenticationMethod == AuthenticationMethod.HMAC) {
       hmacCipherKey = ConfigUtils.getString(props, AUTHENTICATION_HMAC_CIPHER_KEY, null);
       if (hmacCipherKey == null) {
