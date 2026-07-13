@@ -211,6 +211,12 @@ public enum LedgerError implements ScalarDlError {
       "%s must be disabled because group commit is not supported.",
       "",
       "Set the group commit configuration property to false as it is not supported."),
+  CONFIG_TRANSACTION_MANAGER_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "009",
+      "The transaction manager '%s' is not supported. The supported transaction managers are: %s.",
+      "",
+      "Set the transaction manager configuration property to one of the supported values."),
 
   //
   // Errors for DATABASE_ERROR(500)
