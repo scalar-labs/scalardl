@@ -278,7 +278,7 @@ public abstract class LedgerIntegrationTestBase {
   void truncateTables() throws Exception {
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_TABLE);
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_METADATA_TABLE);
-    transactionAdmin.truncateTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
+    transactionAdmin.truncateTable(getFunctionNamespace(), FUNCTION_TABLE);
   }
 
   @AfterAll
@@ -287,8 +287,8 @@ public abstract class LedgerIntegrationTestBase {
 
     if (transactionAdmin != null) {
       try {
-        transactionAdmin.dropTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
-        transactionAdmin.dropNamespace(FUNCTION_NAMESPACE);
+        transactionAdmin.dropTable(getFunctionNamespace(), FUNCTION_TABLE);
+        transactionAdmin.dropNamespace(getFunctionNamespace());
       } catch (Exception e) {
         logger.warn("Failed to drop function table", e);
       }
@@ -347,9 +347,22 @@ public abstract class LedgerIntegrationTestBase {
     SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
   }
 
+  /**
+   * Returns the ScalarDB namespace that functions access in these tests. Functions may only access
+   * the namespace with the same name as the context namespace, so this defaults to {@link
+   * com.scalar.dl.testing.schema.SchemaConstants#FUNCTION_NAMESPACE} for the default context and is
+   * overridden to the context namespace when running under a non-default context.
+   *
+   * @return the function namespace
+   */
+  protected String getFunctionNamespace() {
+    return FUNCTION_NAMESPACE;
+  }
+
   protected void createFunctionTableSchema() throws Exception {
-    transactionAdmin.createNamespace(FUNCTION_NAMESPACE, true);
-    transactionAdmin.createTable(FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+    transactionAdmin.createNamespace(getFunctionNamespace(), true);
+    transactionAdmin.createTable(
+        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
   }
 
   protected ClientConfig getDigitalSignatureClientConfig(
@@ -652,7 +665,7 @@ public abstract class LedgerIntegrationTestBase {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID_1)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE)
+            .add(NAMESPACE_ATTRIBUTE_NAME, getFunctionNamespace())
             .build();
 
     // Act
@@ -662,7 +675,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
+            .namespace(getFunctionNamespace())
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
@@ -684,7 +697,7 @@ public abstract class LedgerIntegrationTestBase {
         Json.createObjectBuilder()
             .add(ID_ATTRIBUTE_NAME, SOME_ID_1)
             .add(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .add(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE)
+            .add(NAMESPACE_ATTRIBUTE_NAME, getFunctionNamespace())
             .build();
 
     // Act
@@ -694,7 +707,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
+            .namespace(getFunctionNamespace())
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
@@ -717,7 +730,7 @@ public abstract class LedgerIntegrationTestBase {
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID_1)
             .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE);
+            .put(NAMESPACE_ATTRIBUTE_NAME, getFunctionNamespace());
 
     // Act
     clientServiceA.executeContract(
@@ -726,7 +739,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
+            .namespace(getFunctionNamespace())
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
@@ -740,7 +753,7 @@ public abstract class LedgerIntegrationTestBase {
       throws Exception {
     // Arrange
     String contractArgument = SOME_ASSET_ID_1 + "," + SOME_AMOUNT_1;
-    String functionArgument = SOME_ID_1 + "," + SOME_AMOUNT_1 + "," + FUNCTION_NAMESPACE;
+    String functionArgument = SOME_ID_1 + "," + SOME_AMOUNT_1 + "," + getFunctionNamespace();
 
     // Act
     clientServiceA.executeContract(
@@ -749,7 +762,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
+            .namespace(getFunctionNamespace())
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
@@ -797,13 +810,13 @@ public abstract class LedgerIntegrationTestBase {
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID_1)
             .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_1)
-            .put(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE);
+            .put(NAMESPACE_ATTRIBUTE_NAME, getFunctionNamespace());
     JsonNode functionArgument2 =
         mapper
             .createObjectNode()
             .put(ID_ATTRIBUTE_NAME, SOME_ID_1)
             .put(BALANCE_ATTRIBUTE_NAME, SOME_AMOUNT_2)
-            .put(NAMESPACE_ATTRIBUTE_NAME, FUNCTION_NAMESPACE);
+            .put(NAMESPACE_ATTRIBUTE_NAME, getFunctionNamespace());
 
     // Act
     clientServiceA.executeContract(
@@ -814,7 +827,7 @@ public abstract class LedgerIntegrationTestBase {
     // Assert
     Get get =
         Get.newBuilder()
-            .namespace(FUNCTION_NAMESPACE)
+            .namespace(getFunctionNamespace())
             .table(FUNCTION_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
