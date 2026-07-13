@@ -79,17 +79,25 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
       throw new DatabaseException(LedgerError.STARTING_TRANSACTION_FAILED, e, e.getMessage());
     }
 
+    String contextNamespace =
+        request == null ? Namespaces.DEFAULT : request.getContextNamespaceOrDefault();
+
     MutableDatabase<Get, Scan, Put, Delete, Result> database = null;
     if (config.isFunctionEnabled()) {
-      database = new ScalarMutableDatabase(transaction);
+      database =
+          new NamespaceRestrictedMutableDatabase(
+              new ScalarMutableDatabase(transaction), contextNamespace);
     }
 
-    TamperEvidentAssetLedger ledger = createTamperEvidentAssetLedger(request, transaction);
+    TamperEvidentAssetLedger ledger =
+        createTamperEvidentAssetLedger(request, transaction, contextNamespace);
     return new Transaction(ledger, database);
   }
 
   private TamperEvidentAssetLedger createTamperEvidentAssetLedger(
-      ContractExecutionRequest request, DistributedTransaction transaction) {
+      ContractExecutionRequest request,
+      DistributedTransaction transaction,
+      String contextNamespace) {
     TamperEvidentAssetLedger ledger =
         new ScalarTamperEvidentAssetLedger(
             transaction,
@@ -101,8 +109,6 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
             stateManager,
             namespaceResolver,
             config);
-    String contextNamespace =
-        request == null ? Namespaces.DEFAULT : request.getContextNamespaceOrDefault();
     if (!contextNamespace.equals(Namespaces.DEFAULT)) {
       ledger = new NamespaceRestrictedAssetLedger(ledger, contextNamespace);
     }
