@@ -52,6 +52,7 @@ import com.scalar.db.io.Key;
 import com.scalar.db.schemaloader.SchemaLoader;
 import com.scalar.db.service.StorageFactory;
 import com.scalar.db.service.TransactionFactory;
+import com.scalar.db.storage.dynamo.DynamoAdmin;
 import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
@@ -88,6 +89,7 @@ import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -352,9 +354,17 @@ public abstract class LedgerIntegrationTestBase {
   }
 
   protected void createFunctionTableSchema() throws Exception {
+    Map<String, String> options = getDynamoTableCreationOptions();
     transactionAdmin.createNamespace(getFunctionNamespace(), true);
     transactionAdmin.createTable(
-        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
+  }
+
+  private Map<String, String> getDynamoTableCreationOptions() {
+    if ("dynamo".equals(System.getProperty("scalardb.storage", "jdbc"))) {
+      return ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
+    }
+    return Collections.emptyMap();
   }
 
   protected ClientConfig getDigitalSignatureClientConfig(
