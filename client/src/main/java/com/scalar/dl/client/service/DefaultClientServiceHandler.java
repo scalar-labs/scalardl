@@ -166,9 +166,7 @@ public class DefaultClientServiceHandler implements ClientServiceHandler {
   @Override
   public TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request) {
     if (auditorClient == null) {
-      throw new ClientException(
-          "Auditor is not configured. purge-state requires Auditor to be enabled.",
-          StatusCode.INVALID_REQUEST);
+      throw new ClientException(ClientError.AUDITOR_NOT_CONFIGURED_FOR_PURGE);
     }
     return auditorClient.purgeTransactionStates(request);
   }
