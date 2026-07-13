@@ -7,6 +7,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.moandjiezana.toml.Toml;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.storage.jdbc.JdbcConfig;
 import com.scalar.db.transaction.consensuscommit.ConsensusCommitConfig;
 import com.scalar.dl.ledger.error.LedgerError;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -15,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -495,17 +495,25 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
             .collect(Collectors.toSet());
   }
 
+  // The ScalarDB transaction managers that ScalarDL supports. Any other value (e.g.,
+  // "single-crud-operation") is rejected because ScalarDL relies on multi-operation transactions.
+  private static final ImmutableSet<String> SUPPORTED_TRANSACTION_MANAGERS =
+      ImmutableSet.of(
+          ConsensusCommitConfig.TRANSACTION_MANAGER_NAME, // "consensus-commit"
+          JdbcConfig.TRANSACTION_MANAGER_NAME); // "jdbc"
+
   private void validateTransactionManager() {
     DatabaseConfig databaseConfig = new DatabaseConfig(props);
-    String transactionManager = databaseConfig.getTransactionManager().toLowerCase(Locale.ROOT);
+    String transactionManager = databaseConfig.getTransactionManager();
 
-    if (transactionManager.equals("jdbc")) {
+    if (JdbcConfig.TRANSACTION_MANAGER_NAME.equalsIgnoreCase(transactionManager)) {
       if (isAuditorEnabled && !isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_ENABLED_FOR_JDBC_TRANSACTION
                 .buildMessage(TX_STATE_MANAGEMENT_ENABLED));
       }
-    } else if (transactionManager.equals("consensus-commit")) {
+    } else if (ConsensusCommitConfig.TRANSACTION_MANAGER_NAME.equalsIgnoreCase(
+        transactionManager)) {
       if (isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_DISABLED_FOR_CONSENSUS_COMMIT
@@ -518,6 +526,10 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
             LedgerError.CONFIG_GROUP_COMMIT_MUST_BE_DISABLED.buildMessage(
                 ConsensusCommitConfig.COORDINATOR_GROUP_COMMIT_ENABLED));
       }
+    } else {
+      throw new IllegalArgumentException(
+          LedgerError.CONFIG_TRANSACTION_MANAGER_NOT_SUPPORTED.buildMessage(
+              transactionManager, String.join(", ", SUPPORTED_TRANSACTION_MANAGERS)));
     }
   }
 
