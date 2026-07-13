@@ -3,7 +3,6 @@ package com.scalar.dl.ledger.database.scalardb;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.Get;
-import com.scalar.db.api.Operation;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
@@ -14,33 +13,30 @@ import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.ConflictException;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.InvalidFunctionException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A {@link MutableDatabase} implementation backed by a ScalarDB {@link DistributedTransaction}.
+ *
+ * <p>Namespace-based access control is intentionally not handled here; it is enforced by {@link
+ * NamespaceRestrictedMutableDatabase}, which wraps this class. This class only delegates operations
+ * to the underlying transaction and translates ScalarDB exceptions.
+ *
+ * <p>Instances must always be wrapped by {@link NamespaceRestrictedMutableDatabase}, which enforces
+ * namespace access control. The constructor is intentionally package-private so that instances can
+ * only be created from within this package (in practice, by {@link ScalarTransactionManager}),
+ * keeping the wrapping requirement contained to this package.
+ */
 public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, Delete, Result> {
   private final DistributedTransaction transaction;
-  private static final List<String> DISALLOWED_NAMESPACES =
-      Arrays.asList(
-          "system",
-          "system_schema",
-          "system_auth",
-          "system_distributed",
-          "system_traces",
-          "coordinator");
-  // Note: "auditor" is included as a safeguard for development and PoC environments. In
-  // production, the Auditor namespace is not accessible from Ledger's transaction manager because
-  // Ledger and Auditor belong to different administrative domains.
-  private static final List<String> DISALLOWED_NAMESPACE_PREFIXES =
-      Arrays.asList("scalar", "auditor");
 
-  public ScalarMutableDatabase(DistributedTransaction transaction) {
+  ScalarMutableDatabase(DistributedTransaction transaction) {
     this.transaction = transaction;
   }
 
   @Override
   public Optional<Result> get(Get get) {
-    validateNamespace(get);
     try {
       return transaction.get(get);
     } catch (IllegalArgumentException e) {
@@ -56,7 +52,6 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
 
   @Override
   public List<Result> scan(Scan scan) {
-    validateNamespace(scan);
     try {
       return transaction.scan(scan);
     } catch (IllegalArgumentException e) {
@@ -72,7 +67,6 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
 
   @Override
   public void put(Put put) {
-    validateNamespace(put);
     try {
       // Make put() consistent with Ledger's put(), which always pre-read implicitly.
       transaction.put(Put.newBuilder(put).implicitPreReadEnabled(true).build());
@@ -89,7 +83,6 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
 
   @Override
   public void delete(Delete delete) {
-    validateNamespace(delete);
     try {
       transaction.delete(delete);
     } catch (IllegalArgumentException e) {
@@ -100,20 +93,6 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
     } catch (CrudException e) {
       throw new DatabaseException(
           LedgerError.OPERATION_FAILED_DUE_TO_DATABASE_ERROR, e, e.getMessage());
-    }
-  }
-
-  private void validateNamespace(Operation operation) {
-    if (operation.forNamespace().isEmpty()) {
-      return;
-    }
-    String namespace = operation.forNamespace().get();
-
-    String lowercaseNamespace = namespace.toLowerCase();
-    if (DISALLOWED_NAMESPACES.contains(lowercaseNamespace)
-        || DISALLOWED_NAMESPACE_PREFIXES.stream().anyMatch(lowercaseNamespace::startsWith)) {
-      throw new InvalidFunctionException(
-          LedgerError.FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE);
     }
   }
 }
