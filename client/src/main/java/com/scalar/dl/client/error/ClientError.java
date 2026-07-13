@@ -16,6 +16,16 @@ public enum ClientError implements ScalarDlError {
       "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
 
   //
+  // Errors for INVALID_REQUEST(407)
+  //
+  AUDITOR_NOT_CONFIGURED_FOR_PURGE(
+      StatusCode.INVALID_REQUEST,
+      "001",
+      "Auditor is not configured. The purge-state command requires Auditor to be enabled.",
+      "",
+      "Enable Auditor in your client configuration to use the purge-state command."),
+
+  //
   // Errors for INVALID_ARGUMENT(414)
   //
   OPTION_ASSET_ID_IS_MALFORMED(
