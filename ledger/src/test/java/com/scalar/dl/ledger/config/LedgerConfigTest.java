@@ -437,6 +437,21 @@ public class LedgerConfigTest {
   }
 
   @Test
+  public void
+      constructor_UnsupportedTransactionManagerSpecified_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "single-crud-operation");
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown)
+        .isExactlyInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("single-crud-operation");
+  }
+
+  @Test
   public void constructor_AuditorAndProofEnabledAndPrivateKeyGiven_ShouldConstructProperly() {
     // Arrange
     props.setProperty(LedgerConfig.AUDITOR_ENABLED, "true");
