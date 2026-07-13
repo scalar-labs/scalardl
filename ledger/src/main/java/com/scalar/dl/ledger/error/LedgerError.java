@@ -211,6 +211,12 @@ public enum LedgerError implements ScalarDlError {
       "%s is not supported when using the '%s' transaction manager.",
       "",
       "Use the Consensus Commit transaction manager, or disable transaction state purge."),
+  CONFIG_TRANSACTION_MANAGER_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "011",
+      "The transaction manager '%s' is not supported. The supported transaction managers are: %s.",
+      "",
+      "Set the transaction manager configuration property to one of the supported values."),
 
   //
   // Errors for DATABASE_ERROR(500)
