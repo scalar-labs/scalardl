@@ -109,6 +109,12 @@ public enum LedgerError implements ScalarDlError {
       "Overwriting an existing function is not allowed. Enable %s to allow overwriting.",
       "",
       "Enable the function overwrite configuration property to allow overwriting existing functions."),
+  TRANSACTION_STATE_PURGE_DISABLED(
+      StatusCode.INVALID_REQUEST,
+      "007",
+      "Transaction state purge is disabled.",
+      "",
+      "Set 'scalar.dl.ledger.transaction_state_purge.enabled' to true in the Ledger configuration (e.g., ledger.properties) and restart the Ledger to allow purge."),
 
   //
   // Errors for ASSET_NOT_FOUND(409)
@@ -187,6 +193,24 @@ public enum LedgerError implements ScalarDlError {
       "%s must be disabled because group commit is not supported.",
       "",
       "Set the group commit configuration property to false as it is not supported."),
+  CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_WITHOUT_AUDITOR(
+      StatusCode.INVALID_ARGUMENT,
+      "009",
+      "%s is not supported when Auditor is disabled.",
+      "",
+      "Enable Auditor (scalar.dl.ledger.auditor.enabled=true), or disable transaction state purge."),
+  CONFIG_TRANSACTION_STATE_PURGE_NOT_SUPPORTED_FOR_TRANSACTION_MANAGER(
+      StatusCode.INVALID_ARGUMENT,
+      "010",
+      "%s is not supported when using the '%s' transaction manager.",
+      "",
+      "Use the Consensus Commit transaction manager, or disable transaction state purge."),
+  CONFIG_TRANSACTION_MANAGER_NOT_SUPPORTED(
+      StatusCode.INVALID_ARGUMENT,
+      "011",
+      "The transaction manager '%s' is not supported. The supported transaction managers are: %s.",
+      "",
+      "Set the transaction manager configuration property to one of the supported values."),
 
   //
   // Errors for DATABASE_ERROR(500)
