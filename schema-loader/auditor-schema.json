@@ -108,6 +108,20 @@
     },
     "compaction-strategy": "LCS"
   },
+  "auditor.lease": {
+    "transaction": false,
+    "partition-key": [
+      "lease_name"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "lease_name": "TEXT",
+      "holder": "TEXT",
+      "expiry": "BIGINT"
+    },
+    "compaction-strategy": "LCS"
+  },
   "auditor.secret": {
     "transaction": false,
     "partition-key": [
