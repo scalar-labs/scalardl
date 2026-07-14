@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        grpcVersion = '1.82.1'
+        grpcVersion = '1.82.2'
         protocVersion = '3.25.9'
         picoCliVersion = '4.7.7'
         guiceVersion = '7.0.0'
@@ -53,7 +53,7 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.26.1'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.22.0'
+        jacksonVersion = '2.22.1'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.19.0-SNAPSHOT'
         scalarAdminVersion = '2.2.1'
