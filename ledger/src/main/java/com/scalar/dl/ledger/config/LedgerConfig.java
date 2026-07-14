@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 @Immutable
 @SuppressFBWarnings("JCIP_FIELD_ISNT_FINAL_IN_IMMUTABLE_CLASS")
-public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
+public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private static final Logger LOGGER = LoggerFactory.getLogger(LedgerConfig.class);
   @VisibleForTesting static final String PRODUCT_NAME = "scalardl";
   @VisibleForTesting static final String SERVICE_NAME = "ledger";
@@ -337,13 +338,6 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     load();
   }
 
-  /**
-   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-   * remains partially initialized and may be vulnerable to Finalizer attacks."
-   */
-  @Override
-  protected final void finalize() {}
-
   public DatabaseConfig getDatabaseConfig() {
     return new DatabaseConfig(props);
   }
@@ -486,7 +480,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
             Objects.requireNonNull(
                     ConfigUtils.getString(
                         props, AUTHENTICATION_METHOD, DEFAULT_AUTHENTICATION_METHOD.getMethod()))
-                .toLowerCase());
+                .toLowerCase(Locale.ROOT));
     if (authenticationMethod == AuthenticationMethod.HMAC) {
       hmacCipherKey = ConfigUtils.getString(props, AUTHENTICATION_HMAC_CIPHER_KEY, null);
       if (hmacCipherKey == null) {
