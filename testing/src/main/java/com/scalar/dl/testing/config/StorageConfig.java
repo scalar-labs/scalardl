@@ -19,7 +19,6 @@ import org.testcontainers.mysql.MySQLContainer;
 public class StorageConfig {
 
   private static final String SCALARDB_PREFIX = "scalardb.";
-  private static final String SCALAR_DB_PREFIX = DatabaseConfig.PREFIX;
   private static final String CONTAINER_HOSTNAME = "host.testcontainers.internal";
 
   // MySQL container settings
@@ -58,34 +57,6 @@ public class StorageConfig {
   public static StorageConfig forExternalStorage(
       TransactionMode transactionMode, Properties scalardbProperties) {
     return new StorageConfig(transactionMode, null, null, scalardbProperties);
-  }
-
-  /**
-   * Creates a StorageConfig for external database.
-   *
-   * @param storage Storage type (jdbc, cassandra)
-   * @param transactionMode Transaction mode
-   * @param contactPoints JDBC URL or contact points
-   * @param username Database username
-   * @param password Database password
-   * @return StorageConfig configured for external database
-   */
-  public static StorageConfig forExternalDatabase(
-      String storage,
-      TransactionMode transactionMode,
-      String contactPoints,
-      String username,
-      String password) {
-    Properties props = new Properties();
-    props.setProperty(SCALARDB_PREFIX + "storage", storage);
-    props.setProperty(SCALARDB_PREFIX + "contact_points", contactPoints);
-    if (username != null && !username.isEmpty()) {
-      props.setProperty(SCALARDB_PREFIX + "username", username);
-    }
-    if (password != null && !password.isEmpty()) {
-      props.setProperty(SCALARDB_PREFIX + "password", password);
-    }
-    return forExternalStorage(transactionMode, props);
   }
 
   private StorageConfig(
@@ -170,7 +141,8 @@ public class StorageConfig {
           if (!propertyName.startsWith(SCALARDB_PREFIX)) {
             return;
           }
-          String scalarDbKey = SCALAR_DB_PREFIX + propertyName.substring(SCALARDB_PREFIX.length());
+          String scalarDbKey =
+              DatabaseConfig.PREFIX + propertyName.substring(SCALARDB_PREFIX.length());
           String propertyValue = (String) value;
           if (rewriteLocalhost && isEndpointProperty(scalarDbKey)) {
             propertyValue = propertyValue.replace("localhost", CONTAINER_HOSTNAME);

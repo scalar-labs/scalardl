@@ -1,16 +1,12 @@
 package com.scalar.dl.testing.container;
 
-import com.google.common.collect.ImmutableMap;
 import com.scalar.db.schemaloader.SchemaLoader;
 import com.scalar.db.schemaloader.SchemaLoaderException;
-import com.scalar.db.storage.dynamo.DynamoAdmin;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.TransactionMode;
 import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,13 +99,6 @@ public class LedgerTestCluster extends AbstractTestCluster {
     } catch (SchemaLoaderException e) {
       throw new RuntimeException("Failed to create Ledger schema", e);
     }
-  }
-
-  private Map<String, String> getSchemaCreationOptions() {
-    if ("dynamo".equals(storage)) {
-      return ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
-    }
-    return Collections.emptyMap();
   }
 
   @Override

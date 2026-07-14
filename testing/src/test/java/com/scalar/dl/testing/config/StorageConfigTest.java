@@ -9,14 +9,16 @@ import org.junit.jupiter.api.Test;
 class StorageConfigTest {
 
   @Test
-  void forExternalDatabase_shouldMapLegacyPropertiesToScalarDb() {
+  void forExternalStorage_shouldMapPropertiesToScalarDb() {
+    Properties scalardbProps = new Properties();
+    scalardbProps.setProperty("scalardb.storage", "jdbc");
+    scalardbProps.setProperty(
+        "scalardb.contact_points", "jdbc:postgresql://localhost:5432/postgres");
+    scalardbProps.setProperty("scalardb.username", "postgres");
+    scalardbProps.setProperty("scalardb.password", "postgres");
+
     StorageConfig config =
-        StorageConfig.forExternalDatabase(
-            "jdbc",
-            TransactionMode.CONSENSUS_COMMIT,
-            "jdbc:postgresql://localhost:5432/postgres",
-            "postgres",
-            "postgres");
+        StorageConfig.forExternalStorage(TransactionMode.CONSENSUS_COMMIT, scalardbProps);
 
     Properties hostProps = config.getPropertiesForHost();
     assertThat(hostProps.getProperty(DatabaseConfig.STORAGE)).isEqualTo("jdbc");
@@ -65,10 +67,15 @@ class StorageConfigTest {
   }
 
   @Test
-  void forExternalDatabase_withJdbcTransactionMode_shouldSetTransactionManager() {
+  void forExternalStorage_withJdbcTransactionMode_shouldSetTransactionManager() {
+    Properties scalardbProps = new Properties();
+    scalardbProps.setProperty("scalardb.storage", "jdbc");
+    scalardbProps.setProperty("scalardb.contact_points", "jdbc:mysql://localhost:3306/");
+    scalardbProps.setProperty("scalardb.username", "root");
+    scalardbProps.setProperty("scalardb.password", "mysql");
+
     StorageConfig config =
-        StorageConfig.forExternalDatabase(
-            "jdbc", TransactionMode.JDBC, "jdbc:mysql://localhost:3306/", "root", "mysql");
+        StorageConfig.forExternalStorage(TransactionMode.JDBC, scalardbProps);
 
     Properties props = config.getPropertiesForHost();
     assertThat(props.getProperty(DatabaseConfig.TRANSACTION_MANAGER)).isEqualTo("jdbc");

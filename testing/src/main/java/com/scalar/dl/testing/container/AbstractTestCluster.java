@@ -1,9 +1,18 @@
 package com.scalar.dl.testing.container;
 
+import com.google.common.collect.ImmutableMap;
+import com.scalar.db.storage.cassandra.CassandraConfig;
+import com.scalar.db.storage.cosmos.CosmosConfig;
+import com.scalar.db.storage.dynamo.DynamoAdmin;
+import com.scalar.db.storage.dynamo.DynamoConfig;
+import com.scalar.db.storage.jdbc.JdbcConfig;
+import com.scalar.db.storage.objectstorage.blobstorage.BlobStorageConfig;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.StorageConfig;
 import com.scalar.dl.testing.config.TransactionMode;
+import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -27,7 +36,7 @@ import org.testcontainers.mysql.MySQLContainer;
  *   <li>scalardb.contact_points - JDBC URL or contact points for external database
  *   <li>scalardb.username - Database username
  *   <li>scalardb.password - Database password
- *   <li>scalardb.port - Port to expose for external database access from containers
+ *   <li>scalardl.testing.exposed_port - Host port to expose so containers can reach external storage
  *   <li>scalardb.* - Any additional ScalarDB property forwarded to Ledger/Auditor containers
  * </ul>
  */
@@ -37,11 +46,12 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   // System property names
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
-  private static final String PROP_PORT = "scalardb.port";
+  /** Test-harness only; not a ScalarDB config key. Must not be forwarded under {@code scalardb.*}. */
+  private static final String PROP_EXPOSED_PORT = "scalardl.testing.exposed_port";
   private static final String SCALARDB_PREFIX = "scalardb.";
 
   // Default values
-  private static final String DEFAULT_STORAGE = "jdbc";
+  private static final String DEFAULT_STORAGE = JdbcConfig.STORAGE_NAME;
 
   // MySQL container settings
   protected static final String MYSQL_NETWORK_ALIAS = "mysql";
@@ -118,7 +128,7 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   @SuppressWarnings("resource")
   private void startStorageContainer() {
     switch (storage) {
-      case "jdbc":
+      case JdbcConfig.STORAGE_NAME:
         logger.info("Starting MySQL container");
         mysqlContainer =
             new MySQLContainer(MYSQL_IMAGE) {
@@ -149,7 +159,7 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   private void exposeHostPortsForStorage() {
     Set<Integer> ports = new LinkedHashSet<>();
 
-    String portProperty = System.getProperty(PROP_PORT);
+    String portProperty = System.getProperty(PROP_EXPOSED_PORT);
     if (portProperty != null) {
       ports.add(Integer.parseInt(portProperty));
     } else {
@@ -159,7 +169,7 @@ public abstract class AbstractTestCluster implements AutoCloseable {
       }
     }
 
-    if ("cosmos".equals(storage)) {
+    if (CosmosConfig.STORAGE_NAME.equals(storage)) {
       ports.add(COSMOS_HEALTH_PORT);
     }
 
@@ -179,15 +189,15 @@ public abstract class AbstractTestCluster implements AutoCloseable {
    */
   private int getDefaultPortForStorage() {
     switch (storage) {
-      case "jdbc":
+      case JdbcConfig.STORAGE_NAME:
         return MYSQL_PORT;
-      case "cassandra":
+      case CassandraConfig.STORAGE_NAME:
         return CASSANDRA_PORT;
-      case "dynamo":
+      case DynamoConfig.STORAGE_NAME:
         return DYNAMO_PORT;
-      case "cosmos":
+      case CosmosConfig.STORAGE_NAME:
         return COSMOS_PORT;
-      case "blob-storage":
+      case BlobStorageConfig.STORAGE_NAME:
         return BLOB_STORAGE_PORT;
       default:
         return -1;
@@ -204,7 +214,7 @@ public abstract class AbstractTestCluster implements AutoCloseable {
       return StorageConfig.forExternalStorage(transactionMode, collectScalardbSystemProperties());
     }
     switch (storage) {
-      case "jdbc":
+      case JdbcConfig.STORAGE_NAME:
         return StorageConfig.forMySQLContainer(
             mysqlContainer, MYSQL_NETWORK_ALIAS, transactionMode);
       default:
@@ -218,6 +228,20 @@ public abstract class AbstractTestCluster implements AutoCloseable {
         .filter(name -> name.startsWith(SCALARDB_PREFIX))
         .forEach(name -> props.setProperty(name, System.getProperty(name)));
     return props;
+  }
+
+  /**
+   * Returns SchemaLoader / admin options for the configured storage.
+   *
+   * <p>Subclasses may override to add storage-specific options (e.g. Cosmos RU).
+   *
+   * @return Options map for schema/table creation
+   */
+  public Map<String, String> getSchemaCreationOptions() {
+    if (DynamoConfig.STORAGE_NAME.equals(storage)) {
+      return ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
+    }
+    return Collections.emptyMap();
   }
 
   /**
