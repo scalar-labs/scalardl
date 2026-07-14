@@ -50,6 +50,7 @@ public class TransactionStatePurging extends AbstractClientCommand {
     }
 
     System.out.print("Are you sure you want to purge stale transaction states? [y/N]: ");
+    System.out.flush();
     String confirmation = console.readLine();
     if (confirmation == null || !confirmation.trim().equalsIgnoreCase("y")) {
       System.err.println("Aborting.");
