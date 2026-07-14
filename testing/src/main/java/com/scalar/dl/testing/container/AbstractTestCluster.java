@@ -36,7 +36,8 @@ import org.testcontainers.mysql.MySQLContainer;
  *   <li>scalardb.contact_points - JDBC URL or contact points for external database
  *   <li>scalardb.username - Database username
  *   <li>scalardb.password - Database password
- *   <li>scalardl.testing.exposed_port - Host port to expose so containers can reach external storage
+ *   <li>scalardl.testing.exposed_port - Host port to expose so containers can reach external
+ *       storage
  *   <li>scalardb.* - Any additional ScalarDB property forwarded to Ledger/Auditor containers
  * </ul>
  */
@@ -46,8 +47,12 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   // System property names
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
-  /** Test-harness only; not a ScalarDB config key. Must not be forwarded under {@code scalardb.*}. */
+
+  /**
+   * Test-harness only; not a ScalarDB config key. Must not be forwarded under {@code scalardb.*}.
+   */
   private static final String PROP_EXPOSED_PORT = "scalardl.testing.exposed_port";
+
   private static final String SCALARDB_PREFIX = "scalardb.";
 
   // Default values

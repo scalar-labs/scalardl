@@ -74,8 +74,7 @@ class StorageConfigTest {
     scalardbProps.setProperty("scalardb.username", "root");
     scalardbProps.setProperty("scalardb.password", "mysql");
 
-    StorageConfig config =
-        StorageConfig.forExternalStorage(TransactionMode.JDBC, scalardbProps);
+    StorageConfig config = StorageConfig.forExternalStorage(TransactionMode.JDBC, scalardbProps);
 
     Properties props = config.getPropertiesForHost();
     assertThat(props.getProperty(DatabaseConfig.TRANSACTION_MANAGER)).isEqualTo("jdbc");
