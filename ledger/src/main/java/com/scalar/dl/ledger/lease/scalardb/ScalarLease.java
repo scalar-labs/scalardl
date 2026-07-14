@@ -105,10 +105,10 @@ public class ScalarLease implements Lease {
       // Acquire an absent lease: succeeds only if no node has created it yet.
       condition = ConditionBuilder.putIfNotExists();
     } else {
-      // Renew or take over: succeeds only if the record still matches what we observed. Comparing
-      // on
-      // the observed expiry (not just the holder) prevents resurrecting a lease we already lost
-      // during a pause -- a blind holder-only update would silently overwrite a new holder.
+      // Renew or take over: the CAS succeeds only if the record still matches the holder and the
+      // expiry we observed. Conditioning on the expiry (not just the holder) prevents resurrecting
+      // a lease we already lost during a pause, where a holder-only check would silently overwrite
+      // the new holder.
       condition =
           ConditionBuilder.putIf(
                   ConditionBuilder.column(HOLDER).isEqualToText(observed.getHolder()))
