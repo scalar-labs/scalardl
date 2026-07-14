@@ -139,7 +139,7 @@ task integrationTestMysql(type: Test) {
     shouldRunAfter test
     options {
         systemProperty('scalardb.storage', 'jdbc')
-        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/')
+        systemProperty('scalardb.contact_points', 'jdbc:mysql://localhost/?sslMode=REQUIRED')
         systemProperty('scalardb.username', 'root')
         systemProperty('scalardb.password', 'mysql')
         systemProperty('scalardb.transaction_manager', 'jdbc')

@@ -85,7 +85,7 @@ jobs:
         run: |
           cd ledger
           java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceIntegrationTest
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/?sslMode=REQUIRED -Dscalardb.username=root -Dscalardb.password=mysql org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
 
   ledger-service-integration-test-with-mysql-jdbc-transaction:
     name: Ledger service integration test with JDBC transaction manager on MySQL
@@ -120,7 +120,7 @@ jobs:
       - name: Run integration tests
         run: |
           cd ledger
-          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/ -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
+          java -cp "build/test-libs/*:build/libs/*:build/classes/java/integrationTest" -Dscalardb.storage=jdbc -Dscalardb.contact_points=jdbc:mysql://localhost/?sslMode=REQUIRED -Dscalardb.username=root -Dscalardb.password=mysql -Dscalardb.transaction_manager=jdbc org.junit.platform.console.ConsoleLauncher execute -c=com.scalar.dl.ledger.service.LedgerServiceEndToEndTest
 
   e2e-integration-test-for-ledger:
     name: End-to-end integration test for Ledger
@@ -176,7 +176,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Run integration tests
-        run:  ./gradlew :generic-contracts:integrationTest
+        run:  ./gradlew :generic-contracts:integrationTest -Dscalardb.contact_points=jdbc:mysql://localhost/?sslMode=REQUIRED
 
       - name: Upload Gradle test reports
         if: always()
