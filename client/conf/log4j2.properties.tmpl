@@ -4,3 +4,10 @@ appender.console.type=Console
 appender.console.name=STDOUT
 appender.console.layout.type=PatternLayout
 appender.console.layout.pattern=%d [%-5p %c] %m%n
+
+# Suppress grpc-java's benign TcpMetrics INFO log routed through JUL
+# ("Epoll available during static init of TcpMetrics ..."). This can be removed once grpc-java
+# is bumped to a version that logs it at FINE instead of INFO:
+# https://github.com/grpc/grpc-java/blob/master/netty/src/main/java/io/grpc/netty/TcpMetrics.java
+logger.grpcTcpMetrics.name=io.grpc.netty.TcpMetrics
+logger.grpcTcpMetrics.level=WARN
