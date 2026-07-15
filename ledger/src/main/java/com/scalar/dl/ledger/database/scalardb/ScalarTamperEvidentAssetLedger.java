@@ -414,7 +414,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
     }
   }
 
-  static class AssetMetadata {
+  static final class AssetMetadata {
     public static final String ID = "asset_id";
     public static final String AGE = "latest_age";
     private final String id;
@@ -434,13 +434,6 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
             CommonError.UNEXPECTED_RECORD_VALUE_OBSERVED, e, e.getMessage());
       }
     }
-
-    /**
-     * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
-     * remains partially initialized and may be vulnerable to Finalizer attacks."
-     */
-    @Override
-    protected final void finalize() {}
 
     /**
      * Returns the id of the asset.

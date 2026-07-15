@@ -427,6 +427,30 @@ public enum CommonError implements ScalarDlError {
       "Dropping the namespace failed. Details: %s",
       "",
       "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+  READING_LEASE_FAILED(
+      StatusCode.DATABASE_ERROR,
+      "014",
+      "Reading the lease failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+  ACQUIRING_OR_RENEWING_LEASE_FAILED(
+      StatusCode.DATABASE_ERROR,
+      "015",
+      "Acquiring or renewing the lease failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+  CREATING_LEASE_TABLE_FAILED(
+      StatusCode.DATABASE_ERROR,
+      "016",
+      "Creating the lease table failed. Details: %s",
+      "",
+      "Check the database connection and ensure the database is accessible. Review the error details for more information."),
+  LEASE_TABLE_NOT_FOUND(
+      StatusCode.DATABASE_ERROR,
+      "017",
+      "The lease table does not exist.",
+      "",
+      "Create the lease table by running the schema loader. It is also created automatically on the next coordination round if the database user has permission to create tables."),
 
   //
   // Errors for RUNTIME_ERROR(502)
