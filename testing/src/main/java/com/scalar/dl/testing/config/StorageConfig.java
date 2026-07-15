@@ -1,6 +1,8 @@
 package com.scalar.dl.testing.config;
 
+import com.google.common.collect.ImmutableSet;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.storage.dynamo.DynamoConfig;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import org.testcontainers.mysql.MySQLContainer;
@@ -20,6 +22,13 @@ public class StorageConfig {
 
   private static final String SCALARDB_PREFIX = "scalardb.";
   private static final String CONTAINER_HOSTNAME = "host.testcontainers.internal";
+
+  /**
+   * ScalarDB keys whose values may contain a host endpoint and need {@code localhost} rewritten for
+   * containers. Grow this allowlist (and tests) when ScalarDB adds new endpoint keys.
+   */
+  private static final ImmutableSet<String> ENDPOINT_PROPERTIES =
+      ImmutableSet.of(DatabaseConfig.CONTACT_POINTS, DynamoConfig.ENDPOINT_OVERRIDE);
 
   // MySQL container settings
   private static final int MYSQL_PORT = 3306;
@@ -160,10 +169,6 @@ public class StorageConfig {
   }
 
   private static boolean isEndpointProperty(String scalarDbKey) {
-    return scalarDbKey.equals(DatabaseConfig.CONTACT_POINTS)
-        || scalarDbKey.endsWith(".endpoint_override")
-        || scalarDbKey.endsWith(".endpoint-override")
-        || scalarDbKey.endsWith(".endpoint")
-        || scalarDbKey.endsWith(".uri");
+    return ENDPOINT_PROPERTIES.contains(scalarDbKey);
   }
 }
