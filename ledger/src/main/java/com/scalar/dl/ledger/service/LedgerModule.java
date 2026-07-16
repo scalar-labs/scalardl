@@ -47,13 +47,10 @@ import com.scalar.dl.ledger.database.scalardb.TransactionStateManager;
 import com.scalar.dl.ledger.function.FunctionLoader;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
-import java.net.SocketPermission;
 import java.security.PermissionCollection;
 import java.security.Permissions;
 import java.security.ProtectionDomain;
-import java.sql.SQLPermission;
 import java.util.Base64;
-import java.util.PropertyPermission;
 import javax.annotation.Nullable;
 
 public class LedgerModule extends AbstractModule {
@@ -196,29 +193,23 @@ public class LedgerModule extends AbstractModule {
     }
   }
 
+  /**
+   * Returns the {@code ProtectionDomain} that sandboxes contracts and functions. Their classes are
+   * defined with this domain (see {@code ContractLoader} and {@code FunctionLoader}). Since the
+   * domain is constructed directly with the permission collection below, the policy file is not
+   * consulted for it.
+   *
+   * @return the {@code ProtectionDomain} for contracts and functions
+   */
   public static ProtectionDomain getProtectionDomain() {
     // (null, null) means that it denies all if java.security.manager is enabled
     PermissionCollection permissionCollection = new Permissions();
     permissionCollection.add(new RuntimePermission("createClassLoader"));
-    // For ScalarDB on Cosmos DB
-    permissionCollection.add(new RuntimePermission("getenv.*"));
-    permissionCollection.add(new PropertyPermission("log4j2.flowMessageFactory", "read"));
-    permissionCollection.add(new PropertyPermission("org.jooq.settings", "read"));
-    permissionCollection.add(new PropertyPermission("org.jooq.no-logo", "read"));
-    permissionCollection.add(new PropertyPermission("COSMOS.*", "read"));
-    permissionCollection.add(new PropertyPermission("line.separator", "read"));
-    // For ScalarDB on DynamoDB
-    permissionCollection.add(new PropertyPermission("aws.executionEnvironment", "read"));
-    permissionCollection.add(new PropertyPermission("com.amazonaws.xray.traceHeader", "read"));
-    // These permissions are required by ScalarDB on DynamoDB, Cloud Storage, and JDBC databases.
-    // They are set regardless of the storage type so that multi-storage configurations and storages
-    // added in the future are handled without changes here.
-    permissionCollection.add(new SocketPermission("*", "connect,resolve"));
-    // The PostgreSQL JDBC driver reads this property to decide SOCKS proxy resolution.
-    permissionCollection.add(new PropertyPermission("socksProxyHost", "read"));
-    // HikariCP calls these methods when validating/closing connections.
-    permissionCollection.add(new SQLPermission("setNetworkTimeout"));
-    permissionCollection.add(new SQLPermission("callAbort"));
+    // Note that no storage-specific permission is granted here. Database accesses issued from
+    // within contracts are executed in a privileged block on the framework side (see
+    // com.scalar.dl.ledger.database.scalardb.Privileged), so the storage drivers' housekeeping
+    // (property and environment variable reads, ServiceLoader, socket connections) does not
+    // require permissions in this domain.
     return new ProtectionDomain(null, permissionCollection);
   }
 }

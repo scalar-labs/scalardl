@@ -27,6 +27,9 @@ import java.util.Optional;
  * namespace access control. The constructor is intentionally package-private so that instances can
  * only be created from within this package (in practice, by {@link ScalarTransactionManager}),
  * keeping the wrapping requirement contained to this package.
+ *
+ * <p>Every operation on this class is invoked from within function execution, so its ScalarDB calls
+ * are executed in a privileged block. See {@link Privileged} for details.
  */
 public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, Delete, Result> {
   private final DistributedTransaction transaction;
@@ -38,7 +41,7 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
   @Override
   public Optional<Result> get(Get get) {
     try {
-      return transaction.get(get);
+      return Privileged.transactionCrud(() -> transaction.get(get));
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
           LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
@@ -53,7 +56,7 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
   @Override
   public List<Result> scan(Scan scan) {
     try {
-      return transaction.scan(scan);
+      return Privileged.transactionCrud(() -> transaction.scan(scan));
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
           LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
@@ -69,7 +72,12 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
   public void put(Put put) {
     try {
       // Make put() consistent with Ledger's put(), which always pre-read implicitly.
-      transaction.put(Put.newBuilder(put).implicitPreReadEnabled(true).build());
+      Put withImplicitPreRead = Put.newBuilder(put).implicitPreReadEnabled(true).build();
+      Privileged.transactionCrud(
+          () -> {
+            transaction.put(withImplicitPreRead);
+            return null;
+          });
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
           LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
@@ -84,7 +92,11 @@ public class ScalarMutableDatabase implements MutableDatabase<Get, Scan, Put, De
   @Override
   public void delete(Delete delete) {
     try {
-      transaction.delete(delete);
+      Privileged.transactionCrud(
+          () -> {
+            transaction.delete(delete);
+            return null;
+          });
     } catch (IllegalArgumentException e) {
       throw new InvalidFunctionException(
           LedgerError.OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT, e, e.getMessage());
