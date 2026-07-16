@@ -52,7 +52,6 @@ import java.security.Permissions;
 import java.security.ProtectionDomain;
 import java.sql.SQLPermission;
 import java.util.Base64;
-import java.util.Locale;
 import java.util.PropertyPermission;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -181,7 +180,7 @@ public class LedgerModule extends AbstractModule {
   @Provides
   @Singleton
   ProtectionDomain provideProtectionDomain() {
-    return getProtectionDomain(databaseConfig);
+    return getProtectionDomain();
   }
 
   @Provides
@@ -197,19 +196,10 @@ public class LedgerModule extends AbstractModule {
     }
   }
 
-  public static ProtectionDomain getProtectionDomain(DatabaseConfig databaseConfig) {
+  public static ProtectionDomain getProtectionDomain() {
     // (null, null) means that it denies all if java.security.manager is enabled
     PermissionCollection permissionCollection = new Permissions();
     permissionCollection.add(new RuntimePermission("createClassLoader"));
-    // For ScalarDB on JDBC databases
-    if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("jdbc")) {
-      permissionCollection.add(new SocketPermission("*", "connect,resolve"));
-      // The PostgreSQL JDBC driver reads this property to decide SOCKS proxy resolution.
-      permissionCollection.add(new PropertyPermission("socksProxyHost", "read"));
-      // HikariCP calls these methods when validating/closing connections.
-      permissionCollection.add(new SQLPermission("setNetworkTimeout"));
-      permissionCollection.add(new SQLPermission("callAbort"));
-    }
     // For ScalarDB on Cosmos DB
     permissionCollection.add(new RuntimePermission("getenv.*"));
     permissionCollection.add(new PropertyPermission("log4j2.flowMessageFactory", "read"));
@@ -220,13 +210,15 @@ public class LedgerModule extends AbstractModule {
     // For ScalarDB on DynamoDB
     permissionCollection.add(new PropertyPermission("aws.executionEnvironment", "read"));
     permissionCollection.add(new PropertyPermission("com.amazonaws.xray.traceHeader", "read"));
-    if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("dynamo")) {
-      permissionCollection.add(new SocketPermission("*", "connect,resolve"));
-    }
-    // For ScalarDB on Cloud Storage
-    if (databaseConfig.getStorage().toLowerCase(Locale.ROOT).equals("cloud-storage")) {
-      permissionCollection.add(new SocketPermission("*", "connect,resolve"));
-    }
+    // These permissions are required by ScalarDB on DynamoDB, Cloud Storage, and JDBC databases.
+    // They are set regardless of the storage type so that multi-storage configurations and storages
+    // added in the future are handled without changes here.
+    permissionCollection.add(new SocketPermission("*", "connect,resolve"));
+    // The PostgreSQL JDBC driver reads this property to decide SOCKS proxy resolution.
+    permissionCollection.add(new PropertyPermission("socksProxyHost", "read"));
+    // HikariCP calls these methods when validating/closing connections.
+    permissionCollection.add(new SQLPermission("setNetworkTimeout"));
+    permissionCollection.add(new SQLPermission("callAbort"));
     return new ProtectionDomain(null, permissionCollection);
   }
 }
