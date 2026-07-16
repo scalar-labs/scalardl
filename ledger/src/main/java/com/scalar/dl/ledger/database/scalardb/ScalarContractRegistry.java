@@ -219,8 +219,10 @@ public class ScalarContractRegistry implements ContractRegistry, TableMetadataPr
 
   private Result get(Get get) {
     try {
-      return storage
-          .get(get)
+      // Reached during contract execution when a contract invokes another contract (nested
+      // invocation) and the entry is not cached, so this read runs in the contract's restricted
+      // ProtectionDomain; see the Privileged class for details.
+      return Privileged.storageCrud(() -> storage.get(get))
           .orElseThrow(() -> new MissingContractException(CommonError.CONTRACT_NOT_FOUND));
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.GETTING_CONTRACT_FAILED, e, e.getMessage());

@@ -108,9 +108,11 @@ public class ScalarSecretRegistry implements SecretRegistry, TableMetadataProvid
 
     Result result;
     try {
+      // Reached during contract execution when a contract invokes another contract (nested
+      // invocation) and the signature validator is not cached, so this read runs in the
+      // contract's restricted ProtectionDomain; see the Privileged class for details.
       result =
-          storage
-              .get(get)
+          Privileged.storageCrud(() -> storage.get(get))
               .orElseThrow(() -> new MissingSecretException(CommonError.SECRET_NOT_FOUND));
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.GETTING_SECRET_KEY_FAILED, e, e.getMessage());
