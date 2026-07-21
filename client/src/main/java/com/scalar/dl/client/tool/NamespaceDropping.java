@@ -16,11 +16,6 @@ public class NamespaceDropping extends AbstractClientCommand {
       description = "A namespace name to drop.")
   private String namespace;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new NamespaceDropping()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(ClientService service) throws ClientException {
     if (!confirmDropping()) {

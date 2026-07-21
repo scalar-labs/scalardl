@@ -15,11 +15,6 @@ public class NamespaceCreation extends AbstractClientCommand {
       description = "A namespace name to create.")
   private String namespace;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new NamespaceCreation()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(ClientService service) throws ClientException {
     service.createNamespace(namespace);

@@ -126,13 +126,6 @@ task LedgerValidation(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-task NamespaceCreation(type: CreateStartScripts) {
-    mainClass = 'com.scalar.dl.client.tool.NamespaceCreation'
-    applicationName = 'create-namespace'
-    outputDir = new File(project.buildDir, 'scriptsTmp')
-    classpath = jar.outputs.files + project.configurations.runtimeClasspath
-}
-
 task StateUpdaterSimpleBench(type: CreateStartScripts) {
     mainClass = 'com.scalar.dl.client.tool.StateUpdaterSimpleBench'
     applicationName = 'state-updater-simple-bench'
@@ -181,7 +174,6 @@ distributions {
                 from(ContractsListing)
                 from(ContractExecution)
                 from(LedgerValidation)
-                from(NamespaceCreation)
                 from(ScalarDl)
                 from(ScalarDlGc)
                 from(StateUpdaterSimpleBench)
