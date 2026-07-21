@@ -6,7 +6,6 @@ import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import java.io.Console;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -17,11 +16,6 @@ public class TransactionStatePurging extends AbstractClientCommand {
       names = {"-f", "--force"},
       description = "Purge stale transaction states without the confirmation prompt.")
   private boolean force;
-
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new TransactionStatePurging()).execute(args);
-    System.exit(exitCode);
-  }
 
   @Override
   protected Integer execute(ClientService service) throws ClientException {
