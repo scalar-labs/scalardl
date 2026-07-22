@@ -64,9 +64,14 @@ jobs:
         if: contains(steps.version.outputs.version, '-SNAPSHOT')
         run: ./gradlew docker
 
+      - name: Create UBI-based SNAPSHOT container images
+        if: contains(steps.version.outputs.version, '-SNAPSHOT')
+        run: ./gradlew :ledger:docker -Pubi
+
       - name: Push SNAPSHOT container images
         if: contains(steps.version.outputs.version, '-SNAPSHOT')
         run: |
           docker push ghcr.io/scalar-labs/scalardl-ledger:${{ steps.version.outputs.version }}
+          docker push ghcr.io/scalar-labs/scalardl-ledger-ubi:${{ steps.version.outputs.version }}
           docker push ghcr.io/scalar-labs/scalardl-client:${{ steps.version.outputs.version }}
           docker push ghcr.io/scalar-labs/scalardl-schema-loader:${{ steps.version.outputs.version }}
