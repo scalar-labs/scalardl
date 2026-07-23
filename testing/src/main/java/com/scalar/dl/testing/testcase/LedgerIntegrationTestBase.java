@@ -353,7 +353,7 @@ public abstract class LedgerIntegrationTestBase {
 
   protected void createFunctionTableSchema() throws Exception {
     Map<String, String> options = cluster.getSchemaCreationOptions();
-    transactionAdmin.createNamespace(getFunctionNamespace(), true);
+    transactionAdmin.createNamespace(getFunctionNamespace(), true, options);
     transactionAdmin.createTable(
         getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
   }
