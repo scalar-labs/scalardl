@@ -352,9 +352,10 @@ public abstract class LedgerIntegrationTestBase {
   }
 
   protected void createFunctionTableSchema() throws Exception {
-    transactionAdmin.createNamespace(getFunctionNamespace(), true);
+    Map<String, String> options = cluster.getSchemaCreationOptions();
+    transactionAdmin.createNamespace(getFunctionNamespace(), true, options);
     transactionAdmin.createTable(
-        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
   }
 
   protected ClientConfig getDigitalSignatureClientConfig(

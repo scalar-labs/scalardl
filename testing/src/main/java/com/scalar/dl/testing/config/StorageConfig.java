@@ -1,6 +1,8 @@
 package com.scalar.dl.testing.config;
 
+import com.google.common.collect.ImmutableSet;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.storage.dynamo.DynamoConfig;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import org.testcontainers.mysql.MySQLContainer;
@@ -13,12 +15,20 @@ import org.testcontainers.mysql.MySQLContainer;
  *
  * <ul>
  *   <li>Container DB mode: Uses MySQLContainer for storage
- *   <li>External DB mode: Uses explicitly provided connection settings
+ *   <li>External DB mode: Uses explicitly provided {@code scalardb.*} system properties
  * </ul>
  */
 public class StorageConfig {
 
+  private static final String SCALARDB_PREFIX = "scalardb.";
   private static final String CONTAINER_HOSTNAME = "host.testcontainers.internal";
+
+  /**
+   * ScalarDB keys whose values may contain a host endpoint and need {@code localhost} rewritten for
+   * containers. Grow this allowlist (and tests) when ScalarDB adds new endpoint keys.
+   */
+  private static final ImmutableSet<String> ENDPOINT_PROPERTIES =
+      ImmutableSet.of(DatabaseConfig.CONTACT_POINTS, DynamoConfig.ENDPOINT_OVERRIDE);
 
   // MySQL container settings
   private static final int MYSQL_PORT = 3306;
@@ -28,15 +38,10 @@ public class StorageConfig {
   // Storage type constants
   public static final String STORAGE_JDBC = "jdbc";
 
-  private final String storage;
   private final TransactionMode transactionMode;
   @Nullable private final String containerNetworkAlias;
   @Nullable private final MySQLContainer mysqlContainer;
-
-  // External DB settings
-  @Nullable private final String contactPoints;
-  @Nullable private final String username;
-  @Nullable private final String password;
+  @Nullable private final Properties scalardbProperties;
 
   /**
    * Creates a StorageConfig for MySQLContainer.
@@ -48,45 +53,30 @@ public class StorageConfig {
    */
   public static StorageConfig forMySQLContainer(
       MySQLContainer container, String networkAlias, TransactionMode transactionMode) {
-    return new StorageConfig(
-        STORAGE_JDBC, transactionMode, networkAlias, container, null, null, null);
+    return new StorageConfig(transactionMode, networkAlias, container, null);
   }
 
   /**
-   * Creates a StorageConfig for external database.
+   * Creates a StorageConfig for external storage using all {@code scalardb.*} properties.
    *
-   * @param storage Storage type (jdbc, cassandra)
    * @param transactionMode Transaction mode
-   * @param contactPoints JDBC URL or contact points
-   * @param username Database username
-   * @param password Database password
-   * @return StorageConfig configured for external database
+   * @param scalardbProperties Properties whose keys use the {@code scalardb.} prefix
+   * @return StorageConfig configured for external storage
    */
-  public static StorageConfig forExternalDatabase(
-      String storage,
-      TransactionMode transactionMode,
-      String contactPoints,
-      String username,
-      String password) {
-    return new StorageConfig(
-        storage, transactionMode, null, null, contactPoints, username, password);
+  public static StorageConfig forExternalStorage(
+      TransactionMode transactionMode, Properties scalardbProperties) {
+    return new StorageConfig(transactionMode, null, null, scalardbProperties);
   }
 
   private StorageConfig(
-      String storage,
       TransactionMode transactionMode,
       @Nullable String containerNetworkAlias,
       @Nullable MySQLContainer mysqlContainer,
-      @Nullable String contactPoints,
-      @Nullable String username,
-      @Nullable String password) {
-    this.storage = storage;
+      @Nullable Properties scalardbProperties) {
     this.transactionMode = transactionMode;
     this.containerNetworkAlias = containerNetworkAlias;
     this.mysqlContainer = mysqlContainer;
-    this.contactPoints = contactPoints;
-    this.username = username;
-    this.password = password;
+    this.scalardbProperties = scalardbProperties;
   }
 
   /**
@@ -104,32 +94,14 @@ public class StorageConfig {
    * @return Properties configured for host-side access to the database
    */
   public Properties getPropertiesForHost() {
-    Properties props = new Properties();
-
     if (mysqlContainer != null) {
-      props.put(DatabaseConfig.STORAGE, STORAGE_JDBC);
-      props.put(DatabaseConfig.CONTACT_POINTS, mysqlContainer.getJdbcUrl());
-      props.put(DatabaseConfig.USERNAME, mysqlContainer.getUsername());
-      props.put(DatabaseConfig.PASSWORD, mysqlContainer.getPassword());
-    } else if (contactPoints != null) {
-      props.put(DatabaseConfig.STORAGE, storage);
-      props.put(DatabaseConfig.CONTACT_POINTS, contactPoints);
-      if (username != null && !username.isEmpty()) {
-        props.put(DatabaseConfig.USERNAME, username);
-      }
-      if (password != null && !password.isEmpty()) {
-        props.put(DatabaseConfig.PASSWORD, password);
-      }
-    } else {
-      throw new IllegalStateException(
-          "StorageConfig must have either mysqlContainer or contactPoints");
+      return getMySQLContainerProperties();
     }
-
-    if (transactionMode == TransactionMode.JDBC) {
-      props.put(DatabaseConfig.TRANSACTION_MANAGER, "jdbc");
+    if (scalardbProperties != null) {
+      return toScalarDbProperties(scalardbProperties, false);
     }
-
-    return props;
+    throw new IllegalStateException(
+        "StorageConfig must have either mysqlContainer or scalardbProperties");
   }
 
   /**
@@ -139,35 +111,64 @@ public class StorageConfig {
    * @return Properties configured for container-side access
    */
   public Properties getPropertiesForContainer() {
-    Properties props = new Properties();
-
     if (containerNetworkAlias != null) {
-      props.put(DatabaseConfig.STORAGE, STORAGE_JDBC);
-      props.put(
-          DatabaseConfig.CONTACT_POINTS,
-          "jdbc:mysql://" + containerNetworkAlias + ":" + MYSQL_PORT + "/");
-      props.put(DatabaseConfig.USERNAME, MYSQL_USERNAME);
-      props.put(DatabaseConfig.PASSWORD, MYSQL_PASSWORD);
-    } else if (contactPoints != null) {
-      // External DB - container accesses via host.testcontainers.internal
-      String containerContactPoints = contactPoints.replace("localhost", CONTAINER_HOSTNAME);
-      props.put(DatabaseConfig.STORAGE, storage);
-      props.put(DatabaseConfig.CONTACT_POINTS, containerContactPoints);
-      if (username != null && !username.isEmpty()) {
-        props.put(DatabaseConfig.USERNAME, username);
-      }
-      if (password != null && !password.isEmpty()) {
-        props.put(DatabaseConfig.PASSWORD, password);
-      }
-    } else {
-      throw new IllegalStateException(
-          "StorageConfig must have either containerNetworkAlias or contactPoints");
+      return getMySQLContainerPropertiesForNetworkAlias(containerNetworkAlias);
     }
+    if (scalardbProperties != null) {
+      return toScalarDbProperties(scalardbProperties, true);
+    }
+    throw new IllegalStateException(
+        "StorageConfig must have either containerNetworkAlias or scalardbProperties");
+  }
 
+  private Properties getMySQLContainerProperties() {
+    Properties props = new Properties();
+    props.put(DatabaseConfig.STORAGE, STORAGE_JDBC);
+    props.put(DatabaseConfig.CONTACT_POINTS, mysqlContainer.getJdbcUrl());
+    props.put(DatabaseConfig.USERNAME, mysqlContainer.getUsername());
+    props.put(DatabaseConfig.PASSWORD, mysqlContainer.getPassword());
+    applyTransactionManager(props);
+    return props;
+  }
+
+  private Properties getMySQLContainerPropertiesForNetworkAlias(String networkAlias) {
+    Properties props = new Properties();
+    props.put(DatabaseConfig.STORAGE, STORAGE_JDBC);
+    props.put(
+        DatabaseConfig.CONTACT_POINTS, "jdbc:mysql://" + networkAlias + ":" + MYSQL_PORT + "/");
+    props.put(DatabaseConfig.USERNAME, MYSQL_USERNAME);
+    props.put(DatabaseConfig.PASSWORD, MYSQL_PASSWORD);
+    applyTransactionManager(props);
+    return props;
+  }
+
+  private Properties toScalarDbProperties(Properties source, boolean rewriteLocalhost) {
+    Properties props = new Properties();
+    source.forEach(
+        (key, value) -> {
+          String propertyName = (String) key;
+          if (!propertyName.startsWith(SCALARDB_PREFIX)) {
+            return;
+          }
+          String scalarDbKey =
+              DatabaseConfig.PREFIX + propertyName.substring(SCALARDB_PREFIX.length());
+          String propertyValue = (String) value;
+          if (rewriteLocalhost && isEndpointProperty(scalarDbKey)) {
+            propertyValue = propertyValue.replace("localhost", CONTAINER_HOSTNAME);
+          }
+          props.setProperty(scalarDbKey, propertyValue);
+        });
+    applyTransactionManager(props);
+    return props;
+  }
+
+  private void applyTransactionManager(Properties props) {
     if (transactionMode == TransactionMode.JDBC) {
       props.put(DatabaseConfig.TRANSACTION_MANAGER, "jdbc");
     }
+  }
 
-    return props;
+  private static boolean isEndpointProperty(String scalarDbKey) {
+    return ENDPOINT_PROPERTIES.contains(scalarDbKey);
   }
 }
