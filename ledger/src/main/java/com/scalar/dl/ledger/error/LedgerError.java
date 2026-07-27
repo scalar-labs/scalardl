@@ -114,7 +114,7 @@ public enum LedgerError implements ScalarDlError {
       "007",
       "Transaction state purge is disabled.",
       "",
-      "Set 'scalar.dl.ledger.transaction_state_purge.enabled' to true in the Ledger configuration (e.g., ledger.properties) and restart the Ledger to allow purge."),
+      "Set 'scalar.dl.ledger.transaction_state_purge.enabled' to true in the Ledger configuration (for example, ledger.properties) and restart Ledger to allow purge."),
 
   //
   // Errors for ASSET_NOT_FOUND(409)
