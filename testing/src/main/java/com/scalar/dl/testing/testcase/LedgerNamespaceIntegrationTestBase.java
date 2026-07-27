@@ -475,6 +475,17 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   // ============ Namespace Management Tests ============
 
   @Test
+  void createNamespace_ExistingNamespaceGiven_ShouldThrowException() {
+    // Act & Assert
+    assertThatThrownBy(() -> clientServiceA.createNamespace(NAMESPACE_1))
+        .isInstanceOf(ClientException.class)
+        .satisfies(
+            e ->
+                assertThat(((ClientException) e).getStatusCode())
+                    .isEqualTo(StatusCode.NAMESPACE_ALREADY_EXISTS));
+  }
+
+  @Test
   void listNamespaces_WithoutFilter_ShouldReturnAllNamespaces() {
     // Act
     String result = clientServiceA.listNamespaces();

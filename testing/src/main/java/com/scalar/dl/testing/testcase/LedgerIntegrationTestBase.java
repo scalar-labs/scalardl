@@ -25,6 +25,9 @@ import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID1;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID2;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID3;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID4;
+import static com.scalar.dl.testing.contract.Constants.SCAN_CONTRACT_ID;
+import static com.scalar.dl.testing.contract.Constants.SCAN_WITH_PUT_CONTRACT_ID;
+import static com.scalar.dl.testing.contract.Scan.SCAN_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_AGE_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_ID_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
@@ -58,6 +61,7 @@ import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
+import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -80,6 +84,7 @@ import com.scalar.dl.testing.contract.Payment;
 import com.scalar.dl.testing.contract.PaymentWithJackson;
 import com.scalar.dl.testing.contract.PaymentWithJsonp;
 import com.scalar.dl.testing.contract.PaymentWithString;
+import com.scalar.dl.testing.contract.ScanWithPut;
 import com.scalar.dl.testing.function.CreateFunction;
 import com.scalar.dl.testing.function.CreateFunctionWithJackson;
 import com.scalar.dl.testing.function.CreateFunctionWithJsonp;
@@ -129,6 +134,8 @@ public abstract class LedgerIntegrationTestBase {
           .put(GET_BALANCE_CONTRACT_ID3, GetBalanceWithJackson.class)
           .put(GET_BALANCE_CONTRACT_ID4, GetBalanceWithString.class)
           .put(HOLDER_CHECKER_CONTRACT_ID, HolderChecker.class)
+          .put(SCAN_CONTRACT_ID, com.scalar.dl.testing.contract.Scan.class)
+          .put(SCAN_WITH_PUT_CONTRACT_ID, ScanWithPut.class)
           .build();
   private static final ImmutableMap<String, Class<?>> FUNCTIONS =
       ImmutableMap.<String, Class<?>>builder()
@@ -1038,6 +1045,29 @@ public abstract class LedgerIntegrationTestBase {
         .isEqualTo(expected1);
     assertThat(jsonpSerDe.deserialize(results.get(1).getText(ASSET_OUTPUT_COLUMN_NAME)))
         .isEqualTo(expected2);
+  }
+
+  @Test
+  void executeContract_ScanAfterMultiplePuts_ShouldReturnAllCommittedAges() {
+    // Arrange: create five ages for the same asset via put-without-get
+    for (int amount = 0; amount < 5; amount++) {
+      ObjectNode argument =
+          mapper
+              .createObjectNode()
+              .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+              .put(AMOUNT_ATTRIBUTE_NAME, amount);
+      clientServiceA.executeContract(CREATE_CONTRACT_ID3, argument);
+    }
+
+    ObjectNode scanArgument = mapper.createObjectNode().put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1);
+
+    // Act
+    ContractExecutionResult result = clientServiceA.executeContract(SCAN_CONTRACT_ID, scanArgument);
+
+    // Assert
+    assertThat(result.getContractResult()).isPresent();
+    JsonNode scanned = jacksonSerDe.deserialize(result.getContractResult().get());
+    assertThat(scanned.get(SCAN_ATTRIBUTE_NAME)).hasSize(5);
   }
 
   // ============ Validate Ledger Test Cases ============
