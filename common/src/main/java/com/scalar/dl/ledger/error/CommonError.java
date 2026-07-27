@@ -450,7 +450,7 @@ public enum CommonError implements ScalarDlError {
       "017",
       "The lease table does not exist.",
       "",
-      "Create the lease table by running the schema loader. It is also created automatically on the next coordination round if the database user has permission to create tables."),
+      "Create the lease table by running Schema Loader. It is also created automatically on the next coordination round if the database user has permission to create tables."),
 
   //
   // Errors for RUNTIME_ERROR(502)
