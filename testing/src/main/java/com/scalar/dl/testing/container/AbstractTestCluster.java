@@ -33,12 +33,10 @@ import org.testcontainers.mysql.MySQLContainer;
  *
  * <ul>
  *   <li>scalardb.storage - Storage type (jdbc). Default: jdbc
- *   <li>scalardb.contact_points - JDBC URL or contact points for external database
- *   <li>scalardb.username - Database username
- *   <li>scalardb.password - Database password
  *   <li>scalardl.testing.exposed_port - Host port to expose so containers can reach external
  *       storage
- *   <li>scalardb.* - Any additional ScalarDB property forwarded to Ledger/Auditor containers
+ *   <li>scalardb.* - Any ScalarDB property forwarded to Ledger/Auditor containers (e.g. contact
+ *       points, credentials). Presence of {@code scalardb.contact_points} selects external storage.
  * </ul>
  */
 public abstract class AbstractTestCluster implements AutoCloseable {

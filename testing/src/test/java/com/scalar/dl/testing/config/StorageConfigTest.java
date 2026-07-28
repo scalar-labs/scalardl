@@ -49,6 +49,25 @@ class StorageConfigTest {
   }
 
   @Test
+  void forExternalStorage_shouldRewriteLoopbackIpInContainerEndpointProperties() {
+    Properties scalardbProps = new Properties();
+    scalardbProps.setProperty("scalardb.storage", "dynamo");
+    scalardbProps.setProperty("scalardb.contact_points", "us-west-2");
+    scalardbProps.setProperty("scalardb.dynamo.endpoint_override", "http://127.0.0.1:8000");
+
+    StorageConfig config =
+        StorageConfig.forExternalStorage(TransactionMode.CONSENSUS_COMMIT, scalardbProps);
+
+    Properties hostProps = config.getPropertiesForHost();
+    assertThat(hostProps.getProperty("scalar.db.dynamo.endpoint_override"))
+        .isEqualTo("http://127.0.0.1:8000");
+
+    Properties containerProps = config.getPropertiesForContainer();
+    assertThat(containerProps.getProperty("scalar.db.dynamo.endpoint_override"))
+        .isEqualTo("http://host.testcontainers.internal:8000");
+  }
+
+  @Test
   void forExternalStorage_shouldForwardAdditionalScalarDbProperties() {
     Properties scalardbProps = new Properties();
     scalardbProps.setProperty("scalardb.storage", "cassandra");

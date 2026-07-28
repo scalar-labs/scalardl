@@ -24,8 +24,9 @@ public class StorageConfig {
   private static final String CONTAINER_HOSTNAME = "host.testcontainers.internal";
 
   /**
-   * ScalarDB keys whose values may contain a host endpoint and need {@code localhost} rewritten for
-   * containers. Grow this allowlist (and tests) when ScalarDB adds new endpoint keys.
+   * ScalarDB keys whose values may contain a host endpoint and need loopback addresses ({@code
+   * localhost}, {@code 127.0.0.1}) rewritten for containers. Grow this allowlist (and tests) when
+   * ScalarDB adds new endpoint keys.
    */
   private static final ImmutableSet<String> ENDPOINT_PROPERTIES =
       ImmutableSet.of(DatabaseConfig.CONTACT_POINTS, DynamoConfig.ENDPOINT_OVERRIDE);
@@ -142,7 +143,7 @@ public class StorageConfig {
     return props;
   }
 
-  private Properties toScalarDbProperties(Properties source, boolean rewriteLocalhost) {
+  private Properties toScalarDbProperties(Properties source, boolean rewriteLoopback) {
     Properties props = new Properties();
     source.forEach(
         (key, value) -> {
@@ -153,13 +154,19 @@ public class StorageConfig {
           String scalarDbKey =
               DatabaseConfig.PREFIX + propertyName.substring(SCALARDB_PREFIX.length());
           String propertyValue = (String) value;
-          if (rewriteLocalhost && isEndpointProperty(scalarDbKey)) {
-            propertyValue = propertyValue.replace("localhost", CONTAINER_HOSTNAME);
+          if (rewriteLoopback && isEndpointProperty(scalarDbKey)) {
+            propertyValue = rewriteLoopbackAddress(propertyValue);
           }
           props.setProperty(scalarDbKey, propertyValue);
         });
     applyTransactionManager(props);
     return props;
+  }
+
+  private static String rewriteLoopbackAddress(String propertyValue) {
+    return propertyValue
+        .replace("localhost", CONTAINER_HOSTNAME)
+        .replace("127.0.0.1", CONTAINER_HOSTNAME);
   }
 
   private void applyTransactionManager(Properties props) {
