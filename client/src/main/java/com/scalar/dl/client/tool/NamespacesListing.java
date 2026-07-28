@@ -17,11 +17,6 @@ public class NamespacesListing extends AbstractClientCommand {
       description = "A pattern to filter namespaces (partial match).")
   private String pattern;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new NamespacesListing()).execute(args);
-    System.exit(exitCode);
-  }
-
   @Override
   protected Integer execute(ClientService service) throws ClientException {
     JacksonSerDe serde = new JacksonSerDe(new ObjectMapper());
