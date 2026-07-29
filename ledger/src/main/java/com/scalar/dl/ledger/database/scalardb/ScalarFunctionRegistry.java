@@ -96,7 +96,10 @@ public class ScalarFunctionRegistry implements FunctionRegistry, TableMetadataPr
             .forTable(FUNCTION_TABLE);
 
     try {
-      return storage.get(get).map(this::toFunctionEntry);
+      // Reached on every function invocation during contract execution (FunctionManager has no
+      // cache), so this read runs in the contract's restricted ProtectionDomain; see the Privileged
+      // class for details.
+      return Privileged.storageCrud(() -> storage.get(get)).map(this::toFunctionEntry);
     } catch (ExecutionException e) {
       throw new DatabaseException(LedgerError.GETTING_FUNCTION_FAILED, e, e.getMessage());
     }
