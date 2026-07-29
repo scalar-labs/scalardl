@@ -46,9 +46,16 @@ public final class Privileged {
   }
 
   /**
-   * A CRUD operation on a {@code DistributedStorage}, including {@code Scanner} iteration. An
-   * {@code IOException} from closing a {@code Scanner} should be handled inside the operation
-   * (e.g., logged), following the existing convention of the call sites.
+   * A CRUD operation on a {@code DistributedStorage}. When scanning, wrap the {@code scan} and each
+   * fetch from the lazy {@code Scanner} separately instead of wrapping the whole iteration, so that
+   * the processing of the fetched records stays outside the privileged blocks while still fetching
+   * them one at a time.
+   *
+   * <p>This per-fetch style is specific to the privileged call sites; the others still iterate a
+   * {@code Scanner} as an {@code Iterable}. The two also differ in how a failure in the middle of a
+   * scan surfaces: the iterator wraps it in an unchecked exception, while {@code one()} reports the
+   * {@code ExecutionException} that the call site can translate into its own error. Unifying the
+   * styles is out of the scope of this class, but worth revisiting.
    */
   @FunctionalInterface
   public interface StorageCrud<T> {
