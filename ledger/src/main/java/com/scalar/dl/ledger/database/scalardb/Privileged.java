@@ -30,8 +30,11 @@ import java.security.PrivilegedExceptionAction;
  * ledger, and also the less obvious reads that fire on cache miss during nested contract invocation
  * (looking up the callee contract, its signing certificate, or its HMAC secret) and the read that
  * fires on every function invocation (since {@code FunctionManager} has no cache). Framework paths
- * that run before {@code invoke()} or after it returns (registration, commit/abort, validation,
- * background workers) do not need wrapping.
+ * where no contract or function is on the stack (registration, execution-path commit/abort,
+ * recovery, background workers) do not need wrapping. The one exception is the commit in {@code
+ * TransactionAssetScanner}, which the validation path runs from within {@code contract.invoke()}:
+ * it is left unwrapped because it immediately follows a privileged scan on the same connection
+ * pool.
  */
 public final class Privileged {
   private Privileged() {}

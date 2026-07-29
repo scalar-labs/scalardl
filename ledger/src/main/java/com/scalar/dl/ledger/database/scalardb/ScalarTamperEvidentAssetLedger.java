@@ -58,8 +58,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>Read operations invoked from within contract execution ({@link #get}, {@link #scan}, and the
  * internal helpers they use) execute their ScalarDB calls in a privileged block; see {@link
  * Privileged} for details. Writes are buffered on the snapshot and flushed by {@link #commit()},
- * which runs after {@code contract.invoke()} has returned and therefore does not need a privileged
- * block.
+ * which does not need a privileged block; see {@link Privileged} for the one path that commits from
+ * within a contract.
  */
 @ThreadSafe
 public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger {
