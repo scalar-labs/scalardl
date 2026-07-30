@@ -48,6 +48,7 @@ import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -163,6 +164,7 @@ public abstract class LedgerJdbcReconnectIntegrationTestBase {
   void setUpCluster() throws Exception {
     cluster = createCluster();
     cluster.start();
+    loadSchemas(cluster.getStorageConfig().getPropertiesForHost());
 
     createStorageAccess();
     createFunctionTableSchema();
@@ -205,6 +207,16 @@ public abstract class LedgerJdbcReconnectIntegrationTestBase {
   private void createFunctionTableSchema() throws Exception {
     transactionAdmin.createNamespace(FUNCTION_NAMESPACE, true);
     transactionAdmin.createTable(FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+  }
+
+  /**
+   * Loads the schemas required for this test. Override to load additional schemas.
+   *
+   * @param props ScalarDB properties (host-side view)
+   * @throws Exception if the load fails
+   */
+  protected void loadSchemas(Properties props) throws Exception {
+    SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
   }
 
   /**
