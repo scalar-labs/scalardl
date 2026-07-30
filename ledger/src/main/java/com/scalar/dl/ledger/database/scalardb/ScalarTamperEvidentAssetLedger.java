@@ -41,6 +41,16 @@ import java.util.Map;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * A {@link TamperEvidentAssetLedger} implementation backed by a ScalarDB {@link
+ * DistributedTransaction}.
+ *
+ * <p>Read operations invoked from within contract execution ({@link #get}, {@link #scan}, and the
+ * internal helpers they use) execute their ScalarDB calls in a privileged block; see {@link
+ * Privileged} for details. Writes are buffered on the snapshot and flushed by {@link #commit()},
+ * which does not need a privileged block; see {@link Privileged} for the one path that commits from
+ * within a contract.
+ */
 @ThreadSafe
 public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger {
   static final String TABLE = "asset";
@@ -214,7 +224,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
                   new Key(AssetAttribute.toIdValue(assetId)),
                   new Key(AssetAttribute.toAgeValue(age)))
               .forTable(TABLE);
-      return transaction.get(get);
+      return Privileged.transactionCrud(() -> transaction.get(get));
     } catch (CrudConflictException e) {
       throw new ConflictException(
           LedgerError.RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
@@ -230,7 +240,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
               .withOrdering(new Ordering(AssetRecord.AGE, Order.DESC))
               .withLimit(1)
               .forTable(TABLE);
-      List<Result> results = transaction.scan(scan);
+      List<Result> results = Privileged.transactionCrud(() -> transaction.scan(scan));
       if (results.isEmpty()) {
         return Optional.empty();
       }
@@ -245,7 +255,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
   private List<Result> scan(Scan scan) {
     try {
-      return transaction.scan(scan);
+      return Privileged.transactionCrud(() -> transaction.scan(scan));
     } catch (CrudConflictException e) {
       throw new ConflictException(
           LedgerError.RETRIEVING_ASSET_FAILED_DUE_TO_CONFLICT, e, e.getMessage());
@@ -304,7 +314,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
 
       Optional<Result> result;
       try {
-        result = transaction.get(get);
+        result = Privileged.transactionCrud(() -> transaction.get(get));
       } catch (CrudConflictException e) {
         throw new ConflictException(
             LedgerError.RETRIEVING_ASSET_METADATA_FAILED_DUE_TO_CONFLICT, e, e.getMessage());

@@ -27,6 +27,8 @@ public final class Constants {
   public static final String GET_BALANCE_CONTRACT_ID3 = "GetBalanceWithJackson";
   public static final String GET_BALANCE_CONTRACT_ID4 = "GetBalanceWithString";
   public static final String HOLDER_CHECKER_CONTRACT_ID = "HolderChecker";
+  public static final String NESTED_INVOKER_CONTRACT_ID = "NestedInvoker";
+  public static final String NOOP_CONTRACT_ID = "Noop";
   public static final String NAMESPACE_AWARE_CREATE_ID = "NamespaceAwareCreate";
   public static final String NAMESPACE_AWARE_PAYMENT_ID = "NamespaceAwarePayment";
   public static final String NAMESPACE_AWARE_GET_BALANCE_ID = "NamespaceAwareGetBalance";
@@ -37,6 +39,7 @@ public final class Constants {
   public static final String CREATE_FUNCTION_ID2 = "CreateFunctionWithJsonp";
   public static final String CREATE_FUNCTION_ID3 = "CreateFunctionWithJackson";
   public static final String CREATE_FUNCTION_ID4 = "CreateFunctionWithString";
+  public static final String UPSERT_FUNCTION_ID = "UpsertFunction";
 
   private Constants() {}
 }
