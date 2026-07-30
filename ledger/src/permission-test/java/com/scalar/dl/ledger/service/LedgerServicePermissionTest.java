@@ -64,6 +64,10 @@ public class LedgerServicePermissionTest {
   private static final String BADREAD_CONTRACT_NAME = PACKAGE + "BadReadContract";
   private static final String BADWRITE_CONTRACT_ID = "BadWriteInOrg1";
   private static final String BADWRITE_CONTRACT_NAME = PACKAGE + "BadWriteContract";
+  private static final String BADNETWORK_CONTRACT_ID = "BadNetworkInOrg1";
+  private static final String BADNETWORK_CONTRACT_NAME = PACKAGE + "BadNetworkContract";
+  private static final String BADPROPERTY_CONTRACT_ID = "BadPropertyInOrg1";
+  private static final String BADPROPERTY_CONTRACT_NAME = PACKAGE + "BadPropertyContract";
   private static final String ASSET_ATTRIBUTE_ID = "asset";
   static final String BALANCE_ATTRIBUTE_NAME = "balance";
   static final String CONTRACT_ID_ATTRIBUTE_NAME = "contract_id";
@@ -90,6 +94,18 @@ public class LedgerServicePermissionTest {
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 
+    service = createService(new ProtectionDomain(null, null));
+    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt())).thenReturn(validator);
+    when(signer.sign(any())).thenReturn("any_bytes".getBytes(StandardCharsets.UTF_8));
+    when(validator.validate(any(), any())).thenReturn(true);
+
+    // Set up the security manager
+    System.setProperty("java.security.manager", "default");
+    System.setProperty("java.security.policy", "src/dist/security.policy");
+    System.setSecurityManager(new SecurityManager());
+  }
+
+  private LedgerService createService(ProtectionDomain protectionDomain) {
     Properties props = new Properties();
     props.setProperty(DatabaseConfig.CONTACT_POINTS, "localhost");
     props.setProperty(LedgerConfig.PROOF_ENABLED, "false");
@@ -99,30 +115,25 @@ public class LedgerServicePermissionTest {
     AccessController.doPrivileged(
         (PrivilegedAction<Void>)
             () -> {
-              contractLoader.set(new ContractLoader(new ProtectionDomain(null, null)));
+              contractLoader.set(new ContractLoader(protectionDomain));
               return null;
             });
     ContractManager contractManager =
         new ContractManager(registry, contractLoader.get(), clientKeyValidator);
     ContractExecutor contractExecutor =
         new ContractExecutor(config, contractManager, functionManager, transactionManager);
-    service =
-        new LedgerService(
-            new BaseService(
-                certManager, secretManager, clientKeyValidator, contractManager, namespaceManager),
-            config,
-            clientKeyValidator,
-            auditorKeyValidator,
-            contractExecutor,
-            functionManager);
-    when(clientKeyValidator.getValidator(anyString(), anyString(), anyInt())).thenReturn(validator);
-    when(signer.sign(any())).thenReturn("any_bytes".getBytes(StandardCharsets.UTF_8));
-    when(validator.validate(any(), any())).thenReturn(true);
+    return new LedgerService(
+        new BaseService(
+            certManager, secretManager, clientKeyValidator, contractManager, namespaceManager),
+        config,
+        clientKeyValidator,
+        auditorKeyValidator,
+        contractExecutor,
+        functionManager);
+  }
 
-    // Set up the security manager
-    System.setProperty("java.security.manager", "default");
-    System.setProperty("java.security.policy", "src/dist/security.policy");
-    System.setSecurityManager(new SecurityManager());
+  private static ProtectionDomain createActualProtectionDomain() {
+    return LedgerModule.getProtectionDomain();
   }
 
   private JsonObject prepareArgument(String contractId) {
@@ -294,5 +305,56 @@ public class LedgerServicePermissionTest {
     assertThat(thrown)
         .isInstanceOf(java.security.AccessControlException.class)
         .hasMessageContaining("java.io.FilePermission");
+  }
+
+  @Test
+  public void
+      execute_ContractOpeningSocketWithActualProtectionDomain_ShouldThrowAccessControlException() {
+    // Arrange: use the actual ProtectionDomain for contracts, which must not allow contracts to
+    // open sockets directly. Database accesses issued via the framework are handled in a
+    // privileged block (com.scalar.dl.ledger.database.scalardb.Privileged) instead.
+    service = createService(createActualProtectionDomain());
+    JsonObject argument = prepareArgument(BADNETWORK_CONTRACT_ID);
+    CertificateEntry.Key certKey = new CertificateEntry.Key(ENTITY_ID, KEY_VERSION);
+    ContractEntry entry =
+        prepareContractEntry(BADNETWORK_CONTRACT_ID, BADNETWORK_CONTRACT_NAME, certKey);
+    ContractExecutionRequest request =
+        prepareExecutionRequest(signer, BADNETWORK_CONTRACT_ID, argument);
+    ContractEntry.Key key = new ContractEntry.Key(BADNETWORK_CONTRACT_ID, certKey);
+    when(registry.lookup(anyString(), eq(key))).thenReturn(entry);
+    ledger = prepareLedger(request);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.execute(request));
+
+    // Assert
+    assertThat(thrown)
+        .isInstanceOf(java.security.AccessControlException.class)
+        .hasMessageContaining("java.net.SocketPermission");
+  }
+
+  @Test
+  public void
+      execute_ContractReadingSystemPropertyWithActualProtectionDomain_ShouldThrowAccessControlException() {
+    // Arrange
+    service = createService(createActualProtectionDomain());
+    JsonObject argument = prepareArgument(BADPROPERTY_CONTRACT_ID);
+    CertificateEntry.Key certKey = new CertificateEntry.Key(ENTITY_ID, KEY_VERSION);
+    ContractEntry entry =
+        prepareContractEntry(BADPROPERTY_CONTRACT_ID, BADPROPERTY_CONTRACT_NAME, certKey);
+    ContractExecutionRequest request =
+        prepareExecutionRequest(signer, BADPROPERTY_CONTRACT_ID, argument);
+    ContractEntry.Key key = new ContractEntry.Key(BADPROPERTY_CONTRACT_ID, certKey);
+    when(registry.lookup(anyString(), eq(key))).thenReturn(entry);
+    ledger = prepareLedger(request);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> service.execute(request));
+
+    // Assert
+    assertThat(thrown)
+        .isInstanceOf(java.security.AccessControlException.class)
+        .hasMessageContaining("java.util.PropertyPermission")
+        .hasMessageContaining("os.name");
   }
 }
