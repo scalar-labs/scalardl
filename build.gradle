@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        grpcVersion = '1.83.0'
+        grpcVersion = '1.82.0' // transient fix until merging the PR #634
         protocVersion = '3.25.9'
         picoCliVersion = '4.7.7'
         guiceVersion = '7.0.0'
