@@ -23,9 +23,8 @@ public class AdminService extends AdminGrpc.AdminImplBase {
   private static final long DEFAULT_MAX_PAUSE_WAIT_TIME_MILLIS = 30000; // 30 seconds
 
   /**
-   * The domain of the {@link ErrorInfo} detail attached to a failed pause. Deliberately distinct
-   * from ScalarDL's own error domain, because these reasons are {@link PauseResult} values rather
-   * than ScalarDL error codes, and the two must not be parsed by the same code.
+   * The domain of the {@link ErrorInfo} detail attached to a failed pause. Scoped to the admin
+   * service because the reasons it carries are {@link PauseResult} names.
    */
   private static final String ERROR_DOMAIN = "com.scalar.dl.admin";
 

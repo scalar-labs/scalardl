@@ -81,6 +81,19 @@ public class GateKeeperTest {
   }
 
   @Test
+  public void letOut_NotPairedWithLetIn_ShouldNotDriveOutstandingBelowZero() {
+    // Arrange: outstanding requests are tracked as a count here, so an unpaired letOut() would
+    // make it negative -- where the drain loop has nothing to wait for yet never sees zero
+    // either, permanently turning every later pause into a timeout it never waited for.
+    // Act
+    gateKeeper.letOut();
+
+    // Assert
+    assertThat(gateKeeper.getNumOutstandingRequests()).isEqualTo(0);
+    assertThat(gateKeeper.pauseAndAwaitDrained(10, TimeUnit.SECONDS)).isEqualTo(PauseResult.PAUSED);
+  }
+
+  @Test
   public void open_OnAnyCondition_ShouldOpen() {
     // Arrange
     // Act

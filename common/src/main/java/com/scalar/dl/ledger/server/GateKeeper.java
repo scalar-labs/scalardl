@@ -240,7 +240,14 @@ public class GateKeeper {
 
   /** Lets a processed request out. */
   public synchronized void letOut() {
-    if (--numOutstandingRequests == 0) {
+    // Clamped so that a call not paired with a letIn() cannot drive the count below zero. A
+    // negative count would leave the drain loop below with nothing to wait for while never
+    // satisfying its success condition either, so every later pause that waits for outstanding
+    // requests would report a timeout it never waited for, with no way back short of a restart.
+    if (numOutstandingRequests > 0) {
+      numOutstandingRequests--;
+    }
+    if (numOutstandingRequests == 0) {
       notifyAll();
     }
   }
