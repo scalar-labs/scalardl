@@ -19,6 +19,11 @@ dependencies {
         exclude group: 'io.grpc', module: 'grpc-protobuf'
         exclude group: 'io.grpc', module: 'grpc-stub'
         exclude group: 'org.slf4j'
+        // Ships pre-2017 copies of the com.google.rpc / com.google.api classes compiled against
+        // protobuf 3.0. They duplicate (and, depending on classpath order, shadow) the ones from
+        // proto-google-common-protos brought in by grpc-protobuf, which breaks classes like
+        // com.google.rpc.ErrorInfo that only exist in the newer copy with a NoSuchFieldError.
+        exclude group: 'com.google.api.grpc', module: 'googleapis-common-protos'
     }
 }
 
