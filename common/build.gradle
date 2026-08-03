@@ -5,10 +5,15 @@ plugins {
 
 dependencies {
     api project(':rpc')
+    // grpc-netty-shaded is deliberately NOT excluded here even though the transport we use comes
+    // from :rpc. The shaded JAR bundles Netty but still links against an external grpc-core, so the
+    // two must stay on the same version. The Google Cloud libraries under ScalarDB request grpc-core
+    // and grpc-netty-shaded together at their own version, so letting both through keeps them
+    // aligned: excluding only the transport would let grpc-core move up on its own and leave the
+    // shaded transport behind, which fails at runtime with AbstractMethodError.
     api(group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}") {
         exclude group: 'io.grpc', module: 'grpc-stub'
         exclude group: 'io.grpc', module: 'grpc-netty'
-        exclude group: 'io.grpc', module: 'grpc-netty-shaded'
         exclude group: 'io.grpc', module: 'grpc-protobuf'
         exclude group: 'io.grpc', module: 'grpc-services'
     }
