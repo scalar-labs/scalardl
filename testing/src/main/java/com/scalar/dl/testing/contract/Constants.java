@@ -33,6 +33,8 @@ public final class Constants {
   public static final String NAMESPACE_AWARE_PAYMENT_ID = "NamespaceAwarePayment";
   public static final String NAMESPACE_AWARE_GET_BALANCE_ID = "NamespaceAwareGetBalance";
   public static final String NAMESPACE_AWARE_GET_HISTORY_ID = "NamespaceAwareGetHistory";
+  public static final String SCAN_CONTRACT_ID = "Scan";
+  public static final String SCAN_WITH_PUT_CONTRACT_ID = "ScanWithPut";
 
   // Function IDs
   public static final String CREATE_FUNCTION_ID1 = "CreateFunction";

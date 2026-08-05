@@ -12,6 +12,17 @@ public final class SchemaConstants {
   public static final String ASSET_METADATA_TABLE = "asset_metadata";
   public static final String ASSET_LOCK_TABLE = "asset_lock";
   public static final String REQUEST_PROOF_TABLE = "request_proof";
+  public static final String CERTIFICATE_TABLE = "certificate";
+  public static final String CONTRACT_TABLE = "contract";
+  public static final String CONTRACT_CLASS_TABLE = "contract_class";
+  public static final String SECRET_TABLE = "secret";
+
+  /**
+   * ScalarDL function-registry table created per namespace (distinct from {@link #FUNCTION_TABLE}).
+   */
+  public static final String FUNCTION_REGISTRY_TABLE = "function";
+
+  public static final String NAMESPACE_TABLE = "namespace";
 
   // Asset table columns
   public static final String ASSET_ID_COLUMN_NAME = "id";
