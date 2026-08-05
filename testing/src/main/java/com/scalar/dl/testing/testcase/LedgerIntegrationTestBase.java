@@ -27,7 +27,10 @@ import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID3;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID4;
 import static com.scalar.dl.testing.contract.Constants.SCAN_CONTRACT_ID;
 import static com.scalar.dl.testing.contract.Constants.SCAN_WITH_PUT_CONTRACT_ID;
+import static com.scalar.dl.testing.contract.Scan.AGE_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Scan.DATA_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Scan.SCAN_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.ScanWithPut.STATE_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_AGE_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_ID_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
@@ -1068,6 +1071,38 @@ public abstract class LedgerIntegrationTestBase {
     assertThat(result.getContractResult()).isPresent();
     JsonNode scanned = jacksonSerDe.deserialize(result.getContractResult().get());
     assertThat(scanned.get(SCAN_ATTRIBUTE_NAME)).hasSize(5);
+  }
+
+  @Test
+  void executeContract_ScanWithPutAfterMultiplePuts_ShouldSucceed() {
+    // Arrange: create five ages for the same asset
+    for (int amount = 0; amount < 5; amount++) {
+      ObjectNode argument =
+          mapper
+              .createObjectNode()
+              .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+              .put(AMOUNT_ATTRIBUTE_NAME, amount);
+      clientServiceA.executeContract(CREATE_CONTRACT_ID3, argument);
+    }
+
+    ObjectNode argument = mapper.createObjectNode().put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1);
+
+    // Act: scan+put in one contract, then scan again
+    clientServiceA.executeContract(SCAN_WITH_PUT_CONTRACT_ID, argument);
+    ContractExecutionResult result = clientServiceA.executeContract(SCAN_CONTRACT_ID, argument);
+
+    // Assert: put from ScanWithPut was committed (6 ages; latest state is scanned count)
+    assertThat(result.getContractResult()).isPresent();
+    JsonNode scanned = jacksonSerDe.deserialize(result.getContractResult().get());
+    JsonNode scanArray = scanned.get(SCAN_ATTRIBUTE_NAME);
+    assertThat(scanArray).hasSize(6);
+    assertThat(scanArray)
+        .anySatisfy(
+            entry -> {
+              assertThat(entry.get(AGE_ATTRIBUTE_NAME).asInt()).isEqualTo(5);
+              assertThat(entry.get(DATA_ATTRIBUTE_NAME).get(STATE_ATTRIBUTE_NAME).asInt())
+                  .isEqualTo(5);
+            });
   }
 
   // ============ Validate Ledger Test Cases ============
