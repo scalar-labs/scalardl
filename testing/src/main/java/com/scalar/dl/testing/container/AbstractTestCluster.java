@@ -1,8 +1,20 @@
 package com.scalar.dl.testing.container;
 
+import com.google.common.collect.ImmutableMap;
+import com.scalar.db.storage.cassandra.CassandraConfig;
+import com.scalar.db.storage.cosmos.CosmosConfig;
+import com.scalar.db.storage.dynamo.DynamoAdmin;
+import com.scalar.db.storage.dynamo.DynamoConfig;
+import com.scalar.db.storage.jdbc.JdbcConfig;
+import com.scalar.db.storage.objectstorage.blobstorage.BlobStorageConfig;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.StorageConfig;
 import com.scalar.dl.testing.config.TransactionMode;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.Testcontainers;
@@ -21,10 +33,10 @@ import org.testcontainers.mysql.MySQLContainer;
  *
  * <ul>
  *   <li>scalardb.storage - Storage type (jdbc). Default: jdbc
- *   <li>scalardb.contact_points - JDBC URL or contact points for external database
- *   <li>scalardb.username - Database username
- *   <li>scalardb.password - Database password
- *   <li>scalardb.port - Port to expose for external database access from containers
+ *   <li>scalardl.testing.exposed_port - Host port to expose so containers can reach external
+ *       storage
+ *   <li>scalardb.* - Any ScalarDB property forwarded to Ledger/Auditor containers (e.g. contact
+ *       points, credentials). Presence of {@code scalardb.contact_points} selects external storage.
  * </ul>
  */
 public abstract class AbstractTestCluster implements AutoCloseable {
@@ -33,20 +45,28 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   // System property names
   private static final String PROP_STORAGE = "scalardb.storage";
   private static final String PROP_CONTACT_POINTS = "scalardb.contact_points";
-  private static final String PROP_USERNAME = "scalardb.username";
-  private static final String PROP_PASSWORD = "scalardb.password";
-  private static final String PROP_PORT = "scalardb.port";
+
+  /**
+   * Test-harness only; not a ScalarDB config key. Must not be forwarded under {@code scalardb.*}.
+   */
+  private static final String PROP_EXPOSED_PORT = "scalardl.testing.exposed_port";
+
+  private static final String SCALARDB_PREFIX = "scalardb.";
 
   // Default values
-  private static final String DEFAULT_STORAGE = "jdbc";
+  private static final String DEFAULT_STORAGE = JdbcConfig.STORAGE_NAME;
 
   // MySQL container settings
   protected static final String MYSQL_NETWORK_ALIAS = "mysql";
   private static final String MYSQL_IMAGE = "mysql:8.0";
   private static final int MYSQL_PORT = 3306;
 
-  // Cassandra settings (for external storage)
+  // External storage default ports
   private static final int CASSANDRA_PORT = 9042;
+  private static final int DYNAMO_PORT = 8000;
+  private static final int COSMOS_PORT = 8081;
+  private static final int COSMOS_HEALTH_PORT = 8080;
+  private static final int BLOB_STORAGE_PORT = 10000;
 
   protected final AuthenticationMethod authenticationMethod;
   protected final String storage;
@@ -111,7 +131,7 @@ public abstract class AbstractTestCluster implements AutoCloseable {
   @SuppressWarnings("resource")
   private void startStorageContainer() {
     switch (storage) {
-      case "jdbc":
+      case JdbcConfig.STORAGE_NAME:
         logger.info("Starting MySQL container");
         mysqlContainer =
             new MySQLContainer(MYSQL_IMAGE) {
@@ -140,22 +160,29 @@ public abstract class AbstractTestCluster implements AutoCloseable {
 
   /** Exposes host ports for external storage access from containers. */
   private void exposeHostPortsForStorage() {
-    String portProperty = System.getProperty(PROP_PORT);
+    Set<Integer> ports = new LinkedHashSet<>();
+
+    String portProperty = System.getProperty(PROP_EXPOSED_PORT);
     if (portProperty != null) {
-      int port = Integer.parseInt(portProperty);
-      Testcontainers.exposeHostPorts(port);
-      logger.info("Exposed host port {} (from property)", port);
+      ports.add(Integer.parseInt(portProperty));
+    } else {
+      int defaultPort = getDefaultPortForStorage();
+      if (defaultPort > 0) {
+        ports.add(defaultPort);
+      }
+    }
+
+    if (CosmosConfig.STORAGE_NAME.equals(storage)) {
+      ports.add(COSMOS_HEALTH_PORT);
+    }
+
+    if (ports.isEmpty()) {
+      logger.warn("No host port exposed for storage type: {}", storage);
       return;
     }
 
-    // Infer port from storage type
-    int port = getDefaultPortForStorage();
-    if (port > 0) {
-      Testcontainers.exposeHostPorts(port);
-      logger.info("Exposed host port {} for storage type: {}", port, storage);
-    } else {
-      logger.warn("No host port exposed for storage type: {}", storage);
-    }
+    Testcontainers.exposeHostPorts(ports.stream().mapToInt(Integer::intValue).toArray());
+    logger.info("Exposed host ports {} for storage type: {}", ports, storage);
   }
 
   /**
@@ -165,10 +192,16 @@ public abstract class AbstractTestCluster implements AutoCloseable {
    */
   private int getDefaultPortForStorage() {
     switch (storage) {
-      case "jdbc":
+      case JdbcConfig.STORAGE_NAME:
         return MYSQL_PORT;
-      case "cassandra":
+      case CassandraConfig.STORAGE_NAME:
         return CASSANDRA_PORT;
+      case DynamoConfig.STORAGE_NAME:
+        return DYNAMO_PORT;
+      case CosmosConfig.STORAGE_NAME:
+        return COSMOS_PORT;
+      case BlobStorageConfig.STORAGE_NAME:
+        return BLOB_STORAGE_PORT;
       default:
         return -1;
     }
@@ -181,20 +214,37 @@ public abstract class AbstractTestCluster implements AutoCloseable {
    */
   private StorageConfig createStorageConfig() {
     if (useExternalStorage()) {
-      String contactPoints = System.getProperty(PROP_CONTACT_POINTS);
-      String username = System.getProperty(PROP_USERNAME, "");
-      String password = System.getProperty(PROP_PASSWORD, "");
-      return StorageConfig.forExternalDatabase(
-          storage, transactionMode, contactPoints, username, password);
-    } else {
-      switch (storage) {
-        case "jdbc":
-          return StorageConfig.forMySQLContainer(
-              mysqlContainer, MYSQL_NETWORK_ALIAS, transactionMode);
-        default:
-          throw new UnsupportedOperationException("Storage type not supported: " + storage);
-      }
+      return StorageConfig.forExternalStorage(transactionMode, collectScalardbSystemProperties());
     }
+    switch (storage) {
+      case JdbcConfig.STORAGE_NAME:
+        return StorageConfig.forMySQLContainer(
+            mysqlContainer, MYSQL_NETWORK_ALIAS, transactionMode);
+      default:
+        throw new UnsupportedOperationException("Storage type not supported: " + storage);
+    }
+  }
+
+  private Properties collectScalardbSystemProperties() {
+    Properties props = new Properties();
+    System.getProperties().stringPropertyNames().stream()
+        .filter(name -> name.startsWith(SCALARDB_PREFIX))
+        .forEach(name -> props.setProperty(name, System.getProperty(name)));
+    return props;
+  }
+
+  /**
+   * Returns SchemaLoader / admin options for the configured storage.
+   *
+   * <p>Subclasses may override to add storage-specific options (e.g. Cosmos RU).
+   *
+   * @return Options map for schema/table creation
+   */
+  public Map<String, String> getSchemaCreationOptions() {
+    if (DynamoConfig.STORAGE_NAME.equals(storage)) {
+      return ImmutableMap.of(DynamoAdmin.NO_SCALING, "true", DynamoAdmin.NO_BACKUP, "true");
+    }
+    return Collections.emptyMap();
   }
 
   /**
