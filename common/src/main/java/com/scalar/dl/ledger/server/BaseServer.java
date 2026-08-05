@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import com.scalar.dl.ledger.config.ServerConfig;
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
+import io.grpc.netty.shaded.io.netty.handler.ssl.OpenSsl;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.File;
 import java.io.IOException;
@@ -157,8 +158,19 @@ public class BaseServer {
             + name
             + "\" started with TLS = "
             + isTlsEnabled
+            + (isTlsEnabled ? " (" + sslProviderName() + ")" : "")
             + ", listening on "
             + port);
+  }
+
+  /**
+   * Reports which TLS implementation gRPC actually uses. It picks OpenSSL when the native library
+   * bundled in grpc-netty-shaded loads, and falls back to the JDK provider when it does not (for
+   * example on a read-only or noexec temporary directory), so the two are not distinguishable from
+   * the configuration alone.
+   */
+  private String sslProviderName() {
+    return OpenSsl.isAvailable() ? "OpenSSL" : "JDK";
   }
 
   private void configureTls(ServerBuilder<?> builder) {

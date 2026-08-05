@@ -4,7 +4,10 @@ plugins {
 
 dependencies {
     api group: 'io.grpc', name: 'grpc-stub', version: "${grpcVersion}"
-    api group: 'io.grpc', name: 'grpc-netty', version: "${grpcVersion}"
+    // Use the shaded variant to isolate the Netty that gRPC uses. Without shading, the Netty
+    // required by grpc-netty and the one brought in through ScalarDB (AWS/Azure SDKs) can end up on
+    // the same classpath in different generations, which breaks HTTP clients at runtime.
+    api group: 'io.grpc', name: 'grpc-netty-shaded', version: "${grpcVersion}"
     api group: 'io.grpc', name: 'grpc-protobuf', version: "${grpcVersion}"
     api group: 'io.grpc', name: 'grpc-services', version: "${grpcVersion}"
     compileOnly group: 'org.apache.tomcat', name: 'annotations-api', version: '6.0.53' // necessary for Java 9+
@@ -16,6 +19,11 @@ dependencies {
         exclude group: 'io.grpc', module: 'grpc-protobuf'
         exclude group: 'io.grpc', module: 'grpc-stub'
         exclude group: 'org.slf4j'
+        // Ships pre-2017 copies of the com.google.rpc / com.google.api classes compiled against
+        // protobuf 3.0. They duplicate (and, depending on classpath order, shadow) the ones from
+        // proto-google-common-protos brought in by grpc-protobuf, which breaks classes like
+        // com.google.rpc.ErrorInfo that only exist in the newer copy with a NoSuchFieldError.
+        exclude group: 'com.google.api.grpc', module: 'googleapis-common-protos'
     }
 }
 

@@ -31,7 +31,7 @@ import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import com.scalar.dl.rpc.TransactionStatePurgeResponse;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

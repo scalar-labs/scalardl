@@ -35,7 +35,7 @@ import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
