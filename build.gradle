@@ -146,8 +146,9 @@ subprojects {
     }
 
     task dockerfileLint(type: Exec) {
+        def dockerfileSuffix = project.hasProperty("ubi") ? ".ubi" : ""
         description 'Lint the Dockerfile'
-        executable "${rootDir}/scripts/docker/lint.sh"
+        commandLine "${rootDir}/scripts/docker/lint.sh", "Dockerfile${dockerfileSuffix}"
     }
 
     // Configure publishing repositories for all subprojects using maven-publish plugin
