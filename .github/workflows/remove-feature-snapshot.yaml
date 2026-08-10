@@ -37,6 +37,7 @@ jobs:
           )
           IMAGES=(
             "scalardl-ledger"
+            "scalardl-ledger-ubi"
             "scalardl-client"
             "scalardl-schema-loader"
           )
