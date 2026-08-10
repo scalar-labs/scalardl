@@ -12,6 +12,7 @@ import javax.json.JsonObject;
 public class CreateFunction extends Function {
 
   @Override
+  @SuppressWarnings("unchecked")
   public void invoke(
       Database database,
       Optional<JsonObject> functionArgument,

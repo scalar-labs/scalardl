@@ -153,6 +153,7 @@ public class Argument {
    *     testing purposes only.
    */
   @Deprecated
+  @SuppressWarnings("InlineMeSuggester")
   public static String format(Object argument, String nonce, List<String> functionIds) {
     return format(argument, nonce, null, functionIds);
   }

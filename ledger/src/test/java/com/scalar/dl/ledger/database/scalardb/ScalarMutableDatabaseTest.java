@@ -1,27 +1,28 @@
 package com.scalar.dl.ledger.database.scalardb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.io.Key;
-import com.scalar.dl.ledger.exception.InvalidFunctionException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 public class ScalarMutableDatabaseTest {
+  private static final String NAMESPACE = "my_namespace";
   private static final String TABLE = "table";
   private static final Key PARTITION_KEY = Key.ofText("col", "val");
 
@@ -34,134 +35,63 @@ public class ScalarMutableDatabaseTest {
     database = new ScalarMutableDatabase(transaction);
   }
 
-  static Stream<String> disallowedNamespaces() {
-    return Stream.of(
-        // Exact match namespaces
-        "system",
-        "system_schema",
-        "system_auth",
-        "system_distributed",
-        "system_traces",
-        "coordinator",
-        // Prefix match: scalar
-        "scalar",
-        "scalar_my_namespace",
-        // Prefix match: auditor
-        "auditor",
-        "auditor_my_namespace",
-        // Case insensitive
-        "SYSTEM",
-        "Coordinator",
-        "SCALAR",
-        "Scalar_Namespace",
-        "AUDITOR",
-        "Auditor_Namespace");
-  }
-
-  static Stream<String> allowedNamespaces() {
-    return Stream.of("my_namespace", "app_data", "user_table");
-  }
-
-  @ParameterizedTest
-  @MethodSource("disallowedNamespaces")
-  public void get_DisallowedNamespaceGiven_ShouldThrowInvalidFunctionException(String namespace) {
+  @Test
+  public void get_ShouldDelegateToTransaction() throws Exception {
     // Arrange
     Get get =
-        Get.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+        Get.newBuilder().namespace(NAMESPACE).table(TABLE).partitionKey(PARTITION_KEY).build();
+    Result result = mock(Result.class);
+    when(transaction.get(get)).thenReturn(Optional.of(result));
 
-    // Act Assert
-    assertThatThrownBy(() -> database.get(get)).isInstanceOf(InvalidFunctionException.class);
+    // Act
+    Optional<Result> actual = database.get(get);
+
+    // Assert
+    assertThat(actual).hasValue(result);
+    verify(transaction).get(get);
   }
 
-  @ParameterizedTest
-  @MethodSource("disallowedNamespaces")
-  public void scan_DisallowedNamespaceGiven_ShouldThrowInvalidFunctionException(String namespace) {
+  @Test
+  public void scan_ShouldDelegateToTransaction() throws Exception {
     // Arrange
     Scan scan =
-        Scan.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+        Scan.newBuilder().namespace(NAMESPACE).table(TABLE).partitionKey(PARTITION_KEY).build();
+    Result result = mock(Result.class);
+    when(transaction.scan(scan)).thenReturn(Collections.singletonList(result));
 
-    // Act Assert
-    assertThatThrownBy(() -> database.scan(scan)).isInstanceOf(InvalidFunctionException.class);
+    // Act
+    List<Result> actual = database.scan(scan);
+
+    // Assert
+    assertThat(actual).containsExactly(result);
+    verify(transaction).scan(scan);
   }
 
-  @ParameterizedTest
-  @MethodSource("disallowedNamespaces")
-  public void put_DisallowedNamespaceGiven_ShouldThrowInvalidFunctionException(String namespace) {
+  @Test
+  public void put_ShouldDelegateToTransactionWithImplicitPreReadEnabled() throws Exception {
     // Arrange
     Put put =
-        Put.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
+        Put.newBuilder().namespace(NAMESPACE).table(TABLE).partitionKey(PARTITION_KEY).build();
 
-    // Act Assert
-    assertThatThrownBy(() -> database.put(put)).isInstanceOf(InvalidFunctionException.class);
+    // Act
+    database.put(put);
+
+    // Assert
+    ArgumentCaptor<Put> captor = ArgumentCaptor.forClass(Put.class);
+    verify(transaction).put(captor.capture());
+    assertThat(captor.getValue().isImplicitPreReadEnabled()).isTrue();
   }
 
-  @ParameterizedTest
-  @MethodSource("disallowedNamespaces")
-  public void delete_DisallowedNamespaceGiven_ShouldThrowInvalidFunctionException(
-      String namespace) {
+  @Test
+  public void delete_ShouldDelegateToTransaction() throws Exception {
     // Arrange
     Delete delete =
-        Delete.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
-
-    // Act Assert
-    assertThatThrownBy(() -> database.delete(delete)).isInstanceOf(InvalidFunctionException.class);
-  }
-
-  @ParameterizedTest
-  @MethodSource("allowedNamespaces")
-  public void get_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
-    // Arrange
-    Get get =
-        Get.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
-    when(transaction.get(get)).thenReturn(Optional.empty());
+        Delete.newBuilder().namespace(NAMESPACE).table(TABLE).partitionKey(PARTITION_KEY).build();
 
     // Act
-    Throwable thrown = catchThrowable(() -> database.get(get));
+    database.delete(delete);
 
     // Assert
-    assertThat(thrown).isNull();
-  }
-
-  @ParameterizedTest
-  @MethodSource("allowedNamespaces")
-  public void scan_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
-    // Arrange
-    Scan scan =
-        Scan.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
-    when(transaction.scan(scan)).thenReturn(Collections.emptyList());
-
-    // Act
-    Throwable thrown = catchThrowable(() -> database.scan(scan));
-
-    // Assert
-    assertThat(thrown).isNull();
-  }
-
-  @ParameterizedTest
-  @MethodSource("allowedNamespaces")
-  public void put_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
-    // Arrange
-    Put put =
-        Put.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
-
-    // Act
-    Throwable thrown = catchThrowable(() -> database.put(put));
-
-    // Assert
-    assertThat(thrown).isNull();
-  }
-
-  @ParameterizedTest
-  @MethodSource("allowedNamespaces")
-  public void delete_AllowedNamespaceGiven_ShouldNotThrow(String namespace) throws Exception {
-    // Arrange
-    Delete delete =
-        Delete.newBuilder().namespace(namespace).table(TABLE).partitionKey(PARTITION_KEY).build();
-
-    // Act
-    Throwable thrown = catchThrowable(() -> database.delete(delete));
-
-    // Assert
-    assertThat(thrown).isNull();
+    verify(transaction).delete(delete);
   }
 }

@@ -41,6 +41,7 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
   private String serversAuthenticationHmacSecretKey;
   private String proofPrivateKey;
   private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
+  private boolean transactionStatePurgeEnabled = false;
 
   public LedgerContainer() {
     this(DEFAULT_IMAGE);
@@ -116,6 +117,17 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
     return this;
   }
 
+  /**
+   * Enables transaction state purge so that the Ledger accepts finish (purge) requests from the
+   * Auditor. Required for the transaction state purge integration tests.
+   *
+   * @return This container instance
+   */
+  public LedgerContainer withTransactionStatePurgeEnabled() {
+    this.transactionStatePurgeEnabled = true;
+    return this;
+  }
+
   /** Called before the container starts. Builds and copies the properties file to the container. */
   @Override
   protected void configure() {
@@ -166,6 +178,10 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
     // Transaction mode settings
     if (storageConfig != null && storageConfig.getTransactionMode() == TransactionMode.JDBC) {
       props.setProperty("scalar.dl.ledger.tx_state_management.enabled", "true");
+    }
+
+    if (transactionStatePurgeEnabled) {
+      props.setProperty("scalar.dl.ledger.transaction_state_purge.enabled", "true");
     }
 
     if (serversAuthenticationHmacSecretKey != null) {

@@ -24,7 +24,9 @@ import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
 import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.AssetKey;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
@@ -255,23 +257,30 @@ public class ScalarTransactionManagerTest {
   }
 
   @Test
-  public void finish_StateManagementEnabled_ShouldCallDeleteState() {
+  public void
+      finish_PurgeEnabledAndStateManagementEnabled_ShouldThrowUnsupportedOperationException()
+          throws TransactionException {
     // Arrange
+    when(config.isTransactionStatePurgeEnabled()).thenReturn(true);
     when(config.isTxStateManagementEnabled()).thenReturn(true);
     transactionManager =
         new ScalarTransactionManager(
             manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
 
     // Act
-    transactionManager.finish(NONCE);
+    Throwable thrown = catchThrowable(() -> transactionManager.finish(NONCE));
 
     // Assert
-    verify(stateManager).deleteState(NONCE);
+    assertThat(thrown).isInstanceOf(UnsupportedOperationException.class);
+    verify(stateManager, never()).deleteState(NONCE);
+    verify(manager, never()).finishTransaction(NONCE);
   }
 
   @Test
-  public void finish_StateManagementDisabled_ShouldNotCallDeleteState() {
+  public void finish_PurgeEnabledAndStateManagementDisabled_ShouldCallFinishTransaction()
+      throws TransactionException {
     // Arrange
+    when(config.isTransactionStatePurgeEnabled()).thenReturn(true);
     when(config.isTxStateManagementEnabled()).thenReturn(false);
     transactionManager =
         new ScalarTransactionManager(
@@ -281,7 +290,47 @@ public class ScalarTransactionManagerTest {
     transactionManager.finish(NONCE);
 
     // Assert
+    verify(manager).finishTransaction(NONCE);
     verify(stateManager, never()).deleteState(NONCE);
+  }
+
+  @Test
+  public void finish_PurgeDisabled_ShouldThrowLedgerExceptionAndNotTouchState()
+      throws TransactionException {
+    // Arrange
+    when(config.isTransactionStatePurgeEnabled()).thenReturn(false);
+    transactionManager =
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> transactionManager.finish(NONCE));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(LedgerException.class);
+    assertThat(((LedgerException) thrown).getCode()).isEqualTo(StatusCode.INVALID_REQUEST);
+    verify(stateManager, never()).deleteState(NONCE);
+    verify(manager, never()).finishTransaction(NONCE);
+  }
+
+  @Test
+  public void finish_FinishTransactionThrowsTransactionException_ShouldThrowDatabaseException()
+      throws TransactionException {
+    // Arrange
+    when(config.isTransactionStatePurgeEnabled()).thenReturn(true);
+    when(config.isTxStateManagementEnabled()).thenReturn(false);
+    TransactionException cause = mock(TransactionException.class);
+    doThrow(cause).when(manager).finishTransaction(NONCE);
+    transactionManager =
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> transactionManager.finish(NONCE));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(DatabaseException.class);
+    assertThat(thrown.getCause()).isEqualTo(cause);
   }
 
   @Test

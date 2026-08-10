@@ -12,11 +12,14 @@ import com.scalar.dl.auditor.ordering.LockRecoveryResult;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.config.GrpcClientConfig;
 import com.scalar.dl.ledger.config.TargetConfig;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.rpc.AssetLockRecoveryRequest;
 import com.scalar.dl.rpc.AssetLockRecoveryResponse;
 import com.scalar.dl.rpc.AuditorPrivilegedGrpc;
 import com.scalar.dl.rpc.Status;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeResponse;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
@@ -127,6 +130,80 @@ public class AuditorClientTest {
     // Assert
     verify(auditorPrivilegedStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
     verify(anotherPrivilegedStub).recoverAssetLock(request);
+    assertThat(thrown).isInstanceOf(ClientException.class).hasCause(toThrow);
+    assertThat(((ClientException) thrown).getStatusCode())
+        .isEqualTo(StatusCode.UNKNOWN_TRANSACTION_STATUS);
+    assertThat(thrown.getMessage()).isEqualTo(io.grpc.Status.INTERNAL.getCode().toString());
+  }
+
+  @Test
+  public void purgeTransactionStates_CorrectRequestGiven_ShouldReturnResult() {
+    // Arrange
+    TransactionStatePurgeRequest request = TransactionStatePurgeRequest.newBuilder().build();
+    TransactionStatePurgeResponse response =
+        TransactionStatePurgeResponse.newBuilder()
+            .setTotalTargets(3)
+            .setPurged(2)
+            .setSkipped(1)
+            .build();
+    when(auditorPrivilegedStub.withDeadlineAfter(anyLong(), any(TimeUnit.class)))
+        .thenReturn(anotherPrivilegedStub);
+    when(anotherPrivilegedStub.purgeTransactionStates(request)).thenReturn(response);
+
+    // Act
+    TransactionStatePurgeResult result = client.purgeTransactionStates(request);
+
+    // Assert
+    verify(auditorPrivilegedStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
+    verify(anotherPrivilegedStub).purgeTransactionStates(request);
+    assertThat(result.getTotalTargets()).isEqualTo(3);
+    assertThat(result.getPurged()).isEqualTo(2);
+    assertThat(result.getSkipped()).isEqualTo(1);
+  }
+
+  @Test
+  public void
+      purgeTransactionStates_ExceptionWithStatusMetadataThrown_ShouldThrowClientExceptionWithSpecified() {
+    // Arrange
+    TransactionStatePurgeRequest request = TransactionStatePurgeRequest.newBuilder().build();
+    StatusCode expected = StatusCode.RUNTIME_ERROR;
+    Metadata trailers = new Metadata();
+    trailers.put(
+        STATUS_TRAILER_KEY,
+        Status.newBuilder().setCode(expected.get()).setMessage(ANY_ERROR_MESSAGE).build());
+    StatusRuntimeException toThrow = new StatusRuntimeException(io.grpc.Status.INTERNAL, trailers);
+    when(auditorPrivilegedStub.withDeadlineAfter(anyLong(), any(TimeUnit.class)))
+        .thenReturn(anotherPrivilegedStub);
+    when(anotherPrivilegedStub.purgeTransactionStates(request)).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> client.purgeTransactionStates(request));
+
+    // Assert
+    verify(auditorPrivilegedStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
+    verify(anotherPrivilegedStub).purgeTransactionStates(request);
+    assertThat(thrown).isInstanceOf(ClientException.class).hasCause(toThrow);
+    assertThat(((ClientException) thrown).getStatusCode()).isEqualTo(expected);
+    assertThat(thrown.getMessage()).isEqualTo(ANY_ERROR_MESSAGE);
+  }
+
+  @Test
+  public void
+      purgeTransactionStates_ExceptionWithoutStatusMetadataThrown_ShouldThrowClientExceptionWithUnknown() {
+    // Arrange
+    TransactionStatePurgeRequest request = TransactionStatePurgeRequest.newBuilder().build();
+    Metadata trailers = new Metadata();
+    StatusRuntimeException toThrow = new StatusRuntimeException(io.grpc.Status.INTERNAL, trailers);
+    when(auditorPrivilegedStub.withDeadlineAfter(anyLong(), any(TimeUnit.class)))
+        .thenReturn(anotherPrivilegedStub);
+    when(anotherPrivilegedStub.purgeTransactionStates(request)).thenThrow(toThrow);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> client.purgeTransactionStates(request));
+
+    // Assert
+    verify(auditorPrivilegedStub).withDeadlineAfter(ANY_DEADLINE_MILLIS, TimeUnit.MILLISECONDS);
+    verify(anotherPrivilegedStub).purgeTransactionStates(request);
     assertThat(thrown).isInstanceOf(ClientException.class).hasCause(toThrow);
     assertThat(((ClientException) thrown).getStatusCode())
         .isEqualTo(StatusCode.UNKNOWN_TRANSACTION_STATUS);

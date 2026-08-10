@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
+import com.scalar.dl.ledger.model.TransactionStatePurgeResult;
 import com.scalar.dl.rpc.CertificateRegistrationRequest;
 import com.scalar.dl.rpc.ContractExecutionRequest;
 import com.scalar.dl.rpc.ContractRegistrationRequest;
@@ -15,6 +16,7 @@ import com.scalar.dl.rpc.NamespaceDroppingRequest;
 import com.scalar.dl.rpc.NamespacesListingRequest;
 import com.scalar.dl.rpc.SecretRegistrationRequest;
 import com.scalar.dl.rpc.SignedFunctionRegistrationRequest;
+import com.scalar.dl.rpc.TransactionStatePurgeRequest;
 import javax.json.JsonObject;
 
 public class GatewayClientServiceHandler implements ClientServiceHandler {
@@ -136,6 +138,11 @@ public class GatewayClientServiceHandler implements ClientServiceHandler {
   @Override
   public String listNamespaces(NamespacesListingRequest request) {
     return client.list(request);
+  }
+
+  @Override
+  public TransactionStatePurgeResult purgeTransactionStates(TransactionStatePurgeRequest request) {
+    return client.purgeTransactionStates(request);
   }
 
   @VisibleForTesting
