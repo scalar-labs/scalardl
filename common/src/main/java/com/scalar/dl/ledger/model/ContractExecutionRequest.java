@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.CommonLedgerError;
+import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.util.Argument;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
@@ -25,6 +27,12 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 // non-final for mocking
 public class ContractExecutionRequest extends AbstractRequest {
+  private static final Pattern CANONICAL_UUID_PATTERN =
+      Pattern.compile(
+          "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+  private static final Pattern ISO_CONTROL_CHARACTER_PATTERN =
+      Pattern.compile("[\\u0000-\\u001F\\u007F-\\u009F]");
+  private static final int MAX_NONCE_LENGTH_IN_MESSAGE = 64;
   private final String nonce;
   private final String contractId;
   private final String contractArgument;
@@ -37,7 +45,8 @@ public class ContractExecutionRequest extends AbstractRequest {
    * Constructs a {@code ContractExecutionRequest} with the specified nonce, contract id, argument,
    * entity ID, key version, a list of {@code AssetProof} and signature of the request.
    *
-   * @param nonce the unique id of a request
+   * @param nonce the unique id of a request in the canonical UUID format (e.g.,
+   *     "550e8400-e29b-41d4-a716-446655440000")
    * @param contractId a contract id of a registered contract to execute
    * @param contractArgument an argument to a contract
    * @param functionIds a list of function ids
@@ -65,6 +74,7 @@ public class ContractExecutionRequest extends AbstractRequest {
     checkArgument(contractArgument != null && !contractArgument.isEmpty());
     checkArgument(signature != null && signature.length > 0);
     this.nonce = (nonce == null || nonce.isEmpty()) ? Argument.getNonce(contractArgument) : nonce;
+    validateNonceFormat(this.nonce);
     this.contractId = contractId;
     this.contractArgument = contractArgument;
     this.functionIds =
@@ -74,6 +84,33 @@ public class ContractExecutionRequest extends AbstractRequest {
     this.functionArgument = functionArgument;
     this.signature = signature;
     this.auditorSignature = auditorSignature;
+  }
+
+  /**
+   * SpotBugs detects Bug Type "CT_CONSTRUCTOR_THROW" saying that "The object under construction
+   * remains partially initialized and may be vulnerable to Finalizer attacks."
+   */
+  @Override
+  protected final void finalize() {}
+
+  private static void validateNonceFormat(@Nullable String nonce) {
+    if (nonce == null || !CANONICAL_UUID_PATTERN.matcher(nonce).matches()) {
+      throw new LedgerException(CommonError.INVALID_NONCE_FORMAT, sanitizeNonce(nonce));
+    }
+  }
+
+  private static String sanitizeNonce(@Nullable String nonce) {
+    if (nonce == null) {
+      return "null";
+    }
+    String sanitized = ISO_CONTROL_CHARACTER_PATTERN.matcher(nonce).replaceAll("?");
+    if (sanitized.length() > MAX_NONCE_LENGTH_IN_MESSAGE) {
+      return sanitized.substring(0, MAX_NONCE_LENGTH_IN_MESSAGE)
+          + "... ("
+          + nonce.length()
+          + " chars)";
+    }
+    return sanitized;
   }
 
   /**

@@ -42,6 +42,18 @@ public class ArgumentTest {
   }
 
   @Test
+  public void getNonce_V1FormatWithoutNonceKeyGiven_ShouldReturnEmptyString() {
+    // Arrange
+    String argument = Json.createObjectBuilder().add("key", "value").build().toString();
+
+    // Act
+    String nonce = Argument.getNonce(argument);
+
+    // Assert
+    assertThat(nonce).isEmpty();
+  }
+
+  @Test
   public void getContractArgument_V1FormatGiven_ShouldReturnOriginalArgument() {
     // Arrange Act
     String contractArg = Argument.getContractArgument(V1_ARGUMENT);
