@@ -6,7 +6,6 @@ import com.google.common.base.CharMatcher;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.CommonLedgerError;
-import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
 import com.scalar.dl.ledger.util.Argument;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -92,16 +91,19 @@ public class ContractExecutionRequest extends AbstractRequest {
   @Override
   protected final void finalize() {}
 
-  private static void validateNonceFormat(@Nullable String nonce) {
-    if (nonce == null || !CANONICAL_UUID_PATTERN.matcher(nonce).matches()) {
-      throw new LedgerException(CommonError.INVALID_NONCE_FORMAT, sanitizeNonce(nonce));
+  // This throws IllegalArgumentException to stay consistent with the other argument checks in this
+  // constructor and in Argument. Note that CommonService maps it to StatusCode.RUNTIME_ERROR even
+  // though CommonError.INVALID_NONCE_FORMAT is an INVALID_ARGUMENT error. That mapping is a
+  // pre-existing inconsistency shared by every IllegalArgumentException thrown on a request path,
+  // and it should be revisited for all of them at once rather than only here.
+  private static void validateNonceFormat(String nonce) {
+    if (!CANONICAL_UUID_PATTERN.matcher(nonce).matches()) {
+      throw new IllegalArgumentException(
+          CommonError.INVALID_NONCE_FORMAT.buildMessage(sanitizeNonce(nonce)));
     }
   }
 
-  private static String sanitizeNonce(@Nullable String nonce) {
-    if (nonce == null) {
-      return "null";
-    }
+  private static String sanitizeNonce(String nonce) {
     String sanitized = CharMatcher.javaIsoControl().replaceFrom(nonce, '?');
     if (sanitized.length() > MAX_NONCE_LENGTH_IN_MESSAGE) {
       return sanitized.substring(0, MAX_NONCE_LENGTH_IN_MESSAGE)

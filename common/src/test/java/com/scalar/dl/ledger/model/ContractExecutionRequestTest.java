@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.scalar.dl.ledger.exception.LedgerException;
-import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -394,136 +392,121 @@ public class ContractExecutionRequestTest {
   }
 
   @Test
-  public void constructor_CommaContainingNonceGiven_ShouldThrowLedgerException() {
+  public void constructor_CommaContainingNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest("abc,def", CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
   public void
-      constructor_EmptyNonceAndEmptyNonceInContractArgumentGiven_ShouldThrowLedgerException() {
+      constructor_EmptyNonceAndEmptyNonceInContractArgumentGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"\"}";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest("", contractArgument))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_NonCanonicalUuidNonceGiven_ShouldThrowLedgerException() {
+  public void constructor_NonCanonicalUuidNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest("1-1-1-1-1", CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_SeparatorContainingNonceOf36CharsGiven_ShouldThrowLedgerException() {
+  public void
+      constructor_SeparatorContainingNonceOf36CharsGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     // 36 characters, but contains the nonce separator character (U+0001)
     String nonce = "550e8400-e29b-41d4-a716-44665544000\u0001";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_TooShortNearUuidNonceGiven_ShouldThrowLedgerException() {
+  public void constructor_TooShortNearUuidNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     // 35 characters
     String nonce = "550e8400-e29b-41d4-a716-44665544000";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_TooLongNearUuidNonceGiven_ShouldThrowLedgerException() {
+  public void constructor_TooLongNearUuidNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     // 37 characters
     String nonce = "550e8400-e29b-41d4-a716-4466554400000";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_NonHexLetterContainingNonceGiven_ShouldThrowLedgerException() {
+  public void constructor_NonHexLetterContainingNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     // 36 characters, but contains a non-hex letter 'g'
     String nonce = "g50e8400-e29b-41d4-a716-446655440000";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_NullNonceAndV2ArgumentWithEmptyNonceGiven_ShouldThrowLedgerException() {
+  public void
+      constructor_NullNonceAndV2ArgumentWithEmptyNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     String contractArgument = "V2" + FUNCTION_ID + "" + CONTRACT_ARGUMENT;
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(null, contractArgument))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_NullNonceAndV1ArgumentWithEmptyNonceGiven_ShouldThrowLedgerException() {
+  public void
+      constructor_NullNonceAndV1ArgumentWithEmptyNonceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"\"}";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(null, contractArgument))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022");
   }
 
   @Test
-  public void constructor_NullNonceAndV1ArgumentWithoutNonceKeyGiven_ShouldThrowLedgerException() {
+  public void
+      constructor_NullNonceAndV1ArgumentWithoutNonceKeyGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     String contractArgument = "{\"key\":\"value\"}";
 
     // Act Assert
+    // The nonce is absent rather than malformed, so Argument rejects the argument format itself.
     assertThatThrownBy(() -> buildRequest(null, contractArgument))
-        .isInstanceOf(LedgerException.class)
-        .satisfies(
-            e -> assertThat(((LedgerException) e).getCode()).isEqualTo(StatusCode.INVALID_ARGUMENT))
-        .hasMessageContaining("DL-COMMON-414022");
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414017");
   }
 
   @Test
@@ -571,7 +554,7 @@ public class ContractExecutionRequestTest {
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022")
         .hasMessageContaining("abc?def")
         .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\n"));
@@ -588,7 +571,7 @@ public class ContractExecutionRequestTest {
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
-        .isInstanceOf(LedgerException.class)
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("DL-COMMON-414022")
         .hasMessageContaining("(1000 chars)")
         .satisfies(e -> assertThat(e.getMessage()).doesNotContain(nonce));

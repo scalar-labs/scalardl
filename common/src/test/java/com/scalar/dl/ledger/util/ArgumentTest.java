@@ -42,15 +42,14 @@ public class ArgumentTest {
   }
 
   @Test
-  public void getNonce_V1FormatWithoutNonceKeyGiven_ShouldReturnEmptyString() {
+  public void getNonce_V1FormatWithoutNonceKeyGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     String argument = Json.createObjectBuilder().add("key", "value").build().toString();
 
-    // Act
-    String nonce = Argument.getNonce(argument);
-
-    // Assert
-    assertThat(nonce).isEmpty();
+    // Act Assert
+    assertThatThrownBy(() -> Argument.getNonce(argument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414017");
   }
 
   @Test
