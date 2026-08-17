@@ -12,7 +12,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 public class ContractExecutionRequestTest {
-  private static final String NONCE = "nonce";
+  private static final String NONCE = "550e8400-e29b-41d4-a716-446655440000";
   private static final String CONTEXT_NAMESPACE = "test_namespace";
   private static final String ENTITY_ID = "entity_id";
   private static final int KEY_VERSION = 1;
