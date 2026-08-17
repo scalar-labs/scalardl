@@ -23,7 +23,7 @@ jobs:
         java-version: '21'
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v6
+      uses: gradle/actions/setup-gradle@v6.3.0
 
     - name: Prepare
       run: sudo mkdir -m 777 /var/log/scalar
@@ -78,7 +78,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Run integration tests
         run: >-
@@ -110,7 +110,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Run integration tests
         run: >-
@@ -145,7 +145,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Get the project version
         id: set-version
@@ -190,7 +190,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Get the project version
         id: set-version
@@ -257,7 +257,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Get the project version
         id: set-version
@@ -324,7 +324,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Get the project version
         id: set-version
@@ -383,7 +383,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.3.0
 
       - name: Prepare
         run: sudo mkdir -m 777 /var/log/scalar
