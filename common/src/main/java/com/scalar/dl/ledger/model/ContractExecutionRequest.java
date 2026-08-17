@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.base.CharMatcher;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.error.CommonLedgerError;
@@ -30,8 +31,6 @@ public class ContractExecutionRequest extends AbstractRequest {
   private static final Pattern CANONICAL_UUID_PATTERN =
       Pattern.compile(
           "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
-  private static final Pattern ISO_CONTROL_CHARACTER_PATTERN =
-      Pattern.compile("[\\u0000-\\u001F\\u007F-\\u009F]");
   private static final int MAX_NONCE_LENGTH_IN_MESSAGE = 64;
   private final String nonce;
   private final String contractId;
@@ -103,7 +102,7 @@ public class ContractExecutionRequest extends AbstractRequest {
     if (nonce == null) {
       return "null";
     }
-    String sanitized = ISO_CONTROL_CHARACTER_PATTERN.matcher(nonce).replaceAll("?");
+    String sanitized = CharMatcher.javaIsoControl().replaceFrom(nonce, '?');
     if (sanitized.length() > MAX_NONCE_LENGTH_IN_MESSAGE) {
       return sanitized.substring(0, MAX_NONCE_LENGTH_IN_MESSAGE)
           + "... ("

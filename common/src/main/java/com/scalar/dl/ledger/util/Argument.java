@@ -187,8 +187,7 @@ public class Argument {
     Version version = getVersion(argument);
     switch (version) {
       case V1:
-        JsonNode nonceNode = jacksonSerDe.deserialize(argument).get(NONCE_KEY_NAME);
-        return nonceNode == null ? "" : nonceNode.asText();
+        return jacksonSerDe.deserialize(argument).path(NONCE_KEY_NAME).asText();
       case V2:
       case V3:
         List<String> elements = getElements(argument, version);

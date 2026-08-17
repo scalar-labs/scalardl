@@ -434,8 +434,8 @@ public class ContractExecutionRequestTest {
   @Test
   public void constructor_SeparatorContainingNonceOf36CharsGiven_ShouldThrowLedgerException() {
     // Arrange
-    // 36 characters, but contains the argument separator character (U+0001)
-    String nonce = "550e8400-e29b-41d4-a716-44665544000";
+    // 36 characters, but contains the nonce separator character (U+0001)
+    String nonce = "550e8400-e29b-41d4-a716-44665544000\u0001";
 
     // Act Assert
     assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
