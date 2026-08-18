@@ -30,6 +30,8 @@ public class ContractExecutionRequest extends AbstractRequest {
   private static final Pattern CANONICAL_UUID_PATTERN =
       Pattern.compile(
           "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+  private static final CharMatcher NON_PRINTABLE_ASCII =
+      CharMatcher.inRange((char) 0x20, (char) 0x7e).negate();
   private static final int MAX_NONCE_LENGTH_IN_MESSAGE = 64;
   private final String nonce;
   private final String contractId;
@@ -103,8 +105,13 @@ public class ContractExecutionRequest extends AbstractRequest {
     }
   }
 
+  // A valid nonce is a canonical UUID, so every character outside printable ASCII is unexpected
+  // input. Replacing all of them, rather than only the ISO control characters, also covers the
+  // Unicode line and paragraph separators and the bidi formatting characters that some log viewers
+  // and regex-based log processors treat as line breaks or render misleadingly, plus any lone
+  // surrogate left behind by the truncation below.
   private static String sanitizeNonce(String nonce) {
-    String sanitized = CharMatcher.javaIsoControl().replaceFrom(nonce, '?');
+    String sanitized = NON_PRINTABLE_ASCII.replaceFrom(nonce, '?');
     if (sanitized.length() > MAX_NONCE_LENGTH_IN_MESSAGE) {
       return sanitized.substring(0, MAX_NONCE_LENGTH_IN_MESSAGE)
           + "... ("

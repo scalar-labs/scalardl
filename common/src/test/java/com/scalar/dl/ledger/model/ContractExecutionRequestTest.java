@@ -561,6 +561,37 @@ public class ContractExecutionRequestTest {
   }
 
   @Test
+  public void constructor_LineSeparatorContainingNonceGiven_ShouldSanitizeExceptionMessage() {
+    // Arrange
+    // U+2028 LINE SEPARATOR is not an ISO control character, but some log viewers and regex-based
+    // log processors treat it as a line break.
+    String nonce = "abc\u2028def";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("abc?def")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\u2028"));
+  }
+
+  @Test
+  public void constructor_BidiOverrideContainingNonceGiven_ShouldSanitizeExceptionMessage() {
+    // Arrange
+    // U+202E RIGHT-TO-LEFT OVERRIDE is not an ISO control character, but it reverses how the rest
+    // of
+    // the line is rendered.
+    String nonce = "abc\u202Edef";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("abc?def")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\u202E"));
+  }
+
+  @Test
   public void constructor_VeryLongNonceGiven_ShouldTruncateNonceInExceptionMessage() {
     // Arrange
     StringBuilder builder = new StringBuilder();
