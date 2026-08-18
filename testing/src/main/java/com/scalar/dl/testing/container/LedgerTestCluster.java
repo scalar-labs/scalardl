@@ -7,7 +7,6 @@ import com.scalar.dl.testing.config.TransactionMode;
 import com.scalar.dl.testing.schema.TestSchemas;
 import com.scalar.dl.testing.util.TestCertificates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.Collections;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +95,7 @@ public class LedgerTestCluster extends AbstractTestCluster {
   private void createLedgerSchema() {
     try {
       Properties props = getStorageConfig().getPropertiesForHost();
-      SchemaLoader.load(props, TestSchemas.getLedgerSchema(), Collections.emptyMap(), true);
+      SchemaLoader.load(props, TestSchemas.getLedgerSchema(), getSchemaCreationOptions(), true);
     } catch (SchemaLoaderException e) {
       throw new RuntimeException("Failed to create Ledger schema", e);
     }
