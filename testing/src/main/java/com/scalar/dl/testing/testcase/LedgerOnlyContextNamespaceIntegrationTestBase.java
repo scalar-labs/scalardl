@@ -26,6 +26,7 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.testing.container.LedgerTestCluster;
 import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -98,9 +99,10 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
   protected void createFunctionTableSchema() throws Exception {
     super.createFunctionTableSchema();
     // Also create a namespace prefixed by the context namespace to verify prefix-based access.
-    transactionAdmin.createNamespace(PREFIXED_FUNCTION_NAMESPACE, true);
+    Map<String, String> options = cluster.getSchemaCreationOptions();
+    transactionAdmin.createNamespace(PREFIXED_FUNCTION_NAMESPACE, true, options);
     transactionAdmin.createTable(
-        PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+        PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
   }
 
   @BeforeAll
