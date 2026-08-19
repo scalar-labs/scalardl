@@ -21,6 +21,12 @@ jobs:
           github-token: ${{ secrets.CR_PAT }}
           package-name: scalardl-ledger
 
+      - name: scalardl-ledger-ubi
+        uses: camargo/delete-untagged-action@v1
+        with:
+          github-token: ${{ secrets.CR_PAT }}
+          package-name: scalardl-ledger-ubi
+
       - name: scalardl-client
         uses: camargo/delete-untagged-action@v1
         with:
