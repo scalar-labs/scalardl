@@ -8,9 +8,9 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends \
 
 WORKDIR /scalar
 
-# The path should be relative from build/docker. Running `gradle build`
-# (provided by com.palantir.docker plugin) will copy this Dockerfile and
-# client.tar to build/docker.
+# The path should be relative from build/docker. The Gradle task
+# copyFilesToDockerBuildContextDir copies this Dockerfile and client.tar to
+# build/docker before building the image.
 ADD --chown=201:201 ./client.tar .
 
 COPY --chown=201:201 \

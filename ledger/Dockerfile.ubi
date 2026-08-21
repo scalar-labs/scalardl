@@ -24,9 +24,9 @@ COPY --from=tools grpc_health_probe /usr/local/bin/
 
 WORKDIR /scalar
 
-# The path should be relative from build/docker. Running `gradle build`
-# (provided by com.palantir.docker plugin) will copy this Dockerfile and
-# ledger.tar to build/docker.
+# The path should be relative from build/docker. The Gradle task
+# copyFilesToDockerBuildContextDir copies this Dockerfile and ledger.tar to
+# build/docker before building the image.
 ADD --chown=201:201 ./ledger.tar .
 
 COPY --chown=201:201 \
