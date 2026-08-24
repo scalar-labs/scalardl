@@ -481,8 +481,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   // ============ Namespace Management Tests ============
 
   @Test
-  void createNamespace_ValidNamespaceGiven_ShouldCreateAllExpectedTables()
-      throws Exception {
+  void createNamespace_ValidNamespaceGiven_ShouldCreateAllExpectedTables() throws Exception {
     // storageAdmin.getNamespaceTableNames lists both storage- and transaction-created tables
     // (asset / asset_metadata go through transactionAdmin; the rest through storageAdmin).
     assertThat(storageAdmin.getNamespaceTableNames(resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_1)))
