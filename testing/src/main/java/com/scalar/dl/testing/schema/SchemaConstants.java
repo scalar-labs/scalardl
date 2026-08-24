@@ -17,10 +17,7 @@ public final class SchemaConstants {
   public static final String CONTRACT_CLASS_TABLE = "contract_class";
   public static final String SECRET_TABLE = "secret";
 
-  /**
-   * ScalarDL function-registry table created per namespace (distinct from {@link #FUNCTION_TABLE}).
-   */
-  public static final String FUNCTION_REGISTRY_TABLE = "function";
+  public static final String FUNCTION_TABLE = "function";
 
   public static final String NAMESPACE_TABLE = "namespace";
 
@@ -32,12 +29,12 @@ public final class SchemaConstants {
   public static final String ASSET_ARGUMENT_COLUMN_NAME = "argument";
   public static final String ASSET_PREV_HASH_COLUMN_NAME = "prev_hash";
 
-  // Function namespace and tables
+  // Function test fixture namespace and table (used by function ITs, not ScalarDL registry)
   public static final String FUNCTION_NAMESPACE = "function_test";
-  public static final String FUNCTION_TABLE = "function_test";
+  public static final String FUNCTION_TEST_TABLE = "function_test";
 
-  // Function table schema
-  public static final TableMetadata FUNCTION_TABLE_METADATA =
+  // Function test table schema
+  public static final TableMetadata FUNCTION_TEST_TABLE_METADATA =
       TableMetadata.newBuilder()
           .addColumn("id", DataType.TEXT)
           .addColumn("balance", DataType.INT)

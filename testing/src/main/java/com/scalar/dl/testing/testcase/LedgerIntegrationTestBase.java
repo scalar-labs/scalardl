@@ -27,7 +27,6 @@ import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID3;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID4;
 import static com.scalar.dl.testing.contract.Constants.SCAN_CONTRACT_ID;
 import static com.scalar.dl.testing.contract.Constants.SCAN_WITH_PUT_CONTRACT_ID;
-import static com.scalar.dl.testing.contract.Scan.AGE_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Scan.DATA_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Scan.SCAN_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.ScanWithPut.STATE_ATTRIBUTE_NAME;
@@ -37,8 +36,8 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE_METADATA;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE_METADATA;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -285,7 +284,7 @@ public abstract class LedgerIntegrationTestBase {
   void truncateTables() throws Exception {
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_TABLE);
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_METADATA_TABLE);
-    transactionAdmin.truncateTable(getFunctionNamespace(), FUNCTION_TABLE);
+    transactionAdmin.truncateTable(getFunctionNamespace(), FUNCTION_TEST_TABLE);
   }
 
   @AfterAll
@@ -294,7 +293,7 @@ public abstract class LedgerIntegrationTestBase {
 
     if (transactionAdmin != null) {
       try {
-        transactionAdmin.dropTable(getFunctionNamespace(), FUNCTION_TABLE);
+        transactionAdmin.dropTable(getFunctionNamespace(), FUNCTION_TEST_TABLE);
         transactionAdmin.dropNamespace(getFunctionNamespace());
       } catch (Exception e) {
         logger.warn("Failed to drop function table", e);
@@ -365,7 +364,7 @@ public abstract class LedgerIntegrationTestBase {
     Map<String, String> options = cluster.getSchemaCreationOptions();
     transactionAdmin.createNamespace(getFunctionNamespace(), true, options);
     transactionAdmin.createTable(
-        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
+        getFunctionNamespace(), FUNCTION_TEST_TABLE, FUNCTION_TEST_TABLE_METADATA, true, options);
   }
 
   protected ClientConfig getDigitalSignatureClientConfig(
@@ -679,7 +678,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -711,7 +710,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -743,7 +742,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -766,7 +765,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -831,7 +830,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -1099,7 +1098,7 @@ public abstract class LedgerIntegrationTestBase {
     assertThat(scanArray)
         .anySatisfy(
             entry -> {
-              assertThat(entry.get(AGE_ATTRIBUTE_NAME).asInt()).isEqualTo(5);
+              assertThat(entry.get(ASSET_AGE_COLUMN_NAME).asInt()).isEqualTo(5);
               assertThat(entry.get(DATA_ATTRIBUTE_NAME).get(STATE_ATTRIBUTE_NAME).asInt())
                   .isEqualTo(5);
             });

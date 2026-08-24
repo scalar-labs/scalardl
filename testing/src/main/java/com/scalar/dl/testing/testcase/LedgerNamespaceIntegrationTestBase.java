@@ -17,7 +17,7 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.CERTIFICATE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_CLASS_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_REGISTRY_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SECRET_TABLE;
@@ -481,7 +481,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   // ============ Namespace Management Tests ============
 
   @Test
-  protected void createNamespace_ValidNamespaceGiven_ShouldCreateAllExpectedTables()
+  void createNamespace_ValidNamespaceGiven_ShouldCreateAllExpectedTables()
       throws Exception {
     // storageAdmin.getNamespaceTableNames lists both storage- and transaction-created tables
     // (asset / asset_metadata go through transactionAdmin; the rest through storageAdmin).
@@ -492,7 +492,7 @@ public abstract class LedgerNamespaceIntegrationTestBase {
             CERTIFICATE_TABLE,
             CONTRACT_TABLE,
             CONTRACT_CLASS_TABLE,
-            FUNCTION_REGISTRY_TABLE,
+            FUNCTION_TABLE,
             SECRET_TABLE);
     assertThat(storageAdmin.tableExists(SCALAR_NAMESPACE, NAMESPACE_TABLE)).isTrue();
   }

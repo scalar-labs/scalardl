@@ -1,5 +1,7 @@
 package com.scalar.dl.testing.contract;
 
+import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_AGE_COLUMN_NAME;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -14,7 +16,6 @@ import javax.annotation.Nullable;
 public class Scan extends JacksonBasedContract {
 
   public static final String SCAN_ATTRIBUTE_NAME = "scan";
-  public static final String AGE_ATTRIBUTE_NAME = "age";
   public static final String DATA_ATTRIBUTE_NAME = "data";
 
   @Nullable
@@ -28,7 +29,7 @@ public class Scan extends JacksonBasedContract {
     ArrayNode scanned = getObjectMapper().createArrayNode();
     for (Asset<JsonNode> asset : assets) {
       ObjectNode entry = getObjectMapper().createObjectNode();
-      entry.put(AGE_ATTRIBUTE_NAME, asset.age());
+      entry.put(ASSET_AGE_COLUMN_NAME, asset.age());
       entry.set(DATA_ATTRIBUTE_NAME, asset.data());
       scanned.add(entry);
     }
