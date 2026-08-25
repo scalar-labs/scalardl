@@ -287,6 +287,15 @@ public enum CommonError implements ScalarDlError {
       "The deserialization type is not supported. Type: %s",
       "",
       "Use a supported deserialization type. Check the documentation for valid types."),
+  // The IDs 019 to 021 are intentionally left unused. They are assigned to the namespace errors on
+  // the branches that have the namespace feature, and this ID is kept the same as those branches so
+  // that the same error reports the same code in every version. Do not renumber it.
+  INVALID_NONCE_FORMAT(
+      StatusCode.INVALID_ARGUMENT,
+      "022",
+      "The format of the nonce is invalid. Nonce: %s",
+      "",
+      "Specify the nonce in the canonical UUID format."),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
