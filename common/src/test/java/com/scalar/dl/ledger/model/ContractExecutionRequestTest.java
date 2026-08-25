@@ -12,7 +12,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 public class ContractExecutionRequestTest {
-  private static final String NONCE = "nonce";
+  private static final String NONCE = "550e8400-e29b-41d4-a716-446655440000";
   private static final String CONTEXT_NAMESPACE = "test_namespace";
   private static final String ENTITY_ID = "entity_id";
   private static final int KEY_VERSION = 1;
@@ -348,6 +348,264 @@ public class ContractExecutionRequestTest {
 
     // Assert
     assertThat(result).isFalse();
+  }
+
+  private static ContractExecutionRequest buildRequest(String nonce, String contractArgument) {
+    return new ContractExecutionRequest(
+        nonce,
+        CONTRACT_ID,
+        contractArgument,
+        Collections.singletonList(FUNCTION_ID),
+        FUNCTION_ARGUMENT,
+        CONTEXT_NAMESPACE,
+        ENTITY_ID,
+        KEY_VERSION,
+        SIGNATURE,
+        AUDITOR_SIGNATURE);
+  }
+
+  @Test
+  public void constructor_LowercaseCanonicalUuidNonceGiven_ShouldInstantiate() {
+    // Arrange
+
+    // Act Assert
+    assertThatCode(() -> buildRequest("550e8400-e29b-41d4-a716-446655440000", CONTRACT_ARGUMENT))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void constructor_UppercaseCanonicalUuidNonceGiven_ShouldInstantiate() {
+    // Arrange
+
+    // Act Assert
+    assertThatCode(() -> buildRequest("550E8400-E29B-41D4-A716-446655440000", CONTRACT_ARGUMENT))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void constructor_MixedCaseCanonicalUuidNonceGiven_ShouldInstantiate() {
+    // Arrange
+
+    // Act Assert
+    assertThatCode(() -> buildRequest("550e8400-E29B-41d4-A716-446655440000", CONTRACT_ARGUMENT))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void constructor_CommaContainingNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest("abc,def", CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void
+      constructor_EmptyNonceAndEmptyNonceInContractArgumentGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"\"}";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest("", contractArgument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void constructor_NonCanonicalUuidNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest("1-1-1-1-1", CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void
+      constructor_SeparatorContainingNonceOf36CharsGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    // 36 characters, but contains the nonce separator character (U+0001)
+    String nonce = "550e8400-e29b-41d4-a716-44665544000\u0001";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void constructor_TooShortNearUuidNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    // 35 characters
+    String nonce = "550e8400-e29b-41d4-a716-44665544000";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void constructor_TooLongNearUuidNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    // 37 characters
+    String nonce = "550e8400-e29b-41d4-a716-4466554400000";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void constructor_NonHexLetterContainingNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    // 36 characters, but contains a non-hex letter 'g'
+    String nonce = "g50e8400-e29b-41d4-a716-446655440000";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void
+      constructor_NullNonceAndV2ArgumentWithEmptyNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    String contractArgument = "V2" + FUNCTION_ID + "" + CONTRACT_ARGUMENT;
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(null, contractArgument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void
+      constructor_NullNonceAndV1ArgumentWithEmptyNonceGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"\"}";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(null, contractArgument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022");
+  }
+
+  @Test
+  public void
+      constructor_NullNonceAndV1ArgumentWithoutNonceKeyGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    String contractArgument = "{\"key\":\"value\"}";
+
+    // Act Assert
+    // The nonce is absent rather than malformed, so Argument rejects the argument format itself.
+    assertThatThrownBy(() -> buildRequest(null, contractArgument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414017");
+  }
+
+  @Test
+  public void constructor_NullNonceAndV1ArgumentWithUuidNonceGiven_ShouldGetNonceFromArgument() {
+    // Arrange
+    String contractArgument = "{\"" + Argument.NONCE_KEY_NAME + "\":\"" + NONCE + "\"}";
+
+    // Act
+    ContractExecutionRequest request = buildRequest(null, contractArgument);
+
+    // Assert
+    assertThat(request.getNonce()).isEqualTo(NONCE);
+  }
+
+  @Test
+  public void constructor_NullNonceAndV2ArgumentWithUuidNonceGiven_ShouldGetNonceFromArgument() {
+    // Arrange
+    String contractArgument = "V2" + NONCE + "" + FUNCTION_ID + "" + CONTRACT_ARGUMENT;
+
+    // Act
+    ContractExecutionRequest request = buildRequest(null, contractArgument);
+
+    // Assert
+    assertThat(request.getNonce()).isEqualTo(NONCE);
+  }
+
+  @Test
+  public void constructor_NullNonceAndV3ArgumentWithUuidNonceGiven_ShouldGetNonceFromArgument() {
+    // Arrange
+    String contractArgument =
+        Argument.format(
+            CONTRACT_ARGUMENT, NONCE, CONTEXT_NAMESPACE, Collections.singletonList(FUNCTION_ID));
+
+    // Act
+    ContractExecutionRequest request = buildRequest(null, contractArgument);
+
+    // Assert
+    assertThat(request.getNonce()).isEqualTo(NONCE);
+  }
+
+  @Test
+  public void constructor_ControlCharacterContainingNonceGiven_ShouldSanitizeExceptionMessage() {
+    // Arrange
+    String nonce = "abc\ndef";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("abc?def")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\n"));
+  }
+
+  @Test
+  public void constructor_LineSeparatorContainingNonceGiven_ShouldSanitizeExceptionMessage() {
+    // Arrange
+    // U+2028 LINE SEPARATOR is not an ISO control character, but some log viewers and regex-based
+    // log processors treat it as a line break.
+    String nonce = "abc\u2028def";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("abc?def")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\u2028"));
+  }
+
+  @Test
+  public void constructor_BidiOverrideContainingNonceGiven_ShouldSanitizeExceptionMessage() {
+    // Arrange
+    // U+202E RIGHT-TO-LEFT OVERRIDE is not an ISO control character, but it reverses how the rest
+    // of
+    // the line is rendered.
+    String nonce = "abc\u202Edef";
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("abc?def")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("\u202E"));
+  }
+
+  @Test
+  public void constructor_VeryLongNonceGiven_ShouldTruncateNonceInExceptionMessage() {
+    // Arrange
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < 1000; i++) {
+      builder.append('a');
+    }
+    String nonce = builder.toString();
+
+    // Act Assert
+    assertThatThrownBy(() -> buildRequest(nonce, CONTRACT_ARGUMENT))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414022")
+        .hasMessageContaining("(1000 chars)")
+        .satisfies(e -> assertThat(e.getMessage()).doesNotContain(nonce));
   }
 
   @Test
