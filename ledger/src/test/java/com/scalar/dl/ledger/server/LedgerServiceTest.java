@@ -47,7 +47,7 @@ public class LedgerServiceTest {
   private static final int SOME_ASSET_AGE = 1;
   private static final byte[] SOME_HASH = "hash".getBytes(StandardCharsets.UTF_8);
   private static final byte[] SOME_PREV_HASH = "prev_hash".getBytes(StandardCharsets.UTF_8);
-  private static final String SOME_NONCE = "nonce";
+  private static final String SOME_NONCE = "3f2f0c1d-6b8a-4e5f-9d2c-7a1b4c8e0f36";
   private static final String SOME_INPUT = "input";
   private static final byte[] SOME_SIGNATURE = "signature".getBytes(StandardCharsets.UTF_8);
   private static final String SOME_ARGUMENT = "{\"nonce\": \"xxx\"}";
