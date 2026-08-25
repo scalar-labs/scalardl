@@ -42,6 +42,17 @@ public class ArgumentTest {
   }
 
   @Test
+  public void getNonce_V1FormatWithoutNonceKeyGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    String argument = Json.createObjectBuilder().add("key", "value").build().toString();
+
+    // Act Assert
+    assertThatThrownBy(() -> Argument.getNonce(argument))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("DL-COMMON-414017");
+  }
+
+  @Test
   public void getContractArgument_V1FormatGiven_ShouldReturnOriginalArgument() {
     // Arrange Act
     String contractArg = Argument.getContractArgument(V1_ARGUMENT);
