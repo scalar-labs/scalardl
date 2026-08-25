@@ -315,6 +315,12 @@ public enum CommonError implements ScalarDlError {
       "The specified namespace is reserved and cannot be created or deleted. Name: %s",
       "",
       "Use a different namespace name that is not reserved. Reserved namespaces are managed by the system and cannot be modified."),
+  INVALID_NONCE_FORMAT(
+      StatusCode.INVALID_ARGUMENT,
+      "022",
+      "The format of the nonce is invalid. Nonce: %s",
+      "",
+      "Specify the nonce in the canonical UUID format."),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
