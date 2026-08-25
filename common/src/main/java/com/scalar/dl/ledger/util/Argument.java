@@ -77,7 +77,11 @@ public class Argument {
       return versionNonce.get(1);
     } else {
       // for backward compatibility
-      return jacksonSerDe.deserialize(argument).get(NONCE_KEY_NAME).asText();
+      JsonNode nonceNode = jacksonSerDe.deserialize(argument).get(NONCE_KEY_NAME);
+      if (nonceNode == null) {
+        throw new IllegalArgumentException(CommonError.ILLEGAL_ARGUMENT_FORMAT.buildMessage());
+      }
+      return nonceNode.asText();
     }
   }
 
