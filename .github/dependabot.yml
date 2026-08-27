@@ -12,10 +12,12 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
-      - dependency-name: "com.diffplug.spotless"
+      # Error Prone runs inside javac and SpotBugs runs on a worker JVM, and both are launched
+      # from the compilation toolchain, which is still Java 8 for every module except ledger.
+      # Error Prone 2.11 and later require JDK 11 or later, and SpotBugs 4.9.0 raised its minimum
+      # runtime to Java 11. Keep them pinned until the Java 8 toolchain is dropped.
       - dependency-name: "com.google.errorprone:*"
       - dependency-name: "com.github.spotbugs:*"
-      - dependency-name: "com.palantir.docker"
 
   # For GitHub Actions, update all actions on the default, support and release branches
   - package-ecosystem: "github-actions"

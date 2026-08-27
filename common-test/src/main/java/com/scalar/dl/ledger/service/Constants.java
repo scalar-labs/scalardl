@@ -39,7 +39,7 @@ public class Constants {
 
   public static final String SOME_ASSET_ID_1 = "A";
   public static final String SOME_ASSET_ID_2 = "B";
-  public static final String SOME_NONCE = "nonce";
+  public static final String SOME_NONCE = "8b6f5c2e-4d3a-4f1b-a9c7-2e8d0b5f7a19";
   public static final int SOME_AMOUNT_1 = 1000;
   public static final int SOME_AMOUNT_2 = 100;
   public static final int SOME_AMOUNT_3 = 200;
