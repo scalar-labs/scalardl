@@ -16,9 +16,7 @@ public final class SchemaConstants {
   public static final String CONTRACT_TABLE = "contract";
   public static final String CONTRACT_CLASS_TABLE = "contract_class";
   public static final String SECRET_TABLE = "secret";
-
   public static final String FUNCTION_TABLE = "function";
-
   public static final String NAMESPACE_TABLE = "namespace";
 
   // Asset table columns
