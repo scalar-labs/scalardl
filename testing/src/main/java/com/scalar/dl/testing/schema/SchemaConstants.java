@@ -12,6 +12,12 @@ public final class SchemaConstants {
   public static final String ASSET_METADATA_TABLE = "asset_metadata";
   public static final String ASSET_LOCK_TABLE = "asset_lock";
   public static final String REQUEST_PROOF_TABLE = "request_proof";
+  public static final String CERTIFICATE_TABLE = "certificate";
+  public static final String CONTRACT_TABLE = "contract";
+  public static final String CONTRACT_CLASS_TABLE = "contract_class";
+  public static final String SECRET_TABLE = "secret";
+  public static final String FUNCTION_TABLE = "function";
+  public static final String NAMESPACE_TABLE = "namespace";
 
   // Asset table columns
   public static final String ASSET_ID_COLUMN_NAME = "id";
@@ -21,12 +27,12 @@ public final class SchemaConstants {
   public static final String ASSET_ARGUMENT_COLUMN_NAME = "argument";
   public static final String ASSET_PREV_HASH_COLUMN_NAME = "prev_hash";
 
-  // Function namespace and tables
+  // Function test fixture namespace and table (used by function ITs, not ScalarDL registry)
   public static final String FUNCTION_NAMESPACE = "function_test";
-  public static final String FUNCTION_TABLE = "function_test";
+  public static final String FUNCTION_TEST_TABLE = "function_test";
 
-  // Function table schema
-  public static final TableMetadata FUNCTION_TABLE_METADATA =
+  // Function test table schema
+  public static final TableMetadata FUNCTION_TEST_TABLE_METADATA =
       TableMetadata.newBuilder()
           .addColumn("id", DataType.TEXT)
           .addColumn("balance", DataType.INT)
