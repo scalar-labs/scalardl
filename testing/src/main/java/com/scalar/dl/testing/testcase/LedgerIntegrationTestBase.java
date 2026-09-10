@@ -25,14 +25,19 @@ import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID1;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID2;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID3;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID4;
+import static com.scalar.dl.testing.contract.Constants.SCAN_CONTRACT_ID;
+import static com.scalar.dl.testing.contract.Constants.SCAN_WITH_PUT_CONTRACT_ID;
+import static com.scalar.dl.testing.contract.Scan.DATA_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Scan.SCAN_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.ScanWithPut.STATE_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_AGE_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_ID_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE_METADATA;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE_METADATA;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -58,6 +63,7 @@ import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.service.ClientServiceFactory;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
+import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.StatusCode;
@@ -80,6 +86,7 @@ import com.scalar.dl.testing.contract.Payment;
 import com.scalar.dl.testing.contract.PaymentWithJackson;
 import com.scalar.dl.testing.contract.PaymentWithJsonp;
 import com.scalar.dl.testing.contract.PaymentWithString;
+import com.scalar.dl.testing.contract.ScanWithPut;
 import com.scalar.dl.testing.function.CreateFunction;
 import com.scalar.dl.testing.function.CreateFunctionWithJackson;
 import com.scalar.dl.testing.function.CreateFunctionWithJsonp;
@@ -129,6 +136,8 @@ public abstract class LedgerIntegrationTestBase {
           .put(GET_BALANCE_CONTRACT_ID3, GetBalanceWithJackson.class)
           .put(GET_BALANCE_CONTRACT_ID4, GetBalanceWithString.class)
           .put(HOLDER_CHECKER_CONTRACT_ID, HolderChecker.class)
+          .put(SCAN_CONTRACT_ID, com.scalar.dl.testing.contract.Scan.class)
+          .put(SCAN_WITH_PUT_CONTRACT_ID, ScanWithPut.class)
           .build();
   private static final ImmutableMap<String, Class<?>> FUNCTIONS =
       ImmutableMap.<String, Class<?>>builder()
@@ -275,7 +284,7 @@ public abstract class LedgerIntegrationTestBase {
   void truncateTables() throws Exception {
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_TABLE);
     storageAdmin.truncateTable(getPhysicalNamespace(), ASSET_METADATA_TABLE);
-    transactionAdmin.truncateTable(getFunctionNamespace(), FUNCTION_TABLE);
+    transactionAdmin.truncateTable(getFunctionNamespace(), FUNCTION_TEST_TABLE);
   }
 
   @AfterAll
@@ -284,7 +293,7 @@ public abstract class LedgerIntegrationTestBase {
 
     if (transactionAdmin != null) {
       try {
-        transactionAdmin.dropTable(getFunctionNamespace(), FUNCTION_TABLE);
+        transactionAdmin.dropTable(getFunctionNamespace(), FUNCTION_TEST_TABLE);
         transactionAdmin.dropNamespace(getFunctionNamespace());
       } catch (Exception e) {
         logger.warn("Failed to drop function table", e);
@@ -355,7 +364,7 @@ public abstract class LedgerIntegrationTestBase {
     Map<String, String> options = cluster.getSchemaCreationOptions();
     transactionAdmin.createNamespace(getFunctionNamespace(), true, options);
     transactionAdmin.createTable(
-        getFunctionNamespace(), FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
+        getFunctionNamespace(), FUNCTION_TEST_TABLE, FUNCTION_TEST_TABLE_METADATA, true, options);
   }
 
   protected ClientConfig getDigitalSignatureClientConfig(
@@ -669,7 +678,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -701,7 +710,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -733,7 +742,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -756,7 +765,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -821,7 +830,7 @@ public abstract class LedgerIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(getFunctionNamespace())
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_ID_1))
             .build();
     Optional<Result> result = storage.get(get);
@@ -1038,6 +1047,61 @@ public abstract class LedgerIntegrationTestBase {
         .isEqualTo(expected1);
     assertThat(jsonpSerDe.deserialize(results.get(1).getText(ASSET_OUTPUT_COLUMN_NAME)))
         .isEqualTo(expected2);
+  }
+
+  @Test
+  void executeContract_ScanAfterMultiplePuts_ShouldReturnAllCommittedAges() {
+    // Arrange: create five ages for the same asset via put-without-get
+    for (int amount = 0; amount < 5; amount++) {
+      ObjectNode argument =
+          mapper
+              .createObjectNode()
+              .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+              .put(AMOUNT_ATTRIBUTE_NAME, amount);
+      clientServiceA.executeContract(CREATE_CONTRACT_ID3, argument);
+    }
+
+    ObjectNode scanArgument = mapper.createObjectNode().put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1);
+
+    // Act
+    ContractExecutionResult result = clientServiceA.executeContract(SCAN_CONTRACT_ID, scanArgument);
+
+    // Assert
+    assertThat(result.getContractResult()).isPresent();
+    JsonNode scanned = jacksonSerDe.deserialize(result.getContractResult().get());
+    assertThat(scanned.get(SCAN_ATTRIBUTE_NAME)).hasSize(5);
+  }
+
+  @Test
+  void executeContract_ScanWithPutAfterMultiplePuts_ShouldSucceed() {
+    // Arrange: create five ages for the same asset
+    for (int amount = 0; amount < 5; amount++) {
+      ObjectNode argument =
+          mapper
+              .createObjectNode()
+              .put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+              .put(AMOUNT_ATTRIBUTE_NAME, amount);
+      clientServiceA.executeContract(CREATE_CONTRACT_ID3, argument);
+    }
+
+    ObjectNode argument = mapper.createObjectNode().put(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1);
+
+    // Act: scan+put in one contract, then scan again
+    clientServiceA.executeContract(SCAN_WITH_PUT_CONTRACT_ID, argument);
+    ContractExecutionResult result = clientServiceA.executeContract(SCAN_CONTRACT_ID, argument);
+
+    // Assert: put from ScanWithPut was committed (6 ages; latest state is scanned count)
+    assertThat(result.getContractResult()).isPresent();
+    JsonNode scanned = jacksonSerDe.deserialize(result.getContractResult().get());
+    JsonNode scanArray = scanned.get(SCAN_ATTRIBUTE_NAME);
+    assertThat(scanArray).hasSize(6);
+    assertThat(scanArray)
+        .anySatisfy(
+            entry -> {
+              assertThat(entry.get(ASSET_AGE_COLUMN_NAME).asInt()).isEqualTo(5);
+              assertThat(entry.get(DATA_ATTRIBUTE_NAME).get(STATE_ATTRIBUTE_NAME).asInt())
+                  .isEqualTo(5);
+            });
   }
 
   // ============ Validate Ledger Test Cases ============

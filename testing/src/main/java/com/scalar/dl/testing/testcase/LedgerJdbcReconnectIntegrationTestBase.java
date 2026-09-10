@@ -12,8 +12,8 @@ import static com.scalar.dl.testing.contract.Constants.NESTED_INVOKER_CONTRACT_I
 import static com.scalar.dl.testing.contract.Constants.NOOP_CONTRACT_ID;
 import static com.scalar.dl.testing.contract.Constants.UPSERT_FUNCTION_ID;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE_METADATA;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE_METADATA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -175,7 +175,7 @@ public abstract class LedgerJdbcReconnectIntegrationTestBase {
   void tearDownCluster() {
     if (transactionAdmin != null) {
       try {
-        transactionAdmin.dropTable(FUNCTION_NAMESPACE, FUNCTION_TABLE);
+        transactionAdmin.dropTable(FUNCTION_NAMESPACE, FUNCTION_TEST_TABLE);
         transactionAdmin.dropNamespace(FUNCTION_NAMESPACE);
       } catch (Exception e) {
         logger.warn("Failed to drop function table", e);
@@ -204,7 +204,8 @@ public abstract class LedgerJdbcReconnectIntegrationTestBase {
 
   private void createFunctionTableSchema() throws Exception {
     transactionAdmin.createNamespace(FUNCTION_NAMESPACE, true);
-    transactionAdmin.createTable(FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true);
+    transactionAdmin.createTable(
+        FUNCTION_NAMESPACE, FUNCTION_TEST_TABLE, FUNCTION_TEST_TABLE_METADATA, true);
   }
 
   /**
@@ -388,7 +389,7 @@ public abstract class LedgerJdbcReconnectIntegrationTestBase {
     Get get =
         Get.newBuilder()
             .namespace(FUNCTION_NAMESPACE)
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, SOME_FUNCTION_ROW_ID))
             .build();
     Optional<Result> row = storage.get(get);

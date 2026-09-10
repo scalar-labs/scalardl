@@ -40,7 +40,7 @@ public class CreateFunctionWithJackson extends JacksonBasedFunction {
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, balance)
             .forNamespace(namespace)
-            .forTable(SchemaConstants.FUNCTION_TABLE);
+            .forTable(SchemaConstants.FUNCTION_TEST_TABLE);
 
     database.put(put);
 
