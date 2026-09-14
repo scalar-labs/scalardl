@@ -14,7 +14,13 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_ID_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_METADATA_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CERTIFICATE_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_CLASS_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
+import static com.scalar.dl.testing.schema.SchemaConstants.SECRET_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -473,6 +479,33 @@ public abstract class LedgerNamespaceIntegrationTestBase {
   }
 
   // ============ Namespace Management Tests ============
+
+  @Test
+  void createNamespace_ValidNamespaceGiven_ShouldCreateAllExpectedTables() throws Exception {
+    // storageAdmin.getNamespaceTableNames lists both storage- and transaction-created tables
+    // (asset / asset_metadata go through transactionAdmin; the rest through storageAdmin).
+    assertThat(storageAdmin.getNamespaceTableNames(resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_1)))
+        .containsExactlyInAnyOrder(
+            ASSET_TABLE,
+            ASSET_METADATA_TABLE,
+            CERTIFICATE_TABLE,
+            CONTRACT_TABLE,
+            CONTRACT_CLASS_TABLE,
+            FUNCTION_TABLE,
+            SECRET_TABLE);
+    assertThat(storageAdmin.tableExists(SCALAR_NAMESPACE, NAMESPACE_TABLE)).isTrue();
+  }
+
+  @Test
+  void createNamespace_ExistingNamespaceGiven_ShouldThrowException() {
+    // Act & Assert
+    assertThatThrownBy(() -> clientServiceA.createNamespace(NAMESPACE_1))
+        .isInstanceOf(ClientException.class)
+        .satisfies(
+            e ->
+                assertThat(((ClientException) e).getStatusCode())
+                    .isEqualTo(StatusCode.NAMESPACE_ALREADY_EXISTS));
+  }
 
   @Test
   void listNamespaces_WithoutFilter_ShouldReturnAllNamespaces() {

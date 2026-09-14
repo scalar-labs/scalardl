@@ -43,7 +43,7 @@ public class UpsertFunction extends Function {
     Get get =
         new Get(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .forNamespace(namespace)
-            .forTable(SchemaConstants.FUNCTION_TABLE);
+            .forTable(SchemaConstants.FUNCTION_TEST_TABLE);
     Optional<Result> existing = database.get(get);
     int newBalance =
         existing.map(r -> r.getInt(Constants.BALANCE_ATTRIBUTE_NAME)).orElse(0) + balance;
@@ -52,7 +52,7 @@ public class UpsertFunction extends Function {
         new Put(new Key(Constants.ID_ATTRIBUTE_NAME, id))
             .withValue(Constants.BALANCE_ATTRIBUTE_NAME, newBalance)
             .forNamespace(namespace)
-            .forTable(SchemaConstants.FUNCTION_TABLE);
+            .forTable(SchemaConstants.FUNCTION_TEST_TABLE);
     database.put(put);
   }
 }
