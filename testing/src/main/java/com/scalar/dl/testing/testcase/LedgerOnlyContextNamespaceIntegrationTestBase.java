@@ -8,8 +8,8 @@ import static com.scalar.dl.testing.contract.Constants.CREATE_FUNCTION_ID1;
 import static com.scalar.dl.testing.contract.Constants.ID_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Constants.NAMESPACE_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_NAMESPACE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
-import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE_METADATA;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TEST_TABLE_METADATA;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,7 +102,11 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
     Map<String, String> options = cluster.getSchemaCreationOptions();
     transactionAdmin.createNamespace(PREFIXED_FUNCTION_NAMESPACE, true, options);
     transactionAdmin.createTable(
-        PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE, FUNCTION_TABLE_METADATA, true, options);
+        PREFIXED_FUNCTION_NAMESPACE,
+        FUNCTION_TEST_TABLE,
+        FUNCTION_TEST_TABLE_METADATA,
+        true,
+        options);
   }
 
   @BeforeAll
@@ -216,7 +220,7 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
     Get get =
         Get.newBuilder()
             .namespace(PREFIXED_FUNCTION_NAMESPACE)
-            .table(FUNCTION_TABLE)
+            .table(FUNCTION_TEST_TABLE)
             .partitionKey(Key.ofText(ID_ATTRIBUTE_NAME, id))
             .build();
     Optional<Result> result = storage.get(get);
@@ -260,7 +264,7 @@ public abstract class LedgerOnlyContextNamespaceIntegrationTestBase
     // super.tearDownCluster() closes transactionAdmin.
     if (transactionAdmin != null) {
       try {
-        transactionAdmin.dropTable(PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TABLE);
+        transactionAdmin.dropTable(PREFIXED_FUNCTION_NAMESPACE, FUNCTION_TEST_TABLE);
         transactionAdmin.dropNamespace(PREFIXED_FUNCTION_NAMESPACE);
       } catch (Exception e) {
         logger.warn("Failed to drop prefixed function namespace", e);
