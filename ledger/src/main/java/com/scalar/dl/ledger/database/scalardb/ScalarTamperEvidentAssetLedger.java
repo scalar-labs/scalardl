@@ -374,7 +374,7 @@ public class ScalarTamperEvidentAssetLedger implements TamperEvidentAssetLedger 
   }
 
   static class Metadata {
-    private static final String TABLE = "asset_metadata";
+    static final String TABLE = "asset_metadata";
     private final DistributedTransaction transaction;
     private final ScalarNamespaceResolver namespaceResolver;
 

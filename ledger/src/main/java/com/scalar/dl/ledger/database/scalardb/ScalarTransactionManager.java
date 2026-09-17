@@ -10,10 +10,10 @@ import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitManager;
+import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.LedgerConfig;
-import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
+import com.scalar.dl.ledger.database.AssetRecord;
 import com.scalar.dl.ledger.database.MutableDatabase;
 import com.scalar.dl.ledger.database.NamespaceRestrictedAssetLedger;
 import com.scalar.dl.ledger.database.Snapshot;
@@ -190,34 +190,62 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
 
   @Override
   public void recover(Map<AssetKey, Integer> assetKeys) {
-    if (manager instanceof ConsensusCommitManager) {
-      /*
-       * This rolls back asset records which might be left PREPARED due to some failure
-       * at the time of recovery, and tries to keep asset records and asset metadata consistent.
-       */
-      Transaction transaction = startWith();
-
-      try {
-        assetKeys.forEach(
-            (key, age) -> {
-              AssetFilter filter =
-                  new AssetFilter(key.namespace(), key.assetId())
-                      .withStartAge(age, true)
-                      .withEndAge(age + 1, false);
-              transaction.getLedger().scan(filter);
-              transaction
-                  .getLedger()
-                  .get( // for asset_metadata when it is enabled
-                      key.namespace(), key.assetId());
-            });
-        transaction.commit();
-      } catch (Exception e) {
-        // Roll back might have been succeeded and might have been failed.
-        // Even if it was failed, it will be recovered by this method eventually
-        transaction.abort();
-      }
+    // Record-level recovery is a Consensus Commit concept. With the JDBC transaction manager, the
+    // underlying RDB rolls the transaction back, so no record is left in an uncommitted state.
+    // Note that this must not be judged with `manager instanceof ConsensusCommitManager` since
+    // ScalarDB decorates the transaction manager it creates.
+    if (!config.isConsensusCommitEnabled()) {
+      return;
     }
-    // do nothing for the other DistributedTransactionManager for now
+
+    /*
+     * A failed transaction can leave the asset record of the given age and the asset metadata
+     * record in an uncommitted (PREPARED) state. Recovering them here rolls them back (or forward
+     * if the transaction turned out to be committed) right away, and tries to keep asset records
+     * and asset metadata consistent. This is necessary especially for the asset record since no
+     * one reads it, and thus nothing triggers the lazy recovery for it, once the asset metadata is
+     * rolled back to the previous age.
+     */
+    assetKeys.forEach(
+        (key, age) -> {
+          String namespace = namespaceResolver.resolve(key.namespace());
+          recoverRecord(
+              namespace,
+              ScalarTamperEvidentAssetLedger.TABLE,
+              Key.ofText(AssetRecord.ID, key.assetId()),
+              Key.ofInt(AssetRecord.AGE, age));
+          if (!config.isDirectAssetAccessEnabled()) {
+            recoverRecord(
+                namespace,
+                ScalarTamperEvidentAssetLedger.Metadata.TABLE,
+                Key.ofText(ScalarTamperEvidentAssetLedger.AssetMetadata.ID, key.assetId()),
+                null);
+          }
+        });
+  }
+
+  private void recoverRecord(
+      String namespace, String table, Key partitionKey, @Nullable Key clusteringKey) {
+    try {
+      if (!manager.recoverRecord(namespace, table, partitionKey, clusteringKey)) {
+        // The transaction that wrote the record has no Coordinator state and has not expired yet,
+        // so it might still be in flight. The record is recovered by a later read or recovery.
+        LOGGER.info(
+            "The record is not recoverable yet. Table: {}; Partition Key: {}; Clustering Key: {}",
+            table,
+            partitionKey,
+            clusteringKey);
+      }
+    } catch (TransactionException e) {
+      // Recovery is best-effort here; even if it fails, the record is recovered lazily when it is
+      // read next time or when this method is called again for the same asset.
+      LOGGER.warn(
+          "Recovering the record failed. Table: {}; Partition Key: {}; Clustering Key: {}",
+          table,
+          partitionKey,
+          clusteringKey,
+          e);
+    }
   }
 
   private TransactionState convert(com.scalar.db.api.TransactionState state) {
