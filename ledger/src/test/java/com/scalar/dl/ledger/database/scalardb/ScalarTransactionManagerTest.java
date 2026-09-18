@@ -4,31 +4,26 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitManager;
-import com.scalar.db.transaction.jdbc.JdbcTransactionManager;
+import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.LedgerConfig;
-import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
-import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
-import com.scalar.dl.ledger.database.Transaction;
+import com.scalar.dl.ledger.database.AssetRecord;
 import com.scalar.dl.ledger.database.TransactionState;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.statemachine.AssetKey;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -334,50 +329,82 @@ public class ScalarTransactionManagerTest {
   }
 
   @Test
-  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-  public void recover_AssetKeysGivenAndConsensusCommitManagerUsed_ShouldRecoverAssetIds() {
+  public void recover_AssetKeysGivenAndConsensusCommitUsed_ShouldRecoverAssetAndMetadataRecords()
+      throws TransactionException {
     // Arrange
-    ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(true);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    when(namespaceResolver.resolve(SOME_NAMESPACE)).thenReturn(BASE_NAMESPACE);
+    when(manager.recoverRecord(anyString(), anyString(), any(), any())).thenReturn(true);
     transactionManager =
-        spy(
-            new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
-    Transaction transaction = mock(Transaction.class);
-    TamperEvidentAssetLedger ledger = mock(TamperEvidentAssetLedger.class);
-    doReturn(transaction).when(transactionManager).startWith();
-    doReturn(ledger).when(transaction).getLedger();
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
     transactionManager.recover(keys);
 
     // Assert
-    AssetFilter filter =
-        new AssetFilter(SOME_NAMESPACE, SOME_ASSET_ID)
-            .withStartAge(SOME_ASSET_AGE, true)
-            .withEndAge(SOME_ASSET_AGE + 1, false);
-    verify(ledger).scan(filter);
-    verify(ledger).get(SOME_NAMESPACE, SOME_ASSET_ID);
-    verify(transaction).commit();
-    verify(transaction, never()).abort();
+    verify(manager)
+        .recoverRecord(
+            BASE_NAMESPACE,
+            ScalarTamperEvidentAssetLedger.TABLE,
+            Key.ofText(AssetRecord.ID, SOME_ASSET_ID),
+            Key.ofInt(AssetRecord.AGE, SOME_ASSET_AGE));
+    verify(manager)
+        .recoverRecord(
+            BASE_NAMESPACE,
+            ScalarTamperEvidentAssetLedger.Metadata.TABLE,
+            Key.ofText(ScalarTamperEvidentAssetLedger.AssetMetadata.ID, SOME_ASSET_ID),
+            null);
   }
 
   @Test
-  @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-  public void
-      recover_AssetKeysGivenAndConsensusCommitManagerUsedButDatabaseExceptionThrownInRecovery_ShouldAbort() {
+  public void recover_AssetKeysGivenAndDirectAssetAccessEnabled_ShouldRecoverOnlyAssetRecord()
+      throws TransactionException {
     // Arrange
-    ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(true);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(true);
+    when(namespaceResolver.resolve(SOME_NAMESPACE)).thenReturn(BASE_NAMESPACE);
+    when(manager.recoverRecord(anyString(), anyString(), any(), any())).thenReturn(true);
     transactionManager =
-        spy(
-            new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
-    Transaction transaction = mock(Transaction.class);
-    TamperEvidentAssetLedger ledger = mock(TamperEvidentAssetLedger.class);
-    doReturn(transaction).when(transactionManager).startWith();
-    doReturn(ledger).when(transaction).getLedger();
-    DatabaseException toThrow = mock(DatabaseException.class);
-    doThrow(toThrow).when(ledger).scan(any());
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
+    Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
+
+    // Act
+    transactionManager.recover(keys);
+
+    // Assert
+    verify(manager)
+        .recoverRecord(
+            BASE_NAMESPACE,
+            ScalarTamperEvidentAssetLedger.TABLE,
+            Key.ofText(AssetRecord.ID, SOME_ASSET_ID),
+            Key.ofInt(AssetRecord.AGE, SOME_ASSET_AGE));
+    verify(manager, never())
+        .recoverRecord(
+            anyString(), eq(ScalarTamperEvidentAssetLedger.Metadata.TABLE), any(), any());
+  }
+
+  @Test
+  public void recover_RecoveringAssetRecordFailed_ShouldNotThrowAnyExceptionAndRecoverMetadata()
+      throws TransactionException {
+    // Arrange
+    when(config.isConsensusCommitEnabled()).thenReturn(true);
+    when(config.isDirectAssetAccessEnabled()).thenReturn(false);
+    when(namespaceResolver.resolve(SOME_NAMESPACE)).thenReturn(BASE_NAMESPACE);
+    TransactionException toThrow = mock(TransactionException.class);
+    doThrow(toThrow)
+        .when(manager)
+        .recoverRecord(
+            BASE_NAMESPACE,
+            ScalarTamperEvidentAssetLedger.TABLE,
+            Key.ofText(AssetRecord.ID, SOME_ASSET_ID),
+            Key.ofInt(AssetRecord.AGE, SOME_ASSET_AGE));
+    transactionManager =
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
@@ -385,26 +412,28 @@ public class ScalarTransactionManagerTest {
 
     // Assert
     assertThat(thrown).doesNotThrowAnyException();
-    verify(ledger).scan(any());
-    verify(ledger, never()).get(anyString(), anyString());
-    verify(transaction, never()).commit();
-    verify(transaction).abort();
+    verify(manager)
+        .recoverRecord(
+            BASE_NAMESPACE,
+            ScalarTamperEvidentAssetLedger.Metadata.TABLE,
+            Key.ofText(ScalarTamperEvidentAssetLedger.AssetMetadata.ID, SOME_ASSET_ID),
+            null);
   }
 
   @Test
-  public void recover_AssetKeysGivenAndConsensusCommitManagerNotUsed_ShouldDoNothing() {
+  public void recover_AssetKeysGivenAndConsensusCommitNotUsed_ShouldDoNothing()
+      throws TransactionException {
     // Arrange
-    JdbcTransactionManager manager = mock(JdbcTransactionManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(false);
     transactionManager =
-        spy(
-            new ScalarTransactionManager(
-                manager, assetComposer, proofComposer, stateManager, namespaceResolver, config));
+        new ScalarTransactionManager(
+            manager, assetComposer, proofComposer, stateManager, namespaceResolver, config);
     Map<AssetKey, Integer> keys = ImmutableMap.of(SOME_ASSET_KEY, SOME_ASSET_AGE);
 
     // Act
     transactionManager.recover(keys);
 
     // Assert
-    verify(transactionManager, never()).startWith();
+    verify(manager, never()).recoverRecord(anyString(), anyString(), any(), any());
   }
 }
