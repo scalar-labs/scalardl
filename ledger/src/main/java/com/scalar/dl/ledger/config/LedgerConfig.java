@@ -248,6 +248,7 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
   private Set<String> executableContractNames;
   private boolean isDirectAssetAccessEnabled;
   private boolean isTxStateManagementEnabled;
+  private boolean isConsensusCommitEnabled;
 
   public LedgerConfig(File propertiesFile) throws IOException {
     try (FileInputStream stream = new FileInputStream(propertiesFile)) {
@@ -397,6 +398,17 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
     return isTxStateManagementEnabled;
   }
 
+  /**
+   * Returns whether the Consensus Commit transaction manager is used. Note that this must be used
+   * instead of checking the runtime type of the {@code DistributedTransactionManager} that ScalarDB
+   * creates since ScalarDB decorates it.
+   *
+   * @return whether the Consensus Commit transaction manager is used
+   */
+  public boolean isConsensusCommitEnabled() {
+    return isConsensusCommitEnabled;
+  }
+
   private void load() {
     name = ConfigUtils.getString(props, NAME, DEFAULT_NAME);
     namespace = ConfigUtils.getString(props, NAMESPACE, DEFAULT_NAMESPACE);
@@ -514,6 +526,8 @@ public class LedgerConfig implements ServerConfig, ServersHmacAuthenticatable {
       }
     } else if (ConsensusCommitConfig.TRANSACTION_MANAGER_NAME.equalsIgnoreCase(
         transactionManager)) {
+      isConsensusCommitEnabled = true;
+
       if (isTxStateManagementEnabled) {
         throw new IllegalArgumentException(
             LedgerError.CONFIG_TX_STATE_MANAGEMENT_MUST_BE_DISABLED_FOR_CONSENSUS_COMMIT
