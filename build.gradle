@@ -3,7 +3,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.10.2") {
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.10.3") {
             // Jreleaser and Spotless plugins have a conflict on this dependency.
             // Jreleaser requires an older version but Spotless requires a newer version for some
             // feature we are not using.
@@ -53,7 +53,7 @@ subprojects {
         slf4jVersion = '1.7.36'
         log4jVersion = '2.26.1'
         jsonpVersion = '1.1.4'
-        jacksonVersion = '2.22.2'
+        jacksonVersion = '2.22.3'
         toml4jVersion = '0.7.2'
         scalarDbVersion = '3.19.1'
         scalarAdminVersion = '2.2.1'
