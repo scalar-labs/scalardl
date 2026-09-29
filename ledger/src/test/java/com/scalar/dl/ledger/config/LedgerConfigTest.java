@@ -465,6 +465,31 @@ public class LedgerConfigTest {
   }
 
   @Test
+  public void isConsensusCommitEnabled_ConsensusCommitManagerSpecified_ShouldReturnTrue() {
+    // Arrange
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "consensus-commit");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isConsensusCommitEnabled()).isTrue();
+  }
+
+  @Test
+  public void isConsensusCommitEnabled_JdbcTransactionManagerSpecified_ShouldReturnFalse() {
+    // Arrange
+    props.setProperty(DatabaseConfig.STORAGE, "jdbc");
+    props.setProperty(DatabaseConfig.TRANSACTION_MANAGER, "jdbc");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isConsensusCommitEnabled()).isFalse();
+  }
+
+  @Test
   public void isTransactionStatePurgeEnabled_NotConfigured_ShouldReturnDefault() {
     // Arrange
 
