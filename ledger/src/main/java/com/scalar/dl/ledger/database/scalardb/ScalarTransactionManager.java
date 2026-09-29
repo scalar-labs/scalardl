@@ -10,7 +10,6 @@ import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.TableMetadata;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitManager;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.AssetProofComposer;
@@ -149,34 +148,39 @@ public class ScalarTransactionManager implements TransactionManager, TableMetada
 
   @Override
   public void recover(Map<AssetKey, Integer> assetKeys) {
-    if (manager instanceof ConsensusCommitManager) {
-      /*
-       * This rolls back asset records which might be left PREPARED due to some failure
-       * at the time of recovery, and tries to keep asset records and asset metadata consistent.
-       */
-      Transaction transaction = startWith();
-
-      try {
-        assetKeys.forEach(
-            (key, age) -> {
-              AssetFilter filter =
-                  new AssetFilter(key.namespace(), key.assetId())
-                      .withStartAge(age, true)
-                      .withEndAge(age + 1, false);
-              transaction.getLedger().scan(filter);
-              transaction
-                  .getLedger()
-                  .get( // for asset_metadata when it is enabled
-                      key.namespace(), key.assetId());
-            });
-        transaction.commit();
-      } catch (Exception e) {
-        // Roll back might have been succeeded and might have been failed.
-        // Even if it was failed, it will be recovered by this method eventually
-        transaction.abort();
-      }
+    // Record-level recovery is a Consensus Commit concept. With the JDBC transaction manager, the
+    // underlying RDB rolls the transaction back, so no record is left in an uncommitted state.
+    // Note that this must not be judged with `manager instanceof ConsensusCommitManager` since
+    // ScalarDB decorates the transaction manager it creates.
+    if (!config.isConsensusCommitEnabled()) {
+      return;
     }
-    // do nothing for the other DistributedTransactionManager for now
+
+    /*
+     * This rolls back asset records which might be left PREPARED due to some failure
+     * at the time of recovery, and tries to keep asset records and asset metadata consistent.
+     */
+    Transaction transaction = startWith();
+
+    try {
+      assetKeys.forEach(
+          (key, age) -> {
+            AssetFilter filter =
+                new AssetFilter(key.namespace(), key.assetId())
+                    .withStartAge(age, true)
+                    .withEndAge(age + 1, false);
+            transaction.getLedger().scan(filter);
+            transaction
+                .getLedger()
+                .get( // for asset_metadata when it is enabled
+                    key.namespace(), key.assetId());
+          });
+      transaction.commit();
+    } catch (Exception e) {
+      // Roll back might have been succeeded and might have been failed.
+      // Even if it was failed, it will be recovered by this method eventually
+      transaction.abort();
+    }
   }
 
   private TransactionState convert(com.scalar.db.api.TransactionState state) {
