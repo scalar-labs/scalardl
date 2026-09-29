@@ -15,8 +15,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.transaction.consensuscommit.ConsensusCommitManager;
-import com.scalar.db.transaction.jdbc.JdbcTransactionManager;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.database.AssetFilter;
 import com.scalar.dl.ledger.database.TamperEvidentAssetLedger;
@@ -234,9 +232,9 @@ public class ScalarTransactionManagerTest {
 
   @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-  public void recover_AssetIdsGivenAndConsensusCommitManagerUsed_ShouldRecoverAssetIds() {
+  public void recover_AssetIdsGivenAndConsensusCommitUsed_ShouldRecoverAssetIds() {
     // Arrange
-    ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(true);
     transactionManager =
         spy(
             new ScalarTransactionManager(
@@ -264,9 +262,9 @@ public class ScalarTransactionManagerTest {
   @Test
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
   public void
-      recover_AssetIdsGivenAndConsensusCommitManagerUsedButDatabaseExceptionThrownInRecovery_ShouldAbort() {
+      recover_AssetIdsGivenAndConsensusCommitUsedButDatabaseExceptionThrownInRecovery_ShouldAbort() {
     // Arrange
-    ConsensusCommitManager manager = mock(ConsensusCommitManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(true);
     transactionManager =
         spy(
             new ScalarTransactionManager(
@@ -291,9 +289,9 @@ public class ScalarTransactionManagerTest {
   }
 
   @Test
-  public void recover_AssetIdsGivenAndConsensusCommitManagerNotUsed_ShouldDoNothing() {
+  public void recover_AssetIdsGivenAndConsensusCommitNotUsed_ShouldDoNothing() {
     // Arrange
-    JdbcTransactionManager manager = mock(JdbcTransactionManager.class);
+    when(config.isConsensusCommitEnabled()).thenReturn(false);
     transactionManager =
         spy(
             new ScalarTransactionManager(
