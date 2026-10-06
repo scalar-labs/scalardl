@@ -68,13 +68,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
-  - package-ecosystem: "github-actions"
-    target-branch: "3.11"
-    groups:
-      actions on branch 3.11:
-        patterns:
-          - "*"
-    directory: "/"
-    schedule:
-      interval: "weekly"
