@@ -26,9 +26,9 @@ public enum CommonLedgerError implements ScalarDlError {
   FUNCTION_NOT_FOUND(
       StatusCode.FUNCTION_NOT_FOUND,
       "001",
-      "The specified function is not found.",
+      "The specified Function is not found.",
       "",
-      "Register the function first before executing it."),
+      "Register the Function first before executing it."),
 
   //
   // Errors for UNLOADABLE_FUNCTION(411)
@@ -36,9 +36,9 @@ public enum CommonLedgerError implements ScalarDlError {
   LOADING_FUNCTION_FAILED(
       StatusCode.UNLOADABLE_FUNCTION,
       "001",
-      "Loading the function failed. Details: %s",
+      "Loading the Function failed. Details: %s",
       "",
-      "Check the error details and verify that the function class is valid and accessible."),
+      "Check the error details and verify that the Function class is valid and accessible."),
 
   //
   // Errors for RUNTIME_ERROR(502)
@@ -46,9 +46,9 @@ public enum CommonLedgerError implements ScalarDlError {
   UNSUPPORTED_FUNCTION(
       StatusCode.RUNTIME_ERROR,
       "001",
-      "The function type or instance is not supported.",
+      "The Function type or instance is not supported.",
       "",
-      "Check the error details in the logs and verify that the function type is supported."),
+      "Check the error details in the logs and verify that the Function type is supported."),
   ;
 
   private static final String COMPONENT_NAME = "DL-LEDGER";
