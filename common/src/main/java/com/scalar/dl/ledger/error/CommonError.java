@@ -10,7 +10,7 @@ public enum CommonError implements ScalarDlError {
   INVALID_CONTRACT_ID_FORMAT(
       StatusCode.INVALID_CONTRACT,
       "001",
-      "The format of the contract ID is invalid.",
+      "The format of the Contract ID is invalid.",
       "",
       "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
   CONTRACT_VALIDATION_FAILED(
@@ -116,9 +116,9 @@ public enum CommonError implements ScalarDlError {
   LOADING_CONTRACT_FAILED(
       StatusCode.UNLOADABLE_CONTRACT,
       "001",
-      "Loading the contract failed. Details: %s",
+      "Loading the Contract failed. Details: %s",
       "",
-      "Verify that the contract class is valid and all dependencies are available. Check the error details for specific issues."),
+      "Verify that the Contract class is valid and all dependencies are available. Check the error details for specific issues."),
 
   //
   // Errors for CERTIFICATE_NOT_FOUND(403)
@@ -136,9 +136,9 @@ public enum CommonError implements ScalarDlError {
   CONTRACT_NOT_FOUND(
       StatusCode.CONTRACT_NOT_FOUND,
       "001",
-      "The specified contract is not found.",
+      "The specified Contract is not found.",
       "",
-      "Before executing the contract, register it by using the register-contract command."),
+      "Before executing the Contract, register it by using the register-contract command."),
 
   //
   // Errors for CERTIFICATE_ALREADY_REGISTERED(405)
@@ -156,15 +156,15 @@ public enum CommonError implements ScalarDlError {
   CONTRACT_ALREADY_REGISTERED(
       StatusCode.CONTRACT_ALREADY_REGISTERED,
       "001",
-      "The specified contract is already registered.",
+      "The specified Contract is already registered.",
       "",
-      "Use the existing contract or register it with a different contract ID."),
+      "Use the existing Contract or register it with a different Contract ID."),
   DIFFERENT_CLASS_WITH_SAME_NAME(
       StatusCode.CONTRACT_ALREADY_REGISTERED,
       "002",
-      "The specified contract binary name has been already registered with a different byte code.",
+      "The specified Contract binary name has been already registered with a different byte code.",
       "",
-      "Use a different contract ID or class name to register this version of the contract."),
+      "Use a different Contract ID or class name to register this version of the Contract."),
 
   //
   // Errors for INVALID_REQUEST(407)
@@ -306,9 +306,9 @@ public enum CommonError implements ScalarDlError {
   NAMESPACE_NOT_SUPPORTED_IN_DEPRECATED_CONTRACT(
       StatusCode.INVALID_ARGUMENT,
       "020",
-      "Namespace-aware interfaces are not supported in deprecated contracts.",
+      "Namespace-aware interfaces are not supported in deprecated Contracts.",
       "",
-      "Use the non-namespace-aware interfaces or migrate to the newer contract interfaces that support namespaces."),
+      "Use the non-namespace-aware interfaces or migrate to the newer Contract interfaces that support namespaces."),
   RESERVED_NAMESPACE(
       StatusCode.INVALID_ARGUMENT,
       "021",
@@ -394,19 +394,19 @@ public enum CommonError implements ScalarDlError {
   BINDING_CONTRACT_FAILED(
       StatusCode.DATABASE_ERROR,
       "007",
-      "Binding the contract failed. Details: %s",
+      "Binding the Contract failed. Details: %s",
       "",
       "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   GETTING_CONTRACT_FAILED(
       StatusCode.DATABASE_ERROR,
       "008",
-      "Getting the contract failed. Details: %s",
+      "Getting the Contract failed. Details: %s",
       "",
       "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   SCANNING_CONTRACT_FAILED(
       StatusCode.DATABASE_ERROR,
       "009",
-      "Scanning the contracts failed. Details: %s",
+      "Scanning the Contracts failed. Details: %s",
       "",
       "Check the database connection and ensure the database is accessible. Review the error details for more information."),
   CREATING_NAMESPACE_TABLE_FAILED(
@@ -494,9 +494,9 @@ public enum CommonError implements ScalarDlError {
   UNSUPPORTED_CONTRACT(
       StatusCode.RUNTIME_ERROR,
       "006",
-      "The contract type or instance is not supported.",
+      "The Contract type or instance is not supported.",
       "",
-      "Check the error details in the logs and verify that the contract type is supported."),
+      "Check the error details in the logs and verify that the Contract type is supported."),
   INVALID_LOCK_RECOVERY_RESULT_SPECIFIED(
       StatusCode.RUNTIME_ERROR,
       "007",
