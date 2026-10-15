@@ -30,7 +30,7 @@ public enum LedgerError implements ScalarDlError {
   VALIDATION_FAILED_FOR_CONTRACT(
       StatusCode.INVALID_CONTRACT,
       "001",
-      "Validation failed for the contract.",
+      "Validation failed for the Contract.",
       "",
       "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
 
@@ -92,9 +92,9 @@ public enum LedgerError implements ScalarDlError {
   CONTRACT_IS_NOT_ALLOWED_TO_BE_EXECUTED(
       StatusCode.INVALID_REQUEST,
       "001",
-      "The specified contract class is not allowed to be executed.",
+      "The specified Contract class is not allowed to be executed.",
       "",
-      "Verify the contract binary name and ensure it is listed in the configuration file specified by scalar.dl.ledger.executable_contracts."),
+      "Verify the Contract binary name and ensure it is listed in the configuration file specified by scalar.dl.ledger.executable_contracts."),
   INVALID_AUDITOR_CONFIGURATION(
       StatusCode.INVALID_REQUEST,
       "002",
@@ -130,9 +130,9 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_NOT_FOUND(
       StatusCode.FUNCTION_NOT_FOUND,
       "001",
-      "The specified function is not found.",
+      "The specified Function is not found.",
       "",
-      "Verify the function name is correct and the function has been bound."),
+      "Verify the Function name is correct and the Function has been bound."),
 
   //
   // Errors for UNLOADABLE_FUNCTION(411)
@@ -140,9 +140,9 @@ public enum LedgerError implements ScalarDlError {
   LOADING_FUNCTION_FAILED(
       StatusCode.UNLOADABLE_FUNCTION,
       "001",
-      "Loading the function failed. Details: %s",
+      "Loading the Function failed. Details: %s",
       "",
-      "Check the error details in the logs and verify your function configuration and implementation."),
+      "Check the error details in the logs and verify your Function configuration and implementation."),
 
   //
   // Errors for INVALID_FUNCTION(412)
@@ -150,13 +150,13 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE(
       StatusCode.INVALID_FUNCTION,
       "001",
-      "The function is not allowed to access the specified namespace.",
+      "The Function is not allowed to access the specified namespace.",
       "",
-      "Functions cannot access system namespaces (system, system_schema, system_auth, system_distributed, system_traces, scalar, coordinator). Use a different namespace for your function operations."),
+      "Functions cannot access system namespaces (system, system_schema, system_auth, system_distributed, system_traces, scalar, coordinator). Use a different namespace for your Function operations."),
   OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT(
       StatusCode.INVALID_FUNCTION,
       "002",
-      "The database operation in the function failed. Details: %s",
+      "The database operation in the Function failed. Details: %s",
       "",
       "Verify that the arguments passed to the database operation are valid and correct."),
 
@@ -224,19 +224,19 @@ public enum LedgerError implements ScalarDlError {
   BINDING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "001",
-      "Binding the function failed. Details: %s",
+      "Binding the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   UNBINDING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "002",
-      "Unbinding the function failed. Details: %s",
+      "Unbinding the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   GETTING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "003",
-      "Getting the function failed. Details: %s",
+      "Getting the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   STARTING_TRANSACTION_FAILED(
@@ -284,7 +284,7 @@ public enum LedgerError implements ScalarDlError {
   OPERATION_FAILED_DUE_TO_DATABASE_ERROR(
       StatusCode.DATABASE_ERROR,
       "011",
-      "The database operation in the function failed due to a database error. Details: %s",
+      "The database operation in the Function failed due to a database error. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
 
@@ -304,9 +304,9 @@ public enum LedgerError implements ScalarDlError {
   UNSUPPORTED_FUNCTION(
       StatusCode.RUNTIME_ERROR,
       "001",
-      "The function type or instance is not supported.",
+      "The Function type or instance is not supported.",
       "",
-      "Verify the function type and instance are correct and supported."),
+      "Verify the Function type and instance are correct and supported."),
 
   //
   // Errors for CONFLICT(504)
@@ -350,7 +350,7 @@ public enum LedgerError implements ScalarDlError {
   OPERATION_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "007",
-      "The database operation in the function failed due to a conflict. Details: %s",
+      "The database operation in the Function failed due to a conflict. Details: %s",
       "",
       "Retry the operation."),
   ;
