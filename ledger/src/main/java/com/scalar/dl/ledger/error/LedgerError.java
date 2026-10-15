@@ -30,7 +30,7 @@ public enum LedgerError implements ScalarDlError {
   VALIDATION_FAILED_FOR_CONTRACT(
       StatusCode.INVALID_CONTRACT,
       "001",
-      "Validation failed for the contract.",
+      "Validation failed for the Contract.",
       "",
       "Data or program tampering, or a software bug, may have occurred. Contact your system administrator to check for any signs of malicious activity."),
 
@@ -76,9 +76,9 @@ public enum LedgerError implements ScalarDlError {
   CONTRACT_IS_NOT_ALLOWED_TO_BE_EXECUTED(
       StatusCode.INVALID_REQUEST,
       "001",
-      "The specified contract class is not allowed to be executed.",
+      "The specified Contract class is not allowed to be executed.",
       "",
-      "Verify the contract binary name and ensure it is listed in the configuration file specified by scalar.dl.ledger.executable_contracts."),
+      "Verify the Contract binary name and ensure it is listed in the configuration file specified by scalar.dl.ledger.executable_contracts."),
   INVALID_AUDITOR_CONFIGURATION(
       StatusCode.INVALID_REQUEST,
       "002",
@@ -100,15 +100,15 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_REGISTRATION_NOT_ALLOWED(
       StatusCode.INVALID_REQUEST,
       "005",
-      "Registering a function via a non-privileged port is not allowed. Use a privileged port or enable %s.",
+      "Registering a Function via a non-privileged port is not allowed. Use a privileged port or enable %s.",
       "",
-      "Use a privileged port for function registration, or enable the appropriate configuration property to allow function registration from non-privileged ports."),
+      "Use a privileged port for Function registration, or enable the appropriate configuration property to allow Function registration from non-privileged ports."),
   FUNCTION_OVERWRITE_NOT_ALLOWED(
       StatusCode.INVALID_REQUEST,
       "006",
-      "Overwriting an existing function is not allowed. Enable %s to allow overwriting.",
+      "Overwriting an existing Function is not allowed. Enable %s to allow overwriting.",
       "",
-      "Enable the function overwrite configuration property to allow overwriting existing functions."),
+      "Enable the Function overwrite configuration property to allow overwriting existing Functions."),
   TRANSACTION_STATE_PURGE_DISABLED(
       StatusCode.INVALID_REQUEST,
       "007",
@@ -132,21 +132,21 @@ public enum LedgerError implements ScalarDlError {
   FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_SPECIFIED_NAMESPACE(
       StatusCode.INVALID_FUNCTION,
       "001",
-      "The function is not allowed to access the specified namespace.",
+      "The Function is not allowed to access the specified namespace.",
       "",
-      "Functions cannot access system namespaces or namespaces with reserved prefixes. Disallowed namespaces: system, system_schema, system_auth, system_distributed, system_traces, coordinator. Disallowed namespace prefixes: scalar, auditor. Use a different namespace for your function operations."),
+      "Functions cannot access system namespaces or namespaces with reserved prefixes. Disallowed namespaces: system, system_schema, system_auth, system_distributed, system_traces, coordinator. Disallowed namespace prefixes: scalar, auditor. Use a different namespace for your Function operations."),
   OPERATION_FAILED_DUE_TO_ILLEGAL_ARGUMENT(
       StatusCode.INVALID_FUNCTION,
       "002",
-      "The database operation in the function failed. Details: %s",
+      "The database operation in the Function failed. Details: %s",
       "",
       "Verify that the arguments passed to the database operation are valid and correct."),
   FUNCTION_IS_NOT_ALLOWED_TO_ACCESS_DIFFERENT_NAMESPACE(
       StatusCode.INVALID_FUNCTION,
       "003",
-      "The function is not allowed to access a namespace that is neither its context namespace nor prefixed by it. Namespace: %s; Context namespace: %s",
+      "The Function is not allowed to access a namespace that is neither its context namespace nor prefixed by it. Namespace: %s; Context namespace: %s",
       "",
-      "A function registered in a non-default namespace can only access the ScalarDB namespace with the same name as its context namespace or a namespace whose name starts with the context namespace followed by an underscore. Specify such a namespace explicitly in the database operation, or register the function in the appropriate namespace."),
+      "A Function registered in a non-default namespace can only access the ScalarDB namespace with the same name as its context namespace or a namespace whose name starts with the context namespace followed by an underscore. Specify such a namespace explicitly in the database operation, or register the Function in the appropriate namespace."),
 
   //
   // Errors for INVALID_ARGUMENT(414)
@@ -224,19 +224,19 @@ public enum LedgerError implements ScalarDlError {
   BINDING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "001",
-      "Binding the function failed. Details: %s",
+      "Binding the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   UNBINDING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "002",
-      "Unbinding the function failed. Details: %s",
+      "Unbinding the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   GETTING_FUNCTION_FAILED(
       StatusCode.DATABASE_ERROR,
       "003",
-      "Getting the function failed. Details: %s",
+      "Getting the Function failed. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   STARTING_TRANSACTION_FAILED(
@@ -284,7 +284,7 @@ public enum LedgerError implements ScalarDlError {
   OPERATION_FAILED_DUE_TO_DATABASE_ERROR(
       StatusCode.DATABASE_ERROR,
       "011",
-      "The database operation in the function failed due to a database error. Details: %s",
+      "The database operation in the Function failed due to a database error. Details: %s",
       "",
       "Check the error details in the logs and verify your database configuration and connection."),
   FINISHING_TRANSACTION_FAILED(
@@ -346,7 +346,7 @@ public enum LedgerError implements ScalarDlError {
   OPERATION_FAILED_DUE_TO_CONFLICT(
       StatusCode.CONFLICT,
       "007",
-      "The database operation in the function failed due to a conflict. Details: %s",
+      "The database operation in the Function failed due to a conflict. Details: %s",
       "",
       "Retry the operation."),
   ;
