@@ -3,7 +3,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.10.3") {
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.10.4") {
             // Jreleaser and Spotless plugins have a conflict on this dependency.
             // Jreleaser requires an older version but Spotless requires a newer version for some
             // feature we are not using.
@@ -45,7 +45,7 @@ subprojects {
     }
 
     ext {
-        grpcVersion = '1.84.0'
+        grpcVersion = '1.84.2'
         protocVersion = '3.25.9'
         picoCliVersion = '4.7.7'
         guiceVersion = '7.0.0'
