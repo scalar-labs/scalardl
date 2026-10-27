@@ -68,3 +68,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  # For Docker, update the hadolint image tag and digest pinned in scripts/docker/hadolint/Dockerfile
+  # That image is used by scripts/docker/lint.sh to lint Dockerfiles
+  - package-ecosystem: "docker"
+    directory: "/scripts/docker/hadolint"
+    schedule:
+      interval: "weekly"
