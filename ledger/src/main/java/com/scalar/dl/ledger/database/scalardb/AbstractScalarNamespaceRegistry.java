@@ -116,11 +116,12 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
 
   @Override
   public void create(String namespace) {
+    Map<String, String> options = config.getNamespaceCreationOptions();
     Retry.decorateRunnable(
             retry,
             () -> {
-              createNamespaceManagementTable();
-              createNamespace(namespace);
+              createNamespaceManagementTable(options);
+              createNamespace(namespace, options);
               addNamespaceEntry(namespace);
             })
         .run();
@@ -137,35 +138,37 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     deleteNamespaceEntry(namespace);
   }
 
-  private void createNamespaceManagementTable() {
+  private void createNamespaceManagementTable(Map<String, String> options) {
     try {
       storageAdmin.createTable(
-          config.getNamespace(), NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+          config.getNamespace(), NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, options);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_TABLE_FAILED, e, e.getMessage());
     }
   }
 
-  private void createNamespace(String namespace) {
+  private void createNamespace(String namespace, Map<String, String> options) {
     try {
       String fullNamespaceName = namespaceResolver.resolve(namespace);
-      storageAdmin.createNamespace(fullNamespaceName, true);
-      createStorageTables(fullNamespaceName);
-      createTransactionTables(fullNamespaceName);
+      storageAdmin.createNamespace(fullNamespaceName, true, options);
+      createStorageTables(fullNamespaceName, options);
+      createTransactionTables(fullNamespaceName, options);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
     }
   }
 
-  private void createStorageTables(String fullNamespaceName) throws ExecutionException {
+  private void createStorageTables(String fullNamespaceName, Map<String, String> options)
+      throws ExecutionException {
     for (Map.Entry<String, TableMetadata> entry : storageTables.entrySet()) {
       String tableName = entry.getKey();
       TableMetadata tableMetadata = entry.getValue();
-      storageAdmin.createTable(fullNamespaceName, tableName, tableMetadata, true);
+      storageAdmin.createTable(fullNamespaceName, tableName, tableMetadata, true, options);
     }
   }
 
-  private void createTransactionTables(String fullNamespaceName) throws ExecutionException {
+  private void createTransactionTables(String fullNamespaceName, Map<String, String> options)
+      throws ExecutionException {
     if (transactionAdmin == null || transactionTables.isEmpty()) {
       return;
     }
@@ -173,7 +176,7 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     for (Map.Entry<String, TableMetadata> entry : transactionTables.entrySet()) {
       String tableName = entry.getKey();
       TableMetadata tableMetadata = entry.getValue();
-      transactionAdmin.createTable(fullNamespaceName, tableName, tableMetadata, true);
+      transactionAdmin.createTable(fullNamespaceName, tableName, tableMetadata, true, options);
     }
   }
 
