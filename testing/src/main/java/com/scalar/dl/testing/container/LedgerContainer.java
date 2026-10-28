@@ -1,5 +1,6 @@
 package com.scalar.dl.testing.container;
 
+import com.google.common.collect.ImmutableMap;
 import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.testing.config.StorageConfig;
 import com.scalar.dl.testing.config.TransactionMode;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.Transferable;
@@ -42,6 +45,7 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
   private String proofPrivateKey;
   private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
   private boolean transactionStatePurgeEnabled = false;
+  private Map<String, String> namespaceCreationOptions = Collections.emptyMap();
 
   public LedgerContainer() {
     this(DEFAULT_IMAGE);
@@ -128,6 +132,18 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
     return this;
   }
 
+  /**
+   * Sets the options passed to ScalarDB when the Ledger creates a namespace, such as {@code
+   * no-scaling} for DynamoDB Local.
+   *
+   * @param options The namespace creation options
+   * @return This container instance
+   */
+  public LedgerContainer withNamespaceCreationOptions(Map<String, String> options) {
+    this.namespaceCreationOptions = ImmutableMap.copyOf(options);
+    return this;
+  }
+
   /** Called before the container starts. Builds and copies the properties file to the container. */
   @Override
   protected void configure() {
@@ -198,6 +214,10 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
       props.setProperty(
           "scalar.dl.ledger.function.non_privileged_port_registration.enabled", "true");
     }
+
+    namespaceCreationOptions.forEach(
+        (key, value) ->
+            props.setProperty("scalar.dl.ledger.namespace.creation_options." + key, value));
 
     return props;
   }
