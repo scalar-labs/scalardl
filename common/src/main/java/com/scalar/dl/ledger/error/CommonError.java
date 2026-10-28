@@ -321,6 +321,12 @@ public enum CommonError implements ScalarDlError {
       "The format of the nonce is invalid. Nonce: %s",
       "",
       "Specify the nonce in the canonical UUID format."),
+  CONFIG_UTILS_NAME_AFTER_PREFIX_REQUIRED(
+      StatusCode.INVALID_ARGUMENT,
+      "023",
+      "The property '%s' must have a name after the prefix '%s'.",
+      "",
+      "Specify the property in the form of '<prefix><name>=<value>'."),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
