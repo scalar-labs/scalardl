@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import javax.annotation.Nullable;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookupFactory;
@@ -142,6 +144,36 @@ public final class ConfigUtils {
       return defaultValue;
     }
     return value.split("\\s*,\\s*");
+  }
+
+  /**
+   * Returns the properties whose names start with the specified prefix as a map. Each key of the
+   * map is the remainder of the property name after the prefix. The values are trimmed and the
+   * placeholders in them are replaced in the same way as {@link #getString(Properties, String,
+   * String)}, and the properties with empty values are excluded.
+   *
+   * @param properties the properties
+   * @param prefix the prefix of the property names
+   * @return an immutable map of the remainders of the property names to their values
+   * @throws IllegalArgumentException if a property name has no remainder after the prefix
+   */
+  public static Map<String, String> getStringMapByPrefix(Properties properties, String prefix) {
+    Map<String, String> map = new TreeMap<>();
+    for (String name : properties.stringPropertyNames()) {
+      if (!name.startsWith(prefix)) {
+        continue;
+      }
+      String key = name.substring(prefix.length()).trim();
+      if (key.isEmpty()) {
+        throw new IllegalArgumentException(
+            CommonError.CONFIG_UTILS_NAME_AFTER_PREFIX_REQUIRED.buildMessage(name, prefix));
+      }
+      String value = getString(properties, name, null);
+      if (value != null) {
+        map.put(key, value);
+      }
+    }
+    return ImmutableMap.copyOf(map);
   }
 
   @Nullable
