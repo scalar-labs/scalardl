@@ -24,6 +24,7 @@ import com.scalar.db.io.Key;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.util.Common;
 import com.scalar.dl.ledger.contract.ContractEntry;
+import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
@@ -242,7 +243,11 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
                     .table(CONTRACT_TABLE)
                     .partitionKey(Key.ofText(ContractEntry.ENTITY_ID, TestCertificates.ENTITY_ID_A))
                     .clusteringKey(
-                        Key.of(ContractEntry.KEY_VERSION, 1, ContractEntry.ID, DONOR_CONTRACT_ID))
+                        Key.of(
+                            ContractEntry.KEY_VERSION,
+                            TestCertificates.KEY_VERSION,
+                            ContractEntry.ID,
+                            DONOR_CONTRACT_ID))
                     .build())
             .orElseThrow(() -> new AssertionError("The donor contract is not registered"));
     Put put =
@@ -251,7 +256,11 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
             .table(CONTRACT_TABLE)
             .partitionKey(Key.ofText(ContractEntry.ENTITY_ID, TestCertificates.ENTITY_ID_A))
             .clusteringKey(
-                Key.of(ContractEntry.KEY_VERSION, 1, ContractEntry.ID, TAMPERED_CONTRACT_ID))
+                Key.of(
+                    ContractEntry.KEY_VERSION,
+                    TestCertificates.KEY_VERSION,
+                    ContractEntry.ID,
+                    TAMPERED_CONTRACT_ID))
             .textValue(ContractEntry.BINARY_NAME, donor.getText(ContractEntry.BINARY_NAME))
             .blobValue(ContractEntry.SIGNATURE, donor.getBlobAsBytes(ContractEntry.SIGNATURE))
             .build();
@@ -263,11 +272,15 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
             .add(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1)
             .build();
 
-    // Act & Assert
+    // Act & Assert: The contract signature check in ContractManager detects the tampering
     assertThatThrownBy(() -> clientServiceA.executeContract(TAMPERED_CONTRACT_ID, argument))
         .isInstanceOfSatisfying(
             ClientException.class,
-            e -> assertThat(e.getStatusCode()).isEqualTo(StatusCode.INVALID_CONTRACT));
+            e -> {
+              assertThat(e.getStatusCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
+              assertThat(e.getMessage())
+                  .startsWith(CommonError.CONTRACT_VALIDATION_FAILED.buildCode());
+            });
   }
 
   @Test
