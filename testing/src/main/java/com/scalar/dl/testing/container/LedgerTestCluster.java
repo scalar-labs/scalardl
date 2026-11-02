@@ -84,6 +84,7 @@ public class LedgerTestCluster extends AbstractTestCluster {
     ledger.withAuthenticationMethod(authenticationMethod);
     ledger.withProofEnabled();
     ledger.withProofPrivateKey(TestCertificates.LEDGER_PRIVATE_KEY);
+    ledger.withNamespaceCreationOptions(getSchemaCreationOptions());
     if (nonPrivilegedPortFunctionRegistrationEnabled) {
       ledger.withNonPrivilegedPortFunctionRegistrationEnabled();
     }

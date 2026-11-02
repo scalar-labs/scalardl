@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -55,6 +56,8 @@ public class LedgerNamespaceRegistryTest {
   private static final String SOME_TABLE_NAME_2 = "some_table_name_2";
   private static final String SOME_TABLE_NAME_3 = "some_table_name_3";
   private static final String SOME_TABLE_NAME_4 = "some_table_name_4";
+  private static final ImmutableMap<String, String> SOME_OPTIONS =
+      ImmutableMap.of("replication-factor", "3", "no-scaling", "true");
   @Mock private LedgerConfig config;
   @Mock private DistributedStorage storage;
   @Mock private DistributedStorageAdmin storageAdmin;
@@ -73,6 +76,7 @@ public class LedgerNamespaceRegistryTest {
   @BeforeEach
   public void setUp() {
     closeable = openMocks(this);
+    when(config.getNamespaceCreationOptions()).thenReturn(SOME_OPTIONS);
     when(transactionManager.getTransactionTables())
         .thenReturn(
             ImmutableMap.of(SOME_TABLE_NAME_1, tableMetadata1, SOME_TABLE_NAME_2, tableMetadata2));
@@ -115,14 +119,53 @@ public class LedgerNamespaceRegistryTest {
     namespaceRegistry.create(SOME_NAMESPACE);
 
     // Assert
-    verify(storageAdmin).createNamespace(fullNamespace, true);
+    verify(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage).put(expectedPut);
+  }
+
+  @Test
+  public void create_NoNamespaceCreationOptionsGiven_ShouldPassEmptyOptions()
+      throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(config.getNamespaceCreationOptions()).thenReturn(Collections.emptyMap());
+
+    // Act
+    namespaceRegistry.create(SOME_NAMESPACE);
+
+    // Assert
+    verify(storageAdmin).createNamespace(fullNamespace, true, Collections.emptyMap());
+    verify(storageAdmin)
+        .createTable(
+            BASE_NAMESPACE,
+            NAMESPACE_TABLE_NAME,
+            NAMESPACE_TABLE_METADATA,
+            true,
+            Collections.emptyMap());
+    verify(transactionAdmin)
+        .createTable(
+            fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, Collections.emptyMap());
+    verify(transactionAdmin)
+        .createTable(
+            fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, Collections.emptyMap());
+    verify(storageAdmin)
+        .createTable(
+            fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, Collections.emptyMap());
+    verify(storageAdmin)
+        .createTable(
+            fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, Collections.emptyMap());
   }
 
   @Test
@@ -145,13 +188,18 @@ public class LedgerNamespaceRegistryTest {
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
         .isInstanceOf(DatabaseException.class)
         .hasMessageContaining(CommonError.NAMESPACE_ALREADY_EXISTS.getMessage());
-    verify(storageAdmin).createNamespace(fullNamespace, true);
+    verify(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage).put(expectedPut);
   }
 
@@ -163,7 +211,8 @@ public class LedgerNamespaceRegistryTest {
     ExecutionException toThrow = new ExecutionException("details");
     doThrow(toThrow)
         .when(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
 
     // Act Assert
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
@@ -171,8 +220,9 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_TABLE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin, never()).createNamespace(any(), anyBoolean());
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin, never()).createNamespace(any(), anyBoolean(), anyMap());
   }
 
   @Test
@@ -182,7 +232,7 @@ public class LedgerNamespaceRegistryTest {
     String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
     when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
     ExecutionException toThrow = new ExecutionException("details");
-    doThrow(toThrow).when(storageAdmin).createNamespace(fullNamespace, true);
+    doThrow(toThrow).when(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
 
     // Act Assert
     assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE))
@@ -190,8 +240,9 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin).createNamespace(fullNamespace, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(storage, never()).get(any(Get.class));
     verify(storage, never()).put(any(Put.class));
   }
@@ -219,12 +270,17 @@ public class LedgerNamespaceRegistryTest {
         .hasCause(toThrow)
         .hasMessageContaining(CommonError.CREATING_NAMESPACE_FAILED.buildMessage("details"));
     verify(storageAdmin)
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin).createNamespace(fullNamespace, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
-    verify(transactionAdmin).createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
-    verify(storageAdmin).createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
+    verify(transactionAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
+    verify(storageAdmin)
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage).put(expectedPut);
   }
 
@@ -251,16 +307,17 @@ public class LedgerNamespaceRegistryTest {
 
     // Assert
     verify(storageAdmin, times(2))
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(transactionAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
     verify(transactionAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
     verify(storageAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
     verify(storageAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage, times(2)).put(expectedPut);
   }
 
@@ -287,16 +344,17 @@ public class LedgerNamespaceRegistryTest {
 
     // Assert
     verify(storageAdmin, times(2))
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin, times(2)).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(transactionAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
     verify(transactionAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
     verify(storageAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
     verify(storageAdmin, times(2))
-        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage, times(2)).put(expectedPut);
   }
 
@@ -322,16 +380,17 @@ public class LedgerNamespaceRegistryTest {
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining(CoreError.TABLE_NOT_FOUND.buildMessage(NAMESPACE_TABLE_NAME));
     verify(storageAdmin, times(5))
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin, times(5)).createNamespace(fullNamespace, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin, times(5)).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(transactionAdmin, times(5))
-        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
     verify(transactionAdmin, times(5))
-        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
     verify(storageAdmin, times(5))
-        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
     verify(storageAdmin, times(5))
-        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage, times(5)).put(expectedPut);
   }
 
@@ -359,16 +418,17 @@ public class LedgerNamespaceRegistryTest {
         .hasMessageContaining("Some other error that should not trigger retry");
     // Should only attempt once (no retry)
     verify(storageAdmin, times(1))
-        .createTable(BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true);
-    verify(storageAdmin, times(1)).createNamespace(fullNamespace, true);
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin, times(1)).createNamespace(fullNamespace, true, SOME_OPTIONS);
     verify(transactionAdmin, times(1))
-        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_1, tableMetadata1, true, SOME_OPTIONS);
     verify(transactionAdmin, times(1))
-        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_2, tableMetadata2, true, SOME_OPTIONS);
     verify(storageAdmin, times(1))
-        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_3, tableMetadata3, true, SOME_OPTIONS);
     verify(storageAdmin, times(1))
-        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true);
+        .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage, times(1)).put(expectedPut);
   }
 

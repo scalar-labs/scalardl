@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.moandjiezana.toml.Toml;
 import com.scalar.db.config.DatabaseConfig;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -74,6 +76,17 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
    * Namespace of ledger tables ("scalar" by default)
    */
   public static final String NAMESPACE = PREFIX + "namespace";
+
+  /**
+   * <code>scalar.dl.ledger.namespace.creation_options.&lt;key&gt;</code> (Optional)<br>
+   * Options passed to ScalarDB when creating a namespace and its tables, such as {@code
+   * replication-factor} for Cassandra and {@code no-scaling} for DynamoDB. The keys are the same as
+   * the option names of ScalarDB Schema Loader, and the keys and values are passed to ScalarDB as
+   * they are. The options take effect only when a namespace is newly created. Note that the prefix
+   * is not related to {@link #NAMESPACE} although it looks nested.
+   */
+  public static final String NAMESPACE_CREATION_OPTIONS_PREFIX =
+      PREFIX + "namespace.creation_options.";
 
   /**
    * <code>scalar.dl.ledger.authentication.method</code> (Optional)<br>
@@ -293,6 +306,7 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   private final Properties props;
   private String name;
   private String namespace;
+  private Map<String, String> namespaceCreationOptions;
   private AuthenticationMethod authenticationMethod;
   private String hmacCipherKey;
   private int port;
@@ -360,6 +374,11 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   @Override
   public String getNamespace() {
     return namespace;
+  }
+
+  @Override
+  public Map<String, String> getNamespaceCreationOptions() {
+    return ImmutableMap.copyOf(namespaceCreationOptions);
   }
 
   public AuthenticationMethod getAuthenticationMethod() {
@@ -487,6 +506,8 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   private void load() {
     name = ConfigUtils.getString(props, NAME, DEFAULT_NAME);
     namespace = ConfigUtils.getString(props, NAMESPACE, DEFAULT_NAMESPACE);
+    namespaceCreationOptions =
+        ConfigUtils.getStringMapByPrefix(props, NAMESPACE_CREATION_OPTIONS_PREFIX);
     authenticationMethod =
         AuthenticationMethod.get(
             Objects.requireNonNull(
@@ -682,6 +703,7 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
     // Credential information (e.g., private keys) is omitted for security reasons.
     return MoreObjects.toStringHelper(this)
         .add(NAME, getName())
+        .add(NAMESPACE_CREATION_OPTIONS_PREFIX, getNamespaceCreationOptions())
         .add(AUTHENTICATION_METHOD, getAuthenticationMethod())
         .add(SERVER_PORT, getPort())
         .add(SERVER_PRIVILEGED_PORT, getPrivilegedPort())

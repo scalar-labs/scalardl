@@ -3,6 +3,7 @@ package com.scalar.dl.ledger.config;
 import static com.github.stefanbirkner.systemlambda.SystemLambda.withEnvironmentVariable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -128,6 +130,64 @@ public class ConfigUtilsTest {
 
     // Act Assert
     assertThat(ConfigUtils.getStringFromFilePath(properties, "name1", null)).isEqualTo("value");
+  }
+
+  @Test
+  public void getStringMapByPrefix_ShouldBehaveCorrectly() {
+    // Arrange
+    Properties properties = new Properties();
+    properties.setProperty("prefix.name1", "value1");
+    properties.setProperty("prefix.name-2", "   value2     ");
+    properties.setProperty("prefix.name3", "");
+    properties.setProperty("prefix", "value4");
+    properties.setProperty("other.name5", "value5");
+
+    // Act
+    Map<String, String> map = ConfigUtils.getStringMapByPrefix(properties, "prefix.");
+
+    // Assert
+    assertThat(map).containsOnly(entry("name1", "value1"), entry("name-2", "value2"));
+  }
+
+  @Test
+  public void getStringMapByPrefix_NoMatchingPropertiesGiven_ShouldReturnEmptyMap() {
+    // Arrange
+    Properties properties = new Properties();
+    properties.setProperty("other.name1", "value1");
+
+    // Act
+    Map<String, String> map = ConfigUtils.getStringMapByPrefix(properties, "prefix.");
+
+    // Assert
+    assertThat(map).isEmpty();
+  }
+
+  @Test
+  public void getStringMapByPrefix_PlaceholderGiven_ShouldReplaceIt() throws Exception {
+    // Arrange
+    Properties properties = new Properties();
+    properties.setProperty("prefix.name1", "${env:AAA}");
+    properties.setProperty("prefix.name2", "${env:CCC:-}");
+
+    // Act Assert
+    withEnvironmentVariable("AAA", "env var1")
+        .execute(
+            () ->
+                assertThat(ConfigUtils.getStringMapByPrefix(properties, "prefix."))
+                    .containsOnly(entry("name1", "env var1")));
+  }
+
+  @Test
+  public void getStringMapByPrefix_NameWithoutRemainderGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    Properties properties = new Properties();
+    properties.setProperty("prefix.name1", "value1");
+    properties.setProperty("prefix. ", "value2");
+
+    // Act Assert
+    assertThatThrownBy(() -> ConfigUtils.getStringMapByPrefix(properties, "prefix."))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("prefix. ");
   }
 
   @Test

@@ -2,6 +2,7 @@ package com.scalar.dl.ledger.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.entry;
 
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.transaction.consensuscommit.ConsensusCommitConfig;
@@ -44,6 +45,7 @@ public class LedgerConfigTest {
     assertThat(config.getServiceName()).isEqualTo(LedgerConfig.SERVICE_NAME);
     assertThat(config.getName()).isEqualTo(LedgerConfig.DEFAULT_NAME);
     assertThat(config.getNamespace()).isEqualTo(LedgerConfig.DEFAULT_NAMESPACE);
+    assertThat(config.getNamespaceCreationOptions()).isEmpty();
     assertThat(config.getAuthenticationMethod())
         .isEqualTo(LedgerConfig.DEFAULT_AUTHENTICATION_METHOD);
     assertThat(config.getPort()).isEqualTo(LedgerConfig.DEFAULT_PORT);
@@ -70,6 +72,48 @@ public class LedgerConfigTest {
         .isEqualTo(LedgerConfig.DEFAULT_DIRECT_ASSET_ACCESS_ENABLED);
     assertThat(config.isTxStateManagementEnabled())
         .isEqualTo(LedgerConfig.DEFAULT_TX_STATE_MANAGEMENT_ENABLED);
+  }
+
+  @Test
+  public void getNamespaceCreationOptions_PropertiesGiven_ShouldReturnSpecified() {
+    // Arrange
+    props.setProperty(LedgerConfig.NAMESPACE, "ns");
+    props.setProperty(LedgerConfig.NAMESPACE_CREATION_OPTIONS_PREFIX + "replication-factor", "3");
+    props.setProperty(LedgerConfig.NAMESPACE_CREATION_OPTIONS_PREFIX + "no-scaling", "true");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.getNamespaceCreationOptions())
+        .containsOnly(entry("replication-factor", "3"), entry("no-scaling", "true"));
+    assertThat(config.toString()).contains("replication-factor=3", "no-scaling=true");
+  }
+
+  @Test
+  public void getNamespaceCreationOptions_Modified_ShouldThrowUnsupportedOperationException() {
+    // Arrange
+    props.setProperty(LedgerConfig.NAMESPACE_CREATION_OPTIONS_PREFIX + "replication-factor", "3");
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Act
+    Throwable thrown = catchThrowable(() -> config.getNamespaceCreationOptions().put("ru", "400"));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  @Test
+  public void
+      constructor_NamespaceCreationOptionWithoutKeyGiven_ShouldThrowIllegalArgumentException() {
+    // Arrange
+    props.setProperty(LedgerConfig.NAMESPACE_CREATION_OPTIONS_PREFIX, "3");
+
+    // Act
+    Throwable thrown = catchThrowable(() -> new LedgerConfig(props));
+
+    // Assert
+    assertThat(thrown).isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
