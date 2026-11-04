@@ -28,7 +28,10 @@ jobs:
     with:
       target-ref: ${{ inputs.target-ref }}
       find-latest-release: ${{ inputs.find-latest-release }}
-      images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
+      images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Ledger (UBI)", "scalardl-ledger-ubi"], ["ScalarDL Client", "scalardl-client"], ["ScalarDL Schema Loader", "scalardl-schema-loader"]]'
+      docker-build-command: |
+        ./gradlew docker
+        ./gradlew :ledger:docker -Pubi
       java-versions: ${{ inputs.java-versions }}
     secrets:
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
