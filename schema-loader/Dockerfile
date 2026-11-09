@@ -13,22 +13,22 @@ RUN set -x && \
 
 FROM ghcr.io/scalar-labs/scalardb-schema-loader:$SCALARDB_VERSION
 
-COPY --from=tools dockerize /usr/local/bin/
+COPY --chown=0:0 --from=tools dockerize /usr/local/bin/
 
-# Creating a directory and setting an owner explicitly instead of using WORKDIR to create a directory is recommended way in Dockerfile
+# Creating a directory explicitly instead of using WORKDIR to create a directory is recommended way in Dockerfile
 # https://github.com/moby/moby/issues/36677
-USER root
-RUN mkdir /scalardl-schema-loader && chown 201:201 /scalardl-schema-loader
+USER 0
+RUN mkdir /scalardl-schema-loader
 
-USER 201
+USER 201:201
 WORKDIR /scalardl-schema-loader
 
 # 'ledger' and 'auditor' can be specified
 ENV SCHEMA_TYPE 'ledger'
 
-COPY --chown=201:201 ledger-schema.json .
-COPY --chown=201:201 auditor-schema.json .
-COPY --chown=201:201 entrypoint.sh .
-COPY --chown=201:201 database.properties.tmpl .
+COPY ledger-schema.json .
+COPY auditor-schema.json .
+COPY entrypoint.sh .
+COPY database.properties.tmpl .
 
 ENTRYPOINT ["./entrypoint.sh"]
