@@ -1,7 +1,6 @@
 FROM docker.io/busybox:1.36 AS tools
 
 ENV DOCKERIZE_VERSION=v0.6.1
-ENV GRPC_HEALTH_PROBE_VERSION=v0.4.61
 
 # Install dockerize
 RUN set -x && \
@@ -9,43 +8,44 @@ RUN set -x && \
     tar -xzvf "dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz" && \
     ./dockerize --version
 
-# Install grpc_health_probe for kubernetes.
-# https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
-RUN set -x && \
-    wget -q -O grpc_health_probe "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" && \
-    chmod +x grpc_health_probe
+# You can see sha256 hash in the following page:
+# - https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1792742351@sha256:ab67cd02caf8706e34a695a1432ebe965934f6128ec352a6c3f4048b43a4fb5e
 
-# hadolint ignore=DL3007
-FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
-
-# hadolint ignore=DL3041
 RUN microdnf update -y \
- && microdnf install java-21-openjdk-headless shadow-utils --setopt install_weak_deps=0 --nodocs -y \
+ && microdnf install java-21-openjdk-headless-21.0.13.0.9-1.2.el10 shadow-utils-4.15.0-11.el10 --setopt=install_weak_deps=0 --nodocs -y \
  && groupadd -r --gid 201 scalar \
- && useradd -r --uid 201 -g scalar scalar \
+ && useradd -r --uid 201 -g scalar -s /usr/sbin/nologin scalar \
  && microdnf remove shadow-utils -y \
  && microdnf clean all \
  && rm -rf /var/cache/yum
 
-COPY --from=tools \
-     dockerize \
-     grpc_health_probe \
-     /usr/local/bin/
+COPY --chown=0:0 --from=tools dockerize /usr/local/bin/
+
+# Install grpc_health_probe for kubernetes:
+# - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
+# You can confirm the checksum value in "checksums.txt" in:
+# - https://github.com/grpc-ecosystem/grpc-health-probe/releases
+ARG GRPC_HEALTH_PROBE_VERSION=v0.4.61
+ARG GRPC_HEALTH_PROBE_SHA256=3746f63e89561616ce69eafdc9b46f8b23b47db3a564f6f2e8c31359a60e2f38
+ADD --chmod=755 \
+    --checksum=sha256:${GRPC_HEALTH_PROBE_SHA256} \
+    "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" \
+    /usr/local/bin/grpc_health_probe
 
 WORKDIR /scalar
 
 # The path should be relative from build/docker. The Gradle task
 # copyFilesToDockerBuildContextDir copies this Dockerfile and ledger.tar to
 # build/docker before building the image.
-ADD --chown=201:201 ./ledger.tar .
+ADD ./ledger.tar .
 
-COPY --chown=201:201 \
-     ledger.properties.tmpl \
+COPY ledger.properties.tmpl \
      log4j2.properties.tmpl \
      docker-entrypoint.sh \
      ./ledger/
 
-USER 201
+USER 201:201
 
 ENV JAVA_OPT_MAX_RAM_PERCENTAGE='60.0' \
     JAVA_OPTS='-Dlog4j.configurationFile=file:/tmp/log4j2.properties'
