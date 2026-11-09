@@ -1,12 +1,17 @@
-FROM docker.io/busybox:1.36 AS tools
-
-ENV DOCKERIZE_VERSION v0.6.1
+# You can see sha256 hash in the following page:
+# - https://hub.docker.com/_/busybox/tags
+FROM docker.io/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 AS tools
 
 # Install dockerize
-RUN set -x && \
-    wget -q "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz" && \
-    tar -xzvf "dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz" && \
-    ./dockerize --version
+# You can confirm the checksum value in "checksums.txt" in:
+# - https://github.com/jwilder/dockerize/releases
+ARG DOCKERIZE_VERSION=v0.16.0
+ARG DOCKERIZE_SHA256=1c6d8cf10cfd764fbb58f4600b477bd4f90d65b5505fca2e3474f3176756f434
+ADD --checksum=sha256:${DOCKERIZE_SHA256} \
+    "https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-linux-amd64-${DOCKERIZE_VERSION}.tar.gz" \
+    /tmp/dockerize.tar.gz
+RUN tar -xzf /tmp/dockerize.tar.gz dockerize \
+ && ./dockerize --version
 
 # You can see sha256 hash in the following page:
 # - https://hub.docker.com/_/eclipse-temurin/tags
