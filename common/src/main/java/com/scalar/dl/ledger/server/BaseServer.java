@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import com.scalar.dl.ledger.config.ServerConfig;
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerServiceDefinition;
 import io.grpc.netty.shaded.io.netty.handler.ssl.OpenSsl;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.File;
@@ -57,9 +58,13 @@ public class BaseServer {
    * users who are authorized to call the service.
    */
   public void startPrivileged(Class<? extends BindableService> clazz) throws IOException {
+    ServerServiceDefinition service = injector.getInstance(clazz).bindService();
     ServerBuilder<?> builder =
         ServerBuilder.forPort(config.getPrivilegedPort())
-            .addService(injector.getInstance(clazz))
+            .addService(service)
+            // Keep serving the RPCs that were renamed in the proto under their former names for
+            // clients built with the former proto
+            .fallbackHandlerRegistry(new LegacyMethodNameRegistry(service))
             .addService(privilegedServerHealthService)
             .addService(ProtoReflectionService.newInstance());
 
