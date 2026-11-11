@@ -38,11 +38,11 @@ service LedgerPrivileged {
     }
     rpc RetrieveState (StateRetrievalRequest) returns (StateRetrievalResponse) {
     }
-    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    rpc CreateNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
-    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    rpc DropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
     }
-    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    rpc ListNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
     }
 }
 
@@ -62,11 +62,11 @@ service AuditorPrivileged {
     }
     rpc RegisterSecret (SecretRegistrationRequest) returns (google.protobuf.Empty) {
     }
-    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    rpc CreateNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
-    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    rpc DropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
     }
-    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    rpc ListNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
     }
     rpc RecoverAssetLock (AssetLockRecoveryRequest) returns (AssetLockRecoveryResponse) {
     }
@@ -94,11 +94,11 @@ service GatewayPrivileged {
     }
     rpc RegisterFunction (FunctionRegistrationRequest) returns (google.protobuf.Empty) {
     }
-    rpc createNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
+    rpc CreateNamespace (NamespaceCreationRequest) returns (google.protobuf.Empty) {
     }
-    rpc dropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
+    rpc DropNamespace (NamespaceDroppingRequest) returns (google.protobuf.Empty) {
     }
-    rpc listNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
+    rpc ListNamespaces (NamespacesListingRequest) returns (NamespacesListingResponse) {
     }
     rpc PurgeTransactionStates (TransactionStatePurgeRequest) returns (TransactionStatePurgeResponse) {
     }
