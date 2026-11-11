@@ -5,8 +5,8 @@ plugins {
 
 dependencies {
     api project(':rpc')
-    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: "${bouncyCastleCryptoVersion}"
-    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: "${bouncyCastleCryptoVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk18on', version: "${bouncyCastleCryptoVersion}"
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: "${bouncyCastleCryptoVersion}"
     implementation group: 'io.dropwizard.metrics', name: 'metrics-core', version: "${dropwizardMetricsVersion}"
     implementation group: 'io.dropwizard.metrics', name: 'metrics-jmx', version: "${dropwizardMetricsVersion}"
     implementation group: 'io.prometheus', name: 'simpleclient_dropwizard', version: "${prometheusVersion}"
