@@ -77,7 +77,7 @@ public abstract class LedgerOnlyNamespaceIntegrationTestBase
               e ->
                   assertThat(((ClientException) e).getStatusCode())
                       .isEqualTo(StatusCode.INVALID_ARGUMENT));
-      assertThat(clientServiceA.listNamespaces(NAMESPACE_3)).doesNotContain(NAMESPACE_3);
+      assertThat(namespaceEntryExists(NAMESPACE_3)).isFalse();
       assertThat(storageAdmin.namespaceExists(resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_3)))
           .isFalse();
 
