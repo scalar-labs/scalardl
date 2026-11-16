@@ -32,11 +32,9 @@ import com.scalar.db.api.Result;
 import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.db.service.StorageFactory;
-import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.client.service.ClientService;
 import com.scalar.dl.client.util.Common;
-import com.scalar.dl.ledger.config.AuthenticationMethod;
 import com.scalar.dl.ledger.contract.ContractEntry;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
@@ -44,10 +42,8 @@ import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
 import com.scalar.dl.testing.contract.Noop;
 import com.scalar.dl.testing.util.TestCertificates;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -191,41 +187,6 @@ public abstract class LedgerOnlyNamespaceIntegrationTestBase
     } finally {
       clientServiceA.dropNamespace(NAMESPACE_3);
     }
-  }
-
-  /**
-   * Registers the credential of the entity A in the specified namespace and creates a client of the
-   * entity whose context namespace is the namespace.
-   */
-  private ClientService createClientServiceAFor(String namespace) throws IOException {
-    Properties props = new Properties();
-    props.setProperty(ClientConfig.SERVER_HOST, "localhost");
-    props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
-    props.setProperty(
-        ClientConfig.SERVER_PRIVILEGED_PORT,
-        String.valueOf(cluster.getLedger().getPrivilegedPort()));
-    props.setProperty(ClientConfig.AUTHENTICATION_METHOD, getAuthenticationMethod().getMethod());
-    props.setProperty(ClientConfig.ENTITY_ID, TestCertificates.ENTITY_ID_A);
-    props.setProperty(ClientConfig.CONTEXT_NAMESPACE, namespace);
-    if (getAuthenticationMethod() == AuthenticationMethod.DIGITAL_SIGNATURE) {
-      clientServiceA.registerCertificate(
-          namespace,
-          TestCertificates.ENTITY_ID_A,
-          TestCertificates.KEY_VERSION,
-          TestCertificates.CERTIFICATE_A);
-      props.setProperty(ClientConfig.DS_PRIVATE_KEY_PEM, TestCertificates.PRIVATE_KEY_A);
-      props.setProperty(ClientConfig.DS_CERT_PEM, TestCertificates.CERTIFICATE_A);
-      props.setProperty(ClientConfig.DS_CERT_VERSION, "1");
-    } else {
-      clientServiceA.registerSecret(
-          namespace,
-          TestCertificates.ENTITY_ID_A,
-          TestCertificates.KEY_VERSION,
-          TestCertificates.SECRET_KEY_A);
-      props.setProperty(ClientConfig.HMAC_SECRET_KEY, TestCertificates.SECRET_KEY_A);
-      props.setProperty(ClientConfig.HMAC_SECRET_KEY_VERSION, "1");
-    }
-    return clientServiceFactory.create(new ClientConfig(props));
   }
 
   /** Copies a record in the default namespace to the specified namespace as it is. */
