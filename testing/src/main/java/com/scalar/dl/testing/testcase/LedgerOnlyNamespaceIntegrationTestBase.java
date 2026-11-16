@@ -10,6 +10,8 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_INPUT_COLUMN_NA
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_PREV_HASH_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_CLASS_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_DEFAULT_PARTITION_ID;
 import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_IMPORTED_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_NAME_COLUMN_NAME;
@@ -23,16 +25,32 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.Get;
+import com.scalar.db.api.GetBuilder;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.PutBuilder;
+import com.scalar.db.api.Result;
 import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.db.service.StorageFactory;
+import com.scalar.dl.client.config.ClientConfig;
 import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.service.ClientService;
+import com.scalar.dl.client.util.Common;
+import com.scalar.dl.ledger.config.AuthenticationMethod;
+import com.scalar.dl.ledger.contract.ContractEntry;
+import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
+import com.scalar.dl.testing.contract.Noop;
+import com.scalar.dl.testing.util.TestCertificates;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
+import javax.annotation.Nullable;
 import javax.json.Json;
 import javax.json.JsonObject;
 import org.junit.jupiter.api.MethodOrderer;
@@ -109,6 +127,131 @@ public abstract class LedgerOnlyNamespaceIntegrationTestBase
     } finally {
       freshStorage.close();
     }
+  }
+
+  // ============ Migrated Contract Tests (Ledger-only) ============
+
+  /**
+   * A contract registered in the default namespace and then copied to another namespace as it is
+   * has a signature created for the default namespace. Ledger validates such a contract as the one
+   * for the default namespace only when the Auditor is enabled, so it is rejected in the
+   * Ledger-only configuration even in a namespace created for import.
+   */
+  @Test
+  void
+      executeContract_ContractMigratedToImportedNamespaceGiven_ShouldThrowClientExceptionWithInvalidContract()
+          throws Exception {
+    // Arrange
+    String migratedContractId = "Migrated-" + UUID.randomUUID();
+    String registeredContractId = "Registered-" + UUID.randomUUID();
+    clientServiceA.registerContract(
+        migratedContractId, Noop.class.getName(), Common.getClassBytes(Noop.class));
+    clientServiceA.createNamespace(NAMESPACE_3, true);
+
+    try {
+      // The namespace is marked as imported, so the rejection below is due to the configuration
+      assertThat(getNamespaceEntry(SCALAR_NAMESPACE, NAMESPACE_3))
+          .hasValueSatisfying(
+              entry -> assertThat(entry.getBoolean(NAMESPACE_IMPORTED_COLUMN_NAME)).isTrue());
+
+      // The credential is migrated along with the contracts, so the same credential is used.
+      ClientService namespaceClientServiceA = createClientServiceAFor(NAMESPACE_3);
+      String physicalNamespace = resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_3);
+      Result contract =
+          copyRecord(
+              physicalNamespace,
+              CONTRACT_TABLE,
+              Key.ofText(ContractEntry.ENTITY_ID, TestCertificates.ENTITY_ID_A),
+              Key.of(
+                  ContractEntry.KEY_VERSION,
+                  TestCertificates.KEY_VERSION,
+                  ContractEntry.ID,
+                  migratedContractId));
+      copyRecord(
+          physicalNamespace,
+          CONTRACT_CLASS_TABLE,
+          Key.ofText(ContractEntry.BINARY_NAME, contract.getText(ContractEntry.BINARY_NAME)),
+          null);
+
+      // Act & Assert
+      assertThatThrownBy(
+              () ->
+                  namespaceClientServiceA.executeContract(
+                      migratedContractId, mapper.createObjectNode()))
+          .isInstanceOfSatisfying(
+              ClientException.class,
+              e -> assertThat(e.getStatusCode()).isEqualTo(StatusCode.INVALID_CONTRACT));
+
+      // Control case: the same contract registered in the namespace can be executed
+      namespaceClientServiceA.registerContract(
+          registeredContractId, Noop.class.getName(), Common.getClassBytes(Noop.class));
+      ContractExecutionResult result =
+          namespaceClientServiceA.executeContract(registeredContractId, mapper.createObjectNode());
+      assertThat(result.getContractResult()).isNotPresent();
+    } finally {
+      clientServiceA.dropNamespace(NAMESPACE_3);
+    }
+  }
+
+  /**
+   * Registers the credential of the entity A in the specified namespace and creates a client of the
+   * entity whose context namespace is the namespace.
+   */
+  private ClientService createClientServiceAFor(String namespace) throws IOException {
+    Properties props = new Properties();
+    props.setProperty(ClientConfig.SERVER_HOST, "localhost");
+    props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
+    props.setProperty(
+        ClientConfig.SERVER_PRIVILEGED_PORT,
+        String.valueOf(cluster.getLedger().getPrivilegedPort()));
+    props.setProperty(ClientConfig.AUTHENTICATION_METHOD, getAuthenticationMethod().getMethod());
+    props.setProperty(ClientConfig.ENTITY_ID, TestCertificates.ENTITY_ID_A);
+    props.setProperty(ClientConfig.CONTEXT_NAMESPACE, namespace);
+    if (getAuthenticationMethod() == AuthenticationMethod.DIGITAL_SIGNATURE) {
+      clientServiceA.registerCertificate(
+          namespace,
+          TestCertificates.ENTITY_ID_A,
+          TestCertificates.KEY_VERSION,
+          TestCertificates.CERTIFICATE_A);
+      props.setProperty(ClientConfig.DS_PRIVATE_KEY_PEM, TestCertificates.PRIVATE_KEY_A);
+      props.setProperty(ClientConfig.DS_CERT_PEM, TestCertificates.CERTIFICATE_A);
+      props.setProperty(ClientConfig.DS_CERT_VERSION, "1");
+    } else {
+      clientServiceA.registerSecret(
+          namespace,
+          TestCertificates.ENTITY_ID_A,
+          TestCertificates.KEY_VERSION,
+          TestCertificates.SECRET_KEY_A);
+      props.setProperty(ClientConfig.HMAC_SECRET_KEY, TestCertificates.SECRET_KEY_A);
+      props.setProperty(ClientConfig.HMAC_SECRET_KEY_VERSION, "1");
+    }
+    return clientServiceFactory.create(new ClientConfig(props));
+  }
+
+  /** Copies a record in the default namespace to the specified namespace as it is. */
+  private Result copyRecord(
+      String destinationNamespace, String table, Key partitionKey, @Nullable Key clusteringKey)
+      throws Exception {
+    GetBuilder.BuildableGet get =
+        Get.newBuilder().namespace(SCALAR_NAMESPACE).table(table).partitionKey(partitionKey);
+    PutBuilder.Buildable put =
+        Put.newBuilder().namespace(destinationNamespace).table(table).partitionKey(partitionKey);
+    Set<String> keyColumnNames = new HashSet<>();
+    partitionKey.getColumns().forEach(c -> keyColumnNames.add(c.getName()));
+    if (clusteringKey != null) {
+      get.clusteringKey(clusteringKey);
+      put.clusteringKey(clusteringKey);
+      clusteringKey.getColumns().forEach(c -> keyColumnNames.add(c.getName()));
+    }
+    Result record =
+        storage
+            .get(get.build())
+            .orElseThrow(() -> new AssertionError("The record to copy does not exist"));
+    record.getColumns().values().stream()
+        .filter(c -> !keyColumnNames.contains(c.getName()))
+        .forEach(put::value);
+    storage.put(put.build());
+    return record;
   }
 
   // ============ Tamper Detection Tests (Ledger-only) ============

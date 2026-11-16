@@ -7,10 +7,10 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 
 /**
- * Runs a ScalarDB CRUD operation in a privileged block, so that a contract's restricted {@code
- * ProtectionDomain} on the current stack is excluded from JVM-level permission checks (properties,
- * ServiceLoader, sockets) performed by the underlying database driver and connection pool during
- * connection setup.
+ * Runs a ScalarDB CRUD operation, or a read-only lookup of the storage metadata that precedes it,
+ * in a privileged block, so that a contract's restricted {@code ProtectionDomain} on the current
+ * stack is excluded from JVM-level permission checks (properties, ServiceLoader, sockets) performed
+ * by the underlying database driver and connection pool during connection setup.
  *
  * <p>Without this, a database access issued from within a contract (or a function) fails under the
  * SecurityManager whenever it needs to establish a new physical connection (e.g., after a
@@ -19,22 +19,24 @@ import java.security.PrivilegedExceptionAction;
  * the stack. Wrapping only the ScalarDB call in a privileged block cuts the permission-check stack
  * walk at the framework frame while the contract code itself remains restricted.
  *
- * <p>Only ScalarDB CRUD operations may be passed here — never contract-derived code or callbacks.
- * The functional interfaces below are intentionally narrow (tied to ScalarDB's exception
- * signatures) so contract lambdas cannot be smuggled in. Also, keep the construction of operation
- * objects (e.g., {@code Get}, {@code Scan}) and the exception translation outside the privileged
- * block so that contract-derived data is not processed on a privileged frame.
+ * <p>Only ScalarDB CRUD operations and such read-only lookups may be passed here — never
+ * contract-derived code or callbacks. The functional interfaces below are intentionally narrow
+ * (tied to ScalarDB's exception signatures) so contract lambdas cannot be smuggled in. Also, keep
+ * the construction of operation objects (e.g., {@code Get}, {@code Scan}) and the exception
+ * translation outside the privileged block so that contract-derived data is not processed on a
+ * privileged frame.
  *
  * <p>Every ScalarDB call that is synchronously reachable from {@code Contract.invoke()} or {@code
  * Function.invoke()} must go through here. That includes the obvious direct reads and writes on the
  * ledger, and also the less obvious reads that fire on cache miss during nested contract invocation
- * (looking up the callee contract, its signing certificate, or its HMAC secret) and the read that
- * fires on every function invocation (since {@code FunctionManager} has no cache). Framework paths
- * where no contract or function is on the stack (registration, execution-path commit/abort,
- * recovery, background workers) do not need wrapping. The one exception is the commit in {@code
- * TransactionAssetScanner}, which the validation path runs from within {@code contract.invoke()}:
- * it is left unwrapped because it immediately follows a privileged scan on the same connection
- * pool.
+ * (looking up the callee contract, its signing certificate, or its HMAC secret, and checking
+ * whether its namespace is marked as imported when its signature has to be validated as the one for
+ * the default namespace) and the read that fires on every function invocation (since {@code
+ * FunctionManager} has no cache). Framework paths where no contract or function is on the stack
+ * (registration, execution-path commit/abort, recovery, background workers) do not need wrapping.
+ * The one exception is the commit in {@code TransactionAssetScanner}, which the validation path
+ * runs from within {@code contract.invoke()}: it is left unwrapped because it immediately follows a
+ * privileged scan on the same connection pool.
  */
 public final class Privileged {
   private Privileged() {}
@@ -46,10 +48,11 @@ public final class Privileged {
   }
 
   /**
-   * A CRUD operation on a {@code DistributedStorage}. When scanning, wrap the {@code scan} and each
-   * fetch from the lazy {@code Scanner} separately instead of wrapping the whole iteration, so that
-   * the processing of the fetched records stays outside the privileged blocks while still fetching
-   * them one at a time.
+   * A CRUD operation on a {@code DistributedStorage}. A read-only lookup of the storage metadata on
+   * a {@code DistributedStorageAdmin} (e.g., {@code tableExists}) that precedes such an operation
+   * can also be passed. When scanning, wrap the {@code scan} and each fetch from the lazy {@code
+   * Scanner} separately instead of wrapping the whole iteration, so that the processing of the
+   * fetched records stays outside the privileged blocks while still fetching them one at a time.
    *
    * <p>This per-fetch style is specific to the privileged call sites; the others still iterate a
    * {@code Scanner} as an {@code Iterable}. The two also differ in how a failure in the middle of a
