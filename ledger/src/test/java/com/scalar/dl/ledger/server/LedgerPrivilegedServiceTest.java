@@ -127,6 +127,23 @@ public class LedgerPrivilegedServiceTest {
   }
 
   @Test
+  public void createNamespace_NamespaceCreationRequestWithImportedGiven_ShouldCallCreate() {
+    // Arrange
+    String namespace = "test_namespace";
+    NamespaceCreationRequest request =
+        NamespaceCreationRequest.newBuilder().setNamespace(namespace).setImported(true).build();
+    StreamObserver<Empty> observer = mock(StreamObserver.class);
+
+    // Act
+    grpc.createNamespace(request, observer);
+
+    // Assert
+    com.scalar.dl.ledger.model.NamespaceCreationRequest expected =
+        new com.scalar.dl.ledger.model.NamespaceCreationRequest(namespace, true);
+    verify(ledger).create(expected);
+  }
+
+  @Test
   public void dropNamespace_NamespaceDroppingRequestGiven_ShouldCallDrop() {
     // Arrange
     String namespace = "test_namespace";

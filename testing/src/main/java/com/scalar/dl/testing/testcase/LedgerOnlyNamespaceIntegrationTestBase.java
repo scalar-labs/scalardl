@@ -10,13 +10,24 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_INPUT_COLUMN_NA
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_PREV_HASH_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_DEFAULT_PARTITION_ID;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_IMPORTED_COLUMN_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_NAME_COLUMN_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_PARTITION_ID_COLUMN_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.resolveNamespace;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.scalar.db.api.Delete;
+import com.scalar.db.api.DistributedStorage;
+import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
+import com.scalar.db.service.StorageFactory;
+import com.scalar.dl.client.exception.ClientException;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
@@ -24,7 +35,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * Base class for Ledger-only Namespace integration tests.
@@ -36,8 +50,66 @@ import org.junit.jupiter.api.Test;
  * <p>These tests are NOT applicable to Auditor configurations because Auditor uses Byzantine Fault
  * Detection which has different validation semantics.
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class LedgerOnlyNamespaceIntegrationTestBase
     extends LedgerNamespaceIntegrationTestBase {
+
+  // ============ Namespace Management Tests (Ledger-only) ============
+
+  /**
+   * Runs last because it changes the schema of the namespace table. Ledger caches the table
+   * metadata, so a test that creates an imported namespace could be rejected for a while if it ran
+   * after the imported column is added back.
+   */
+  @Test
+  @Order(Integer.MAX_VALUE)
+  void createNamespace_NamespaceTableWithoutImportedColumnGiven_ShouldCreateOnlyRegularNamespace()
+      throws Exception {
+    // Arrange: make the namespace table the same as the one created with an older schema
+    storageAdmin.dropColumnFromTable(
+        SCALAR_NAMESPACE, NAMESPACE_TABLE, NAMESPACE_IMPORTED_COLUMN_NAME);
+
+    try {
+      // Act & Assert: creating an imported namespace is rejected without creating anything
+      assertThatThrownBy(() -> clientServiceA.createNamespace(NAMESPACE_3, true))
+          .isInstanceOf(ClientException.class)
+          .satisfies(
+              e ->
+                  assertThat(((ClientException) e).getStatusCode())
+                      .isEqualTo(StatusCode.INVALID_ARGUMENT));
+      assertThat(clientServiceA.listNamespaces(NAMESPACE_3)).doesNotContain(NAMESPACE_3);
+      assertThat(storageAdmin.namespaceExists(resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_3)))
+          .isFalse();
+
+      // Act & Assert: creating a regular namespace still works
+      clientServiceA.createNamespace(NAMESPACE_3);
+      assertThat(namespaceEntryExists(NAMESPACE_3)).isTrue();
+      clientServiceA.dropNamespace(NAMESPACE_3);
+    } finally {
+      storageAdmin.addNewColumnToTable(
+          SCALAR_NAMESPACE, NAMESPACE_TABLE, NAMESPACE_IMPORTED_COLUMN_NAME, DataType.BOOLEAN);
+    }
+  }
+
+  private boolean namespaceEntryExists(String namespace) throws Exception {
+    // Use a new storage instance because the shared one caches the table metadata that has the
+    // imported column, with which reading a record fails after the column is dropped.
+    DistributedStorage freshStorage =
+        StorageFactory.create(cluster.getStorageConfig().getPropertiesForHost()).getStorage();
+    try {
+      Get get =
+          Get.newBuilder()
+              .namespace(SCALAR_NAMESPACE)
+              .table(NAMESPACE_TABLE)
+              .partitionKey(
+                  Key.ofInt(NAMESPACE_PARTITION_ID_COLUMN_NAME, NAMESPACE_DEFAULT_PARTITION_ID))
+              .clusteringKey(Key.ofText(NAMESPACE_NAME_COLUMN_NAME, namespace))
+              .build();
+      return freshStorage.get(get).isPresent();
+    } finally {
+      freshStorage.close();
+    }
+  }
 
   // ============ Tamper Detection Tests (Ledger-only) ============
 

@@ -1026,6 +1026,24 @@ public class ClientServiceTest {
   }
 
   @Test
+  public void createNamespace_ImportedGiven_ShouldCreateNamespaceWithImported() {
+    // Arrange
+    when(config.getClientMode()).thenReturn(ClientMode.CLIENT);
+    String namespace = "test_namespace";
+
+    // Act
+    service.createNamespace(namespace, true);
+
+    // Assert
+    com.scalar.dl.rpc.NamespaceCreationRequest expected =
+        com.scalar.dl.rpc.NamespaceCreationRequest.newBuilder()
+            .setNamespace(namespace)
+            .setImported(true)
+            .build();
+    verify(handler).createNamespace(expected);
+  }
+
+  @Test
   public void createNamespace_NullNamespaceGiven_ShouldThrowIllegalArgumentException() {
     // Arrange
     when(config.getClientMode()).thenReturn(ClientMode.CLIENT);

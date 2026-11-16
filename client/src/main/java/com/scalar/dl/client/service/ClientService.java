@@ -1125,11 +1125,25 @@ public class ClientService implements AutoCloseable {
    * @throws ClientException if a request fails for some reason
    */
   public void createNamespace(String namespace) {
+    createNamespace(namespace, false);
+  }
+
+  /**
+   * Creates the specified namespace. If {@code imported} is true, the namespace is marked as the
+   * one created to hold data imported from another ScalarDL deployment. Other than the mark, the
+   * namespace is created in the same way as {@link #createNamespace(String)}; that is, this method
+   * does not import any data.
+   *
+   * @param namespace a namespace name to create
+   * @param imported whether the namespace is created to hold imported data
+   * @throws ClientException if a request fails for some reason
+   */
+  public void createNamespace(String namespace, boolean imported) {
     checkClientMode(ClientMode.CLIENT);
     checkArgument(
         namespace != null, ClientError.SERVICE_NAMESPACE_NAME_CANNOT_BE_NULL.buildMessage());
     NamespaceCreationRequest request =
-        NamespaceCreationRequest.newBuilder().setNamespace(namespace).build();
+        NamespaceCreationRequest.newBuilder().setNamespace(namespace).setImported(imported).build();
 
     handler.createNamespace(request);
   }

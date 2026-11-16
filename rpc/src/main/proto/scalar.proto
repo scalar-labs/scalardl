@@ -217,6 +217,7 @@ message AssetLockRecoveryRequest {
 
 message NamespaceCreationRequest {
     string namespace = 1;
+    bool imported = 2;
 }
 
 message NamespaceDroppingRequest {
