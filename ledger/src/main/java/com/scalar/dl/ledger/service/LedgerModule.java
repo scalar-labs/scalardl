@@ -46,6 +46,7 @@ import com.scalar.dl.ledger.database.scalardb.TamperEvidentAssetComposer;
 import com.scalar.dl.ledger.database.scalardb.TransactionStateManager;
 import com.scalar.dl.ledger.function.FunctionLoader;
 import com.scalar.dl.ledger.function.FunctionManager;
+import com.scalar.dl.ledger.namespace.DefaultNamespaceContractExecutionChecker;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import java.security.PermissionCollection;
 import java.security.Permissions;
@@ -108,6 +109,14 @@ public class LedgerModule extends AbstractModule {
   @Provides
   LedgerConfig provideLedgerConfig() {
     return config;
+  }
+
+  @Provides
+  @Singleton
+  DefaultNamespaceContractExecutionChecker provideDefaultNamespaceContractExecutionChecker(
+      NamespaceManager namespaceManager) {
+    return new DefaultNamespaceContractExecutionChecker(
+        config.isDefaultNamespaceContractExecutionEnabled(), namespaceManager);
   }
 
   @Provides

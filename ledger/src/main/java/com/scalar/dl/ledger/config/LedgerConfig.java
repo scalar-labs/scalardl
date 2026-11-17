@@ -52,6 +52,9 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   @VisibleForTesting static final boolean DEFAULT_TRANSACTION_STATE_PURGE_ENABLED = false;
 
   @VisibleForTesting
+  static final boolean DEFAULT_DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED = true;
+
+  @VisibleForTesting
   static final AuthenticationMethod DEFAULT_AUTHENTICATION_METHOD =
       AuthenticationMethod.DIGITAL_SIGNATURE;
 
@@ -303,6 +306,19 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   public static final String TRANSACTION_STATE_PURGE_ENABLED =
       TRANSACTION_STATE_PURGE_PREFIX + "enabled";
 
+  /**
+   * <code>scalar.dl.ledger.default_namespace_contract_execution.enabled</code> (Optional)<br>
+   * A flag to allow contract execution in the default namespace (true by default). While disabled,
+   * the Ledger rejects contract execution requests whose context namespace is the default
+   * namespace. The other requests in the default namespace, such as registering certificates,
+   * secrets, contracts, and functions, and validating assets without Auditor, are not affected.
+   *
+   * <p>Regardless of this setting, the Ledger rejects such requests while a namespace created for
+   * import exists, which is reflected in about a minute after the namespace is created or dropped.
+   */
+  public static final String DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED =
+      PREFIX + "default_namespace_contract_execution.enabled";
+
   private final Properties props;
   private String name;
   private String namespace;
@@ -331,6 +347,7 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
   private boolean isDirectAssetAccessEnabled;
   private boolean isTxStateManagementEnabled;
   private boolean isTransactionStatePurgeEnabled;
+  private boolean isDefaultNamespaceContractExecutionEnabled;
   private boolean isConsensusCommitEnabled;
 
   public LedgerConfig(File propertiesFile) throws IOException {
@@ -492,6 +509,10 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
     return isTransactionStatePurgeEnabled;
   }
 
+  public boolean isDefaultNamespaceContractExecutionEnabled() {
+    return isDefaultNamespaceContractExecutionEnabled;
+  }
+
   /**
    * Returns whether the Consensus Commit transaction manager is used. Note that this must be used
    * instead of checking the runtime type of the {@code DistributedTransactionManager} that ScalarDB
@@ -604,6 +625,11 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
     isTransactionStatePurgeEnabled =
         ConfigUtils.getBoolean(
             props, TRANSACTION_STATE_PURGE_ENABLED, DEFAULT_TRANSACTION_STATE_PURGE_ENABLED);
+    isDefaultNamespaceContractExecutionEnabled =
+        ConfigUtils.getBoolean(
+            props,
+            DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED,
+            DEFAULT_DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED);
     validateTransactionManager();
 
     LOGGER.info(name + " is configured with " + this + " (credential information is omitted)");
@@ -729,6 +755,9 @@ public final class LedgerConfig implements ServerConfig, ServersHmacAuthenticata
         .add(DIRECT_ASSET_ACCESS_ENABLED, isDirectAssetAccessEnabled())
         .add(TX_STATE_MANAGEMENT_ENABLED, isTxStateManagementEnabled())
         .add(TRANSACTION_STATE_PURGE_ENABLED, isTransactionStatePurgeEnabled())
+        .add(
+            DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED,
+            isDefaultNamespaceContractExecutionEnabled())
         .toString();
   }
 }

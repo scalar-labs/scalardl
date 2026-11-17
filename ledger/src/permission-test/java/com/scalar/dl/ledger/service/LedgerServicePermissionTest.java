@@ -31,6 +31,7 @@ import com.scalar.dl.ledger.database.Transaction;
 import com.scalar.dl.ledger.database.TransactionManager;
 import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
+import com.scalar.dl.ledger.namespace.DefaultNamespaceContractExecutionChecker;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.statemachine.DeprecatedLedger;
 import com.scalar.dl.ledger.statemachine.DeserializationType;
@@ -129,7 +130,8 @@ public class LedgerServicePermissionTest {
         clientKeyValidator,
         auditorKeyValidator,
         contractExecutor,
-        functionManager);
+        functionManager,
+        new DefaultNamespaceContractExecutionChecker(true, namespaceManager));
   }
 
   private static ProtectionDomain createActualProtectionDomain() {

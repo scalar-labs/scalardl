@@ -19,6 +19,7 @@ import com.scalar.dl.ledger.contract.ContractExecutor;
 import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.SignatureValidator;
+import com.scalar.dl.ledger.error.LedgerError;
 import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.LedgerException;
 import com.scalar.dl.ledger.exception.SignatureException;
@@ -36,6 +37,7 @@ import com.scalar.dl.ledger.model.NamespaceDroppingRequest;
 import com.scalar.dl.ledger.model.NamespacesListingRequest;
 import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest;
+import com.scalar.dl.ledger.namespace.DefaultNamespaceContractExecutionChecker;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -55,6 +57,9 @@ public class LedgerServiceTest {
   @Mock private FunctionManager functionManager;
   @Mock private ClientKeyValidator clientKeyValidator;
   @Mock private AuditorKeyValidator auditorKeyValidator;
+
+  @Mock private DefaultNamespaceContractExecutionChecker defaultNamespaceContractExecutionChecker;
+
   @Mock private SignatureValidator signatureValidator;
   @Mock private CertificateRegistrationRequest certRegistrationRequest;
   @Mock private SecretRegistrationRequest secretRegistrationRequest;
@@ -80,6 +85,7 @@ public class LedgerServiceTest {
     MockitoAnnotations.openMocks(this);
 
     when(config.isFunctionEnabled()).thenReturn(false);
+    when(defaultNamespaceContractExecutionChecker.isAllowed()).thenReturn(true);
   }
 
   private void configureCertificateRegistrationRequest(CertificateRegistrationRequest request) {
@@ -237,6 +243,40 @@ public class LedgerServiceTest {
 
     // Assert
     verify(contractExecutionRequest).validateWith(signatureValidator);
+    verify(contractExecutor).execute(contractExecutionRequest);
+  }
+
+  @Test
+  public void
+      execute_DefaultNamespaceGivenAndContractExecutionNotAllowed_ShouldThrowLedgerException() {
+    // Arrange
+    configureContractExecutionRequest(contractExecutionRequest);
+    configureRequestValidation(contractExecutionRequest, true);
+    when(defaultNamespaceContractExecutionChecker.isAllowed()).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> service.execute(contractExecutionRequest))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(LedgerError.DEFAULT_NAMESPACE_CONTRACT_EXECUTION_NOT_SUPPORTED.buildMessage());
+
+    verify(contractExecutionRequest).validateWith(signatureValidator);
+    verify(contractExecutor, never()).execute(contractExecutionRequest);
+  }
+
+  @Test
+  public void
+      execute_NonDefaultNamespaceGivenAndContractExecutionNotAllowed_ShouldExecuteContract() {
+    // Arrange
+    configureContractExecutionRequest(contractExecutionRequest);
+    when(contractExecutionRequest.getContextNamespaceOrDefault()).thenReturn("some_namespace");
+    configureRequestValidation(contractExecutionRequest, true);
+    when(defaultNamespaceContractExecutionChecker.isAllowed()).thenReturn(false);
+
+    // Act
+    service.execute(contractExecutionRequest);
+
+    // Assert
+    verify(defaultNamespaceContractExecutionChecker, never()).isAllowed();
     verify(contractExecutor).execute(contractExecutionRequest);
   }
 

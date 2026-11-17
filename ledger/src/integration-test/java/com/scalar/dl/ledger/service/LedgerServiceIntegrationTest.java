@@ -93,6 +93,7 @@ import com.scalar.dl.ledger.function.FunctionManager;
 import com.scalar.dl.ledger.model.ContractExecutionRequest;
 import com.scalar.dl.ledger.model.ContractExecutionResult;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
+import com.scalar.dl.ledger.namespace.DefaultNamespaceContractExecutionChecker;
 import com.scalar.dl.ledger.namespace.NamespaceManager;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import com.scalar.dl.ledger.service.contract.ContractUsingContext;
@@ -178,7 +179,8 @@ public class LedgerServiceIntegrationTest {
             clientKeyValidator,
             auditorKeyValidator,
             contractExecutor,
-            functionManager);
+            functionManager,
+            new DefaultNamespaceContractExecutionChecker(true, namespaceManager));
 
     dsSigner = new DigitalSignatureSigner(PRIVATE_KEY_A);
     dsValidator = new DigitalSignatureValidator(CERTIFICATE_A);
