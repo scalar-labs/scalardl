@@ -38,11 +38,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -70,11 +73,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Start Azure Cosmos DB emulator
         run: |
@@ -126,11 +132,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -151,11 +160,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -179,11 +191,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
@@ -222,11 +237,14 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
