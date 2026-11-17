@@ -26,7 +26,10 @@ jobs:
       target-ref: ${{ inputs.target-ref }}
       find-latest-release: ${{ inputs.find-latest-release }}
       images: '[["ScalarDL Ledger", "scalardl-ledger"], ["ScalarDL Client", "scalardl-client"]]'
-      java-versions: 21
+      # JDK 8 is needed for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+      java-versions: |
+        8
+        21
     secrets:
       CR_PAT: ${{ secrets.CR_PAT }}
       SLACK_SECURITY_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
