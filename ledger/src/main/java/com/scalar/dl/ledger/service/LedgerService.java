@@ -30,6 +30,7 @@ import com.scalar.dl.ledger.model.SecretRegistrationRequest;
 import com.scalar.dl.ledger.model.SignedFunctionRegistrationRequest;
 import com.scalar.dl.ledger.model.StateRetrievalRequest;
 import com.scalar.dl.ledger.model.StateRetrievalResult;
+import com.scalar.dl.ledger.namespace.DefaultNamespaceContractExecutionChecker;
 import com.scalar.dl.ledger.namespace.Namespaces;
 import java.util.List;
 import javax.annotation.concurrent.Immutable;
@@ -42,6 +43,7 @@ public class LedgerService {
   private final AuditorKeyValidator auditorKeyValidator;
   private final ContractExecutor executor;
   private final FunctionManager functionManager;
+  private final DefaultNamespaceContractExecutionChecker defaultNamespaceContractExecutionChecker;
 
   @Inject
   public LedgerService(
@@ -50,13 +52,15 @@ public class LedgerService {
       ClientKeyValidator clientKeyValidator,
       AuditorKeyValidator auditorKeyValidator,
       ContractExecutor executor,
-      FunctionManager functionManager) {
+      FunctionManager functionManager,
+      DefaultNamespaceContractExecutionChecker defaultNamespaceContractExecutionChecker) {
     this.base = base;
     this.config = config;
     this.clientKeyValidator = clientKeyValidator;
     this.auditorKeyValidator = auditorKeyValidator;
     this.executor = executor;
     this.functionManager = functionManager;
+    this.defaultNamespaceContractExecutionChecker = defaultNamespaceContractExecutionChecker;
   }
 
   public void register(CertificateRegistrationRequest request) {
@@ -121,6 +125,11 @@ public class LedgerService {
       checkArgument(
           request.getAuditorSignature() == null,
           LedgerError.AUDITOR_NOT_CONFIGURED.buildMessage(LedgerConfig.AUDITOR_ENABLED));
+    }
+
+    if (request.getContextNamespaceOrDefault().equals(Namespaces.DEFAULT)
+        && !defaultNamespaceContractExecutionChecker.isAllowed()) {
+      throw new LedgerException(LedgerError.DEFAULT_NAMESPACE_CONTRACT_EXECUTION_NOT_SUPPORTED);
     }
 
     return executor.execute(request);

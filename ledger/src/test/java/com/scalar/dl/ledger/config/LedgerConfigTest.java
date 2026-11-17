@@ -534,6 +534,29 @@ public class LedgerConfigTest {
   }
 
   @Test
+  public void isDefaultNamespaceContractExecutionEnabled_NotConfigured_ShouldReturnTrue() {
+    // Arrange
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isDefaultNamespaceContractExecutionEnabled()).isTrue();
+  }
+
+  @Test
+  public void isDefaultNamespaceContractExecutionEnabled_FalseGiven_ShouldReturnFalse() {
+    // Arrange
+    props.setProperty(LedgerConfig.DEFAULT_NAMESPACE_CONTRACT_EXECUTION_ENABLED, "false");
+
+    // Act
+    LedgerConfig config = new LedgerConfig(props);
+
+    // Assert
+    assertThat(config.isDefaultNamespaceContractExecutionEnabled()).isFalse();
+  }
+
+  @Test
   public void isTransactionStatePurgeEnabled_NotConfigured_ShouldReturnDefault() {
     // Arrange
 
