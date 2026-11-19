@@ -2,11 +2,11 @@
 # - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
 # You can confirm the digest with:
 #   docker buildx imagetools inspect ghcr.io/grpc-ecosystem/grpc-health-probe:<TAG>
-FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.61@sha256:9df7b8dfbaf01d20eaedcd6de084c557074046f87cfc0413b7939ae18087c249 AS grpc-health-probe
+FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.63@sha256:1d6cc5716f1c80cbcf97d5bc7eef3cd5bd4c7a7b942c0dc4f533dea70dcb5173 AS grpc-health-probe
 
 # You can see sha256 hash in the following page:
 # - https://hub.docker.com/_/eclipse-temurin/tags
-FROM eclipse-temurin:21.0.13_9-jre-resolute@sha256:f8622d0220c9e218d7a33f24a7b9e1ad6bc726085f8b0ae74e1adf85f67f05c4
+FROM eclipse-temurin:21.0.13_9-jre-resolute@sha256:556903b1f40c0a0ddc0bd05cf413436a3b2ce48c9ee19fc199434898fd3ea2b9
 
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \
