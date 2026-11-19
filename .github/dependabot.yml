@@ -68,3 +68,34 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+  # For Docker, update the base images pinned in the Dockerfiles on the default branch only
+  # The support and release branches are not covered here because base image updates are applied to them
+  # by backporting the changes merged into the default branch
+  # When a new Dockerfile that pins its base image is added, add its directory to the "directories" list below
+  # /schema-loader is not listed because its base image tag is given by the SCALARDB_VERSION build argument,
+  # so there is no pinned image for Dependabot to update
+  # The hadolint image in /scripts/docker/hadolint is used by scripts/docker/lint.sh to lint Dockerfiles. It has
+  # its own group so that a hadolint update (including major versions, which may change the lint rules and fail
+  # the lint job) never blocks the base image updates in the same PR
+  # Major version updates of the JRE base image are ignored because upgrading the Java runtime
+  # of the released images is a manual decision; the other base image updates are grouped into a single PR
+  - package-ecosystem: "docker"
+    groups:
+      container images on branch master:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "hadolint/hadolint"
+      hadolint on branch master:
+        patterns:
+          - "hadolint/hadolint"
+    directories:
+      - "/client"
+      - "/ledger"
+      - "/scripts/docker/hadolint"
+    ignore:
+      - dependency-name: "eclipse-temurin"
+        update-types: [ "version-update:semver-major" ]
+    schedule:
+      interval: "weekly"

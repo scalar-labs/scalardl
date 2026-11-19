@@ -38,14 +38,17 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Run integration tests
         run: >-
@@ -70,11 +73,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Start Azure Cosmos DB emulator
         run: |
@@ -100,7 +106,7 @@ jobs:
           & ${env:JAVA_HOME}/bin/keytool.exe $keystore -storepass 'changeit' -list -alias cosmos_emulator
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Run integration tests
         run: |
@@ -126,14 +132,17 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Run integration tests
         run: >-
@@ -151,14 +160,17 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Run integration tests
         run: >-
@@ -179,14 +191,17 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       # Start Azurite with `--skipApiVersionCheck` to avoid API version check issues
       - name: Start Azurite
@@ -222,14 +237,17 @@ jobs:
         with:
           ref: ${{ inputs.target-ref }}
 
-      - name: Set up JDK 21
+      - name: Set up JDK 8 and 21
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          # JDK 8 is for the Gradle toolchain. The last one (21) becomes the default JAVA_HOME.
+          java-version: |
+            8
+            21
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6.4.1
 
       - name: Run integration tests
         run: >-

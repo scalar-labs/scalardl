@@ -2,6 +2,7 @@ package com.scalar.dl.testing.testcase;
 
 import static com.scalar.dl.testing.contract.Constants.AMOUNT_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Constants.ASSETS_ATTRIBUTE_NAME;
+import static com.scalar.dl.testing.contract.Constants.ASSET_ATTRIBUTE_NAME;
 import static com.scalar.dl.testing.contract.Constants.CREATE_CONTRACT_ID1;
 import static com.scalar.dl.testing.contract.Constants.PAYMENT_CONTRACT_ID1;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_AGE_COLUMN_NAME;
@@ -11,14 +12,25 @@ import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_INPUT_COLUMN_NA
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_OUTPUT_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_PREV_HASH_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.ASSET_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_TABLE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.scalar.db.api.Delete;
+import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Result;
 import com.scalar.db.io.Key;
+import com.scalar.dl.client.exception.ClientException;
+import com.scalar.dl.client.util.Common;
+import com.scalar.dl.ledger.contract.ContractEntry;
+import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.model.LedgerValidationResult;
 import com.scalar.dl.ledger.service.StatusCode;
 import com.scalar.dl.ledger.util.Argument;
+import com.scalar.dl.testing.contract.Create;
+import com.scalar.dl.testing.contract.Noop;
+import com.scalar.dl.testing.util.TestCertificates;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import javax.json.Json;
@@ -36,6 +48,8 @@ import org.junit.jupiter.api.Test;
  * Detection which has different validation semantics.
  */
 public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTestBase {
+  private static final String TAMPERED_CONTRACT_ID = "tampered-contract";
+  private static final String DONOR_CONTRACT_ID = "donor-contract";
 
   // ============ String-based Contract validateLedger Test (Ledger-only) ============
 
@@ -198,6 +212,75 @@ public abstract class LedgerOnlyIntegrationTestBase extends LedgerIntegrationTes
     // Assert
     assertThat(resultA.getCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
     assertThat(resultB.getCode()).isEqualTo(StatusCode.OK);
+  }
+
+  /**
+   * Tests that the Ledger detects a contract whose stored code and signature have been replaced
+   * with those of another registered contract.
+   *
+   * <p>The contracts are registered with dedicated IDs so that they are not in the Ledger's
+   * recently-validated contract cache, and only the target contract entry is tampered with so that
+   * the shared {@code contract_class} records stay intact for the other tests.
+   */
+  @Test
+  void executeContract_ContractTampered_ShouldThrowClientExceptionWithInvalidContract()
+      throws Exception {
+    // Arrange: Register a target contract and a donor contract without executing them
+    clientServiceA.registerContract(
+        TAMPERED_CONTRACT_ID,
+        Create.class.getName(),
+        Common.getClassBytes(Create.class),
+        (String) null);
+    clientServiceA.registerContract(
+        DONOR_CONTRACT_ID, Noop.class.getName(), Common.getClassBytes(Noop.class), (String) null);
+
+    // Replace the binary name and signature of the target contract with those of the donor
+    Result donor =
+        storage
+            .get(
+                Get.newBuilder()
+                    .namespace(getPhysicalNamespace())
+                    .table(CONTRACT_TABLE)
+                    .partitionKey(Key.ofText(ContractEntry.ENTITY_ID, TestCertificates.ENTITY_ID_A))
+                    .clusteringKey(
+                        Key.of(
+                            ContractEntry.KEY_VERSION,
+                            TestCertificates.KEY_VERSION,
+                            ContractEntry.ID,
+                            DONOR_CONTRACT_ID))
+                    .build())
+            .orElseThrow(() -> new AssertionError("The donor contract is not registered"));
+    Put put =
+        Put.newBuilder()
+            .namespace(getPhysicalNamespace())
+            .table(CONTRACT_TABLE)
+            .partitionKey(Key.ofText(ContractEntry.ENTITY_ID, TestCertificates.ENTITY_ID_A))
+            .clusteringKey(
+                Key.of(
+                    ContractEntry.KEY_VERSION,
+                    TestCertificates.KEY_VERSION,
+                    ContractEntry.ID,
+                    TAMPERED_CONTRACT_ID))
+            .textValue(ContractEntry.BINARY_NAME, donor.getText(ContractEntry.BINARY_NAME))
+            .blobValue(ContractEntry.SIGNATURE, donor.getBlobAsBytes(ContractEntry.SIGNATURE))
+            .build();
+    storage.put(put);
+
+    JsonObject argument =
+        Json.createObjectBuilder()
+            .add(ASSET_ATTRIBUTE_NAME, SOME_ASSET_ID_1)
+            .add(AMOUNT_ATTRIBUTE_NAME, SOME_AMOUNT_1)
+            .build();
+
+    // Act & Assert: The contract signature check in ContractManager detects the tampering
+    assertThatThrownBy(() -> clientServiceA.executeContract(TAMPERED_CONTRACT_ID, argument))
+        .isInstanceOfSatisfying(
+            ClientException.class,
+            e -> {
+              assertThat(e.getStatusCode()).isEqualTo(StatusCode.INVALID_CONTRACT);
+              assertThat(e.getMessage())
+                  .startsWith(CommonError.CONTRACT_VALIDATION_FAILED.buildCode());
+            });
   }
 
   @Test
