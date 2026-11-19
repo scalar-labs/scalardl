@@ -28,6 +28,7 @@ dependencies {
     implementation "org.apache.commons:commons-text:${commonsTextVersion}"
 
     testImplementation "com.github.stefanbirkner:system-lambda:${stefanbirknerSystemLambdaVersion}"
+    testImplementation group: 'io.grpc', name: 'grpc-inprocess', version: "${grpcVersion}"
 
     // for Error Prone
     errorprone "com.google.errorprone:error_prone_core:${errorproneVersion}"
