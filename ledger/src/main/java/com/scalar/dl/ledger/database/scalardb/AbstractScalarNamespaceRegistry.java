@@ -10,7 +10,10 @@ import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedStorage;
 import com.scalar.db.api.DistributedStorageAdmin;
 import com.scalar.db.api.DistributedTransactionAdmin;
+import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.PutBuilder;
+import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.api.ScanBuilder.BuildableScanWithPartitionKey;
@@ -25,6 +28,7 @@ import com.scalar.dl.ledger.config.ServerConfig;
 import com.scalar.dl.ledger.database.NamespaceRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
@@ -52,12 +56,14 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
   @VisibleForTesting static final String NAMESPACE_TABLE_NAME = "namespace";
   @VisibleForTesting static final String COLUMN_PARTITION_ID = "partition_id";
   @VisibleForTesting static final String COLUMN_NAME = "name";
+  @VisibleForTesting static final String COLUMN_IMPORTED = "imported";
 
   @VisibleForTesting
   static final TableMetadata NAMESPACE_TABLE_METADATA =
       TableMetadata.newBuilder()
           .addColumn(COLUMN_PARTITION_ID, DataType.INT)
           .addColumn(COLUMN_NAME, DataType.TEXT)
+          .addColumn(COLUMN_IMPORTED, DataType.BOOLEAN)
           .addPartitionKey(COLUMN_PARTITION_ID)
           .addClusteringKey(COLUMN_NAME)
           .build();
@@ -115,14 +121,19 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
   }
 
   @Override
-  public void create(String namespace) {
+  public void create(String namespace, boolean imported) {
     Map<String, String> options = config.getNamespaceCreationOptions();
     Retry.decorateRunnable(
             retry,
             () -> {
               createNamespaceManagementTable(options);
+              if (imported) {
+                // Check this before creating the namespace so that nothing is left behind when the
+                // schema doesn't support it.
+                checkImportedColumnExists();
+              }
               createNamespace(namespace, options);
-              addNamespaceEntry(namespace);
+              addNamespaceEntry(namespace, imported);
             })
         .run();
   }
@@ -144,6 +155,21 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
           config.getNamespace(), NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, options);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_TABLE_FAILED, e, e.getMessage());
+    }
+  }
+
+  private void checkImportedColumnExists() {
+    // The namespace management table created with an older schema doesn't have the imported
+    // column. Adding it to such a table is done in advance with Schema Loader, not by this class.
+    // The admin reads the actual table metadata without the cache used for CRUD operations.
+    TableMetadata metadata;
+    try {
+      metadata = storageAdmin.getTableMetadata(config.getNamespace(), NAMESPACE_TABLE_NAME);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
+    }
+    if (metadata == null || !metadata.getColumnNames().contains(COLUMN_IMPORTED)) {
+      throw new LedgerException(CommonError.CREATING_IMPORTED_NAMESPACE_NOT_SUPPORTED_BY_SCHEMA);
     }
   }
 
@@ -180,19 +206,34 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
     }
   }
 
-  private void addNamespaceEntry(String namespace) {
-    Put put =
+  private void addNamespaceEntry(String namespace, boolean imported) {
+    PutBuilder.Buildable builder =
         Put.newBuilder()
             .namespace(config.getNamespace())
             .table(NAMESPACE_TABLE_NAME)
             .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
             .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
-            .condition(ConditionBuilder.putIfNotExists())
-            .build();
+            .condition(ConditionBuilder.putIfNotExists());
+    if (imported) {
+      // The imported column is written only for an imported namespace so that creating a regular
+      // namespace works with the table that doesn't have the column. A null value is treated as
+      // false when reading.
+      builder.booleanValue(COLUMN_IMPORTED, true);
+    }
     try {
-      storage.put(put);
+      storage.put(builder.build());
     } catch (NoMutationException e) {
       throw new DatabaseException(CommonError.NAMESPACE_ALREADY_EXISTS);
+    } catch (IllegalArgumentException e) {
+      if (imported
+          && e.getMessage() != null
+          && e.getMessage()
+              .startsWith(CoreError.OPERATION_CHECK_ERROR_INVALID_COLUMN.buildCode())) {
+        // The column exists in the table, but the table metadata cached for CRUD operations is
+        // not refreshed yet (e.g., the column has just been added while this server is running).
+        throw new DatabaseException(CommonError.NAMESPACE_TABLE_SCHEMA_CHANGE_NOT_REFLECTED, e);
+      }
+      throw e;
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.CREATING_NAMESPACE_FAILED, e, e.getMessage());
     }
@@ -309,5 +350,60 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
         }
       }
     }
+  }
+
+  @Override
+  public boolean isImported(@Nonnull String namespace) {
+    Get get =
+        Get.newBuilder()
+            .namespace(config.getNamespace())
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
+            .build();
+    try {
+      if (!storageAdmin.tableExists(config.getNamespace(), NAMESPACE_TABLE_NAME)) {
+        return false;
+      }
+      return storage.get(get).map(AbstractScalarNamespaceRegistry::isImported).orElse(false);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.SCANNING_NAMESPACES_FAILED, e, e.getMessage());
+    }
+  }
+
+  @Override
+  public boolean existsImported() {
+    Scan scan =
+        Scan.newBuilder()
+            .namespace(config.getNamespace())
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .build();
+    Scanner scanner = null;
+    try {
+      if (!storageAdmin.tableExists(config.getNamespace(), NAMESPACE_TABLE_NAME)) {
+        return false;
+      }
+      scanner = storage.scan(scan);
+      return Streams.stream(scanner).anyMatch(AbstractScalarNamespaceRegistry::isImported);
+    } catch (ExecutionException e) {
+      throw new DatabaseException(CommonError.SCANNING_NAMESPACES_FAILED, e, e.getMessage());
+    } finally {
+      if (scanner != null) {
+        try {
+          scanner.close();
+        } catch (IOException e) {
+          LOGGER.warn("failed to close scanner.", e);
+        }
+      }
+    }
+  }
+
+  private static boolean isImported(Result result) {
+    // The column doesn't exist in the table created with an older schema, and the value is null for
+    // the entries of regular namespaces. Both cases are treated as not imported.
+    return result.contains(COLUMN_IMPORTED)
+        && !result.isNull(COLUMN_IMPORTED)
+        && result.getBoolean(COLUMN_IMPORTED);
   }
 }

@@ -327,6 +327,12 @@ public enum CommonError implements ScalarDlError {
       "The property '%s' must have a name after the prefix '%s'.",
       "",
       "Specify the property in the form of '<prefix><name>=<value>'."),
+  CREATING_IMPORTED_NAMESPACE_NOT_SUPPORTED_BY_SCHEMA(
+      StatusCode.INVALID_ARGUMENT,
+      "024",
+      "Creating a namespace for import is not supported with the current schema because the namespace table does not have the 'imported' column.",
+      "",
+      "Add the 'imported' column to the namespace table by running Schema Loader with the '--alter' option, and then create the namespace again."),
 
   //
   // Errors for SECRET_NOT_FOUND(415)
@@ -463,6 +469,12 @@ public enum CommonError implements ScalarDlError {
       "The lease table does not exist.",
       "",
       "Create the lease table by running Schema Loader. It is also created automatically on the next coordination round if the database user has permission to create tables."),
+  NAMESPACE_TABLE_SCHEMA_CHANGE_NOT_REFLECTED(
+      StatusCode.DATABASE_ERROR,
+      "018",
+      "Creating the namespace for import failed because the 'imported' column added to the namespace table has not been reflected in this server yet.",
+      "",
+      "Wait until the cached table metadata expires, or restart the server, and then create the namespace again. The expiration time is configured with 'scalar.db.metadata.cache_expiration_time_secs' (60 seconds by default)."),
 
   //
   // Errors for RUNTIME_ERROR(502)

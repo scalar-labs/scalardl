@@ -148,7 +148,8 @@
     ],
     "columns": {
       "partition_id": "INT",
-      "name": "TEXT"
+      "name": "TEXT",
+      "imported": "BOOLEAN"
     },
     "compaction-strategy": "STCS"
   }

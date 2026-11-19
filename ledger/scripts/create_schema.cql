@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS scalar.tx_state (
 CREATE TABLE IF NOT EXISTS scalar.namespace (
     partition_id int,
     name text,
+    imported boolean,
     PRIMARY KEY (partition_id, name)
 );
 
