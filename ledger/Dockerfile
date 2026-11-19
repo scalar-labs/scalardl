@@ -1,3 +1,9 @@
+# grpc_health_probe for Kubernetes:
+# - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
+# You can confirm the digest with:
+#   docker buildx imagetools inspect ghcr.io/grpc-ecosystem/grpc-health-probe:<TAG>
+FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.61@sha256:9df7b8dfbaf01d20eaedcd6de084c557074046f87cfc0413b7939ae18087c249 AS grpc-health-probe
+
 # You can see sha256 hash in the following page:
 # - https://hub.docker.com/_/busybox/tags
 FROM docker.io/busybox:1.36.1@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662 AS tools
@@ -24,16 +30,7 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 COPY --chown=0:0 --from=tools dockerize /usr/local/bin/
 
-# Install grpc_health_probe for kubernetes:
-# - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
-# You can confirm the checksum value in "checksums.txt" in:
-# - https://github.com/grpc-ecosystem/grpc-health-probe/releases
-ARG GRPC_HEALTH_PROBE_VERSION=v0.4.61
-ARG GRPC_HEALTH_PROBE_SHA256=3746f63e89561616ce69eafdc9b46f8b23b47db3a564f6f2e8c31359a60e2f38
-ADD --chmod=755 \
-    --checksum=sha256:${GRPC_HEALTH_PROBE_SHA256} \
-    "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" \
-    /usr/local/bin/grpc_health_probe
+COPY --from=grpc-health-probe /ko-app/grpc-health-probe /usr/local/bin/grpc_health_probe
 
 WORKDIR /scalar
 
