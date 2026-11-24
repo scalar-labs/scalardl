@@ -19,17 +19,14 @@ ADD --checksum=sha256:${DOCKERIZE_SHA256} \
 RUN tar -xzf /tmp/dockerize.tar.gz dockerize \
  && ./dockerize --version
 
-# You can see sha256 hash in the following page:
-# - https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1792742351@sha256:ab67cd02caf8706e34a695a1432ebe965934f6128ec352a6c3f4048b43a4fb5e
+# Scalar managed base image:
+# - https://github.com/orgs/scalar-labs/packages/container/package/jre21-ubi
+# You can confirm the digest with:
+#   docker buildx imagetools inspect ghcr.io/scalar-labs/jre21-ubi:<TAG>
+FROM ghcr.io/scalar-labs/jre21-ubi:21.0.13.1_2.202611240310@sha256:895e40fda8490adedf75bb7ac0d91868ef6e90a436b411d196782035d73bc0f1
 
-RUN microdnf update -y \
- && microdnf install java-21-openjdk-headless-21.0.13.0.9-1.2.el10 shadow-utils-4.15.0-11.el10 --setopt=install_weak_deps=0 --nodocs -y \
- && groupadd -r --gid 201 scalar \
- && useradd -r --uid 201 -g scalar -s /usr/sbin/nologin scalar \
- && microdnf remove shadow-utils -y \
- && microdnf clean all \
- && rm -rf /var/cache/yum
+RUN groupadd -r --gid 201 scalar \
+ && useradd -r --uid 201 -g scalar -s /usr/sbin/nologin scalar
 
 COPY --chown=0:0 --from=tools dockerize /usr/local/bin/
 
