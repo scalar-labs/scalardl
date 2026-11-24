@@ -2,7 +2,7 @@
 # - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
 # You can confirm the digest with:
 #   docker buildx imagetools inspect ghcr.io/grpc-ecosystem/grpc-health-probe:<TAG>
-FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.61@sha256:9df7b8dfbaf01d20eaedcd6de084c557074046f87cfc0413b7939ae18087c249 AS grpc-health-probe
+FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.63@sha256:1d6cc5716f1c80cbcf97d5bc7eef3cd5bd4c7a7b942c0dc4f533dea70dcb5173 AS grpc-health-probe
 
 # Scalar managed base image:
 # - https://github.com/orgs/scalar-labs/packages/container/package/jre21-ubi
