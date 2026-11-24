@@ -33,6 +33,7 @@ jobs:
         ./gradlew \
           client:dockerfileLint \
           ledger:dockerfileLint \
+          schema-loader:dockerfileLint
 
     - name: Run unit tests
       run: ./gradlew check
