@@ -36,6 +36,7 @@ jobs:
         ./gradlew \
           client:dockerfileLint \
           ledger:dockerfileLint \
+          schema-loader:dockerfileLint
 
     - name: Lint Dockerfile for UBI-based images
       run: |
