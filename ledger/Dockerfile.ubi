@@ -1,25 +1,19 @@
-# You can see sha256 hash in the following page:
-# - https://catalog.redhat.com/en/software/containers/ubi10/ubi-minimal/66f1504a379b9c2cf23e145c
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2-1792742351@sha256:ab67cd02caf8706e34a695a1432ebe965934f6128ec352a6c3f4048b43a4fb5e
-
-RUN microdnf update -y \
- && microdnf install java-21-openjdk-headless-21.0.13.0.9-1.2.el10 shadow-utils-4.15.0-11.el10 --setopt=install_weak_deps=0 --nodocs -y \
- && groupadd -r --gid 201 scalar \
- && useradd -r --uid 201 -g scalar -s /usr/sbin/nologin scalar \
- && microdnf remove shadow-utils -y \
- && microdnf clean all \
- && rm -rf /var/cache/yum
-
-# Install grpc_health_probe for kubernetes:
+# grpc_health_probe for Kubernetes:
 # - https://kubernetes.io/blog/2018/10/01/health-checking-grpc-servers-on-kubernetes/
-# You can confirm the checksum value in "checksums.txt" in:
-# - https://github.com/grpc-ecosystem/grpc-health-probe/releases
-ARG GRPC_HEALTH_PROBE_VERSION=v0.4.61
-ARG GRPC_HEALTH_PROBE_SHA256=3746f63e89561616ce69eafdc9b46f8b23b47db3a564f6f2e8c31359a60e2f38
-ADD --chmod=755 \
-    --checksum=sha256:${GRPC_HEALTH_PROBE_SHA256} \
-    "https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64" \
-    /usr/local/bin/grpc_health_probe
+# You can confirm the digest with:
+#   docker buildx imagetools inspect ghcr.io/grpc-ecosystem/grpc-health-probe:<TAG>
+FROM ghcr.io/grpc-ecosystem/grpc-health-probe:v0.4.63@sha256:1d6cc5716f1c80cbcf97d5bc7eef3cd5bd4c7a7b942c0dc4f533dea70dcb5173 AS grpc-health-probe
+
+# Scalar managed base image:
+# - https://github.com/orgs/scalar-labs/packages/container/package/jre21-ubi
+# You can confirm the digest with:
+#   docker buildx imagetools inspect ghcr.io/scalar-labs/jre21-ubi:<TAG>
+FROM ghcr.io/scalar-labs/jre21-ubi:21.0.13.1_2.202611240310@sha256:895e40fda8490adedf75bb7ac0d91868ef6e90a436b411d196782035d73bc0f1
+
+RUN groupadd -r --gid 201 scalar \
+ && useradd -r --uid 201 -g scalar -s /usr/sbin/nologin scalar
+
+COPY --from=grpc-health-probe /ko-app/grpc-health-probe /usr/local/bin/grpc_health_probe
 
 WORKDIR /scalar
 
