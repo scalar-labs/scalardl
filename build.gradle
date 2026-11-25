@@ -3,7 +3,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.11.0") {
+        classpath("com.diffplug.spotless:spotless-plugin-gradle:8.12.0") {
             // Jreleaser and Spotless plugins have a conflict on this dependency.
             // Jreleaser requires an older version but Spotless requires a newer version for some
             // feature we are not using.
@@ -75,7 +75,7 @@ subprojects {
         stefanbirknerSystemLambdaVersion = '1.2.1'
         googleJavaFormatVersion = '1.33.0'
         bouncyCastleCryptoVersion = '1.87'
-        partiqlVersion = '1.6.1'
+        partiqlVersion = '1.7.0'
 
         dockerVersion = project.properties['dockerVersion'] ?: project.version
     }
