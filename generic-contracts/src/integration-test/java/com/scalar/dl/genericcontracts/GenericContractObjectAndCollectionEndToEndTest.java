@@ -783,7 +783,7 @@ public class GenericContractObjectAndCollectionEndToEndTest
         .isExactlyInstanceOf(ClientException.class)
         .hasMessageStartingWith(
             LedgerError.OPERATION_FAILED_DUE_TO_CONFLICT.buildMessage(
-                CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildMessage()))
+                CoreError.CONSENSUS_COMMIT_READ_UNCOMMITTED_RECORD.buildCode()))
         .extracting("code")
         .isEqualTo(StatusCode.CONFLICT);
   }
