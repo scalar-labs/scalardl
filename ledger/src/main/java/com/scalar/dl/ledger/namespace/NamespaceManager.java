@@ -40,13 +40,26 @@ public class NamespaceManager {
    * @throws LedgerException if the namespace name is invalid
    */
   public void create(@Nonnull String namespace) {
+    create(namespace, false);
+  }
+
+  /**
+   * Creates a namespace with the specified name. The namespace name must start with an alphabetic
+   * character and can only contain alphanumeric characters and underscores. If {@code imported} is
+   * true, the namespace is marked as the one created for importing data from another deployment.
+   *
+   * @param namespace a namespace name to create
+   * @param imported whether the namespace is created for importing data
+   * @throws LedgerException if the namespace name is invalid
+   */
+  public void create(@Nonnull String namespace, boolean imported) {
     if (!isValidNamespaceName(namespace)) {
       throw new LedgerException(CommonError.INVALID_NAMESPACE_NAME, namespace);
     }
     if (namespace.equals(Namespaces.DEFAULT)) {
       throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
     }
-    registry.create(namespace);
+    registry.create(namespace, imported);
   }
 
   /**
@@ -63,6 +76,29 @@ public class NamespaceManager {
       throw new LedgerException(CommonError.RESERVED_NAMESPACE, namespace);
     }
     registry.drop(namespace);
+  }
+
+  /**
+   * Returns whether the specified namespace is marked as imported. The default namespace is never
+   * marked as imported.
+   *
+   * @param namespace a namespace name
+   * @return true if the namespace is marked as imported
+   */
+  public boolean isImported(@Nonnull String namespace) {
+    if (namespace.equals(Namespaces.DEFAULT)) {
+      return false;
+    }
+    return registry.isImported(namespace);
+  }
+
+  /**
+   * Returns whether at least one namespace marked as imported exists.
+   *
+   * @return true if at least one namespace marked as imported exists
+   */
+  public boolean existsImported() {
+    return registry.existsImported();
   }
 
   private boolean isValidNamespaceName(@Nonnull String namespace) {

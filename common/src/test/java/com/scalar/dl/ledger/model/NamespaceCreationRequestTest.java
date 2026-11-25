@@ -24,6 +24,37 @@ public class NamespaceCreationRequestTest {
   }
 
   @Test
+  public void isImported_ImportedNotGiven_ShouldReturnFalse() {
+    // Act
+    NamespaceCreationRequest request = new NamespaceCreationRequest(NAMESPACE);
+
+    // Assert
+    assertThat(request.isImported()).isFalse();
+  }
+
+  @Test
+  public void isImported_ImportedGiven_ShouldReturnGivenValue() {
+    // Act
+    NamespaceCreationRequest request = new NamespaceCreationRequest(NAMESPACE, true);
+
+    // Assert
+    assertThat(request.isImported()).isTrue();
+  }
+
+  @Test
+  public void equals_OnDifferentImported_ShouldReturnFalse() {
+    // Arrange
+    NamespaceCreationRequest request = new NamespaceCreationRequest(NAMESPACE, true);
+    NamespaceCreationRequest other = new NamespaceCreationRequest(NAMESPACE, false);
+
+    // Act
+    boolean result = request.equals(other);
+
+    // Assert
+    assertThat(result).isFalse();
+  }
+
+  @Test
   public void equals_OnTheSameObject_ShouldReturnTrue() {
     // Arrange
     NamespaceCreationRequest request = new NamespaceCreationRequest(NAMESPACE);

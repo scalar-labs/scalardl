@@ -3,6 +3,8 @@ package com.scalar.dl.ledger.namespace;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,7 +38,7 @@ public class NamespaceManagerTest {
     assertThatCode(() -> manager.create(namespace)).doesNotThrowAnyException();
 
     // Assert
-    verify(registry).create(namespace);
+    verify(registry).create(namespace, false);
   }
 
   @Test
@@ -48,7 +50,7 @@ public class NamespaceManagerTest {
     assertThatCode(() -> manager.create(namespace)).doesNotThrowAnyException();
 
     // Assert
-    verify(registry).create(namespace);
+    verify(registry).create(namespace, false);
   }
 
   @Test
@@ -60,7 +62,7 @@ public class NamespaceManagerTest {
     assertThatCode(() -> manager.create(namespace)).doesNotThrowAnyException();
 
     // Assert
-    verify(registry).create(namespace);
+    verify(registry).create(namespace, false);
   }
 
   @Test
@@ -73,7 +75,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -86,7 +88,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -99,7 +101,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -112,7 +114,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -125,7 +127,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.INVALID_NAMESPACE_NAME.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -138,7 +140,7 @@ public class NamespaceManagerTest {
         .isInstanceOf(LedgerException.class)
         .hasMessage(CommonError.RESERVED_NAMESPACE.buildMessage(namespace));
 
-    verify(registry, never()).create(namespace);
+    verify(registry, never()).create(eq(namespace), anyBoolean());
   }
 
   @Test
@@ -290,5 +292,70 @@ public class NamespaceManagerTest {
         .hasMessage(CommonError.RESERVED_NAMESPACE.buildMessage(namespace));
 
     verify(registry, never()).drop(namespace);
+  }
+
+  @Test
+  public void create_ImportedGiven_ShouldCreateNamespaceWithImported() {
+    // Arrange
+    String namespace = "valid_namespace";
+
+    // Act
+    assertThatCode(() -> manager.create(namespace, true)).doesNotThrowAnyException();
+
+    // Assert
+    verify(registry).create(namespace, true);
+  }
+
+  @Test
+  public void create_ImportedAndDefaultNamespaceGiven_ShouldThrowLedgerException() {
+    // Arrange
+    String namespace = Namespaces.DEFAULT;
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.create(namespace, true))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(CommonError.RESERVED_NAMESPACE.buildMessage(namespace));
+
+    verify(registry, never()).create(eq(namespace), anyBoolean());
+  }
+
+  @Test
+  public void isImported_ImportedNamespaceGiven_ShouldReturnTrue() {
+    // Arrange
+    String namespace = "imported_namespace";
+    when(registry.isImported(namespace)).thenReturn(true);
+
+    // Act
+    boolean actual = manager.isImported(namespace);
+
+    // Assert
+    assertThat(actual).isTrue();
+    verify(registry).isImported(namespace);
+  }
+
+  @Test
+  public void isImported_DefaultNamespaceGiven_ShouldReturnFalseWithoutAccessingRegistry() {
+    // Arrange
+    String namespace = Namespaces.DEFAULT;
+
+    // Act
+    boolean actual = manager.isImported(namespace);
+
+    // Assert
+    assertThat(actual).isFalse();
+    verify(registry, never()).isImported(namespace);
+  }
+
+  @Test
+  public void existsImported_ImportedNamespaceExists_ShouldReturnTrue() {
+    // Arrange
+    when(registry.existsImported()).thenReturn(true);
+
+    // Act
+    boolean actual = manager.existsImported();
+
+    // Assert
+    assertThat(actual).isTrue();
+    verify(registry).existsImported();
   }
 }

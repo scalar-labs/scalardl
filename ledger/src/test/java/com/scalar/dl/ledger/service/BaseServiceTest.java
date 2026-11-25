@@ -214,13 +214,26 @@ public class BaseServiceTest {
   public void create_ProperNamespaceCreationRequestGiven_ShouldCreateNamespace() {
     // Arrange
     configureNamespaceCreationRequest(namespaceCreationRequest);
-    doNothing().when(namespaceManager).create(SOME_NAMESPACE);
+    doNothing().when(namespaceManager).create(SOME_NAMESPACE, false);
 
     // Act
     service.create(namespaceCreationRequest);
 
     // Assert
-    verify(namespaceManager).create(SOME_NAMESPACE);
+    verify(namespaceManager).create(SOME_NAMESPACE, false);
+  }
+
+  @Test
+  public void create_NamespaceCreationRequestWithImportedGiven_ShouldCreateImportedNamespace() {
+    // Arrange
+    configureNamespaceCreationRequest(namespaceCreationRequest);
+    when(namespaceCreationRequest.isImported()).thenReturn(true);
+
+    // Act
+    service.create(namespaceCreationRequest);
+
+    // Assert
+    verify(namespaceManager).create(SOME_NAMESPACE, true);
   }
 
   @Test
