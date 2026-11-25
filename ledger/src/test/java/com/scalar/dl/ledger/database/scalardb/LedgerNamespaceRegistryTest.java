@@ -1,5 +1,6 @@
 package com.scalar.dl.ledger.database.scalardb;
 
+import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.COLUMN_IMPORTED;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.COLUMN_NAME;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.COLUMN_PARTITION_ID;
 import static com.scalar.dl.ledger.database.scalardb.AbstractScalarNamespaceRegistry.DEFAULT_PARTITION_ID;
@@ -35,13 +36,16 @@ import com.scalar.db.api.TableMetadata;
 import com.scalar.db.common.CoreError;
 import com.scalar.db.exception.storage.ExecutionException;
 import com.scalar.db.exception.storage.NoMutationException;
+import com.scalar.db.io.DataType;
 import com.scalar.db.io.Key;
 import com.scalar.dl.ledger.config.LedgerConfig;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.DatabaseException;
+import com.scalar.dl.ledger.exception.LedgerException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -430,6 +434,277 @@ public class LedgerNamespaceRegistryTest {
     verify(storageAdmin, times(1))
         .createTable(fullNamespace, SOME_TABLE_NAME_4, tableMetadata4, true, SOME_OPTIONS);
     verify(storage, times(1)).put(expectedPut);
+  }
+
+  @Test
+  public void create_ImportedGiven_ShouldPutEntryWithImported() throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    Put expectedPut =
+        Put.newBuilder()
+            .namespace(BASE_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
+            .booleanValue(COLUMN_IMPORTED, true)
+            .condition(ConditionBuilder.putIfNotExists())
+            .build();
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME))
+        .thenReturn(NAMESPACE_TABLE_METADATA);
+
+    // Act
+    namespaceRegistry.create(SOME_NAMESPACE, true);
+
+    // Assert
+    verify(storageAdmin)
+        .createTable(
+            BASE_NAMESPACE, NAMESPACE_TABLE_NAME, NAMESPACE_TABLE_METADATA, true, SOME_OPTIONS);
+    verify(storageAdmin).createNamespace(fullNamespace, true, SOME_OPTIONS);
+    verify(storage).put(expectedPut);
+  }
+
+  @Test
+  public void create_ImportedNotGiven_ShouldNotCheckTableMetadata() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+
+    // Act
+    namespaceRegistry.create(SOME_NAMESPACE, false);
+
+    // Assert
+    verify(storageAdmin, never()).getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    ArgumentCaptor<Put> putCaptor = ArgumentCaptor.forClass(Put.class);
+    verify(storage).put(putCaptor.capture());
+    assertThat(putCaptor.getValue().getColumns()).doesNotContainKey(COLUMN_IMPORTED);
+  }
+
+  @Test
+  public void create_ImportedGivenButImportedColumnNotExists_ShouldThrowLedgerException()
+      throws ExecutionException {
+    // Arrange
+    String fullNamespace = BASE_NAMESPACE + NAMESPACE_NAME_SEPARATOR + SOME_NAMESPACE;
+    TableMetadata oldMetadata =
+        TableMetadata.newBuilder()
+            .addColumn(COLUMN_PARTITION_ID, DataType.INT)
+            .addColumn(COLUMN_NAME, DataType.TEXT)
+            .addPartitionKey(COLUMN_PARTITION_ID)
+            .addClusteringKey(COLUMN_NAME)
+            .build();
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME))
+        .thenReturn(oldMetadata);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE, true))
+        .isInstanceOf(LedgerException.class)
+        .hasMessage(CommonError.CREATING_IMPORTED_NAMESPACE_NOT_SUPPORTED_BY_SCHEMA.buildMessage());
+
+    verify(storageAdmin, times(1)).getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME);
+    verify(storageAdmin, never()).createNamespace(fullNamespace, true, SOME_OPTIONS);
+    verify(storage, never()).put(any(Put.class));
+  }
+
+  @Test
+  public void create_ImportedGivenAndGetTableMetadataFailed_ShouldThrowDatabaseException()
+      throws ExecutionException {
+    // Arrange
+    ExecutionException toThrow = new ExecutionException("details");
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenThrow(toThrow);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE, true))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessage(CommonError.CREATING_NAMESPACE_FAILED.buildMessage("details"));
+
+    verify(storage, never()).put(any(Put.class));
+  }
+
+  @Test
+  public void create_ImportedGivenAndPutRejectedDueToStaleMetadata_ShouldThrowDatabaseException()
+      throws ExecutionException {
+    // Arrange
+    IllegalArgumentException toThrow =
+        new IllegalArgumentException(
+            CoreError.OPERATION_CHECK_ERROR_INVALID_COLUMN.buildMessage("c", "put", "metadata"));
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.getTableMetadata(BASE_NAMESPACE, NAMESPACE_TABLE_NAME))
+        .thenReturn(NAMESPACE_TABLE_METADATA);
+    doThrow(toThrow).when(storage).put(any(Put.class));
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.create(SOME_NAMESPACE, true))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow)
+        .hasMessage(CommonError.NAMESPACE_TABLE_SCHEMA_CHANGE_NOT_REFLECTED.buildMessage());
+
+    verify(storage, times(1)).put(any(Put.class));
+  }
+
+  @Test
+  public void isImported_ImportedNamespaceGiven_ShouldReturnTrue() throws ExecutionException {
+    // Arrange
+    Get expectedGet =
+        Get.newBuilder()
+            .namespace(BASE_NAMESPACE)
+            .table(NAMESPACE_TABLE_NAME)
+            .partitionKey(Key.ofInt(COLUMN_PARTITION_ID, DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(COLUMN_NAME, SOME_NAMESPACE))
+            .build();
+    Result result = Mockito.mock(Result.class);
+    when(result.contains(COLUMN_IMPORTED)).thenReturn(true);
+    when(result.isNull(COLUMN_IMPORTED)).thenReturn(false);
+    when(result.getBoolean(COLUMN_IMPORTED)).thenReturn(true);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.get(expectedGet)).thenReturn(Optional.of(result));
+
+    // Act
+    boolean actual = namespaceRegistry.isImported(SOME_NAMESPACE);
+
+    // Assert
+    assertThat(actual).isTrue();
+    verify(storage).get(expectedGet);
+  }
+
+  @Test
+  public void isImported_NamespaceWithNullImportedGiven_ShouldReturnFalse()
+      throws ExecutionException {
+    // Arrange
+    Result result = Mockito.mock(Result.class);
+    when(result.contains(COLUMN_IMPORTED)).thenReturn(true);
+    when(result.isNull(COLUMN_IMPORTED)).thenReturn(true);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.get(any(Get.class))).thenReturn(Optional.of(result));
+
+    // Act
+    boolean actual = namespaceRegistry.isImported(SOME_NAMESPACE);
+
+    // Assert
+    assertThat(actual).isFalse();
+    verify(result, never()).getBoolean(COLUMN_IMPORTED);
+  }
+
+  @Test
+  public void isImported_ImportedColumnNotExists_ShouldReturnFalse() throws ExecutionException {
+    // Arrange
+    Result result = Mockito.mock(Result.class);
+    when(result.contains(COLUMN_IMPORTED)).thenReturn(false);
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.get(any(Get.class))).thenReturn(Optional.of(result));
+
+    // Act
+    boolean actual = namespaceRegistry.isImported(SOME_NAMESPACE);
+
+    // Assert
+    assertThat(actual).isFalse();
+    verify(result, never()).isNull(COLUMN_IMPORTED);
+    verify(result, never()).getBoolean(COLUMN_IMPORTED);
+  }
+
+  @Test
+  public void isImported_NonExistingNamespaceGiven_ShouldReturnFalse() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.get(any(Get.class))).thenReturn(Optional.empty());
+
+    // Act
+    boolean actual = namespaceRegistry.isImported(SOME_NAMESPACE);
+
+    // Assert
+    assertThat(actual).isFalse();
+  }
+
+  @Test
+  public void isImported_NamespaceTableNotExists_ShouldReturnFalse() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(false);
+
+    // Act
+    boolean actual = namespaceRegistry.isImported(SOME_NAMESPACE);
+
+    // Assert
+    assertThat(actual).isFalse();
+    verify(storage, never()).get(any(Get.class));
+  }
+
+  @Test
+  public void isImported_GetFailed_ShouldThrowDatabaseException() throws ExecutionException {
+    // Arrange
+    ExecutionException toThrow = new ExecutionException("details");
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.get(any(Get.class))).thenThrow(toThrow);
+
+    // Act Assert
+    assertThatThrownBy(() -> namespaceRegistry.isImported(SOME_NAMESPACE))
+        .isInstanceOf(DatabaseException.class)
+        .hasCause(toThrow);
+  }
+
+  @Test
+  public void existsImported_ImportedNamespaceExists_ShouldReturnTrue() throws ExecutionException {
+    // Arrange
+    Result result1 = Mockito.mock(Result.class);
+    Result result2 = Mockito.mock(Result.class);
+    when(result1.contains(COLUMN_IMPORTED)).thenReturn(true);
+    when(result1.isNull(COLUMN_IMPORTED)).thenReturn(true);
+    when(result2.contains(COLUMN_IMPORTED)).thenReturn(true);
+    when(result2.isNull(COLUMN_IMPORTED)).thenReturn(false);
+    when(result2.getBoolean(COLUMN_IMPORTED)).thenReturn(true);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    when(scanner.spliterator()).thenReturn(Arrays.asList(result1, result2).spliterator());
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    boolean actual = namespaceRegistry.existsImported();
+
+    // Assert
+    assertThat(actual).isTrue();
+  }
+
+  @Test
+  public void existsImported_NoImportedNamespaceExists_ShouldReturnFalse()
+      throws ExecutionException {
+    // Arrange
+    Result result1 = Mockito.mock(Result.class);
+    Result result2 = Mockito.mock(Result.class);
+    when(result1.contains(COLUMN_IMPORTED)).thenReturn(true);
+    when(result1.isNull(COLUMN_IMPORTED)).thenReturn(true);
+    when(result2.contains(COLUMN_IMPORTED)).thenReturn(false);
+    Scanner scanner = Mockito.mock(Scanner.class);
+    when(scanner.spliterator()).thenReturn(Arrays.asList(result1, result2).spliterator());
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(true);
+    when(storage.scan(any(Scan.class))).thenReturn(scanner);
+
+    // Act
+    boolean actual = namespaceRegistry.existsImported();
+
+    // Assert
+    assertThat(actual).isFalse();
+  }
+
+  @Test
+  public void existsImported_NamespaceTableNotExists_ShouldReturnFalse() throws ExecutionException {
+    // Arrange
+    when(config.getNamespace()).thenReturn(BASE_NAMESPACE);
+    when(storageAdmin.tableExists(BASE_NAMESPACE, NAMESPACE_TABLE_NAME)).thenReturn(false);
+
+    // Act
+    boolean actual = namespaceRegistry.existsImported();
+
+    // Assert
+    assertThat(actual).isFalse();
+    verify(storage, never()).scan(any(Scan.class));
   }
 
   @Test

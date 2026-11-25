@@ -54,7 +54,30 @@ public class NamespaceCreationTest {
 
       // Assert
       assertThat(exitCode).isEqualTo(0);
-      verify(serviceMock).createNamespace("test_namespace");
+      verify(serviceMock).createNamespace("test_namespace", false);
+    }
+
+    @Nested
+    @DisplayName("where for-import option is given")
+    class whereForImportOptionIsGiven {
+      @Test
+      @DisplayName("creates the namespace as the one to hold imported data")
+      void createsNamespaceAsOneToHoldImportedData() throws ClientException {
+        // Arrange
+        String[] args =
+            new String[] {
+              "--properties=PROPERTIES_FILE", "--namespace=test_namespace", "--for-import",
+            };
+        NamespaceCreation command = parseArgs(args);
+        ClientService serviceMock = mock(ClientService.class);
+
+        // Act
+        int exitCode = command.execute(serviceMock);
+
+        // Assert
+        assertThat(exitCode).isEqualTo(0);
+        verify(serviceMock).createNamespace("test_namespace", true);
+      }
     }
 
     @Nested
@@ -140,7 +163,7 @@ public class NamespaceCreationTest {
         when(factoryMock.create(any(ClientConfig.class), eq(false))).thenReturn(serviceMock);
         doThrow(new ClientException("", StatusCode.RUNTIME_ERROR))
             .when(serviceMock)
-            .createNamespace("test-namespace");
+            .createNamespace("test-namespace", false);
 
         // Act
         int exitCode = command.call(factoryMock);
