@@ -18,6 +18,10 @@ import static com.scalar.dl.testing.schema.SchemaConstants.CERTIFICATE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_CLASS_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.CONTRACT_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.FUNCTION_TABLE;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_DEFAULT_PARTITION_ID;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_IMPORTED_COLUMN_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_NAME_COLUMN_NAME;
+import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_PARTITION_ID_COLUMN_NAME;
 import static com.scalar.dl.testing.schema.SchemaConstants.NAMESPACE_TABLE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SCALAR_NAMESPACE;
 import static com.scalar.dl.testing.schema.SchemaConstants.SECRET_TABLE;
@@ -297,6 +301,26 @@ public abstract class LedgerNamespaceIntegrationTestBase {
                 .add(namespaceTo + ASSET_ID_SEPARATOR + assetIdTo));
   }
 
+  /**
+   * Gets the entry of the specified namespace from the namespace table.
+   *
+   * @param baseNamespace the base namespace that has the namespace table (e.g., "scalar")
+   * @param namespace the namespace name
+   * @return the entry if it exists
+   */
+  protected Optional<Result> getNamespaceEntry(String baseNamespace, String namespace)
+      throws ExecutionException {
+    Get get =
+        Get.newBuilder()
+            .namespace(baseNamespace)
+            .table(NAMESPACE_TABLE)
+            .partitionKey(
+                Key.ofInt(NAMESPACE_PARTITION_ID_COLUMN_NAME, NAMESPACE_DEFAULT_PARTITION_ID))
+            .clusteringKey(Key.ofText(NAMESPACE_NAME_COLUMN_NAME, namespace))
+            .build();
+    return storage.get(get);
+  }
+
   protected void createAssetsWithPaymentsInNamespaces() {
     clientServiceA.executeContract(
         NAMESPACE_AWARE_CREATE_ID, createArgument(NAMESPACE_1, SOME_ASSET_ID_1, SOME_AMOUNT_1));
@@ -505,6 +529,35 @@ public abstract class LedgerNamespaceIntegrationTestBase {
             e ->
                 assertThat(((ClientException) e).getStatusCode())
                     .isEqualTo(StatusCode.NAMESPACE_ALREADY_EXISTS));
+  }
+
+  @Test
+  void createNamespace_ImportedGiven_ShouldRegisterEntryAsImported() throws Exception {
+    try {
+      // Act
+      clientServiceA.createNamespace(NAMESPACE_3, true);
+
+      // Assert
+      Optional<Result> entry = getNamespaceEntry(SCALAR_NAMESPACE, NAMESPACE_3);
+      assertThat(entry).isPresent();
+      assertThat(entry.get().isNull(NAMESPACE_IMPORTED_COLUMN_NAME)).isFalse();
+      assertThat(entry.get().getBoolean(NAMESPACE_IMPORTED_COLUMN_NAME)).isTrue();
+      assertThat(
+              storageAdmin.getNamespaceTableNames(resolveNamespace(SCALAR_NAMESPACE, NAMESPACE_3)))
+          .contains(ASSET_TABLE, ASSET_METADATA_TABLE);
+    } finally {
+      clientServiceA.dropNamespace(NAMESPACE_3);
+    }
+  }
+
+  @Test
+  void createNamespace_ImportedNotGiven_ShouldRegisterEntryWithoutImported() throws Exception {
+    // Act (NAMESPACE_1 is created without the imported option in the setup)
+    Optional<Result> entry = getNamespaceEntry(SCALAR_NAMESPACE, NAMESPACE_1);
+
+    // Assert
+    assertThat(entry).isPresent();
+    assertThat(entry.get().isNull(NAMESPACE_IMPORTED_COLUMN_NAME)).isTrue();
   }
 
   @Test

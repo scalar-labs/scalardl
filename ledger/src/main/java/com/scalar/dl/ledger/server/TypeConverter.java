@@ -143,7 +143,8 @@ public class TypeConverter {
 
   public static com.scalar.dl.ledger.model.NamespaceCreationRequest convert(
       NamespaceCreationRequest req) {
-    return new com.scalar.dl.ledger.model.NamespaceCreationRequest(req.getNamespace());
+    return new com.scalar.dl.ledger.model.NamespaceCreationRequest(
+        req.getNamespace(), req.getImported());
   }
 
   public static com.scalar.dl.ledger.model.NamespaceDroppingRequest convert(

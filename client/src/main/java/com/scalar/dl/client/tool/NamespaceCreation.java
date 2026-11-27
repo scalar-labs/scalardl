@@ -15,9 +15,17 @@ public class NamespaceCreation extends AbstractClientCommand {
       description = "A namespace name to create.")
   private String namespace;
 
+  @CommandLine.Option(
+      names = {"--for-import"},
+      paramLabel = "FOR_IMPORT",
+      description =
+          "A flag to create the namespace to hold data imported from another ScalarDL deployment. "
+              + "This only marks the namespace as such and does not import any data.")
+  private boolean forImport;
+
   @Override
   protected Integer execute(ClientService service) throws ClientException {
-    service.createNamespace(namespace);
+    service.createNamespace(namespace, forImport);
     Common.printOutput(null);
     return 0;
   }

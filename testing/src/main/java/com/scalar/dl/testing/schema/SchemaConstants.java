@@ -19,6 +19,12 @@ public final class SchemaConstants {
   public static final String FUNCTION_TABLE = "function";
   public static final String NAMESPACE_TABLE = "namespace";
 
+  // Namespace table columns
+  public static final String NAMESPACE_PARTITION_ID_COLUMN_NAME = "partition_id";
+  public static final String NAMESPACE_NAME_COLUMN_NAME = "name";
+  public static final String NAMESPACE_IMPORTED_COLUMN_NAME = "imported";
+  public static final int NAMESPACE_DEFAULT_PARTITION_ID = 0;
+
   // Asset table columns
   public static final String ASSET_ID_COLUMN_NAME = "id";
   public static final String ASSET_AGE_COLUMN_NAME = "age";

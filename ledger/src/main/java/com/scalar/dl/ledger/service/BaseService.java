@@ -71,7 +71,7 @@ public class BaseService {
   }
 
   public void create(NamespaceCreationRequest request) {
-    namespaceManager.create(request.getNamespace());
+    namespaceManager.create(request.getNamespace(), request.isImported());
   }
 
   public void drop(NamespaceDroppingRequest request) {
