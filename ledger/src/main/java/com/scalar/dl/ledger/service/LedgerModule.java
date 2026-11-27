@@ -18,6 +18,8 @@ import com.scalar.dl.ledger.config.ServerConfig;
 import com.scalar.dl.ledger.config.ServersHmacAuthenticatable;
 import com.scalar.dl.ledger.contract.ContractLoader;
 import com.scalar.dl.ledger.contract.ContractManager;
+import com.scalar.dl.ledger.contract.ContractValidationFallbackPolicy;
+import com.scalar.dl.ledger.contract.DisabledContractValidationFallbackPolicy;
 import com.scalar.dl.ledger.crypto.AuditorKeyValidator;
 import com.scalar.dl.ledger.crypto.CertificateManager;
 import com.scalar.dl.ledger.crypto.Cipher;
@@ -108,6 +110,20 @@ public class LedgerModule extends AbstractModule {
   @Provides
   LedgerConfig provideLedgerConfig() {
     return config;
+  }
+
+  /**
+   * The fallback validation of registered contracts is allowed only in the namespaces created for
+   * import, and only when the Auditor is enabled so that a replaced contract is detected.
+   */
+  @Provides
+  @Singleton
+  ContractValidationFallbackPolicy provideContractValidationFallbackPolicy(
+      NamespaceManager namespaceManager) {
+    if (!config.isAuditorEnabled()) {
+      return new DisabledContractValidationFallbackPolicy();
+    }
+    return namespaceManager::isImported;
   }
 
   @Provides

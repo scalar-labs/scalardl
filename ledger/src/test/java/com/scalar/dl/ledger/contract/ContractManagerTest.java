@@ -24,6 +24,9 @@ import com.scalar.dl.ledger.crypto.CertificateEntry;
 import com.scalar.dl.ledger.crypto.ClientKeyValidator;
 import com.scalar.dl.ledger.crypto.DigitalSignatureSigner;
 import com.scalar.dl.ledger.crypto.DigitalSignatureValidator;
+import com.scalar.dl.ledger.crypto.HmacSigner;
+import com.scalar.dl.ledger.crypto.HmacValidator;
+import com.scalar.dl.ledger.crypto.SignatureSigner;
 import com.scalar.dl.ledger.database.ContractRegistry;
 import com.scalar.dl.ledger.error.CommonError;
 import com.scalar.dl.ledger.exception.ContractValidationException;
@@ -31,9 +34,11 @@ import com.scalar.dl.ledger.exception.DatabaseException;
 import com.scalar.dl.ledger.exception.MissingContractException;
 import com.scalar.dl.ledger.exception.UnloadableContractException;
 import com.scalar.dl.ledger.model.ContractRegistrationRequest;
+import com.scalar.dl.ledger.namespace.Namespaces;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import javax.annotation.Nullable;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,9 +52,11 @@ public class ContractManagerTest {
   private static final byte[] ANY_BYTE_CODE = "byte_code".getBytes(StandardCharsets.UTF_8);
   private static final String ANY_ENTITY_ID = "entity_id";
   private static final int ANY_CERT_VERSION = 1;
+  private static final String ANY_SECRET_KEY = "secret_key";
   @Mock private ContractRegistry registry;
   @Mock private ContractLoader loader;
   @Mock private ClientKeyValidator clientKeyValidator;
+  @Mock private ContractValidationFallbackPolicy fallbackPolicy;
   @Mock private ContractEntry entry;
   @Mock private DigitalSignatureValidator validator;
   private ContractManager manager;
@@ -58,10 +65,11 @@ public class ContractManagerTest {
   public void setUp() {
     MockitoAnnotations.openMocks(this);
 
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator));
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
 
     doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
     when(validator.validate(any(), any())).thenReturn(true);
+    when(fallbackPolicy.isFallbackAllowed(anyString())).thenReturn(true);
     prepareContractEntry();
   }
 
@@ -77,14 +85,22 @@ public class ContractManagerTest {
   }
 
   private ContractEntry createContractEntryWith() {
-    DigitalSignatureSigner signer = new DigitalSignatureSigner(PRIVATE_KEY_A);
+    return createContractEntrySignedFor(ANY_NAMESPACE);
+  }
+
+  private ContractEntry createContractEntrySignedFor(@Nullable String signedNamespace) {
+    return createContractEntrySignedFor(new DigitalSignatureSigner(PRIVATE_KEY_A), signedNamespace);
+  }
+
+  private ContractEntry createContractEntrySignedFor(
+      SignatureSigner signer, @Nullable String signedNamespace) {
     byte[] serialized =
         ContractRegistrationRequest.serialize(
             ANY_CONTRACT_ID,
             ANY_CONTRACT_NAME,
             ANY_BYTE_CODE,
             null,
-            ANY_NAMESPACE,
+            signedNamespace,
             ANY_ENTITY_ID,
             ANY_CERT_VERSION);
     return new ContractEntry(
@@ -168,7 +184,7 @@ public class ContractManagerTest {
 
     // Assert
     verify(loader).defineClass(entry);
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
     assertThat(contract.getClientIdentityKey().getKeyVersion()).isEqualTo(ANY_CERT_VERSION);
@@ -187,7 +203,7 @@ public class ContractManagerTest {
 
     // Assert
     verify(loader).defineClass(entry);
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
     assertThat(contract.getClientIdentityKey().getKeyVersion()).isEqualTo(ANY_CERT_VERSION);
@@ -207,7 +223,7 @@ public class ContractManagerTest {
 
     // Assert
     verify(loader, times(2)).defineClass(entry);
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
   }
 
   @Test
@@ -217,7 +233,8 @@ public class ContractManagerTest {
     ConcurrentMap<String, Cache<ContractEntry.Key, Object>> caches = new ConcurrentHashMap<>();
     Cache<ContractEntry.Key, Object> cache = CacheBuilder.newBuilder().maximumSize(0).build();
     caches.put(ANY_NAMESPACE, cache);
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator, caches));
+    manager =
+        spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy, caches));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
     doReturn(clazz).when(loader).defineClass(entry);
@@ -228,7 +245,7 @@ public class ContractManagerTest {
 
     // Assert
     verify(loader, times(2)).defineClass(entry);
-    verify(manager, times(2)).validateContract(ANY_NAMESPACE, entry);
+    verify(manager, times(2)).validateRegisteredContract(ANY_NAMESPACE, entry);
   }
 
   @Test
@@ -238,7 +255,7 @@ public class ContractManagerTest {
     ContractEntry entry = createContractEntryWith();
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_A);
     doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator));
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
     doReturn(clazz).when(loader).defineClass(entry);
@@ -247,7 +264,7 @@ public class ContractManagerTest {
     ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
 
     // Assert
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
     verify(loader).defineClass(entry);
     assertThat(contract.isRoot()).isFalse();
     assertThat(contract.getClientIdentityKey().getEntityId()).isEqualTo(ANY_ENTITY_ID);
@@ -262,7 +279,7 @@ public class ContractManagerTest {
     // It will happen in case the certificate entry is tampered
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_B);
     doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator));
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
     // NOTICE: it doesn't work if TestContract is defined as an inner class of this
     Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
     doReturn(clazz).when(loader).defineClass(entry);
@@ -272,7 +289,7 @@ public class ContractManagerTest {
         .isInstanceOf(ContractValidationException.class);
 
     // Assert
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
     verify(loader, never()).defineClass(entry);
   }
 
@@ -283,7 +300,7 @@ public class ContractManagerTest {
     ContractEntry entry = createContractEntryWith();
     DigitalSignatureValidator validator = new DigitalSignatureValidator(CERTIFICATE_A);
     doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
-    manager = spy(new ContractManager(registry, loader, clientKeyValidator));
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
     SecurityException toThrow = mock(SecurityException.class);
     when(toThrow.getMessage()).thenReturn("details");
     doThrow(toThrow).when(loader).defineClass(entry);
@@ -294,7 +311,222 @@ public class ContractManagerTest {
         .hasMessage(CommonError.LOADING_CONTRACT_FAILED.buildMessage("details"));
 
     // Assert
-    verify(manager).validateContract(ANY_NAMESPACE, entry);
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
     verify(loader).defineClass(entry);
+  }
+
+  private DigitalSignatureValidator prepareRealValidator() {
+    DigitalSignatureValidator validator = spy(new DigitalSignatureValidator(CERTIFICATE_A));
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
+    return validator;
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForDefaultNamespaceGivenInNonDefaultNamespace_ShouldReturnContractWithFallbackValidation() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(null);
+    DigitalSignatureValidator validator = prepareRealValidator();
+    Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
+    doReturn(clazz).when(loader).defineClass(entry);
+
+    // Act
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
+    manager.getInstance(ANY_NAMESPACE, entry);
+
+    // Assert
+    assertThat(contract.getContractBase()).isInstanceOf(JsonpBasedContract.class);
+    // The successful fallback validation is cached as usual.
+    verify(manager).validateRegisteredContract(ANY_NAMESPACE, entry);
+    verify(validator, times(2)).validate(any(), any());
+    verify(loader, times(2)).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForDefaultNamespaceGivenInNamespaceWhereFallbackIsNotAllowed_ShouldThrowContractValidationException() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(null);
+    DigitalSignatureValidator validator = prepareRealValidator();
+    when(fallbackPolicy.isFallbackAllowed(ANY_NAMESPACE)).thenReturn(false);
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    verify(fallbackPolicy).isFallbackAllowed(ANY_NAMESPACE);
+    verify(validator).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForSameNamespaceGiven_ShouldReturnContractWithoutFallbackValidation() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(ANY_NAMESPACE);
+    DigitalSignatureValidator validator = prepareRealValidator();
+    Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
+    doReturn(clazz).when(loader).defineClass(entry);
+
+    // Act
+    manager.getInstance(ANY_NAMESPACE, entry);
+
+    // Assert
+    verify(fallbackPolicy, never()).isFallbackAllowed(anyString());
+    verify(validator).validate(any(), any());
+    verify(loader).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForAnotherNamespaceGiven_ShouldThrowContractValidationExceptionEveryTime() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor("another_namespace");
+    DigitalSignatureValidator validator = prepareRealValidator();
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    // The failed validation is not cached.
+    verify(manager, times(2)).validateRegisteredContract(ANY_NAMESPACE, entry);
+    verify(validator, times(4)).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForAnotherNamespaceGivenWithNamespaceAppendedToProperties_ShouldReturnContractWithFallbackValidation() {
+    // Arrange
+    String anotherNamespace = "another_namespace";
+    String properties = "{\"key\":\"value\"}";
+    byte[] serialized =
+        ContractRegistrationRequest.serialize(
+            ANY_CONTRACT_ID,
+            ANY_CONTRACT_NAME,
+            ANY_BYTE_CODE,
+            properties,
+            anotherNamespace,
+            ANY_ENTITY_ID,
+            ANY_CERT_VERSION);
+    // The signed data has no delimiters and does not include the default namespace, so the entry
+    // signed for another namespace is the same as the one signed for the default namespace with
+    // the properties followed by the name of the namespace.
+    ContractEntry entry =
+        new ContractEntry(
+            ANY_CONTRACT_ID,
+            ANY_CONTRACT_NAME,
+            ANY_ENTITY_ID,
+            ANY_CERT_VERSION,
+            ANY_BYTE_CODE,
+            properties + anotherNamespace,
+            1L,
+            new DigitalSignatureSigner(PRIVATE_KEY_A).sign(serialized));
+    DigitalSignatureValidator validator = prepareRealValidator();
+    Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
+    doReturn(clazz).when(loader).defineClass(entry);
+
+    // Act
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
+
+    // Assert
+    assertThat(contract.getContractBase()).isInstanceOf(JsonpBasedContract.class);
+    verify(validator, times(2)).validate(any(), any());
+    verify(loader).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForDefaultNamespaceGivenWithDifferentKey_ShouldThrowContractValidationException() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(null);
+    // The namespace has a different key for the same entity ID and key version
+    DigitalSignatureValidator validator = spy(new DigitalSignatureValidator(CERTIFICATE_B));
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    verify(validator, times(2)).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedForNonDefaultNamespaceGivenInDefaultNamespace_ShouldThrowContractValidationExceptionWithoutFallbackValidation() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(ANY_NAMESPACE);
+    DigitalSignatureValidator validator = prepareRealValidator();
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.getInstance(Namespaces.DEFAULT, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    verify(fallbackPolicy, never()).isFallbackAllowed(anyString());
+    verify(validator).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
+  }
+
+  @Test
+  public void
+      register_ContractSignedForDefaultNamespaceGivenInNonDefaultNamespace_ShouldThrowContractValidationException() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(null);
+    DigitalSignatureValidator validator = prepareRealValidator();
+    when(registry.lookup(ANY_NAMESPACE, entry.getKey())).thenThrow(MissingContractException.class);
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.register(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    verify(validator).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
+    verify(registry, never()).bind(ANY_NAMESPACE, entry);
+  }
+
+  private HmacValidator prepareRealHmacValidator() {
+    HmacValidator validator = spy(new HmacValidator(ANY_SECRET_KEY));
+    doReturn(validator).when(clientKeyValidator).getValidator(anyString(), anyString(), anyInt());
+    manager = spy(new ContractManager(registry, loader, clientKeyValidator, fallbackPolicy));
+    return validator;
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedWithHmacForDefaultNamespaceGivenInNonDefaultNamespace_ShouldReturnContractWithFallbackValidation() {
+    // Arrange
+    ContractEntry entry = createContractEntrySignedFor(new HmacSigner(ANY_SECRET_KEY), null);
+    HmacValidator validator = prepareRealHmacValidator();
+    Class<? extends ContractBase<?>> clazz = TestJsonpBasedContract.class;
+    doReturn(clazz).when(loader).defineClass(entry);
+
+    // Act
+    ContractMachine contract = manager.getInstance(ANY_NAMESPACE, entry);
+
+    // Assert
+    assertThat(contract.getContractBase()).isInstanceOf(JsonpBasedContract.class);
+    verify(validator, times(2)).validate(any(), any());
+    verify(loader).defineClass(entry);
+  }
+
+  @Test
+  public void
+      getInstance_ContractSignedWithHmacForAnotherNamespaceGiven_ShouldThrowContractValidationException() {
+    // Arrange
+    ContractEntry entry =
+        createContractEntrySignedFor(new HmacSigner(ANY_SECRET_KEY), "another_namespace");
+    HmacValidator validator = prepareRealHmacValidator();
+
+    // Act Assert
+    assertThatThrownBy(() -> manager.getInstance(ANY_NAMESPACE, entry))
+        .isInstanceOf(ContractValidationException.class);
+
+    verify(validator, times(2)).validate(any(), any());
+    verify(loader, never()).defineClass(entry);
   }
 }

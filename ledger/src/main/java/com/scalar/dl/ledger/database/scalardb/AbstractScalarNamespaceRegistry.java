@@ -362,10 +362,17 @@ public abstract class AbstractScalarNamespaceRegistry implements NamespaceRegist
             .clusteringKey(Key.ofText(COLUMN_NAME, namespace))
             .build();
     try {
-      if (!storageAdmin.tableExists(config.getNamespace(), NAMESPACE_TABLE_NAME)) {
+      // Reached during contract execution when a contract invokes another contract (nested
+      // invocation) whose signature has to be validated as the one for the default namespace, so
+      // these reads run in the contract's restricted ProtectionDomain; see the Privileged class for
+      // details.
+      if (!Privileged.storageCrud(
+          () -> storageAdmin.tableExists(config.getNamespace(), NAMESPACE_TABLE_NAME))) {
         return false;
       }
-      return storage.get(get).map(AbstractScalarNamespaceRegistry::isImported).orElse(false);
+      return Privileged.storageCrud(() -> storage.get(get))
+          .map(AbstractScalarNamespaceRegistry::isImported)
+          .orElse(false);
     } catch (ExecutionException e) {
       throw new DatabaseException(CommonError.SCANNING_NAMESPACES_FAILED, e, e.getMessage());
     }

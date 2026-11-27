@@ -19,7 +19,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A manager to store {@link ContractEntry}s in a {@link ContractRegistry}, retrieve {@link
@@ -28,20 +31,35 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class ContractManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ContractManager.class.getName());
   private static final int CACHE_SIZE = 1048576;
   private static final int VALIDATION_WINDOW_DAYS = 7;
   private final ContractRegistry registry;
   private final ContractLoader loader;
   private final ClientKeyValidator clientKeyValidator;
+  private final ContractValidationFallbackPolicy fallbackPolicy;
   private final ConcurrentMap<String, Cache<ContractEntry.Key, Object>> recentlyValidatedCaches;
+
+  /**
+   * Constructs a {@code ContractManager} that does not allow the fallback validation of registered
+   * contracts.
+   *
+   * @param registry a {@link ContractRegistry}
+   * @param loader a {@link ContractLoader}
+   * @param clientKeyValidator a {@link ClientKeyValidator}
+   */
+  public ContractManager(
+      ContractRegistry registry, ContractLoader loader, ClientKeyValidator clientKeyValidator) {
+    this(registry, loader, clientKeyValidator, new DisabledContractValidationFallbackPolicy());
+  }
 
   @Inject
   public ContractManager(
-      ContractRegistry registry, ContractLoader loader, ClientKeyValidator clientKeyValidator) {
-    this.registry = registry;
-    this.loader = loader;
-    this.clientKeyValidator = clientKeyValidator;
-    this.recentlyValidatedCaches = new ConcurrentHashMap<>();
+      ContractRegistry registry,
+      ContractLoader loader,
+      ClientKeyValidator clientKeyValidator,
+      ContractValidationFallbackPolicy fallbackPolicy) {
+    this(registry, loader, clientKeyValidator, fallbackPolicy, new ConcurrentHashMap<>());
   }
 
   @VisibleForTesting
@@ -50,10 +68,12 @@ public class ContractManager {
       ContractRegistry registry,
       ContractLoader loader,
       ClientKeyValidator clientKeyValidator,
+      ContractValidationFallbackPolicy fallbackPolicy,
       ConcurrentMap<String, Cache<ContractEntry.Key, Object>> recentlyValidatedCaches) {
     this.registry = registry;
     this.loader = loader;
     this.clientKeyValidator = clientKeyValidator;
+    this.fallbackPolicy = fallbackPolicy;
     this.recentlyValidatedCaches = recentlyValidatedCaches;
   }
 
@@ -122,7 +142,7 @@ public class ContractManager {
     Cache<ContractEntry.Key, Object> cache =
         recentlyValidatedCaches.computeIfAbsent(namespace, this::createCache);
     if (cache.getIfPresent(entry.getKey()) == null) {
-      validateContract(namespace, entry);
+      validateRegisteredContract(namespace, entry);
       cache.put(entry.getKey(), new Object());
     }
     return loadContract(namespace, entry);
@@ -155,26 +175,87 @@ public class ContractManager {
     }
   }
 
+  /**
+   * Validates the signature of a contract to be registered. The signature must have been created
+   * for the specified namespace.
+   */
   @VisibleForTesting
   void validateContract(String namespace, ContractEntry entry) {
     SignatureValidator validator =
         clientKeyValidator.getValidator(namespace, entry.getEntityId(), entry.getKeyVersion());
 
+    if (!isSignatureValid(validator, entry, toSignedNamespace(namespace))) {
+      throw new ContractValidationException(CommonError.CONTRACT_VALIDATION_FAILED);
+    }
+  }
+
+  /**
+   * Validates the signature of an already registered contract. The signature is first validated for
+   * the specified namespace. If it does not match, the specified namespace is not the default
+   * namespace, and the {@link ContractValidationFallbackPolicy} allows it for the namespace, the
+   * signature is validated again as the one created for the default namespace so that a contract
+   * that was registered in the default namespace and then migrated to the specified namespace can
+   * be used as it is.
+   *
+   * <p>This means that a contract entry signed for the default namespace is valid in any namespace
+   * where the fallback validation is allowed. Moreover, since the signed data is a concatenation of
+   * the fields without delimiters and the default namespace is not included in it, a contract entry
+   * signed for a non-default namespace also passes the validation in such a namespace if the name
+   * of the namespace that it was signed for is appended to its properties. In both cases, the entry
+   * is validated with the key that is registered in the specified namespace for its entity ID and
+   * key version, so it is accepted only in a namespace where the same key is registered for them.
+   *
+   * <p>Replacing a contract entry in one of the Ledger and the Auditor with such an entry is
+   * detected as an inconsistency between them when the contract is executed, but it is not detected
+   * in the Ledger-only configuration. The fallback validation should be allowed only where the
+   * replacement is detected.
+   */
+  @VisibleForTesting
+  void validateRegisteredContract(String namespace, ContractEntry entry) {
+    SignatureValidator validator =
+        clientKeyValidator.getValidator(namespace, entry.getEntityId(), entry.getKeyVersion());
+
+    if (isSignatureValid(validator, entry, toSignedNamespace(namespace))) {
+      return;
+    }
+
+    if (!namespace.equals(Namespaces.DEFAULT)
+        && fallbackPolicy.isFallbackAllowed(namespace)
+        && isSignatureValid(validator, entry, null)) {
+      LOGGER.info(
+          "The contract was validated with the signature for the default namespace. "
+              + "Namespace: {}; Entity ID: {}; Key version: {}; Contract ID: {}",
+          namespace,
+          entry.getEntityId(),
+          entry.getKeyVersion(),
+          entry.getId());
+      return;
+    }
+
+    // The contract was properly registered with the correct signature,
+    // so this validation failure indicates potential malicious behavior.
+    throw new ContractValidationException(CommonError.CONTRACT_VALIDATION_FAILED);
+  }
+
+  @Nullable
+  private String toSignedNamespace(String namespace) {
+    // The default namespace is not included in the signed data for backward compatibility.
+    return namespace.equals(Namespaces.DEFAULT) ? null : namespace;
+  }
+
+  private boolean isSignatureValid(
+      SignatureValidator validator, ContractEntry entry, @Nullable String signedNamespace) {
     byte[] serialized =
         ContractRegistrationRequest.serialize(
             entry.getId(),
             entry.getBinaryName(),
             entry.getByteCode(),
             entry.getProperties().orElse(null),
-            namespace.equals(Namespaces.DEFAULT) ? null : namespace,
+            signedNamespace,
             entry.getEntityId(),
             entry.getKeyVersion());
 
-    if (!validator.validate(serialized, entry.getSignature())) {
-      // The contract was properly registered with the correct signature,
-      // so this validation failure indicates potential malicious behavior.
-      throw new ContractValidationException(CommonError.CONTRACT_VALIDATION_FAILED);
-    }
+    return validator.validate(serialized, entry.getSignature());
   }
 
   private Cache<ContractEntry.Key, Object> createCache(String namespace) {

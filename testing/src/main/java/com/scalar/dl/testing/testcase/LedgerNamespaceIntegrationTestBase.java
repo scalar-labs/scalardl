@@ -63,6 +63,7 @@ import com.scalar.dl.testing.util.TestCertificates;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Properties;
+import javax.annotation.Nullable;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -155,24 +156,59 @@ public abstract class LedgerNamespaceIntegrationTestBase {
           createDigitalSignatureClientService(
               TestCertificates.ENTITY_ID_A,
               TestCertificates.PRIVATE_KEY_A,
-              TestCertificates.CERTIFICATE_A);
+              TestCertificates.CERTIFICATE_A,
+              null);
       clientServiceB =
           createDigitalSignatureClientService(
               TestCertificates.ENTITY_ID_B,
               TestCertificates.PRIVATE_KEY_B,
-              TestCertificates.CERTIFICATE_B);
+              TestCertificates.CERTIFICATE_B,
+              null);
     } else {
       clientServiceA =
-          createHmacClientService(TestCertificates.ENTITY_ID_A, TestCertificates.SECRET_KEY_A);
+          createHmacClientService(
+              TestCertificates.ENTITY_ID_A, TestCertificates.SECRET_KEY_A, null);
       clientServiceB =
-          createHmacClientService(TestCertificates.ENTITY_ID_B, TestCertificates.SECRET_KEY_B);
+          createHmacClientService(
+              TestCertificates.ENTITY_ID_B, TestCertificates.SECRET_KEY_B, null);
     }
     clientServiceA.bootstrap();
     clientServiceB.bootstrap();
   }
 
+  /**
+   * Registers the credential of the entity A in the specified namespace and creates a client of the
+   * entity whose context namespace is the namespace.
+   *
+   * @param namespace a namespace that has already been created
+   * @return a client of the entity A for the namespace
+   */
+  protected ClientService createClientServiceAFor(String namespace) throws IOException {
+    if (getAuthenticationMethod() == AuthenticationMethod.DIGITAL_SIGNATURE) {
+      clientServiceA.registerCertificate(
+          namespace,
+          TestCertificates.ENTITY_ID_A,
+          TestCertificates.KEY_VERSION,
+          TestCertificates.CERTIFICATE_A);
+      return createDigitalSignatureClientService(
+          TestCertificates.ENTITY_ID_A,
+          TestCertificates.PRIVATE_KEY_A,
+          TestCertificates.CERTIFICATE_A,
+          namespace);
+    } else {
+      clientServiceA.registerSecret(
+          namespace,
+          TestCertificates.ENTITY_ID_A,
+          TestCertificates.KEY_VERSION,
+          TestCertificates.SECRET_KEY_A);
+      return createHmacClientService(
+          TestCertificates.ENTITY_ID_A, TestCertificates.SECRET_KEY_A, namespace);
+    }
+  }
+
   private ClientService createDigitalSignatureClientService(
-      String entityId, String privateKey, String certificate) throws IOException {
+      String entityId, String privateKey, String certificate, @Nullable String contextNamespace)
+      throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
     props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
@@ -185,11 +221,14 @@ public abstract class LedgerNamespaceIntegrationTestBase {
     props.setProperty(ClientConfig.DS_PRIVATE_KEY_PEM, privateKey);
     props.setProperty(ClientConfig.DS_CERT_PEM, certificate);
     props.setProperty(ClientConfig.DS_CERT_VERSION, "1");
+    if (contextNamespace != null) {
+      props.setProperty(ClientConfig.CONTEXT_NAMESPACE, contextNamespace);
+    }
     return clientServiceFactory.create(new ClientConfig(props));
   }
 
-  private ClientService createHmacClientService(String entityId, String secretKey)
-      throws IOException {
+  private ClientService createHmacClientService(
+      String entityId, String secretKey, @Nullable String contextNamespace) throws IOException {
     Properties props = new Properties();
     props.setProperty(ClientConfig.SERVER_HOST, "localhost");
     props.setProperty(ClientConfig.SERVER_PORT, String.valueOf(cluster.getLedger().getPort()));
@@ -200,6 +239,9 @@ public abstract class LedgerNamespaceIntegrationTestBase {
     props.setProperty(ClientConfig.ENTITY_ID, entityId);
     props.setProperty(ClientConfig.HMAC_SECRET_KEY, secretKey);
     props.setProperty(ClientConfig.HMAC_SECRET_KEY_VERSION, "1");
+    if (contextNamespace != null) {
+      props.setProperty(ClientConfig.CONTEXT_NAMESPACE, contextNamespace);
+    }
     return clientServiceFactory.create(new ClientConfig(props));
   }
 
