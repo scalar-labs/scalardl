@@ -45,6 +45,7 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
   private String proofPrivateKey;
   private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
   private boolean transactionStatePurgeEnabled = false;
+  private boolean defaultNamespaceContractExecutionEnabled = true;
   private Map<String, String> namespaceCreationOptions = Collections.emptyMap();
 
   public LedgerContainer() {
@@ -133,6 +134,17 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
   }
 
   /**
+   * Disables contract execution in the default namespace so that the Ledger rejects contract
+   * execution requests whose context namespace is the default namespace.
+   *
+   * @return This container instance
+   */
+  public LedgerContainer withDefaultNamespaceContractExecutionDisabled() {
+    this.defaultNamespaceContractExecutionEnabled = false;
+    return this;
+  }
+
+  /**
    * Sets the options passed to ScalarDB when the Ledger creates a namespace, such as {@code
    * no-scaling} for DynamoDB Local.
    *
@@ -195,6 +207,9 @@ public class LedgerContainer extends GenericContainer<LedgerContainer> {
 
     if (transactionStatePurgeEnabled) {
       props.setProperty("scalar.dl.ledger.transaction_state_purge.enabled", "true");
+    }
+    if (!defaultNamespaceContractExecutionEnabled) {
+      props.setProperty("scalar.dl.ledger.default_namespace_contract_execution.enabled", "false");
     }
 
     if (serversAuthenticationHmacSecretKey != null) {

@@ -25,6 +25,7 @@ public class LedgerTestCluster extends AbstractTestCluster {
   private final String ledgerImage;
   private LedgerContainer ledger;
   private boolean nonPrivilegedPortFunctionRegistrationEnabled = false;
+  private boolean defaultNamespaceContractExecutionEnabled = true;
 
   /**
    * Creates a test cluster with default settings.
@@ -72,6 +73,17 @@ public class LedgerTestCluster extends AbstractTestCluster {
     return this;
   }
 
+  /**
+   * Disables contract execution in the default namespace so that the Ledger rejects contract
+   * execution requests whose context namespace is the default namespace.
+   *
+   * @return This cluster instance
+   */
+  public LedgerTestCluster withDefaultNamespaceContractExecutionDisabled() {
+    this.defaultNamespaceContractExecutionEnabled = false;
+    return this;
+  }
+
   @Override
   @SuppressWarnings("resource")
   protected void startContainers() {
@@ -87,6 +99,9 @@ public class LedgerTestCluster extends AbstractTestCluster {
     ledger.withNamespaceCreationOptions(getSchemaCreationOptions());
     if (nonPrivilegedPortFunctionRegistrationEnabled) {
       ledger.withNonPrivilegedPortFunctionRegistrationEnabled();
+    }
+    if (!defaultNamespaceContractExecutionEnabled) {
+      ledger.withDefaultNamespaceContractExecutionDisabled();
     }
     ledger.withLogConsumer(new Slf4jLogConsumer(logger).withPrefix("ledger"));
     ledger.start();

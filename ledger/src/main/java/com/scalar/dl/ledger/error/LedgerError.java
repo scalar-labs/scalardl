@@ -115,6 +115,12 @@ public enum LedgerError implements ScalarDlError {
       "Transaction state purge is disabled.",
       "",
       "Set 'scalar.dl.ledger.transaction_state_purge.enabled' to true in the Ledger configuration (for example, ledger.properties) and restart Ledger to allow purge."),
+  DEFAULT_NAMESPACE_CONTRACT_EXECUTION_NOT_SUPPORTED(
+      StatusCode.INVALID_REQUEST,
+      "008",
+      "Executing a contract in the default namespace is not supported in this configuration.",
+      "",
+      "Execute the contract in a non-default namespace. Contract execution in the default namespace is not supported when 'scalar.dl.ledger.default_namespace_contract_execution.enabled' is false in the Ledger configuration or when a namespace created for import exists."),
 
   //
   // Errors for ASSET_NOT_FOUND(409)
